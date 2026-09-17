@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { StarIcon, EditIcon, NotificationIcon } from '../Assets/Icons';
+import { StarIcon, EditIcon, NotificationIcon } from '../Assets/Assets';
 
 const drawerWidth = 240;
 
