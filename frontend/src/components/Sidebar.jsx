@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import logo from "../Assets/logo.png";
-import { HandIcon, ListCheckIcon } from "../Assets/Assets";
+import { HandIcon,ListCheckIcon } from "../assets/Assets";
 
 const drawerWidth = 240;
 
