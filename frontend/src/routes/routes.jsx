@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import AllPatient from '../pages/AllPatient';
 import AddNewPatient from '../pages/AddNewPatient';
+import NewEncounter from "../pages/NewEncounter";
 import Statement from '../pages/Statement';
 import Refunds from '../pages/Refunds';
 import BulkEligibility from '../pages/BulkEligibility';
@@ -134,6 +135,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+        <Route
+  path="/new-encounter"
+  element={
+    <ProtectedRoute>
+      <NewEncounter />
+    </ProtectedRoute>
+  }
+/>
+
     </Routes>
   );
 };

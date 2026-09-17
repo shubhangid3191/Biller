@@ -26,7 +26,6 @@ function Sidebar() {
 
   const [expandedSections, setExpandedSections] = useState({
     command: true,
-    encounters: false,
     configuration: false,
     patient: false,
     claims: false,
@@ -351,13 +350,21 @@ function Sidebar() {
             </List>
           </Collapse>
 
-          {/* ENCOUNTERS Section */}
+          {/* ENCOUNTERS Section — navigates directly, no submenu */}
           <ListItem disablePadding>
             <ListItemButton
-              onClick={() => toggleSection("encounters")}
+              onClick={() => handleNavigation("/new-encounter")}
+              selected={isActive("/new-encounter")}
               sx={{
                 py: 1.5,
                 px: 2,
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(0, 212, 255, 0.15)",
+                  borderLeft: "3px solid #00d4ff",
+                  "&:hover": {
+                    backgroundColor: "rgba(0, 212, 255, 0.2)",
+                  },
+                },
                 "&:hover": {
                   backgroundColor: "rgba(255, 255, 255, 0.05)",
                 },
@@ -366,7 +373,9 @@ function Sidebar() {
               <Typography
                 variant="caption"
                 sx={{
-                  color: "rgba(255, 255, 255, 0.5)",
+                  color: isActive("/new-encounter")
+                    ? "#00d4ff"
+                    : "rgba(255, 255, 255, 0.5)",
                   fontWeight: 600,
                   letterSpacing: 1,
                   flex: 1,
@@ -375,17 +384,6 @@ function Sidebar() {
               >
                 ENCOUNTERS
               </Typography>
-              {expandedSections.encounters ? (
-                <Remove
-                  fontSize="small"
-                  sx={{ color: "rgba(255, 255, 255, 0.5)" }}
-                />
-              ) : (
-                <Add
-                  fontSize="small"
-                  sx={{ color: "rgba(255, 255, 255, 0.5)" }}
-                />
-              )}
             </ListItemButton>
           </ListItem>
 
