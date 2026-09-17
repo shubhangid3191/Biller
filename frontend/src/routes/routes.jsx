@@ -42,7 +42,7 @@ const AppRoutes = () => {
         path="/add-patient"
         element={
           <ProtectedRoute>
-            <AddNewPatient  />
+             <AllPatient />
           </ProtectedRoute>
         }
       />
@@ -51,6 +51,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AllPatient />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/add-new-patient"
+        element={
+          <ProtectedRoute>
+            <AddNewPatient />
           </ProtectedRoute>
         }
       />
