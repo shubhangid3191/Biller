@@ -8,6 +8,7 @@ import Refunds from "../pages/Refunds";
 import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
+import PreBillingClaim from '../pages/PreBillingClaim';
 
 const AppRoutes = () => {
   return (
@@ -93,6 +94,46 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <div style={{ padding: "24px" }}>EOB Upload Page</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pre-billing-claim"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post-billing-claim"
+        element={
+          <ProtectedRoute>
+            <div style={{ padding: '24px' }}>Post Billing Claim Page</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/encounter-list"
+        element={
+          <ProtectedRoute>
+            <div style={{ padding: '24px' }}>Encounter List Page</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/era"
+        element={
+          <ProtectedRoute>
+            <div style={{ padding: '24px' }}>ERA Page</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/collections"
+        element={
+          <ProtectedRoute>
+            <div style={{ padding: '24px' }}>Collections Page</div>
           </ProtectedRoute>
         }
       />
