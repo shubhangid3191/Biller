@@ -1,12 +1,13 @@
-import { Routes, Route } from 'react-router-dom';
-import ProtectedRoute from './ProtectedRoute';
-import AllPatient from '../pages/AllPatient';
-import AddNewPatient from '../pages/AddNewPatient';
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
+import AllPatient from "../pages/AllPatient";
+import AddNewPatient from "../pages/AddNewPatient";
 import NewEncounter from "../pages/NewEncounter";
-import Statement from '../pages/Statement';
-import Refunds from '../pages/Refunds';
-import BulkEligibility from '../pages/BulkEligibility';
-import Login from '../pages/Login';
+import Statement from "../pages/Statement";
+import Refunds from "../pages/Refunds";
+import BulkEligibility from "../pages/BulkEligibility";
+import Login from "../pages/Login";
+import ConfirmPatientList from "../pages/ConfirmPatientList";
 
 const AppRoutes = () => {
   return (
@@ -19,7 +20,7 @@ const AppRoutes = () => {
         path="/summary"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Summary Page</div>
+            <div style={{ padding: "24px" }}>Summary Page</div>
           </ProtectedRoute>
         }
       />
@@ -27,7 +28,7 @@ const AppRoutes = () => {
         path="/ai-insights"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>AI Insights Page</div>
+            <div style={{ padding: "24px" }}>AI Insights Page</div>
           </ProtectedRoute>
         }
       />
@@ -35,7 +36,7 @@ const AppRoutes = () => {
         path="/my-tasks"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>My Tasks Page</div>
+            <div style={{ padding: "24px" }}>My Tasks Page</div>
           </ProtectedRoute>
         }
       />
@@ -43,7 +44,7 @@ const AppRoutes = () => {
         path="/add-patient"
         element={
           <ProtectedRoute>
-             <AllPatient />
+            <AllPatient />
           </ProtectedRoute>
         }
       />
@@ -51,7 +52,7 @@ const AppRoutes = () => {
         path="/patient-list"
         element={
           <ProtectedRoute>
-            <AllPatient />
+            <ConfirmPatientList />
           </ProtectedRoute>
         }
       />
@@ -91,7 +92,7 @@ const AppRoutes = () => {
         path="/eob-upload"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>EOB Upload Page</div>
+            <div style={{ padding: "24px" }}>EOB Upload Page</div>
           </ProtectedRoute>
         }
       />
@@ -99,7 +100,7 @@ const AppRoutes = () => {
         path="/icd-10-search"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>ICD 10 Search Page</div>
+            <div style={{ padding: "24px" }}>ICD 10 Search Page</div>
           </ProtectedRoute>
         }
       />
@@ -107,7 +108,7 @@ const AppRoutes = () => {
         path="/excel-access"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Excel Access Page</div>
+            <div style={{ padding: "24px" }}>Excel Access Page</div>
           </ProtectedRoute>
         }
       />
@@ -115,7 +116,7 @@ const AppRoutes = () => {
         path="/reports"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Reports Page</div>
+            <div style={{ padding: "24px" }}>Reports Page</div>
           </ProtectedRoute>
         }
       />
@@ -123,7 +124,7 @@ const AppRoutes = () => {
         path="/documents"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Documents Page</div>
+            <div style={{ padding: "24px" }}>Documents Page</div>
           </ProtectedRoute>
         }
       />
@@ -131,20 +132,19 @@ const AppRoutes = () => {
         path="/"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Welcome to TiaSTAT</div>
+            <div style={{ padding: "24px" }}>Welcome to TiaSTAT</div>
           </ProtectedRoute>
         }
       />
 
-        <Route
-  path="/new-encounter"
-  element={
-    <ProtectedRoute>
-      <NewEncounter />
-    </ProtectedRoute>
-  }
-/>
-
+      <Route
+        path="/new-encounter"
+        element={
+          <ProtectedRoute>
+            <NewEncounter />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };

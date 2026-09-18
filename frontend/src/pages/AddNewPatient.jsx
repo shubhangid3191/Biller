@@ -123,7 +123,9 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
   const [dropActive, setDropActive] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleFile = (f) => { if (f) setFile(f); };
+  const handleFile = (f) => {
+    if (f) setFile(f);
+  };
   const handleDrop = (e) => {
     e.preventDefault();
     setDropActive(false);
@@ -137,9 +139,17 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
     onClose();
   };
   const handleOk = async () => {
-    if (!file) { handleClose(); return; }
+    if (!file) {
+      handleClose();
+      return;
+    }
     setLoading(true);
-    try { await onOk(file); } finally { setLoading(false); setFile(null); }
+    try {
+      await onOk(file);
+    } finally {
+      setLoading(false);
+      setFile(null);
+    }
   };
 
   return (
@@ -180,7 +190,14 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           pb: 1.5,
         }}
       >
-        <Typography sx={{ fontWeight: 600, fontSize: 18, fontFamily: FONT, color: "#111827" }}>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: 18,
+            fontFamily: FONT,
+            color: "#111827",
+          }}
+        >
           {cfg.title}
         </Typography>
         <IconButton onClick={handleClose} sx={{ color: "#015DFF", p: 0.5 }}>
@@ -214,11 +231,21 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
             <DragFileIcon width={40} height={36} />
           </Box>
-          <Typography sx={{ fontWeight: 500, color: "#4B5563", fontFamily: FONT, fontSize: 14 }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              color: "#4B5563",
+              fontFamily: FONT,
+              fontSize: 14,
+            }}
+          >
             {cfg.hint}
           </Typography>
           {cfg.ext && (
-            <Typography variant="body2" sx={{ color: "#9CA3AF", mt: 0.3, fontSize: 12 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: "#9CA3AF", mt: 0.3, fontSize: 12 }}
+            >
               {cfg.ext}
             </Typography>
           )}
@@ -241,14 +268,29 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           <Box sx={{ display: "flex", justifyContent: "center", mb: 0.75 }}>
             <UploadFileIcon width={36} height={29} />
           </Box>
-          <Typography sx={{ fontWeight: 500, color: "#4B5563", fontFamily: FONT, fontSize: 14 }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              color: "#4B5563",
+              fontFamily: FONT,
+              fontSize: 14,
+            }}
+          >
             Upload file from computer
           </Typography>
         </Box>
 
         {/* Selected file name */}
         {file && (
-          <Typography sx={{ mt: 2, textAlign: "center", color: "#2563EB", fontWeight: 500, fontSize: 13 }}>
+          <Typography
+            sx={{
+              mt: 2,
+              textAlign: "center",
+              color: "#2563EB",
+              fontWeight: 500,
+              fontSize: 13,
+            }}
+          >
             Selected: {file.name}
           </Typography>
         )}
@@ -268,7 +310,12 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
       >
         <Button
           onClick={handleClose}
-          sx={{ color: "#6B7280", textTransform: "none", fontFamily: FONT, fontWeight: 500 }}
+          sx={{
+            color: "#6B7280",
+            textTransform: "none",
+            fontFamily: FONT,
+            fontWeight: 500,
+          }}
         >
           Cancel
         </Button>
@@ -839,7 +886,7 @@ function AddNewPatient() {
         >
           <Button
             variant="outlined"
-            onClick={() => navigate("/patient-list")}
+            onClick={() => navigate("/add-patient")}
             sx={{
               borderColor: "#3182CE",
               color: "#3182CE",
