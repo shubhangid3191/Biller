@@ -1,32 +1,45 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
+  Dialog,
   FormControl,
+  IconButton,
   InputAdornment,
   MenuItem,
   Paper,
+  Popover,
   Select,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import dayjs from "dayjs";
 import {
   OcrIcon,
   ExcelIcon,
   JsonIcon,
   Hl7Icon,
   CalendarIcon,
+  DragFileIcon,
+  UploadFileIcon,
 } from "../assets/Assets";
 
+const FONT = "'Inter', 'Segoe UI', sans-serif";
+
 /* ------------------------------------------------------------------ */
-/* Theme — single source of truth for all inputs                       */
+/* Theme                                                                */
 /* ------------------------------------------------------------------ */
 const theme = createTheme({
   palette: { primary: { main: "#015DFF" } },
-  typography: { fontFamily: "'Inter', 'Segoe UI', sans-serif" },
+  typography: { fontFamily: FONT },
   components: {
     MuiOutlinedInput: {
       styleOverrides: {
@@ -58,9 +71,7 @@ const theme = createTheme({
         },
       },
     },
-    MuiMenuItem: {
-      styleOverrides: { root: { fontSize: 13 } },
-    },
+    MuiMenuItem: { styleOverrides: { root: { fontSize: 13 } } },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -76,7 +87,215 @@ const theme = createTheme({
 });
 
 /* ------------------------------------------------------------------ */
-/* Field label                                                          */
+/* Upload Dialog — reusable for all 4 types                            */
+/* ------------------------------------------------------------------ */
+const DIALOG_CONFIG = {
+  OCR: {
+    title: "Upload Image",
+    accept: "image/*,.pdf",
+    hint: "Drag and drop any media or text snippets\nfor adding patients",
+    ext: "PNG, JPG, PDF",
+  },
+  Excel: {
+    title: "Import Excel",
+    accept: ".xlsx,.xls,.csv",
+    hint: "Drag and drop Excel file here",
+    ext: ".xlsx, .xls or .csv",
+  },
+  JSON: {
+    title: "Import JSON",
+    accept: ".json",
+    hint: "Drag and drop JSON file here",
+    ext: ".json",
+  },
+  HL7: {
+    title: "Import HL7",
+    accept: ".hl7,.txt",
+    hint: "Drag and drop HL7 file here",
+    ext: ".hl7 or .txt",
+  },
+};
+
+const UploadDialog = ({ open, type, onClose, onOk }) => {
+  const cfg = DIALOG_CONFIG[type] || {};
+  const fileInputRef = useRef(null);
+  const [file, setFile] = useState(null);
+  const [dropActive, setDropActive] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleFile = (f) => { if (f) setFile(f); };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDropActive(false);
+    const f = e.dataTransfer?.files?.[0];
+    if (f) handleFile(f);
+  };
+  const handleClose = () => {
+    setFile(null);
+    setDropActive(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    onClose();
+  };
+  const handleOk = async () => {
+    if (!file) { handleClose(); return; }
+    setLoading(true);
+    try { await onOk(file); } finally { setLoading(false); setFile(null); }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "16px",
+          p: 0,
+          overflow: "hidden",
+        },
+      }}
+    >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={cfg.accept}
+        style={{ display: "none" }}
+        onChange={(e) => handleFile(e.target.files[0])}
+      />
+
+      {/* Title */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontWeight: 600,
+          fontSize: "18px",
+          fontFamily: FONT,
+          borderBottom: "1px dashed #A7C7E7",
+          px: 2.5,
+          pt: 2.5,
+          pb: 1.5,
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, fontSize: 18, fontFamily: FONT, color: "#111827" }}>
+          {cfg.title}
+        </Typography>
+        <IconButton onClick={handleClose} sx={{ color: "#015DFF", p: 0.5 }}>
+          <CloseIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+      </Box>
+
+      {/* Content */}
+      <Box sx={{ px: 2.5, pt: 1.5, pb: 1 }}>
+        {/* Drag & Drop zone */}
+        <Box
+          onClick={() => fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onDragEnter={() => setDropActive(true)}
+          onDragLeave={() => setDropActive(false)}
+          sx={{
+            border: "2px dashed #B4CFFC",
+            borderRadius: "14px",
+            background: dropActive ? "#F2F8FE" : "#EAF2FF",
+            textAlign: "center",
+            py: { xs: 3, sm: 4 },
+            px: 2,
+            cursor: "pointer",
+            mb: 2,
+            mt: 1,
+            transition: "0.2s",
+            "&:hover": { background: "#EDF5FF" },
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+            <DragFileIcon width={40} height={36} />
+          </Box>
+          <Typography sx={{ fontWeight: 500, color: "#4B5563", fontFamily: FONT, fontSize: 14 }}>
+            {cfg.hint}
+          </Typography>
+          {cfg.ext && (
+            <Typography variant="body2" sx={{ color: "#9CA3AF", mt: 0.3, fontSize: 12 }}>
+              {cfg.ext}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Upload from computer zone */}
+        <Box
+          onClick={() => fileInputRef.current?.click()}
+          sx={{
+            borderRadius: "14px",
+            background: "#EAF2FF",
+            textAlign: "center",
+            py: 3,
+            px: 2,
+            cursor: "pointer",
+            transition: "0.2s",
+            "&:hover": { background: "#EDF5FF" },
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 0.75 }}>
+            <UploadFileIcon width={36} height={29} />
+          </Box>
+          <Typography sx={{ fontWeight: 500, color: "#4B5563", fontFamily: FONT, fontSize: 14 }}>
+            Upload file from computer
+          </Typography>
+        </Box>
+
+        {/* Selected file name */}
+        {file && (
+          <Typography sx={{ mt: 2, textAlign: "center", color: "#2563EB", fontWeight: 500, fontSize: 13 }}>
+            Selected: {file.name}
+          </Typography>
+        )}
+      </Box>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 1,
+          p: 2.5,
+          borderTop: "1px solid #E5E7EB",
+          bgcolor: "#F9FAFB",
+        }}
+      >
+        <Button
+          onClick={handleClose}
+          sx={{ color: "#6B7280", textTransform: "none", fontFamily: FONT, fontWeight: 500 }}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleOk}
+          disabled={!file || loading}
+          sx={{
+            background: "#015DFF",
+            borderRadius: "8px",
+            px: 3,
+            textTransform: "none",
+            fontFamily: FONT,
+            fontWeight: 600,
+            "&:hover": { background: "#0148CC" },
+            "&.Mui-disabled": { background: "#B3C9FF", color: "#fff" },
+          }}
+        >
+          {loading ? "Processing..." : "OK"}
+        </Button>
+      </Box>
+    </Dialog>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/* Sub-components                                                       */
 /* ------------------------------------------------------------------ */
 const FieldLabel = ({ children, required }) => (
   <Typography
@@ -101,9 +320,6 @@ const FieldLabel = ({ children, required }) => (
   </Typography>
 );
 
-/* ------------------------------------------------------------------ */
-/* Section header                                                       */
-/* ------------------------------------------------------------------ */
 const SectionHeader = ({ title }) => (
   <Typography
     sx={{
@@ -118,32 +334,30 @@ const SectionHeader = ({ title }) => (
   </Typography>
 );
 
-/* ------------------------------------------------------------------ */
-/* Toolbar button                                                       */
-/* ------------------------------------------------------------------ */
-const ToolbarBtn = ({ icon, label }) => (
+const ToolbarBtn = ({ icon, label, onClick }) => (
   <Button
     variant="outlined"
     startIcon={icon}
+    onClick={onClick}
     sx={{
-      borderColor: "#C5C6CC",
+      borderColor: "#E1E1E2",
       color: "#015DFF",
-      fontWeight: 500,
-      fontSize: 12,
-      borderRadius: "6px",
-      height: "42px",
+      fontWeight: 600,
+      fontSize: 13,
+      borderRadius: "8px",
+      height: "36px",
       px: 1.5,
+      minWidth: "unset",
+      backgroundColor: "#fff",
       "& .MuiButton-startIcon": { mr: 0.5 },
-      "&:hover": { borderColor: "#015DFF", background: "#EEF4FF" },
+      "&:hover": { borderColor: "#015DFF", background: "#F5F8FF" },
+      boxShadow: "none",
     }}
   >
     {label}
   </Button>
 );
 
-/* ------------------------------------------------------------------ */
-/* Dropdown (Select)                                                    */
-/* ------------------------------------------------------------------ */
 const DropdownField = ({ value, onChange, placeholder, children }) => (
   <FormControl fullWidth>
     <Select
@@ -151,7 +365,10 @@ const DropdownField = ({ value, onChange, placeholder, children }) => (
       onChange={onChange}
       displayEmpty
       IconComponent={(props) => (
-        <KeyboardArrowDownIcon {...props} sx={{ color: "#8F9098", fontSize: 20 }} />
+        <KeyboardArrowDownIcon
+          {...props}
+          sx={{ color: "#8F9098", fontSize: 20 }}
+        />
       )}
       renderValue={(val) =>
         val ? (
@@ -186,9 +403,6 @@ const DropdownField = ({ value, onChange, placeholder, children }) => (
   </FormControl>
 );
 
-/* ------------------------------------------------------------------ */
-/* Text input                                                           */
-/* ------------------------------------------------------------------ */
 const TextInput = ({ placeholder, value, onChange, type = "text" }) => (
   <TextField
     fullWidth
@@ -200,29 +414,92 @@ const TextInput = ({ placeholder, value, onChange, type = "text" }) => (
   />
 );
 
-/* ------------------------------------------------------------------ */
-/* Date input                                                           */
-/* ------------------------------------------------------------------ */
-const DateInput = ({ value, onChange }) => (
-  <TextField
-    fullWidth
-    placeholder="DD-MM-YYYY"
-    value={value}
-    onChange={onChange}
-    InputProps={{
-      endAdornment: (
-        <InputAdornment position="end" sx={{ mr: "-4px" }}>
-          <CalendarIcon width={10} height={10} color="#1E1E1E" />
-        </InputAdornment>
-      ),
-    }}
-    sx={{ "& .MuiInputBase-root": { height: "42px" } }}
-  />
-);
+const DateInput = ({ value, onChange }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const iconRef = useRef(null);
 
-/* ------------------------------------------------------------------ */
-/* Field wrapper                                                        */
-/* ------------------------------------------------------------------ */
+  const handleIconClick = (e) => {
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDateChange = (newVal) => {
+    if (newVal) {
+      onChange({ target: { value: newVal.format("DD-MM-YYYY") } });
+    }
+    handleClose();
+  };
+
+  const parsedValue = value
+    ? dayjs(value, "DD-MM-YYYY").isValid()
+      ? dayjs(value, "DD-MM-YYYY")
+      : null
+    : null;
+
+  const open = Boolean(anchorEl);
+
+  return (
+    <>
+      <TextField
+        fullWidth
+        placeholder="DD-MM-YYYY"
+        value={value}
+        onChange={onChange}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end" sx={{ mr: "-4px" }}>
+                <IconButton
+                  ref={iconRef}
+                  onClick={handleIconClick}
+                  sx={{ p: "4px", "&:hover": { background: "transparent" } }}
+                  disableRipple
+                >
+                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={{ "& .MuiInputBase-root": { height: "42px" } }}
+      />
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: {
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+            mt: 0.5,
+          },
+        }}
+      >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateCalendar
+            value={parsedValue}
+            onChange={handleDateChange}
+            sx={{
+              width: { xs: "280px", sm: "320px" },
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#015DFF",
+              },
+              "& .MuiPickersDay-root:hover": {
+                backgroundColor: "#EEF4FF",
+              },
+            }}
+          />
+        </LocalizationProvider>
+      </Popover>
+    </>
+  );
+};
+
 const FormField = ({ label, required, children }) => (
   <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
     <FieldLabel required={required}>{label}</FieldLabel>
@@ -230,9 +507,6 @@ const FormField = ({ label, required, children }) => (
   </Box>
 );
 
-/* ------------------------------------------------------------------ */
-/* 3-column row                                                         */
-/* ------------------------------------------------------------------ */
 const FieldRow = ({ children, mb = "16px" }) => (
   <Box
     sx={{
@@ -251,6 +525,7 @@ const FieldRow = ({ children, mb = "16px" }) => (
 /* Main Component                                                       */
 /* ------------------------------------------------------------------ */
 function AddNewPatient() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     provider: "",
     specialty: "",
@@ -273,8 +548,16 @@ function AddNewPatient() {
     status: "",
   });
 
+  // Dialog state: null | "OCR" | "Excel" | "JSON" | "HL7"
+  const [openDialog, setOpenDialog] = useState(null);
+
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const handleOk = (file) => {
+    if (file) console.log(`[${openDialog}] file selected:`, file.name);
+    setOpenDialog(null);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -297,7 +580,9 @@ function AddNewPatient() {
           }}
         >
           <Box>
-            <Typography sx={{ fontWeight: 700, color: "#111827", fontSize: 17 }}>
+            <Typography
+              sx={{ fontWeight: 700, color: "#111827", fontSize: 17 }}
+            >
               Add New Patient
             </Typography>
             <Typography sx={{ color: "#6B7280", mt: 0.3, fontSize: 12 }}>
@@ -305,12 +590,39 @@ function AddNewPatient() {
             </Typography>
           </Box>
           <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
-            <ToolbarBtn icon={<OcrIcon />} label="OCR" />
-            <ToolbarBtn icon={<ExcelIcon />} label="Excel" />
-            <ToolbarBtn icon={<JsonIcon />} label="JSON" />
-            <ToolbarBtn icon={<Hl7Icon />} label="HL7" />
+            <ToolbarBtn
+              icon={<OcrIcon />}
+              label="OCR"
+              onClick={() => setOpenDialog("OCR")}
+            />
+            <ToolbarBtn
+              icon={<ExcelIcon />}
+              label="Excel"
+              onClick={() => setOpenDialog("Excel")}
+            />
+            <ToolbarBtn
+              icon={<JsonIcon />}
+              label="JSON"
+              onClick={() => setOpenDialog("JSON")}
+            />
+            <ToolbarBtn
+              icon={<Hl7Icon />}
+              label="HL7"
+              onClick={() => setOpenDialog("HL7")}
+            />
           </Stack>
         </Box>
+
+        {/* ---- Upload Dialogs ---- */}
+        {["OCR", "Excel", "JSON", "HL7"].map((type) => (
+          <UploadDialog
+            key={type}
+            open={openDialog === type}
+            type={type}
+            onClose={() => setOpenDialog(null)}
+            onOk={handleOk}
+          />
+        ))}
 
         {/* ---- ASSIGN ---- */}
         <Paper
@@ -318,7 +630,6 @@ function AddNewPatient() {
           sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="ASSIGN" />
-
           <FieldRow>
             <FormField label="Provider">
               <DropdownField
@@ -353,7 +664,6 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
-
           <FieldRow mb="0px">
             <FormField label="Primary Care Physician">
               <DropdownField
@@ -385,7 +695,6 @@ function AddNewPatient() {
           sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="BASIC INFORMATION" />
-
           <FieldRow>
             <FormField label="Patient Type" required>
               <TextInput
@@ -412,7 +721,6 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
-
           <FieldRow>
             <FormField label="Patient First Name" required>
               <TextInput
@@ -436,7 +744,6 @@ function AddNewPatient() {
               />
             </FormField>
           </FieldRow>
-
           <FieldRow>
             <FormField label="Date of Birth" required>
               <DateInput
@@ -459,7 +766,6 @@ function AddNewPatient() {
               />
             </FormField>
           </FieldRow>
-
           <Box sx={{ display: "flex", gap: "16px" }}>
             <Box sx={{ flex: "1 1 0", minWidth: 0 }}>
               <FormField label="Email" required>
@@ -481,7 +787,6 @@ function AddNewPatient() {
           sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="VISIT DETAILS" />
-
           <FieldRow>
             <FormField label="Admit Date" required>
               <TextInput
@@ -504,7 +809,6 @@ function AddNewPatient() {
               />
             </FormField>
           </FieldRow>
-
           <Box sx={{ display: "flex", gap: "16px" }}>
             <Box sx={{ flex: "1 1 0", minWidth: 0 }}>
               <FormField label="Status">
@@ -535,6 +839,7 @@ function AddNewPatient() {
         >
           <Button
             variant="outlined"
+            onClick={() => navigate("/patient-list")}
             sx={{
               borderColor: "#3182CE",
               color: "#3182CE",
