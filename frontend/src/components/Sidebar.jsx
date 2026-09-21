@@ -121,7 +121,7 @@ function Sidebar() {
     {
       text: "Post Billing Claim",
       icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
-      path: "/post-billing-claim",
+      path: "/post-billing-claim-page",
       badge: null,
     },
     {

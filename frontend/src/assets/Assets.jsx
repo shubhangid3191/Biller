@@ -844,3 +844,11 @@ export const download = ({ width = 16, height = 16, color = "#9CA3AF" }) => (
     />
   </svg>
 );
+
+
+export const Star = ({ width = 16, height = 16, color = "#9CA3AF" }) => (
+<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.5 1.875L8.6875 4.75L11.5625 5.625L8.6875 6.8125L7.5 9.375L6.3125 6.8125L3.4375 5.625L6.3125 4.75L7.5 1.875Z" fill="#006FFD"/>
+<path d="M11.25 12C12.0094 12 12.625 11.3844 12.625 10.625C12.625 9.86561 12.0094 9.25 11.25 9.25C10.4906 9.25 9.875 9.86561 9.875 10.625C9.875 11.3844 10.4906 12 11.25 12Z" fill="#006FFD"/>
+</svg>
+);

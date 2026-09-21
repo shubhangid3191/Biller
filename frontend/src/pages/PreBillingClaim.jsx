@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -26,7 +25,6 @@ import {
   ViewList,
   ViewModule,
   KeyboardArrowDown,
-  FileDownload,
 } from "@mui/icons-material";
 import {
   Search,
@@ -39,37 +37,18 @@ import {
   Icon4,
   Icon5,
   Icon6,
+  Star,
 } from "../assets/Assets";
 
 function PreBillingClaim() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // Determine initial tab based on current route
-  const getInitialTab = () => {
-    if (location.pathname === '/post-billing-claim') return 1;
-    return 0;
-  };
-  
-  const [currentTab, setCurrentTab] = useState(getInitialTab());
+  const [currentTab, setCurrentTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Update tab when route changes
-  useEffect(() => {
-    setCurrentTab(getInitialTab());
-  }, [location.pathname]);
-
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
-    // Navigate to corresponding route when tab changes
-    if (newValue === 0) {
-      navigate('/pre-billing-claim');
-    } else if (newValue === 1) {
-      navigate('/post-billing-claim');
-    }
   };
 
   const handleSelectAllClick = (event) => {
@@ -117,8 +96,8 @@ function PreBillingClaim() {
     return colors[groupIndex];
   };
 
-  // Sample data
-  const claimsData = [
+  // Sample data for Pre-billing
+  const preBillingClaimsData = [
     {
       id: 1,
       encounterId: "1234567",
@@ -485,6 +464,219 @@ function PreBillingClaim() {
     },
   ];
 
+  // Sample data for Post-billing
+  const postBillingClaimsData = [
+    {
+      id: 1,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Submitted",
+      statusColor: "#E1BEE7",
+      statusTextColor: "#6A1B9A",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 2,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Ready for statement",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 3,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Submitted",
+      statusColor: "#E1BEE7",
+      statusTextColor: "#6A1B9A",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 4,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Settled",
+      statusColor: "#B2DFDB",
+      statusTextColor: "#00695C",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 5,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Ready for statement",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 6,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Submitted",
+      statusColor: "#E1BEE7",
+      statusTextColor: "#6A1B9A",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 7,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Ready for statement",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 8,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "ERA Received",
+      statusColor: "#BBDEFB",
+      statusTextColor: "#0D47A1",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 9,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Settled",
+      statusColor: "#B2DFDB",
+      statusTextColor: "#00695C",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 10,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "Posted",
+      statusColor: "#C8E6C9",
+      statusTextColor: "#2E7D32",
+      clearingHouse: "1234567",
+    },
+    {
+      id: 11,
+      dos: "11/20/25",
+      patientName: "Lisha Cook",
+      gender: "(F)",
+      cpt: "11980 00934",
+      modifier: "26, LT",
+      icd: "$11.011D Z20.4",
+      billedTo: "Aetna",
+      billed: "$1,240",
+      adjustment: "$75",
+      insurancePayment: "$75",
+      patientPayment: "$75",
+      billedAs: "Primary",
+      status: "ERA Received",
+      statusColor: "#BBDEFB",
+      statusTextColor: "#0D47A1",
+      clearingHouse: "1234567",
+    },
+  ];
+
   const tabs = [
     { label: "Pre-billing Claims" },
     { label: "Post-billing Claims" },
@@ -501,16 +693,18 @@ function PreBillingClaim() {
     { id: "archived", label: "Archived 0", count: 0 },
   ];
 
-  // Filter data based on selected status
-  const filteredData = claimsData.filter((claim) => {
-    if (statusFilter === "all") return true;
-    if (statusFilter === "unbilled") return claim.status === "Unbilled";
-    if (statusFilter === "ready") return claim.status === "Ready";
-    if (statusFilter === "need") return claim.status === "Need Info";
-    if (statusFilter === "processed") return claim.status === "Processed";
-    if (statusFilter === "archived") return claim.status === "Archived";
-    return true;
-  });
+  // Filter data based on selected status - only for pre-billing tab
+  const filteredData = currentTab === 0 
+    ? preBillingClaimsData.filter((claim) => {
+        if (statusFilter === "all") return true;
+        if (statusFilter === "unbilled") return claim.status === "Unbilled";
+        if (statusFilter === "ready") return claim.status === "Ready";
+        if (statusFilter === "need") return claim.status === "Need Info";
+        if (statusFilter === "processed") return claim.status === "Processed";
+        if (statusFilter === "archived") return claim.status === "Archived";
+        return true;
+      })
+    : postBillingClaimsData;
 
   return (
     <Box
@@ -657,72 +851,77 @@ function PreBillingClaim() {
             Advanced filters
           </Button>
 
-          {/* List / Grid - Single Merged Toggle */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              height: 32,
-              border: "1px solid #E5E7EB",
-              borderRadius: "8px",
-              overflow: "hidden",
-              backgroundColor: "#FFFFFF",
-            }}
-          >
-            {/* List */}
-            <IconButton
-              size="small"
-              onClick={() => setViewMode("list")}
+          {/* List / Grid - Single Merged Toggle - Only for Pre-billing tab */}
+          {currentTab === 0 && (
+            <Box
               sx={{
-                width: 32,
-                height: 34,
-                borderRadius: 0,
-                backgroundColor: viewMode === "list" ? "#0066FF" : "#FFFFFF",
-                color: viewMode === "list" ? "#FFFFFF" : "#6B7280",
-
-                "&:hover": {
-                  backgroundColor: viewMode === "list" ? "#0052CC" : "#F3F4F6",
-                },
+                display: "flex",
+                alignItems: "center",
+                height: 32,
+                border: "1px solid #E5E7EB",
+                borderRadius: "8px",
+                overflow: "hidden",
+                backgroundColor: "#FFFFFF",
               }}
             >
-              <ViewList sx={{ fontSize: 17 }} />
-            </IconButton>
+              {/* List */}
+              <IconButton
+                size="small"
+                onClick={() => setViewMode("list")}
+                sx={{
+                  width: 32,
+                  height: 34,
+                  borderRadius: 0,
+                  backgroundColor: viewMode === "list" ? "#0066FF" : "#FFFFFF",
+                  color: viewMode === "list" ? "#FFFFFF" : "#6B7280",
 
-            {/* Grid */}
-            <IconButton
-              size="small"
-              onClick={() => setViewMode("grid")}
-              sx={{
-                width: 32,
-                height: 34,
-                borderRadius: 0,
-                backgroundColor: viewMode === "grid" ? "#0066FF" : "#FFFFFF",
-                color: viewMode === "grid" ? "#FFFFFF" : "#6B7280",
+                  "&:hover": {
+                    backgroundColor: viewMode === "list" ? "#0052CC" : "#F3F4F6",
+                  },
+                }}
+              >
+                <ViewList sx={{ fontSize: 17 }} />
+              </IconButton>
 
-                "&:hover": {
-                  backgroundColor: viewMode === "grid" ? "#0052CC" : "#F3F4F6",
-                },
-              }}
-            >
-              <ViewModule sx={{ fontSize: 17 }} />
-            </IconButton>
-          </Box>
+              {/* Grid */}
+              <IconButton
+                size="small"
+                onClick={() => setViewMode("grid")}
+                sx={{
+                  width: 32,
+                  height: 34,
+                  borderRadius: 0,
+                  backgroundColor: viewMode === "grid" ? "#0066FF" : "#FFFFFF",
+                  color: viewMode === "grid" ? "#FFFFFF" : "#6B7280",
+
+                  "&:hover": {
+                    backgroundColor: viewMode === "grid" ? "#0052CC" : "#F3F4F6",
+                  },
+                }}
+              >
+                <ViewModule sx={{ fontSize: 17 }} />
+              </IconButton>
+            </Box>
+          )}
         </Box>
       </Box>
 
       {/* Info Banner */}
+      {currentTab === 0 && (
       <Box
   sx={{
-    backgroundColor: "#E8F4FD",
-    borderLeft: "4px solid #0066ff",
-    p: 1.5,
+    backgroundColor: "#EFF7FF",
+    border: "1px solid #D5E3F2",
+    p: "10px 12px",
     mx: 2,
     mt: 2,
-    borderRadius: 1,
+    borderRadius: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 2,
+    minHeight: "52px",
+    boxSizing: "border-box",
   }}
 >
   {/* Left Content */}
@@ -732,7 +931,7 @@ function PreBillingClaim() {
       flexDirection: "column",
       flex: 1,
       minWidth: 0,
-      gap: 0.3,
+      gap: "3px",
     }}
   >
     {/* Heading */}
@@ -740,15 +939,16 @@ function PreBillingClaim() {
       component="div"
       sx={{
         fontWeight: 700,
-        color: "#0066ff",
-        fontSize: 10,
+        color: "#0066FF",
+        fontSize: "10px",
         lineHeight: 1.2,
         display: "flex",
         alignItems: "center",
-        gap: 0.5,
+        gap: "5px",
       }}
     >
-      <span style={{ fontSize: 12 }}>✦</span>
+    <Star/>
+
       <span>CHARGE-CAPTURE ASSIST</span>
     </Typography>
 
@@ -756,9 +956,10 @@ function PreBillingClaim() {
     <Typography
       component="div"
       sx={{
-        color: "rgba(0, 0, 0, 0.75)",
-        fontSize: 11,
+        color: "#374151",
+        fontSize: "11px",
         lineHeight: 1.45,
+        whiteSpace: "normal",
       }}
     >
       TiaStat auto-coded <strong>11 encounters</strong> from clinical notes.{" "}
@@ -775,20 +976,20 @@ function PreBillingClaim() {
     size="small"
     sx={{
       textTransform: "none",
-      backgroundColor: "#0066ff",
+      backgroundColor: "#0066FF",
       color: "#fff",
       boxShadow: "none",
-      fontSize: 11,
+      fontSize: "11px",
       px: 2,
-      py: 0.7,
-      minWidth: 84,
-      height: 30,
+      py: 0,
+      minWidth: "89px",
+      height: "30px",
       fontWeight: 600,
       whiteSpace: "nowrap",
       flexShrink: 0,
       borderRadius: "6px",
       "&:hover": {
-        backgroundColor: "#0052cc",
+        backgroundColor: "#0066FF",
         boxShadow: "none",
       },
     }}
@@ -796,8 +997,10 @@ function PreBillingClaim() {
     View details
   </Button>
 </Box>
+      )}
 
-      {/* Status Filter Chips and Actions in Same Row */}
+      {/* Status Filter Chips and Actions in Same Row - Only for Pre-billing */}
+      {currentTab === 0 && (
       <Box
         sx={{
           display: "flex",
@@ -839,7 +1042,7 @@ function PreBillingClaim() {
             size="small"
             sx={{
               width: 40,
-              height: 40,
+              height: 30,
               border: "none",
               borderRadius: "8px",
               backgroundColor: "white",
@@ -855,7 +1058,7 @@ function PreBillingClaim() {
             size="small"
             sx={{
               width: 40,
-              height: 40,
+              height: 30,
               border: "none",
               borderRadius: "8px",
               backgroundColor: "white",
@@ -867,20 +1070,31 @@ function PreBillingClaim() {
           >
             <DownloadIcon />
           </IconButton>
-          <Button
-            variant="outlined"
-            endIcon={<KeyboardArrowDown />}
-            sx={{
-              textTransform: "none",
-              color: "rgba(0, 0, 0, 0.87)",
-              borderColor: "rgba(0, 0, 0, 0.23)",
-              fontWeight: 500,
-              fontSize: 13,
-            }}
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-          >
-            Select Action
-          </Button>
+         <Button
+  variant="outlined"
+  endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
+  sx={{
+    textTransform: "none",
+    color: "#1f2937",
+    borderColor: "transparent",
+    backgroundColor: "white",
+    fontWeight: 500,
+    fontSize: 13,
+    height: 30,
+    px: 2,
+    minWidth: "auto",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    borderRadius: "8px",
+    "&:hover": {
+      borderColor: "transparent",
+      backgroundColor: "#f9fafb",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    },
+  }}
+  onClick={(e) => setAnchorEl(e.currentTarget)}
+>
+  Select Action
+</Button>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -896,7 +1110,11 @@ function PreBillingClaim() {
           </Menu>
         </Box>
       </Box>
+      )}
 
+      {/* Pre-billing Tab Content */}
+      {currentTab === 0 && (
+      <Box>
       {/* Table or Grid View */}
       {viewMode === "list" ? (
         <Box
@@ -910,15 +1128,43 @@ function PreBillingClaim() {
             sx={{
               boxShadow: "none",
               border: "1px solid #e0e0e0",
-              maxHeight: "calc(100vh - 320px)",
+              maxHeight: "calc(100vh - 280px)",
               overflowY: "auto",
               overflowX: "auto",
+              // Custom scrollbar styling - thin line style
+              "&::-webkit-scrollbar": {
+                width: "4px",
+                height: "4px",
+              },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#d1d5db",
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: "#9ca3af",
+              },
             }}
           >
             <Table size="small" sx={{ minWidth: 1400 }}>
-              <TableHead>
+            <TableHead
+  sx={{
+    "& .MuiTableCell-root": {
+      fontWeight: 600,
+      fontSize: 11,
+      color: "#374151",
+      py: 2,
+      px: 0.35,
+      lineHeight: 1.05,
+      whiteSpace: "normal",
+      verticalAlign: "middle",
+    },
+  }}
+>
                 <TableRow sx={{ backgroundColor: "#fafafa" }}>
-                  <TableCell padding="checkbox" sx={{ width: 40, py: 1 }}>
+                  <TableCell padding="checkbox" sx={{ width: 40, py: 0.8 }}>
                     <Checkbox
                       size="small"
                       indeterminate={
@@ -937,7 +1183,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     DOS
@@ -947,7 +1193,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Patient Name (Gender)
@@ -957,7 +1203,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     CPT
@@ -967,7 +1213,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Modifier
@@ -977,7 +1223,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     ICD
@@ -987,7 +1233,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Primary Insurance
@@ -997,7 +1243,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Billed Amount
@@ -1007,7 +1253,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Patient Copay
@@ -1017,7 +1263,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Status
@@ -1027,7 +1273,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Remarks
@@ -1037,7 +1283,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Encounter ID #
@@ -1047,7 +1293,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Claim ID
@@ -1057,7 +1303,7 @@ function PreBillingClaim() {
                       fontWeight: 600,
                       fontSize: 11,
                       color: "rgba(0, 0, 0, 0.6)",
-                      py: 1,
+                      py: 0.8,
                     }}
                   >
                     Reference ID
@@ -1066,7 +1312,7 @@ function PreBillingClaim() {
                     sx={{
                       fontWeight: 600,
                       fontSize: 11,
-                      py: 1,
+                      py: 0.8,
                       color: "rgba(0, 0, 0, 0.6)",
                     }}
                   >
@@ -1688,6 +1934,870 @@ function PreBillingClaim() {
               );
             })}
           </Box>
+        </Box>
+      )}
+      </Box>
+      )}
+
+      {/* Post-billing Tab Content */}
+      {currentTab === 1 && (
+        <>
+          {/* Info Banner for Post-billing */}
+          <Box
+            sx={{
+              backgroundColor: "#E8F4FD",
+              borderLeft: "4px solid #0066ff",
+              p: 1.5,
+              mx: 2,
+              mt: 2,
+              borderRadius: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            {/* Left Content */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minWidth: 0,
+                gap: 0.3,
+              }}
+            >
+              {/* Heading */}
+              <Typography
+                component="div"
+                sx={{
+                  fontWeight: 700,
+                  color: "#0066ff",
+                  fontSize: 10,
+                  lineHeight: 1.2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>✦</span>
+                <span>POST-BILLING TRACKING</span>
+              </Typography>
+
+              {/* Description */}
+              <Typography
+                component="div"
+                sx={{
+                  color: "rgba(0, 0, 0, 0.75)",
+                  fontSize: 11,
+                  lineHeight: 1.45,
+                }}
+              >
+                Track submitted claims across different statuses. <strong>3 claims are submitted</strong>, <strong>2 ready for statement</strong>, and <strong>2 have ERA received</strong>. Use filters to manage claim lifecycle efficiently.
+              </Typography>
+            </Box>
+
+            {/* View Details Button */}
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#0066ff",
+                color: "#fff",
+                boxShadow: "none",
+                fontSize: 11,
+                px: 2,
+                py: 0.7,
+                minWidth: 84,
+                height: 30,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                borderRadius: "6px",
+                "&:hover": {
+                  backgroundColor: "#0052cc",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              View details
+            </Button>
+          </Box>
+
+          {/* Action Buttons Row */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              px: 2,
+              py: 1.5,
+              gap: 2,
+              backgroundColor: "#f5f7fa",
+            }}
+          >
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexShrink: 0 }}>
+              <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
+              <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+              <Button
+                variant="outlined"
+                endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
+                sx={{
+                  textTransform: "none",
+                  color: "#1f2937",
+                  borderColor: "transparent",
+                  backgroundColor: "white",
+                  fontWeight: 500,
+                  fontSize: 13,
+                  height: 30,
+                  px: 2,
+                  minWidth: "auto",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    borderColor: "transparent",
+                    backgroundColor: "#f9fafb",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  },
+                }}
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+              >
+                Select Action
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    borderRadius: "12px",
+                    minWidth: 520,
+                    maxWidth: 520,
+                    border: "1px solid #e5e7eb",
+                  },
+                }}
+              >
+                {/* Header with title and close button */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    px: 3,
+                    py: 2,
+                    borderBottom: "2px dashed #93C5FD",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: "#1f2937",
+                    }}
+                  >
+                    Select Actions
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      "&:hover": { backgroundColor: "#EFF6FF" },
+                    }}
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: 20,
+                        fontWeight: 400,
+                        lineHeight: 1,
+                      }}
+                    >
+                      ✕
+                    </Box>
+                  </IconButton>
+                </Box>
+
+                {/* Menu Items */}
+                <Box sx={{ py: 1.5, px: 2 }}>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Print Claim</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+P</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#DBEAFE",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#BFDBFE" },
+                    }}
+                  >
+                    <span>Rebill</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+R</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Transfer balance</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+T</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>Transfer patient balance to patient responsibility</Box>
+                    <span style={{ color: "#9CA3AF", fontSize: 13, whiteSpace: "nowrap", ml: 2 }}>
+                      Ctrl+Shift+T
+                    </span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Note</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+N</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Settle</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+S</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Re-open</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>
+                      Ctrl+Shift+R
+                    </span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Void</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+O</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Apply Payment</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>
+                      Ctrl+Shift+A
+                    </span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Adjustment</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>Ctrl+J</span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 1,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Apply payment & adjust</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>
+                      Ctrl+Shift+J
+                    </span>
+                  </Box>
+                  <Box
+                    onClick={() => setAnchorEl(null)}
+                    sx={{
+                      color: "#3B82F6",
+                      fontSize: 14,
+                      py: 1.5,
+                      px: 2.5,
+                      mb: 0,
+                      borderRadius: "8px",
+                      backgroundColor: "#F9FAFB",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      "&:hover": { backgroundColor: "#F3F4F6" },
+                    }}
+                  >
+                    <span>Set follow-up date</span>
+                    <span style={{ color: "#9CA3AF", fontSize: 13 }}>
+                      Ctrl+Shift+F
+                    </span>
+                  </Box>
+                </Box>
+              </Menu>
+              <Button
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  color: "#1f2937",
+                  borderColor: "transparent",
+                  backgroundColor: "white",
+                  fontWeight: 500,
+                  fontSize: 13,
+                  height: 30,
+                  px: 2,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    borderColor: "transparent",
+                    backgroundColor: "#f9fafb",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                Submit E-claim
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#0066ff",
+                  color: "white",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  height: 30,
+                  px: 2.5,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    backgroundColor: "#0052cc",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                  },
+                }}
+              >
+                Send Statement
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Post-billing Table View */}
+          <Box
+            sx={{
+              pb: 2,
+              px: 2,
+            }}
+          >
+            <TableContainer
+              component={Paper}
+              sx={{
+                boxShadow: "none",
+                border: "1px solid #e0e0e0",
+                maxHeight: "calc(100vh - 280px)",
+                overflowY: "auto",
+                overflowX: "auto",
+                // Custom scrollbar styling - thin line style
+                "&::-webkit-scrollbar": {
+                  width: "4px",
+                  height: "4px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#d1d5db",
+                  borderRadius: "2px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  backgroundColor: "#9ca3af",
+                },
+              }}
+            >
+              <Table size="small" sx={{ minWidth: 1500 }}>
+               <TableHead
+  sx={{
+    "& .MuiTableCell-root": {
+      fontWeight: 600,
+      fontSize: 11,
+      color: "#374151",
+      py: 2,
+      px: 0.35,
+      lineHeight: 1.05,
+      whiteSpace: "normal",
+      verticalAlign: "middle",
+    },
+  }}
+>
+  <TableRow sx={{ backgroundColor: "#fafafa" }}>
+    {/* Checkbox */}
+    <TableCell
+      padding="checkbox"
+      sx={{
+        width: 35,
+        py: 0.4,
+        px: 0.3,
+      }}
+    >
+      <Checkbox
+        size="small"
+        indeterminate={
+          selectedRows.length > 0 &&
+          selectedRows.length < filteredData.length
+        }
+        checked={
+          filteredData.length > 0 &&
+          selectedRows.length === filteredData.length
+        }
+        onChange={handleSelectAllClick}
+      />
+    </TableCell>
+
+    <TableCell sx={{ width: 55 }}>
+      DOS
+    </TableCell>
+
+    <TableCell sx={{ width: 85 }}>
+      Patient Name
+      <br />
+      (Gender)
+    </TableCell>
+
+    <TableCell sx={{ width: 55 }}>
+      CPT
+    </TableCell>
+
+    <TableCell sx={{ width: 65 }}>
+      Modifier
+    </TableCell>
+
+    <TableCell sx={{ width: 55 }}>
+      ICD
+    </TableCell>
+
+    <TableCell sx={{ width: 70 }}>
+      Billed to
+    </TableCell>
+
+    <TableCell sx={{ width: 65 }}>
+      Billed
+    </TableCell>
+
+    <TableCell sx={{ width: 75 }}>
+      Adjustment
+    </TableCell>
+
+    <TableCell sx={{ width: 90 }}>
+      Insurance
+      <br />
+      payment
+    </TableCell>
+
+    <TableCell sx={{ width: 85 }}>
+      Patient
+      <br />
+      Payment
+    </TableCell>
+
+    <TableCell sx={{ width: 70 }}>
+      Billed as
+    </TableCell>
+
+    <TableCell sx={{ width: 65 }}>
+      Status
+    </TableCell>
+
+    <TableCell sx={{ width: 95 }}>
+      Clearing house #
+    </TableCell>
+
+    <TableCell sx={{ width: 60 }}>
+      Actions
+    </TableCell>
+  </TableRow>
+</TableHead>
+                <TableBody>
+                  {filteredData.map((row, index) => {
+                    const isItemSelected = isSelected(row.id);
+                    const bgColor = getListColor(index);
+                    return (
+                      <TableRow
+                        key={row.id}
+                        selected={isItemSelected}
+                        sx={{
+                          backgroundColor: bgColor,
+                          borderBottom: "none",
+                        }}
+                      >
+                        <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+                          <Checkbox
+                            size="small"
+                            checked={isItemSelected}
+                            onChange={() => handleRowSelect(row.id)}
+                          />
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.dos}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.patientName} {row.gender}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.cpt}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.modifier}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.icd}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.billedTo}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.billed}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.adjustment}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.insurancePayment}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.patientPayment}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.billedAs}
+                        </TableCell>
+                        <TableCell sx={{ py: 1.2 }}>
+                          <Chip
+                            label={row.status}
+                            size="small"
+                            sx={{
+                              backgroundColor: row.statusColor,
+                              color: row.statusTextColor,
+                              fontWeight: 600,
+                              fontSize: 10,
+                              height: 20,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.clearingHouse}
+                        </TableCell>
+                        <TableCell sx={{ py: 1.2 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Tooltip title="Edit" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <EditIconClaim />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View list" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <Icon2 />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Clipboard" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <Icon3 />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Folder" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <Icon4 />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Document" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <Icon5 />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Check" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <Icon6 />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </>
+      )}
+
+      {/* Remittance ERA/EOB Tab Content */}
+      {currentTab === 2 && (
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Remittance ERA/EOB
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ERA/EOB content will be displayed here. This is tab 3.
+          </Typography>
+        </Box>
+      )}
+
+      {/* Patient Statement Tab Content */}
+      {currentTab === 3 && (
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Patient Statement
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Patient statement content will be displayed here. This is tab 4.
+          </Typography>
         </Box>
       )}
     </Box>
