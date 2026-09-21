@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { StarIcon, EditIcon, NotificationIcon } from '../assets/Assets';
+import { StarIcon, EditIcon, NotificationIcon, TiaChatIcon} from '../assets/Assets';
 
 const drawerWidth = 240;
 
@@ -98,30 +98,56 @@ function TopBar() {
         {/* Right Side Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
           {/* Edit Icon */}
-          <IconButton
-            size="medium"
+          <Box
             sx={{
-              color: 'rgba(0, 0, 0, 0.54)',
-              '&:hover': {
-                backgroundColor: alpha('#000', 0.04),
-              },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px solid #E4E9EF',
+              borderRadius: 2,
+              width: 36,
+              height: 36,
             }}
           >
-            <EditIcon width={16} height={16} color="rgba(0, 0, 0, 0.54)" />
-          </IconButton>
+            <IconButton
+              size="small"
+              sx={{
+                color: 'rgba(0, 0, 0, 0.54)',
+                p: 0.5,
+                '&:hover': {
+                  backgroundColor: alpha('#000', 0.04),
+                },
+              }}
+            >
+              <EditIcon width={16} height={16} color="rgba(0, 0, 0, 0.54)" />
+            </IconButton>
+          </Box>
 
           {/* Notification Bell */}
-          <IconButton
-            size="medium"
+          <Box
             sx={{
-              color: 'rgba(0, 0, 0, 0.54)',
-              '&:hover': {
-                backgroundColor: alpha('#000', 0.04),
-              },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px solid #E4E9EF',
+              borderRadius: 2,
+              width: 36,
+              height: 36,
             }}
           >
-            <NotificationIcon width={14} height={16} color="rgba(0, 0, 0, 0.54)" />
-          </IconButton>
+            <IconButton
+              size="small"
+              sx={{
+                color: 'rgba(0, 0, 0, 0.54)',
+                p: 0.5,
+                '&:hover': {
+                  backgroundColor: alpha('#000', 0.04),
+                },
+              }}
+            >
+              <NotificationIcon width={14} height={16} color="rgba(0, 0, 0, 0.54)" />
+            </IconButton>
+          </Box>
 
           {/* TiaChat Button */}
           <Button
@@ -134,6 +160,7 @@ function TopBar() {
               px: 2.5,
               py: 1,
               borderRadius: 2,
+              gap: 0.7, whiteSpace: "nowrap",
               boxShadow: '0 2px 8px rgba(0, 102, 255, 0.3)',
               '&:hover': {
                 backgroundColor: '#0052cc',
@@ -141,7 +168,8 @@ function TopBar() {
               },
             }}
           >
-            + TiaChat
+            <TiaChatIcon color="#fff" width={25} height={25} />
+             TiaChat
           </Button>
         </Box>
       </Toolbar>

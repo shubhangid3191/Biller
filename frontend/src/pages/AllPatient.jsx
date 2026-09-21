@@ -240,15 +240,15 @@ const outlinedActionSx = {
   borderRadius: "8px",
   textTransform: "none",
   fontSize: 13.5,
-  fontWeight: 500,
+  fontWeight: 700,
   color: T.blue,
-  border: "1.25px solid #BFD3F7",
+  border: "2px solid #015DFF",
   bgcolor: "#fff",
   whiteSpace: "nowrap",
   flexShrink: 0,
 
   "&:hover": {
-    borderColor: T.blue,
+    borderColor: "#015DFF",
     bgcolor: "#F4F8FF",
   },
 
@@ -383,16 +383,7 @@ function Toolbar({ query, onQueryChange, onAddNewPatient }) {
         <Button
           variant="outlined"
           startIcon={<ExportIcon />}
-          sx={{
-            ...outlinedActionSx,
-
-            border: "1.25px dashed #BFD3F7",
-
-            "&:hover": {
-              borderColor: T.blue,
-              bgcolor: "#F4F8FF",
-            },
-          }}
+          sx={outlinedActionSx}
         >
           Export
         </Button>
@@ -465,7 +456,7 @@ function HeaderCell({ column, isLast }) {
         /* No bottom stroke in header */
         borderBottom: "none",
 
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 700,
         color: T.headText,
 
@@ -553,7 +544,8 @@ function PhysicianChip({ label }) {
         px: 0.8,
         py: 0.35,
 
-        fontSize: 12.5,
+        fontSize: 12,
+        fontWeight: 700,
         color: T.physicianText,
 
         boxSizing: "border-box",
@@ -777,6 +769,7 @@ function PatientRow({
           width: "22%",
 
           color: T.nameText,
+          fontWeight: 700,
 
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -1081,8 +1074,8 @@ export default function AllPatients() {
     setSelected((prev) =>
       prev.includes(id)
         ? prev.filter(
-            (x) => x !== id
-          )
+          (x) => x !== id
+        )
         : [...prev, id]
     );
 
@@ -1094,8 +1087,8 @@ export default function AllPatients() {
     setSelected(
       event.target.checked
         ? visibleRows.map(
-            (r) => r.id
-          )
+          (r) => r.id
+        )
         : []
     );
 

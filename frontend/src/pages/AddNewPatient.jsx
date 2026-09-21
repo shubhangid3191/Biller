@@ -72,6 +72,14 @@ const theme = createTheme({
       },
     },
     MuiMenuItem: { styleOverrides: { root: { fontSize: 13 } } },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "20px",
+          overflow: "hidden",
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -160,9 +168,21 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: "16px",
+          borderRadius: "20px",
           p: 0,
           overflow: "hidden",
+          width: { xs: "92vw", sm: "560px" },
+          maxWidth: { xs: "92vw", sm: "560px" },
+          mx: { xs: 1, sm: "auto" },
+        },
+      }}
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: "20px !important",
+          overflow: "hidden",
+        },
+        "& .MuiDialog-container": {
+          alignItems: "center",
         },
       }}
     >
@@ -185,8 +205,8 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           fontSize: "18px",
           fontFamily: FONT,
           borderBottom: "1px dashed #A7C7E7",
-          px: 2.5,
-          pt: 2.5,
+          px: { xs: 2, sm: 2.5 },
+          pt: { xs: 1.5, sm: 2 },
           pb: 1.5,
         }}
       >
@@ -206,7 +226,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
       </Box>
 
       {/* Content */}
-      <Box sx={{ px: 2.5, pt: 1.5, pb: 1 }}>
+      <Box sx={{ px: { xs: 2, sm: 2.5 }, pt: 1, pb: 0.5 }}>
         {/* Drag & Drop zone */}
         <Box
           onClick={() => fileInputRef.current?.click()}
@@ -216,10 +236,10 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           onDragLeave={() => setDropActive(false)}
           sx={{
             border: "2px dashed #B4CFFC",
-            borderRadius: "14px",
+            borderRadius: "16px",
             background: dropActive ? "#F2F8FE" : "#EAF2FF",
             textAlign: "center",
-            py: { xs: 3, sm: 4 },
+            py: { xs: 2, sm: 2.5 },
             px: 2,
             cursor: "pointer",
             mb: 2,
@@ -234,7 +254,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           <Typography
             sx={{
               fontWeight: 500,
-              color: "#4B5563",
+              color: "#7B89B2",
               fontFamily: FONT,
               fontSize: 14,
             }}
@@ -255,10 +275,10 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
         <Box
           onClick={() => fileInputRef.current?.click()}
           sx={{
-            borderRadius: "14px",
+            borderRadius: "16px",
             background: "#EAF2FF",
             textAlign: "center",
-            py: 3,
+            py: 2,
             px: 2,
             cursor: "pointer",
             transition: "0.2s",
@@ -271,7 +291,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           <Typography
             sx={{
               fontWeight: 500,
-              color: "#4B5563",
+              color: "#7B89B2",
               fontFamily: FONT,
               fontSize: 14,
             }}
@@ -303,7 +323,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           justifyContent: "flex-end",
           alignItems: "center",
           gap: 1,
-          p: 2.5,
+          p: { xs: 1.5, sm: 2 },
           borderTop: "1px solid #E5E7EB",
           bgcolor: "#F9FAFB",
         }}
@@ -349,7 +369,7 @@ const FieldLabel = ({ children, required }) => (
     component="label"
     sx={{
       display: "block",
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: 700,
       color: "#2F3036",
       mb: "6px",
@@ -390,7 +410,7 @@ const ToolbarBtn = ({ icon, label, onClick }) => (
       borderColor: "#E1E1E2",
       color: "#015DFF",
       fontWeight: 600,
-      fontSize: 13,
+      fontSize: 15,
       borderRadius: "8px",
       height: "36px",
       px: 1.5,
@@ -628,11 +648,11 @@ function AddNewPatient() {
         >
           <Box>
             <Typography
-              sx={{ fontWeight: 700, color: "#111827", fontSize: 17 }}
+              sx={{ fontWeight: 700, color: "#171923", fontSize: 20 }}
             >
               Add New Patient
             </Typography>
-            <Typography sx={{ color: "#6B7280", mt: 0.3, fontSize: 12 }}>
+            <Typography sx={{ color: "#1A1A1A", mt: 0.3, fontSize: 14 }}>
               Complete all required fields to create a new patient
             </Typography>
           </Box>
@@ -674,7 +694,7 @@ function AddNewPatient() {
         {/* ---- ASSIGN ---- */}
         <Paper
           elevation={0}
-          sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
+          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="ASSIGN" />
           <FieldRow>
@@ -739,7 +759,7 @@ function AddNewPatient() {
         {/* ---- BASIC INFORMATION ---- */}
         <Paper
           elevation={0}
-          sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
+          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="BASIC INFORMATION" />
           <FieldRow>
@@ -831,7 +851,7 @@ function AddNewPatient() {
         {/* ---- VISIT DETAILS ---- */}
         <Paper
           elevation={0}
-          sx={{ borderRadius: "10px", p: "20px", mb: "16px", bgcolor: "#fff" }}
+          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
         >
           <SectionHeader title="VISIT DETAILS" />
           <FieldRow>

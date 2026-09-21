@@ -296,8 +296,8 @@ export default function ConfirmPatientList() {
 
                 {/* Name + Age */}
                 <TableCell sx={{ ...cellSx }}>
-                  <Box sx={{ fontWeight: 700 }}>{row.name}</Box>
-                  <Box>{row.age}</Box>
+                  <Box sx={{ fontWeight: 700, color: "#2E2E2E" }}>{row.name}</Box>
+                  <Box sx={{ fontWeight: 700, color: "#2E2E2E" }}>{row.age}</Box>
                 </TableCell>
 
                 {/* MRN */}
