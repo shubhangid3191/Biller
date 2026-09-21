@@ -9,6 +9,7 @@ import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
 import PreBillingClaim from '../pages/PreBillingClaim';
+import PostBillingClaim from '../pages/PostBillingClaim';
 
 const AppRoutes = () => {
   return (
@@ -109,7 +110,7 @@ const AppRoutes = () => {
         path="/post-billing-claim"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Post Billing Claim Page</div>
+            <PostBillingClaim />
           </ProtectedRoute>
         }
       />

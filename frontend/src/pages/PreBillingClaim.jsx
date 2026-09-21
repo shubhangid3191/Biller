@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,114 +23,53 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  Search,
-  FilterList,
   ViewList,
   ViewModule,
   KeyboardArrowDown,
   FileDownload,
 } from "@mui/icons-material";
-
-// Inline SVG icon components from CLAIMS section
-const EditIcon = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 18 18"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M2 16H3.425L13.2 6.225L11.775 4.8L2 14.575V16ZM0 18V13.75L13.2 0.575C13.4 0.391667 13.6208 0.25 13.8625 0.15C14.1042 0.05 14.3583 0 14.625 0C14.8917 0 15.15 0.05 15.4 0.15C15.65 0.25 15.8667 0.4 16.05 0.6L17.425 2C17.625 2.18333 17.7708 2.4 17.8625 2.65C17.9542 2.9 18 3.15 18 3.4C18 3.66667 17.9542 3.92083 17.8625 4.1625C17.7708 4.40417 17.625 4.625 17.425 4.825L4.25 18H0ZM12.475 5.525L11.775 4.8L13.2 6.225L12.475 5.525Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
-
-const Icon2 = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 18 18"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M5.7125 13.7125C5.90417 13.5208 6 13.2833 6 13C6 12.7167 5.90417 12.4792 5.7125 12.2875C5.52083 12.0958 5.28333 12 5 12C4.71667 12 4.47917 12.0958 4.2875 12.2875C4.09583 12.4792 4 12.7167 4 13C4 13.2833 4.09583 13.5208 4.2875 13.7125C4.47917 13.9042 4.71667 14 5 14C5.28333 14 5.52083 13.9042 5.7125 13.7125ZM5.7125 9.7125C5.90417 9.52083 6 9.28333 6 9C6 8.71667 5.90417 8.47917 5.7125 8.2875C5.52083 8.09583 5.28333 8 5 8C4.71667 8 4.47917 8.09583 4.2875 8.2875C4.09583 8.47917 4 8.71667 4 9C4 9.28333 4.09583 9.52083 4.2875 9.7125C4.47917 9.90417 4.71667 10 5 10C5.28333 10 5.52083 9.90417 5.7125 9.7125ZM5.7125 5.7125C5.90417 5.52083 6 5.28333 6 5C6 4.71667 5.90417 4.47917 5.7125 4.2875C5.52083 4.09583 5.28333 4 5 4C4.71667 4 4.47917 4.09583 4.2875 4.2875C4.09583 4.47917 4 4.71667 4 5C4 5.28333 4.09583 5.52083 4.2875 5.7125C4.47917 5.90417 4.71667 6 5 6C5.28333 6 5.52083 5.90417 5.7125 5.7125ZM8 14H14V12H8V14ZM8 10H14V8H8V10ZM8 6H14V4H8V6ZM2 18C1.45 18 0.979167 17.8042 0.5875 17.4125C0.195833 17.0208 0 16.55 0 16V2C0 1.45 0.195833 0.979167 0.5875 0.5875C0.979167 0.195833 1.45 0 2 0H16C16.55 0 17.0208 0.195833 17.4125 0.5875C17.8042 0.979167 18 1.45 18 2V16C18 16.55 17.8042 17.0208 17.4125 17.4125C17.0208 17.8042 16.55 18 16 18H2ZM2 16H16V2H2V16Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
-
-const Icon3 = () => (
-  <svg
-    width="15"
-    height="18"
-    viewBox="0 0 18 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V4C0 3.45 0.195833 2.97917 0.5875 2.5875C0.979167 2.19583 1.45 2 2 2H6.175C6.35833 1.41667 6.71667 0.9375 7.25 0.5625C7.78333 0.1875 8.36667 0 9 0C9.66667 0 10.2625 0.1875 10.7875 0.5625C11.3125 0.9375 11.6667 1.41667 11.85 2H16C16.55 2 17.0208 2.19583 17.4125 2.5875C17.8042 2.97917 18 3.45 18 4V18C18 18.55 17.8042 19.0208 17.4125 19.4125C17.0208 19.8042 16.55 20 16 20H2ZM2 18H16V4H14V7H4V4H2V18ZM9.7125 3.7125C9.90417 3.52083 10 3.28333 10 3C10 2.71667 9.90417 2.47917 9.7125 2.2875C9.52083 2.09583 9.28333 2 9 2C8.71667 2 8.47917 2.09583 8.2875 2.2875C8.09583 2.47917 8 2.71667 8 3C8 3.28333 8.09583 3.52083 8.2875 3.7125C8.47917 3.90417 8.71667 4 9 4C9.28333 4 9.52083 3.90417 9.7125 3.7125Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
-
-const Icon4 = () => (
-  <svg
-    width="18"
-    height="15"
-    viewBox="0 0 20 16"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M2 16C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V2C0 1.45 0.195833 0.979167 0.5875 0.5875C0.979167 0.195833 1.45 0 2 0H8L10 2H18C18.55 2 19.0208 2.19583 19.4125 2.5875C19.8042 2.97917 20 3.45 20 4V14C20 14.55 19.8042 15.0208 19.4125 15.4125C19.0208 15.8042 18.55 16 18 16H2ZM2 14H18V4H9.175L7.175 2H2V14Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
-
-const Icon5 = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 18 18"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M13 18H2C1.45 18 0.979167 17.8042 0.5875 17.4125C0.195833 17.0208 0 16.55 0 16V2C0 1.45 0.195833 0.979167 0.5875 0.5875C0.979167 0.195833 1.45 0 2 0H16C16.55 0 17.0208 0.195833 17.4125 0.5875C17.8042 0.979167 18 1.45 18 2V13L13 18ZM12 16V14C12 13.45 12.1958 12.9792 12.5875 12.5875C12.9792 12.1958 13.45 12 14 12H16V2H2V16H12ZM8 13H10V7H13V5H5V7H8V13Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
-
-const Icon6 = () => (
-  <svg
-    width="19"
-    height="16"
-    viewBox="0 0 22 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M10 20C8.61667 20 7.31667 19.7375 6.1 19.2125C4.88333 18.6875 3.825 17.975 2.925 17.075C2.025 16.175 1.3125 15.1167 0.7875 13.9C0.2625 12.6833 0 11.3833 0 10C0 8.61667 0.2625 7.31667 0.7875 6.1C1.3125 4.88333 2.025 3.825 2.925 2.925C3.825 2.025 4.88333 1.3125 6.1 0.7875C7.31667 0.2625 8.61667 0 10 0C11.0833 0 12.1083 0.158333 13.075 0.475C14.0417 0.791667 14.9333 1.23333 15.75 1.8L14.3 3.275C13.6667 2.875 12.9917 2.5625 12.275 2.3375C11.5583 2.1125 10.8 2 10 2C7.78333 2 5.89583 2.77917 4.3375 4.3375C2.77917 5.89583 2 7.78333 2 10C2 12.2167 2.77917 14.1042 4.3375 15.6625C5.89583 17.2208 7.78333 18 10 18C10.5333 18 11.05 17.95 11.55 17.85C12.05 17.75 12.5333 17.6083 13 17.425L14.5 18.95C13.8167 19.2833 13.1 19.5417 12.35 19.725C11.6 19.9083 10.8167 20 10 20ZM17 18V15H14V13H17V10H19V13H22V15H19V18H17ZM8.6 14.6L4.35 10.35L5.75 8.95L8.6 11.8L18.6 1.775L20 3.175L8.6 14.6Z"
-      fill="#0052E1"
-    />
-  </svg>
-);
+import {
+  Search,
+  FilterIcon1,
+  SettingsIcon,
+  DownloadIcon,
+  EditIconClaim,
+  Icon2,
+  Icon3,
+  Icon4,
+  Icon5,
+  Icon6,
+} from "../assets/Assets";
 
 function PreBillingClaim() {
-  const [currentTab, setCurrentTab] = useState(0);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Determine initial tab based on current route
+  const getInitialTab = () => {
+    if (location.pathname === '/post-billing-claim') return 1;
+    return 0;
+  };
+  
+  const [currentTab, setCurrentTab] = useState(getInitialTab());
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Update tab when route changes
+  useEffect(() => {
+    setCurrentTab(getInitialTab());
+  }, [location.pathname]);
+
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
+    // Navigate to corresponding route when tab changes
+    if (newValue === 0) {
+      navigate('/pre-billing-claim');
+    } else if (newValue === 1) {
+      navigate('/post-billing-claim');
+    }
   };
 
   const handleSelectAllClick = (event) => {
@@ -680,12 +620,9 @@ function PreBillingClaim() {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search
-                    sx={{
-                      color: "#0066FF",
-                      fontSize: 18,
-                    }}
-                  />
+                  <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
+                    <Search />
+                  </Box>
                 </InputAdornment>
               ),
             }}
@@ -714,13 +651,9 @@ function PreBillingClaim() {
               },
             }}
           >
-            <FilterList
-              sx={{
-                fontSize: 16,
-                mr: 0.5,
-                color: "#111827",
-              }}
-            />
+            <Box sx={{ display: "flex", alignItems: "center", mr: 0.5 }}>
+              <FilterIcon1 />
+            </Box>
             Advanced filters
           </Button>
 
@@ -779,75 +712,90 @@ function PreBillingClaim() {
 
       {/* Info Banner */}
       <Box
-        sx={{
-          backgroundColor: "#E8F4FD",
-          borderLeft: "4px solid #0066ff",
-          p: 1.5,
-          mx: 2,
-          mt: 2,
-          borderRadius: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 1,
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          <Typography
-            variant="body2"
-            component="span"
-            sx={{
-              fontWeight: 700,
-              color: "#0066ff",
-              fontSize: 11,
-              mt: 0.1,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.5,
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span style={{ fontSize: 13 }}>⚡</span>
-            <span>CHANGE CAPTURE ASSIST</span>
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: "rgba(0, 0, 0, 0.8)", fontSize: 12, lineHeight: 1.5 }}
-          >
-            TiaStat auto-coded <strong>11 encounters</strong> from clinical
-            notes. <strong>3 are clean and ready to bill</strong>; the rest have
-            flagged edits (gender conflicts, missing etiology dx,
-            cosmetic-vs-functional). Toggle Grid to see full problem/procedure
-            detail without opening each record.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#0066ff",
-            boxShadow: "none",
-            fontSize: 11,
-            px: 2,
-            py: 0.7,
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-            "&:hover": { backgroundColor: "#0052cc", boxShadow: "none" },
-          }}
-        >
-          View details
-        </Button>
-      </Box>
+  sx={{
+    backgroundColor: "#E8F4FD",
+    borderLeft: "4px solid #0066ff",
+    p: 1.5,
+    mx: 2,
+    mt: 2,
+    borderRadius: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 2,
+  }}
+>
+  {/* Left Content */}
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      flex: 1,
+      minWidth: 0,
+      gap: 0.3,
+    }}
+  >
+    {/* Heading */}
+    <Typography
+      component="div"
+      sx={{
+        fontWeight: 700,
+        color: "#0066ff",
+        fontSize: 10,
+        lineHeight: 1.2,
+        display: "flex",
+        alignItems: "center",
+        gap: 0.5,
+      }}
+    >
+      <span style={{ fontSize: 12 }}>✦</span>
+      <span>CHARGE-CAPTURE ASSIST</span>
+    </Typography>
+
+    {/* Description */}
+    <Typography
+      component="div"
+      sx={{
+        color: "rgba(0, 0, 0, 0.75)",
+        fontSize: 11,
+        lineHeight: 1.45,
+      }}
+    >
+      TiaStat auto-coded <strong>11 encounters</strong> from clinical notes.{" "}
+      <strong>3 are clean and ready to bill</strong>; the rest have flagged
+      edits (gender conflicts, missing etiology dx, cosmetic-vs-functional).
+      Toggle Grid to see full problem/procedure detail without opening each
+      record.
+    </Typography>
+  </Box>
+
+  {/* View Details Button */}
+  <Button
+    variant="contained"
+    size="small"
+    sx={{
+      textTransform: "none",
+      backgroundColor: "#0066ff",
+      color: "#fff",
+      boxShadow: "none",
+      fontSize: 11,
+      px: 2,
+      py: 0.7,
+      minWidth: 84,
+      height: 30,
+      fontWeight: 600,
+      whiteSpace: "nowrap",
+      flexShrink: 0,
+      borderRadius: "6px",
+      "&:hover": {
+        backgroundColor: "#0052cc",
+        boxShadow: "none",
+      },
+    }}
+  >
+    View details
+  </Button>
+</Box>
 
       {/* Status Filter Chips and Actions in Same Row */}
       <Box
@@ -886,15 +834,38 @@ function PreBillingClaim() {
           ))}
         </Box>
 
-        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <IconButton
             size="small"
             sx={{
-              border: "1px solid rgba(0, 0, 0, 0.23)",
-              borderRadius: 1,
+              width: 40,
+              height: 40,
+              border: "none",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              "&:hover": {
+                backgroundColor: "#f9fafb",
+              },
             }}
           >
-            <FileDownload fontSize="small" />
+            <SettingsIcon />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{
+              width: 40,
+              height: 40,
+              border: "none",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              "&:hover": {
+                backgroundColor: "#f9fafb",
+              },
+            }}
+          >
+            <DownloadIcon />
           </IconButton>
           <Button
             variant="outlined"
@@ -932,9 +903,6 @@ function PreBillingClaim() {
           sx={{
             pb: 2,
             px: 2,
-            maxHeight: "calc(100vh - 280px)",
-            overflowY: "auto",
-            overflowX: "auto",
           }}
         >
           <TableContainer
@@ -942,10 +910,12 @@ function PreBillingClaim() {
             sx={{
               boxShadow: "none",
               border: "1px solid #e0e0e0",
-              minWidth: 1400,
+              maxHeight: "calc(100vh - 320px)",
+              overflowY: "auto",
+              overflowX: "auto",
             }}
           >
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 1400 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#fafafa" }}>
                   <TableCell padding="checkbox" sx={{ width: 40, py: 1 }}>
@@ -1254,7 +1224,7 @@ function PreBillingClaim() {
                         >
                           <Tooltip title="Edit" placement="top">
                             <IconButton size="small" sx={{ padding: "4px" }}>
-                              <EditIcon />
+                              <EditIconClaim />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="View list" placement="top">
@@ -1710,7 +1680,7 @@ function PreBillingClaim() {
                         size="small"
                         sx={{ color: "#0066ff", mt: 0.5 }}
                       >
-                        <EditIcon />
+                        <EditIconClaim />
                       </IconButton>
                     </Box>
                   </Box>
