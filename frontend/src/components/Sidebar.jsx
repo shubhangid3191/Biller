@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import logo from "../Assets/logo.png";
-import { HandIcon,ListCheckIcon } from "../assets/Assets";
+import { HandIcon,ListCheckIcon,ReferringProvider,RenderingProvider,Location,Practice,Fee,InsuranceProvider,Program,PreBillingClaim,PostBillingClaim,ERA,AddPatient,PatientList,Statement,Refund } from "../assets/Assets";
 
 const drawerWidth = 240;
 
@@ -52,90 +52,126 @@ function Sidebar() {
   };
 
   const commandMenuItems = [
-    {
-      text: "Summary",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
-      path: "/summary",
-      badge: null,
-    },
-    {
-      text: "AI Insights",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
-      path: "/ai-insights",
-      badge: { value: 1, color: "warning" },
-    },
-    {
-      text: "My Tasks",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
-      path: "/my-tasks",
-      badge: { value: 38, color: "error" },
-    },
-  ];
+  {
+    text: "Summary",
+    icon: <HandIcon width={18} height={18} color="currentColor" />,
+    path: "/summary",
+    badge: null,
+  },
+  {
+    text: "AI Insights",
+    icon: <HandIcon width={18} height={18} color="currentColor" />,
+    path: "/ai-insights",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "My Tasks",
+    icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+    path: "/my-tasks",
+    badge: { value: 38, color: "error" },
+  },
+  {
+    text: "Performance Overview",
+    icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+    path: "/performance-overview",
+    badge: null,
+  },
+];
+
+const configurationMenuItems = [
+  {
+    text: "Referring Provider",
+    icon: <ReferringProvider width={14} height={14} color="currentColor" />,
+    path: "/referring-provider",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Rendering Provider",
+    icon: <RenderingProvider width={14} height={14} color="currentColor" />,
+    path: "/rendering-provider",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Locations",
+    icon: <Location width={14} height={14} color="currentColor" />,
+    path: "/locations",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Practice",
+    icon: <Practice width={14} height={14} color="currentColor" />,
+    path: "/practice",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Fee",
+    icon: <Fee width={14} height={14} color="currentColor" />,
+    path: "/fee",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Insurance Provider",
+    icon: <InsuranceProvider width={14} height={14} color="currentColor" />,
+    path: "/insurance-provider",
+    badge: { value: 1, color: "warning" },
+  },
+  {
+    text: "Program",
+    icon: <Program width={14} height={14} color="currentColor" />,
+    path: "/program",
+    badge: { value: 1, color: "warning" },
+  },
+];
 
   const patientMenuItems = [
     {
       text: "Add Patient",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
+      icon: <AddPatient width={18} height={18} color="currentColor" />,
       path: "/add-patient",
       badge: null,
     },
     {
       text: "Patient List",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
+      icon: <PatientList width={18} height={18} color="currentColor" />,
       path: "/patient-list",
       badge: { value: 1, color: "warning" },
     },
     {
       text: "Statement",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+      icon: <Statement width={18} height={18} color="currentColor" />,
       path: "/statement",
       badge: { value: 38, color: "error" },
     },
     {
       text: "Refunds",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+      icon: <Refund width={18} height={18} color="currentColor" />,
       path: "/refunds",
       badge: { value: 38, color: "error" },
     },
-    {
-      text: "Bulk Eligibility",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
-      path: "/bulk-eligibility",
-      badge: { value: 38, color: "error" },
-    },
+   
   ];
 
   const claimsMenuItems = [
-    {
-      text: "Encounter list",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
-      path: "/encounter-list",
-      badge: null,
-    },
+  
     {
       text: "Pre Billing Claim",
-      icon: <HandIcon width={18} height={18} color="currentColor" />,
+      icon: <PreBillingClaim width={18} height={18} color="currentColor" />,
       path: "/pre-billing-claim",
       badge: null,
     },
     {
       text: "Post Billing Claim",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+      icon: <PostBillingClaim width={18} height={18} color="currentColor" />,
       path: "/post-billing-claim-page",
       badge: null,
     },
     {
       text: "ERA",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
+      icon: <ERA width={18} height={18} color="currentColor" />,
       path: "/era",
       badge: null,
     },
-    {
-      text: "Collections",
-      icon: <ListCheckIcon width={18} height={18} color="currentColor" />,
-      path: "/collections",
-      badge: null,
-    },
+   
   ];
 
   const standaloneItems = [
@@ -424,6 +460,61 @@ function Sidebar() {
               )}
             </ListItemButton>
           </ListItem>
+
+
+
+          <Collapse
+  in={expandedSections.configuration}
+  timeout="auto"
+  unmountOnExit
+>
+  <List component="div" disablePadding>
+    {configurationMenuItems.map((item) => (
+      <ListItem key={item.path} disablePadding>
+        <ListItemButton
+          onClick={() => handleNavigation(item.path)}
+          selected={isActive(item.path)}
+          sx={{
+            pl: 2,
+            py: 1.2,
+            "&.Mui-selected": {
+              backgroundColor: "rgba(0, 212, 255, 0.15)",
+              borderLeft: "3px solid #00d4ff",
+              "&:hover": {
+                backgroundColor: "rgba(0, 212, 255, 0.2)",
+              },
+            },
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.08)",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: isActive(item.path)
+                ? "#00d4ff"
+                : "rgba(255, 255, 255, 0.7)",
+            }}
+          >
+            {item.icon}
+          </ListItemIcon>
+
+          <ListItemText
+            primary={item.text}
+            primaryTypographyProps={{
+              fontSize: 13,
+              fontWeight: isActive(item.path) ? 500 : 400,
+              color: isActive(item.path)
+                ? "#00d4ff"
+                : "rgba(255, 255, 255, 0.7)",
+            }}
+          />
+        </ListItemButton>
+      </ListItem>
+    ))}
+  </List>
+</Collapse>
 
           {/* PATIENT Section */}
           <ListItem disablePadding>
