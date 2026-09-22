@@ -24,6 +24,7 @@ function AppContent() {
           height: '100vh',
           overflow: 'auto',
           backgroundColor: '#f5f7fa',
+          minWidth: 0,
         }}
       >
         <AppRoutes />

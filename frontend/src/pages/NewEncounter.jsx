@@ -29,6 +29,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import {
   AlertBellIcon,
@@ -37,6 +38,7 @@ import {
   BlueCalendarIcon,
   TiaChatIcon,
   StarIcon,
+  encounterAssistCheck,
 } from "../assets/Assets.jsx";
 
 /* =========================================================
@@ -44,35 +46,35 @@ import {
    ========================================================= */
 const C = {
   pageBg: "#ECEEF4",
-  textDark:   "#0D1B2A",
-  textLabel:  "#5C5878",
-  textMuted:  "#8294A6",
-  textBody:   "#443F63",
-  textBold:   "#2B2842",
-  blue:       "#006FFD",
-  blueHover:  "#0056D6",
-  purple:     "#5443C4",
-  purpleBg:   "#F0EFFE",
-  tealCard:   "#12795B",
+  textDark: "#2B2842",
+  textLabel: "#5C5878",
+  textMuted: "#8294A6",
+  textBody: "#5443C4",
+  textBold: "#2B2842",
+  blue: "#006FFD",
+  blueHover: "#0056D6",
+  purple: "#5443C4",
+  purpleBg: "#F0EEF8",
+  tealCard: "#12795B",
   tealCardBg: "#EBF7F3",
-  orange:     "#B0552A",
-  orangeBg:   "#FEF4ED",
-  amber:      "#8E641A",
-  amberBg:    "#FBF5E3",
-  teal5:      "#1A808E",
-  teal5Bg:    "#EAF6F7",
-  border:     "#E0E4EE",
-  borderLight:"#EAECF4",
-  inputBg:    "#FFFFFF",
+  orange: "#B0552A",
+  orangeBg: "#FEF4ED",
+  amber: "#8E641A",
+  amberBg: "#FBF5E3",
+  teal5: "#1A808E",
+  teal5Bg: "#EAF6F7",
+  border: "#E0E4EE",
+  borderLight: "#EAECF4",
+  inputBg: "#FFFFFF",
   inputGreenBg: "#EEF2FF",
   inputGreenBorder: "#C7D2FE",
   inputHighlight: "#FEF3E8",
   inputHighlightBorder: "#F0C998",
-  greenChipBg:     "#E8F8F0",
+  greenChipBg: "#E8F8F0",
   greenChipBorder: "#A8DFCA",
-  greenChipText:   "#1A9E6E",
-  amberChipBg:   "#FEF3C7",
-  amberChipText: "#92400E",
+  greenChipText: "#1A9E6E",
+  amberChipBg: "#FBF1DC",
+  amberChipText: "#946312",
   amberChipBorder: "#FDE68A",
 };
 
@@ -86,17 +88,21 @@ const scrollHide = {
    STEPS
    ========================================================= */
 const STEPS = [
-  { id: "patient",    label: "Patient" },
-  { id: "case",       label: "Case & Insurance" },
+  { id: "patient", label: "Patient" },
+  { id: "case", label: "Case & Insurance" },
   { id: "conditions", label: "Conditions & Auth" },
-  { id: "charges",    label: "Charges & Review" },
+  { id: "charges", label: "Charges & Review" },
   { id: "additional", label: "Additional Details" },
 ];
 
 /* =========================================================
    SHARED INPUT STYLES
    ========================================================= */
-const inputBase = (bgColor = C.inputBg, borderColor = C.border, focusColor = "#6366F1") => ({
+const inputBase = (
+  bgColor = C.inputBg,
+  borderColor = C.border,
+  focusColor = "#6366F1",
+) => ({
   borderRadius: "8px",
   fontSize: 13.5,
   color: C.textDark,
@@ -108,12 +114,19 @@ const inputBase = (bgColor = C.inputBg, borderColor = C.border, focusColor = "#6
     borderWidth: "1.5px",
   },
   "& input": { py: "7px", px: "12px", fontSize: 13.5, color: C.textDark },
-  "& .MuiSelect-select": { py: "7px", px: "12px", fontSize: 13.5, color: C.textDark },
+  "& .MuiSelect-select": {
+    py: "7px",
+    px: "12px",
+    fontSize: 13.5,
+    color: C.textDark,
+  },
 });
 
-const inputNormal  = () => inputBase();
-const inputGreen   = () => inputBase(C.inputGreenBg, C.inputGreenBorder, "#6366F1");
-const inputOrange  = () => inputBase(C.inputHighlight, C.inputHighlightBorder, C.orange);
+const inputNormal = () => inputBase();
+const inputGreen = () =>
+  inputBase(C.inputGreenBg, C.inputGreenBorder, "#6366F1");
+const inputOrange = () =>
+  inputBase(C.inputHighlight, C.inputHighlightBorder, C.orange);
 
 /* =========================================================
    FORM FIELD
@@ -127,23 +140,43 @@ const labelSx = {
   display: "block",
 };
 
-function FormField({ label, value, select, options = [], placeholder, highlightedGreen, highlighted, icon, required, md }) {
-  const sx = highlightedGreen ? inputGreen() : highlighted ? inputOrange() : inputNormal();
+function FormField({
+  label,
+  value,
+  select,
+  options = [],
+  placeholder,
+  highlightedGreen,
+  highlighted,
+  icon,
+  required,
+  md,
+}) {
+  const sx = highlightedGreen
+    ? inputGreen()
+    : highlighted
+      ? inputOrange()
+      : inputNormal();
 
   /* ── Date picker variant (icon: true) ── */
   if (icon) {
-    const parsed = value && dayjs(value, "MM/DD/YYYY").isValid()
-      ? dayjs(value, "MM/DD/YYYY")
-      : null;
+    const parsed =
+      value && dayjs(value, "MM/DD/YYYY").isValid()
+        ? dayjs(value, "MM/DD/YYYY")
+        : null;
 
     return (
       <Box sx={{ width: "100%", minWidth: 0 }}>
-        <Typography component="label" sx={labelSx}>{label}</Typography>
+        <Typography component="label" sx={labelSx}>
+          {label}
+        </Typography>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             defaultValue={parsed}
             format="MM/DD/YYYY"
-            slots={{ openPickerIcon: () => <BlueCalendarIcon width={16} height={17} /> }}
+            slots={{
+              openPickerIcon: () => <BlueCalendarIcon width={16} height={17} />,
+            }}
             slotProps={{
               textField: {
                 fullWidth: true,
@@ -166,7 +199,12 @@ function FormField({ label, value, select, options = [], placeholder, highlighte
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <Typography component="label" sx={labelSx}>
-        {label}{required && <Box component="span" sx={{ color: "red", ml: 0.3 }}>*</Box>}
+        {label}
+        {required && (
+          <Box component="span" sx={{ color: "red", ml: 0.3 }}>
+            *
+          </Box>
+        )}
       </Typography>
       <TextField
         fullWidth
@@ -176,40 +214,82 @@ function FormField({ label, value, select, options = [], placeholder, highlighte
         placeholder={placeholder}
         SelectProps={select ? { IconComponent: ArrowDropDownIcon } : undefined}
         slotProps={{ input: { sx } }}
+        sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
       >
-        {select && options.map((o) => (
-          <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>{o}</MenuItem>
-        ))}
+        {select &&
+          options.map((o) => (
+            <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>
+              {o}
+            </MenuItem>
+          ))}
       </TextField>
     </Box>
   );
 }
 
 function FieldRow({ fields }) {
+  // Normalize each field to a span count (out of 12)
+  // md:3 = 1 col (25%), md:4 = 1.33 col, md:6 = 2 col (50%), default = md:3
+  // We map to a simple 4-col grid where:
+  //   md:3 or default → span 1  (25%)
+  //   md:4            → span 1  (we treat 3-field rows as 3 equal cols via gridTemplateColumns)
+  //   md:6            → span 2  (50%)
+  //   md:8 or md:9    → span 3  (75%)
+
+  const hasThird = fields.some((f) => f.md === 4); // 3-col layout
+  const cols = hasThird ? 3 : 4;
+
   return (
-    <Grid container spacing={{ xs: 1.5, md: 2 }}>
-      {fields.map((f, i) => (
-        <Grid item xs={12} sm={6} md={f.md || 3} key={i}>
-          <FormField {...f} />
-        </Grid>
-      ))}
-    </Grid>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "1fr 1fr",
+          md: `repeat(${cols}, 1fr)`,
+        },
+        gap: 1.5,
+        width: "100%",
+      }}
+    >
+      {fields.map((f, i) => {
+        let span = 1;
+        if (f.md === 6) span = 2;
+        if (f.md === 8 || f.md === 9) span = 3;
+        return (
+          <Box key={i} sx={{ gridColumn: { md: `span ${span}` }, minWidth: 0 }}>
+            <FormField {...f} />
+          </Box>
+        );
+      })}
+    </Box>
   );
 }
 
 /* =========================================================
    SECTION CARD SHELL
    ========================================================= */
-function SectionCard({ id, sectionRef, number, title, accentColor, accentBg, rightSlot, children }) {
+function SectionCard({
+  id,
+  sectionRef,
+  number,
+  title,
+  accentColor,
+  accentBg,
+  rightSlot,
+  children,
+}) {
   return (
     <Paper
-      id={id} ref={sectionRef} elevation={0}
+      id={id}
+      ref={sectionRef}
+      elevation={0}
       sx={{
         border: `1px solid ${C.borderLight}`,
         borderRadius: "12px",
         overflow: "hidden",
         bgcolor: "#fff",
-        scrollMarginTop: "160px",
+        scrollMarginTop: "140px",
         boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
       }}
     >
@@ -228,20 +308,22 @@ function SectionCard({ id, sectionRef, number, title, accentColor, accentBg, rig
           gap: 1,
         }}
       >
-        <Typography sx={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          letterSpacing: "0.06em",
-          color: accentColor,
-          textTransform: "uppercase",
-          lineHeight: 1,
-        }}>
+        <Typography
+          sx={{
+            fontSize: 11.5,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            color: accentColor,
+            textTransform: "uppercase",
+            lineHeight: 1,
+          }}
+        >
           {number} - {title}
         </Typography>
         {rightSlot}
       </Box>
 
-      <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 2.5 } }}>
+      <Box sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
         <Stack spacing={2}>{children}</Stack>
       </Box>
     </Paper>
@@ -254,7 +336,9 @@ function SectionCard({ id, sectionRef, number, title, accentColor, accentBg, rig
 function OutlineBtn({ children, startIcon, onClick, sx: sxExtra = {} }) {
   return (
     <Button
-      variant="outlined" disableElevation onClick={onClick}
+      variant="outlined"
+      disableElevation
+      onClick={onClick}
       startIcon={startIcon}
       sx={{
         textTransform: "none",
@@ -264,7 +348,8 @@ function OutlineBtn({ children, startIcon, onClick, sx: sxExtra = {} }) {
         color: C.textDark,
         borderColor: C.border,
         bgcolor: "#fff",
-        px: 2, py: 0.55,
+        px: 2,
+        py: 0.55,
         whiteSpace: "nowrap",
         boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
         "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
@@ -281,40 +366,95 @@ function OutlineBtn({ children, startIcon, onClick, sx: sxExtra = {} }) {
    ========================================================= */
 function TopBar() {
   return (
-    <Box sx={{
-      display: "flex",
-      alignItems: { xs: "flex-start", sm: "center" },
-      justifyContent: "space-between",
-      flexDirection: { xs: "column", sm: "row" },
-      gap: 1.5, pb: 1.5,
-    }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: { xs: "flex-start", sm: "center" },
+        justifyContent: "space-between",
+        flexDirection: { xs: "column", sm: "row" },
+        gap: 1.5,
+        pb: 1.5,
+      }}
+    >
       <Box>
-        <Typography sx={{
-          fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
-          color: C.textMuted, textTransform: "uppercase", mb: 0.25,
-        }}>
+        <Typography
+          sx={{
+            fontSize: 11.5,
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            color: "#8294A6",
+            textTransform: "uppercase",
+            mb: 0.25,
+          }}
+        >
           Charge Capture
         </Typography>
-        <Typography sx={{
-          fontSize: { xs: 22, sm: 26 }, fontWeight: 800,
-          color: C.textDark, letterSpacing: "-0.5px", lineHeight: 1.1,
-        }}>
+        <Typography
+          sx={{
+            fontSize: { xs: 22, sm: 25 },
+            fontWeight: 800,
+            color: "#0D1B2A",
+            letterSpacing: "-0.5px",
+            lineHeight: 1.1,
+          }}
+        >
           Claim ID #29068396
         </Typography>
       </Box>
 
-      <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap alignItems="center">
-        <OutlineBtn>Cancel</OutlineBtn>
-        <OutlineBtn startIcon={<SaveDraftFileIcon />}>
+      <Stack
+        direction="row"
+        spacing={0.8}
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+      >
+        <OutlineBtn
+          variant="contained"
+          disableElevation
+          sx={{
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13.5,
+            fontWeight: 600,
+            px: 2,
+            py: 0.65,
+            gap: 0.7,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Cancel
+        </OutlineBtn>
+        <OutlineBtn
+          variant="contained"
+          disableElevation
+          sx={{
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13.5,
+            fontWeight: 600,
+            px: 2,
+            py: 0.65,
+            gap: 0.7,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <SaveDraftFileIcon color="#fff" width={25} height={25} />
           Save draft
         </OutlineBtn>
         <Button
-          variant="contained" disableElevation
+          variant="contained"
+          disableElevation
           sx={{
-            textTransform: "none", borderRadius: "8px",
-            fontSize: 13.5, fontWeight: 600,
-            bgcolor: C.blue, px: 2, py: 0.65,
-            gap: 0.7, whiteSpace: "nowrap",
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13.5,
+            fontWeight: 600,
+            bgcolor: C.blue,
+            px: 2,
+            py: 0.65,
+            gap: 0.7,
+            whiteSpace: "nowrap",
             "&:hover": { bgcolor: C.blueHover },
           }}
         >
@@ -336,8 +476,25 @@ function TopBar() {
    ========================================================= */
 function StepperNav({ activeId, onStepClick }) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, pb: 1.5 }}>
-      <Box sx={{ display: "flex", alignItems: "center", overflowX: "auto", flexGrow: 1, minWidth: 0, ...scrollHide }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 1,
+        pb: 1.5,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          overflowX: "auto",
+          flexGrow: 1,
+          minWidth: 0,
+          ...scrollHide,
+        }}
+      >
         {STEPS.map((step, index) => {
           const isActive = step.id === activeId;
           return (
@@ -345,34 +502,58 @@ function StepperNav({ activeId, onStepClick }) {
               <Box
                 onClick={() => onStepClick(step.id)}
                 sx={{
-                  display: "flex", alignItems: "center", gap: 0.75,
-                  cursor: "pointer", flexShrink: 0,
-                  px: isActive ? 1.3 : 0.5, py: 0.55,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.75,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  px: 1.3,
+                  py: 0.55,
                   borderRadius: "999px",
-                  bgcolor: isActive ? "#1A1D23" : "transparent",
-                  transition: "background-color 0.35s ease, padding 0.35s ease",
-                  "&:hover": { bgcolor: isActive ? "#1A1D23" : "rgba(0,0,0,0.04)" },
+                  bgcolor: isActive ? "#1A1D23" : "#fff",
+                  border: isActive
+                    ? "1.5px solid #1A1D23"
+                    : "1.5px solid #C8CDD8",
+                  transition:
+                    "background-color 0.35s ease, padding 0.35s ease, border-color 0.35s ease",
+                  "&:hover": {
+                    bgcolor: isActive ? "#1A1D23" : "#fff",
+                    borderColor: isActive ? "#1A1D23" : "#9CA3AF",
+                  },
                 }}
               >
-                <Box sx={{
-                  width: 22, height: 22, borderRadius: "50%",
-                  bgcolor: isActive ? "#006FFD" : "transparent",
-                  border: isActive ? "1.5px solid #006FFD" : "1.5px solid #C8CDD8",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, fontWeight: isActive ? 800 : 600,
-                  color: isActive ? "#fff" : C.textMuted,
-                  flexShrink: 0,
-                  transition: "background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease",
-                }}>
+                <Box
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    bgcolor: isActive ? "#006FFD" : "transparent",
+                    border: isActive
+                      ? "1.5px solid #006FFD"
+                      : "1.5px solid #C8CDD8",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: isActive ? 800 : 600,
+                    color: isActive ? "#fff" : "#5A6B7E",
+                    flexShrink: 0,
+                    transition:
+                      "background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease",
+                  }}
+                >
                   {index + 1}
                 </Box>
-                <Typography sx={{
-                  fontSize: 13.5, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? "#fff" : "#6B7280",
-                  whiteSpace: "nowrap",
-                  display: { xs: isActive ? "block" : "none", sm: "block" },
-                  transition: "color 0.35s ease",
-                }}>
+                <Typography
+                  sx={{
+                    fontSize: 13.5,
+                    fontWeight: isActive ? 700 : 700,
+                    color: isActive ? "#fff" : "#5A6B7E",
+                    whiteSpace: "nowrap",
+                    display: { xs: "block", sm: "block" },
+                    transition: "color 0.35s ease",
+                  }}
+                >
                   {step.label}
                 </Typography>
               </Box>
@@ -398,10 +579,16 @@ function StepperNav({ activeId, onStepClick }) {
       </Box>
 
       <Stack direction="row" spacing={0.8} flexShrink={0}>
-        <OutlineBtn startIcon={<AlertBellIcon />}>
+        <OutlineBtn
+          startIcon={<AlertBellIcon />}
+          sx={{ color: "#5A6B7E", borderColor: "#E4E9EF", fontWeight: 700 }}
+        >
           Alerts
         </OutlineBtn>
-        <OutlineBtn startIcon={<PlusBlueIcon />}>
+        <OutlineBtn
+          startIcon={<PlusBlueIcon />}
+          sx={{ color: "#5A6B7E", borderColor: "#E4E9EF", fontWeight: 700 }}
+        >
           Add task
         </OutlineBtn>
       </Stack>
@@ -413,35 +600,74 @@ function StepperNav({ activeId, onStepClick }) {
    ENCOUNTER SUMMARY STRIP
    ========================================================= */
 function EncounterSummary() {
-  const Item = ({ label, value }) => (
+  const Item = ({ label, value, valueColor }) => (
     <Box>
-      <Typography sx={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: C.textMuted, textTransform: "uppercase", mb: 0.25 }}>
+      <Typography
+        sx={{
+          fontSize: 9.5,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          color: "#8294A6",
+          textTransform: "uppercase",
+          mb: 0.25,
+        }}
+      >
         {label}
       </Typography>
-      <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: C.textDark, lineHeight: 1.3 }}>
+      <Typography
+        sx={{
+          fontSize: 13.5,
+          fontWeight: 500,
+          color: valueColor || "#0D1B2A",
+          lineHeight: 1.3,
+        }}
+      >
         {value}
       </Typography>
     </Box>
   );
 
   return (
-    <Paper elevation={0} sx={{
-      border: `1px solid ${C.borderLight}`, borderRadius: "12px", bgcolor: "#fff",
-      px: { xs: 2, md: 3 }, py: 1.5,
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      flexWrap: "wrap", gap: 2,
-    }}>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1.5, sm: 4 }}>
+    <Paper
+      elevation={0}
+      sx={{
+        border: `1px solid ${C.borderLight}`,
+        borderRadius: "12px",
+        bgcolor: "#fff",
+        px: { xs: 2, md: 3 },
+        py: 1.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 2,
+      }}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={{ xs: 1.5, sm: 4 }}
+      >
         <Item label="Encounter" value="NEW - Draft" />
-        <Item label="Patient"   value="Wayne, Jimmy" />
-        <Item label="Details"   value="06/15/1978 - M - MRN 326362969" />
+        <Item label="Patient" value="Wayne, Jimmy" />
+        <Item
+          label="Details"
+          value="06/15/1978 - M - MRN 326362969"
+          valueColor="#8294A6"
+        />
       </Stack>
-      <Chip label="Unbilled" sx={{
-        bgcolor: C.amberChipBg, color: C.amberChipText,
-        fontWeight: 600, fontSize: 12, borderRadius: "6px", height: 24,
-        border: `1px solid ${C.amberChipBorder}`,
-        "& .MuiChip-label": { px: 1.2 },
-      }} />
+      <Chip
+        label="Unbilled"
+        sx={{
+          bgcolor: C.amberChipBg,
+          color: C.amberChipText,
+          fontWeight: 800,
+          fontSize: 12,
+          borderRadius: "10px",
+          height: 24,
+          //border: `1px solid ${C.amberChipBorder}`,
+          "& .MuiChip-label": { px: 1.2 },
+        }}
+      />
     </Paper>
   );
 }
@@ -451,31 +677,79 @@ function EncounterSummary() {
    ========================================================= */
 function AssistBanner() {
   return (
-    <Paper elevation={0} sx={{
-      border: "1px solid #D8D4F5", borderRadius: "10px", bgcolor: "#EDECFB",
-      px: { xs: 2, md: 2.5 }, py: 1.5,
-      display: "flex", gap: 0.8, alignItems: "flex-start",
-    }}>
+    <Paper
+      elevation={0}
+      sx={{
+        border: `1px solid #E2E8F0`,
+        borderRadius: "10px",
+        bgcolor: C.purpleBg,
+        px: { xs: 2, md: 2.5 },
+        py: 1.5,
+        display: "flex",
+        gap: 0.8,
+        alignItems: "center",
+        justifyContent: "space-between",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+      }}
+    >
       <Box>
-        <Typography sx={{
-          fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
-          color: C.purple, textTransform: "uppercase", mb: 0.4,
-          fontFamily: "Figtree, sans-serif",
-        }}>
-          Encounter Assist
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            color: C.purple,
+            textTransform: "uppercase",
+            mb: 0.4,
+            fontFamily: "Figtree, sans-serif",
+          }}
+        >
+          ✦ Encounter Assist
         </Typography>
-        <Typography sx={{ fontSize: 14, color: C.textBody, lineHeight: 1.65, fontFamily: "Figtree, sans-serif" }}>
-          Pre-filled from the 08/15 appointment and EHR note. I matched the patient, pulled the active{" "}
-          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>Aetna POS</Box>{" "}
+        <Typography
+          sx={{
+            fontSize: 14,
+            color: C.textBody,
+            lineHeight: 1.65,
+            fontFamily: "Figtree, sans-serif",
+          }}
+        >
+          Pre-filled from the 08/15 appointment and EHR note. I matched the
+          patient, pulled the active{" "}
+          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>
+            Aetna POS
+          </Box>{" "}
           case, and suggested CPT{" "}
-          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>99213</Box>{" "}
+          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>
+            99213
+          </Box>{" "}
           with dx{" "}
-          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>A/B</Box>.{" "}
+          <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>
+            A/B
+          </Box>
+          .{" "}
           <Box component="span" sx={{ fontWeight: 700, color: C.textBold }}>
             Eligibility isn&apos;t verified yet
           </Box>{" "}
-          - one click below runs it. Nothing here opens a new window.
+          — one click below runs it. Nothing here opens a new window.
         </Typography>
+      </Box>
+
+      {/* Check icon circle */}
+      <Box
+        sx={{
+          flexShrink: 0,
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          bgcolor: "#CFE2FF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          ml: 2,
+        }}
+      >
+        {encounterAssistCheck({})}
       </Box>
     </Paper>
   );
@@ -487,48 +761,80 @@ function AssistBanner() {
 function PatientSection({ sectionRef }) {
   return (
     <SectionCard
-      id="patient" sectionRef={sectionRef}
-      number={1} title="Patient"
-      accentColor={C.purple} accentBg={C.purpleBg}
+      id="patient"
+      sectionRef={sectionRef}
+      number={1}
+      title="Patient"
+      accentColor={C.purple}
+      accentBg={C.purpleBg}
       rightSlot={
         <Stack direction="row" spacing={1}>
           <OutlineBtn>Select existing</OutlineBtn>
-          <Button variant="contained" disableElevation sx={{
-            textTransform: "none", borderRadius: "8px",
-            fontSize: 13, fontWeight: 600, bgcolor: C.blue,
-            px: 2, py: 0.55, "&:hover": { bgcolor: C.blueHover },
-          }}>
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              borderRadius: "8px",
+              fontSize: 13,
+              fontWeight: 600,
+              bgcolor: C.blue,
+              px: 2,
+              py: 0.55,
+              "&:hover": { bgcolor: C.blueHover },
+            }}
+          >
             + New patient
           </Button>
         </Stack>
       }
     >
-      <FieldRow fields={[
-        { label: "Legal Name",    value: "Wayne, Jimmy" },
-        { label: "Date of Birth", value: "06/15/1978" },
-        { label: "Gender",        value: "Male" },
-        { label: "MRN",           value: "326362969" },
-      ]} />
+      <FieldRow
+        fields={[
+          { label: "Legal Name", value: "Wayne, Jimmy" },
+          { label: "Date of Birth", value: "06/15/1978" },
+          { label: "Gender", value: "Male" },
+          { label: "MRN", value: "326362969" },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "SSN",          value: "000-00-5433",                          md: 3 },
-        { label: "Mobile Phone", value: "(313) 404-6928",                       md: 3 },
-        { label: "Address",      value: "Capitol Way S, Washingtone, AR 12344", md: 6 },
-      ]} />
+      <FieldRow
+        fields={[
+          { label: "SSN", value: "000-00-5433", md: 3 },
+          { label: "Mobile Phone", value: "(313) 404-6928", md: 3 },
+          {
+            label: "Address",
+            value: "Capitol Way S, Washingtone, AR 12344",
+            md: 6,
+          },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "Marital Status",     value: "NA" },
-        { label: "Employment Status",  value: "NA" },
-        { label: "Referral Source",    value: "Not Specified" },
-        { label: "Employer",           value: "NA" },
-      ]} />
+      <FieldRow
+        fields={[
+          { label: "Marital Status", value: "NA" },
+          { label: "Employment Status", value: "NA" },
+          { label: "Referral Source", value: "Not Specified" },
+          { label: "Employer", value: "NA" },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "Primary Care Physician",   value: "NA" },
-        { label: "Referring Physician",      value: "NA" },
-        { label: "Default Rendering Provider", value: "Kumar V2, Jayram" },
-        { label: "Default Service Location", value: "The University RL", highlightedGreen: true },
-      ]} />
+      <FieldRow
+        fields={[
+          {
+            label: "Primary Care Physician",
+            value: "NA",
+            highlightedBlue: true,
+          },
+          { label: "Referring Physician", value: "NA" },
+          { label: "Default Rendering Provider", value: "Kumar V2, Jayram" },
+          {
+            label: "Default Service Location",
+            value: "The University RL",
+            highlightedGreen: true,
+          },
+        ]}
+      />
     </SectionCard>
   );
 }
@@ -538,8 +844,22 @@ function PatientSection({ sectionRef }) {
    ========================================================= */
 function CaseInsuranceSection({ sectionRef }) {
   const policyRows = [
-    { checked: true,  type: "PRIMARY",   insurance: "Aetna", plan: "Aetna-Plan name", policy: "298692786", group: "298692786" },
-    { checked: false, type: "SECONDARY", insurance: "Aetna", plan: "Aetna-Plan name", policy: "298692786", group: "298692786" },
+    {
+      checked: true,
+      type: "PRIMARY",
+      insurance: "Aetna",
+      plan: "Aetna-Plan name",
+      policy: "298692786",
+      group: "298692786",
+    },
+    {
+      checked: false,
+      type: "SECONDARY",
+      insurance: "Aetna",
+      plan: "Aetna-Plan name",
+      policy: "298692786",
+      group: "298692786",
+    },
   ];
 
   const cellSx = {
@@ -552,7 +872,7 @@ function CaseInsuranceSection({ sectionRef }) {
   const headCellSx = {
     ...cellSx,
     bgcolor: "#EBF7F3",
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: 700,
     color: "#12795B",
     textTransform: "uppercase",
@@ -563,7 +883,7 @@ function CaseInsuranceSection({ sectionRef }) {
 
   const tblInputSx = {
     borderRadius: "8px",
-    fontSize: 13,
+    fontSize: 11,
     bgcolor: "#fff",
     color: "#2B2842",
     "& .MuiOutlinedInput-notchedOutline": { borderColor: "#DDE3EE" },
@@ -572,13 +892,19 @@ function CaseInsuranceSection({ sectionRef }) {
       borderColor: "#12795B",
       borderWidth: "1.5px",
     },
-    "& input": { py: "5.5px", px: "10px", fontSize: 13, color: "#2B2842" },
-    "& .MuiSelect-select": { py: "5.5px", px: "10px", fontSize: 13, color: "#2B2842" },
+    "& .MuiFormHelperText-root": { display: "none" },
+    "& input": { py: "5.5px", px: "10px", fontSize: 10, color: "#2B2842" },
+    "& .MuiSelect-select": {
+      py: "5.5px",
+      px: "10px",
+      fontSize: 11,
+      color: "#2B2842",
+    },
   };
 
   const checkboxItems = [
-    { label: "Active",                          checked: true  },
-    { label: "Send patient statement",           checked: true  },
+    { label: "Active", checked: true },
+    { label: "Send patient statement", checked: true },
     { label: "Do not send claim electronically", checked: false },
   ];
 
@@ -615,8 +941,8 @@ function CaseInsuranceSection({ sectionRef }) {
     >
       <FieldRow
         fields={[
-          { label: "Case Name",      value: "Aetna test", md: 4 },
-          { label: "Description",    value: "Aetna test", md: 4 },
+          { label: "Case Name", value: "Aetna test", md: 4 },
+          { label: "Description", value: "Aetna test", md: 4 },
           {
             label: "Payer Scenario",
             value: "Commercial",
@@ -662,27 +988,27 @@ function CaseInsuranceSection({ sectionRef }) {
         })}
       </Stack>
 
-      <Box>
+      <Box sx={{ width: "100%" }}>
         <Stack
           direction="row"
           alignItems="center"
           justifyContent="space-between"
-          sx={{ mb: 1 }}
+          sx={{ mb: 1, width: "100%" }}
         >
-          <Typography
-            sx={{ fontSize: 12.5, fontWeight: 700, color: "#12795B" }}
-          >
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#12795B" }}>
             Insurance policies
           </Typography>
           <Typography
             sx={{
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 600,
-              color: C.blue,
+              color: "#7C3AED",
               cursor: "pointer",
+              ml: "auto",
               "&:hover": { textDecoration: "underline" },
             }}
           >
+            + Add/Manage policy
           </Typography>
         </Stack>
 
@@ -697,13 +1023,29 @@ function CaseInsuranceSection({ sectionRef }) {
           <Table size="small" sx={{ minWidth: 680 }}>
             <TableHead>
               <TableRow>
-                {["", "TYPE", "INSURANCE", "PLAN", "POLICY #", "GROUP #", "ACTIVE", "ACTIONS"].map(
-                  (col, ci) => (
-                    <TableCell key={ci} sx={headCellSx}>
-                      {col}
-                    </TableCell>
-                  )
-                )}
+                {[
+                  { label: "" },
+                  { label: "TYPE" },
+                  { label: "INSURANCE" },
+                  { label: "PLAN" },
+                  { label: "POLICY #" },
+                  { label: "GROUP #" },
+                  { label: "ACTIVE", arrow: true },
+                  { label: "ACTIONS" },
+                ].map((col, ci) => (
+                  <TableCell key={ci} sx={headCellSx}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.3 }}
+                    >
+                      {col.label}
+                      {col.arrow && (
+                        <KeyboardArrowDownIcon
+                          sx={{ fontSize: 14, color: "#12795B" }}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
 
@@ -711,7 +1053,10 @@ function CaseInsuranceSection({ sectionRef }) {
               {policyRows.map((row, i) => (
                 <TableRow
                   key={i}
-                  sx={{ bgcolor: "#fff", "&:last-child td": { borderBottom: 0 } }}
+                  sx={{
+                    bgcolor: "#fff",
+                    "&:last-child td": { borderBottom: 0 },
+                  }}
                 >
                   <TableCell sx={{ ...cellSx, width: 44 }}>
                     <Checkbox
@@ -734,8 +1079,12 @@ function CaseInsuranceSection({ sectionRef }) {
                       SelectProps={{ IconComponent: ArrowDropDownIcon }}
                       InputProps={{ sx: tblInputSx }}
                     >
-                      <MenuItem value="PRIMARY"   sx={{ fontSize: 13 }}>PRIMARY</MenuItem>
-                      <MenuItem value="SECONDARY" sx={{ fontSize: 13 }}>SECONDARY</MenuItem>
+                      <MenuItem value="PRIMARY" sx={{ fontSize: 11 }}>
+                        PRIMARY
+                      </MenuItem>
+                      <MenuItem value="SECONDARY" sx={{ fontSize: 11 }}>
+                        SECONDARY
+                      </MenuItem>
                     </TextField>
                   </TableCell>
 
@@ -795,7 +1144,11 @@ function CaseInsuranceSection({ sectionRef }) {
                         }}
                       />
                       <Typography
-                        sx={{ fontSize: 12.5, fontWeight: 600, color: "#12795B" }}
+                        sx={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "#12795B",
+                        }}
                       >
                         Active
                       </Typography>
@@ -812,32 +1165,6 @@ function CaseInsuranceSection({ sectionRef }) {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      <Box>
-        <Typography
-          sx={{ fontSize: 12.5, fontWeight: 700, color: "#12795B", mb: 1.2 }}
-        >
-          Additional details
-        </Typography>
-        <FieldRow
-          fields={[
-            { label: "Copay",                   value: "0.00" },
-            { label: "Deductible",              value: "0.00" },
-            {
-              label: "Relationship to Insured",
-              value: "Self",
-              select: true,
-              options: ["Self", "Spouse", "Child", "Other"],
-            },
-            {
-              label: "Release of Info",
-              value: "Y - Yes",
-              select: true,
-              options: ["Y - Yes", "N - No"],
-            },
-          ]}
-        />
       </Box>
 
       <Stack
@@ -870,11 +1197,51 @@ function CaseInsuranceSection({ sectionRef }) {
           >
             Check eligibility (270/271)
           </Button>
-          <Typography sx={{ fontSize: 13, color: "#8B87A3" }}>
-            Runs inline - no separate window.
-          </Typography>
         </Stack>
+
+        {/* View log link */}
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#1C6FA6",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.4,
+            ml: "auto",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          🗎 View log
+        </Typography>
       </Stack>
+
+      <Box>
+        <Typography
+          sx={{ fontSize: 12.5, fontWeight: 700, color: "#12795B", mb: 1.2 }}
+        >
+          Additional details
+        </Typography>
+        <FieldRow
+          fields={[
+            { label: "Copay", value: "0.00" },
+            { label: "Deductible", value: "0.00" },
+            {
+              label: "Relationship to Insured",
+              value: "Self",
+              select: true,
+              options: ["Self", "Spouse", "Child", "Other"],
+            },
+            {
+              label: "Release of Info",
+              value: "Y - Yes",
+              select: true,
+              options: ["Y - Yes", "N - No"],
+            },
+          ]}
+        />
+      </Box>
     </SectionCard>
   );
 }
@@ -884,17 +1251,28 @@ function CaseInsuranceSection({ sectionRef }) {
    ========================================================= */
 function ConditionsSection({ sectionRef }) {
   const cellSx = {
-    borderBottom: "1px solid #F0EDE8", py: 1.1, px: 1.5,
-    verticalAlign: "middle", fontSize: 13, color: C.textDark, whiteSpace: "nowrap",
+    borderBottom: "1px solid #F0EDE8",
+    py: 1.1,
+    px: 1.5,
+    verticalAlign: "middle",
+    fontSize: 13,
+    color: C.textDark,
+    whiteSpace: "nowrap",
   };
   const headCellSx = {
     ...cellSx,
-    bgcolor: "#FEF4ED", fontSize: 11, fontWeight: 700,
-    color: "#C2662A", textTransform: "uppercase", letterSpacing: "0.05em",
+    bgcolor: "#FEF4ED",
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#C2662A",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
   };
   const tblInputSx = {
     "& .MuiOutlinedInput-root": {
-      borderRadius: "7px", fontSize: 13, bgcolor: "#fff",
+      borderRadius: "7px",
+      fontSize: 13,
+      bgcolor: "#fff",
       "& fieldset": { borderColor: "#E0E4EE" },
       "&:hover fieldset": { borderColor: "#B8BFCF" },
       "&.Mui-focused fieldset": { borderColor: C.orange, borderWidth: "1.5px" },
@@ -903,32 +1281,64 @@ function ConditionsSection({ sectionRef }) {
   };
 
   const ActiveBadge = ({ k }) => (
-    <Box key={k} sx={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center",
-      bgcolor: C.greenChipBg, border: `1px solid ${C.greenChipBorder}`,
-      borderRadius: "6px", px: 1.2, py: 0.25, minWidth: 58,
-    }}>
-      <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: C.greenChipText }}>Active</Typography>
+    <Box
+      key={k}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: C.greenChipBg,
+        border: `1px solid ${C.greenChipBorder}`,
+        borderRadius: "6px",
+        px: 1.2,
+        py: 0.25,
+        minWidth: 58,
+      }}
+    >
+      <Typography
+        sx={{ fontSize: 12.5, fontWeight: 700, color: C.greenChipText }}
+      >
+        Active
+      </Typography>
     </Box>
   );
 
   const buildTable = (cols, rows) => (
-    <TableContainer sx={{ border: "1px solid #EDE8E2", borderRadius: "10px", overflowX: "auto", ...scrollHide }}>
+    <TableContainer
+      sx={{
+        border: "1px solid #EDE8E2",
+        borderRadius: "10px",
+        overflowX: "auto",
+        ...scrollHide,
+      }}
+    >
       <Table size="small" sx={{ minWidth: 700 }}>
         <TableHead>
           <TableRow>
-            {cols.map((c, ci) => <TableCell key={ci} sx={headCellSx}>{c}</TableCell>)}
+            {cols.map((c, ci) => (
+              <TableCell key={ci} sx={headCellSx}>
+                {c}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.map((row, ri) => (
-            <TableRow key={ri} sx={{ bgcolor: "#fff", "&:last-child td": { borderBottom: 0 } }}>
+            <TableRow
+              key={ri}
+              sx={{ bgcolor: "#fff", "&:last-child td": { borderBottom: 0 } }}
+            >
               {row.map((cell, ci) => (
                 <TableCell key={ci} sx={cellSx}>
-                  {typeof cell === "string"
-                    ? <TextField size="small" defaultValue={cell} sx={tblInputSx} />
-                    : cell
-                  }
+                  {typeof cell === "string" ? (
+                    <TextField
+                      size="small"
+                      defaultValue={cell}
+                      sx={tblInputSx}
+                    />
+                  ) : (
+                    cell
+                  )}
                 </TableCell>
               ))}
             </TableRow>
@@ -938,70 +1348,218 @@ function ConditionsSection({ sectionRef }) {
     </TableContainer>
   );
 
-  const authCols = ["Authorization #", "# Visits", "# Used", "Start", "End", "Status +", "Provider Name", "Contact", "Notes"];
-  const authRows = [
-    ["AUTH-88210", "6", "0", "08/01/2026", "10/31/2026", <ActiveBadge key="a1" />, "Lorem Ipsum", "XXXXXXXXXX", "Neuro follow-up"],
-    ["AUTH-88210", "6", "0", "08/01/2026", "10/31/2026", <ActiveBadge key="a2" />, "Lorem Ipsum", "XXXXXXXXXX", "Neuro follow-up"],
+  const authCols = [
+    "Authorization #",
+    "# Visits",
+    "# Used",
+    "Start",
+    "End",
+    "Status +",
+    "Provider Name",
+    "Contact",
+    "Notes",
   ];
-  const refCols = ["Referrer #", "# Visits", "# Used", "Start", "End", "Status +", "Name", "Contact", "Notes"];
+  const authRows = [
+    [
+      "AUTH-88210",
+      "6",
+      "0",
+      "08/01/2026",
+      "10/31/2026",
+      <ActiveBadge key="a1" />,
+      "Lorem Ipsum",
+      "XXXXXXXXXX",
+      "Neuro follow-up",
+    ],
+    [
+      "AUTH-88210",
+      "6",
+      "0",
+      "08/01/2026",
+      "10/31/2026",
+      <ActiveBadge key="a2" />,
+      "Lorem Ipsum",
+      "XXXXXXXXXX",
+      "Neuro follow-up",
+    ],
+  ];
+  const refCols = [
+    "Referrer #",
+    "# Visits",
+    "# Used",
+    "Start",
+    "End",
+    "Status +",
+    "Name",
+    "Contact",
+    "Notes",
+  ];
   const refRows = [
-    ["AUTH-88210", "6", "0", "08/01/2026", "10/31/2026", <ActiveBadge key="r1" />, "Lorem Ipsum", "XXXXXXXXXX", "Neuro follow-up"],
-    ["AUTH-88210", "6", "0", "08/01/2026", "10/31/2026", <ActiveBadge key="r2" />, "Lorem Ipsum", "XXXXXXXXXX", "Neuro follow-up"],
+    [
+      "AUTH-88210",
+      "6",
+      "0",
+      "08/01/2026",
+      "10/31/2026",
+      <ActiveBadge key="r1" />,
+      "Lorem Ipsum",
+      "XXXXXXXXXX",
+      "Neuro follow-up",
+    ],
+    [
+      "AUTH-88210",
+      "6",
+      "0",
+      "08/01/2026",
+      "10/31/2026",
+      <ActiveBadge key="r2" />,
+      "Lorem Ipsum",
+      "XXXXXXXXXX",
+      "Neuro follow-up",
+    ],
   ];
 
-  const cRow1 = ["Auto accident", "Employment", "Pregnancy", "Abuse", "Homebound"];
-  const cRow2 = ["Other", "EPSDT", "Family planning", "Emergency", "Worker's Compensation"];
+  const cRow1 = [
+    "Auto accident",
+    "Employment",
+    "Pregnancy",
+    "Abuse",
+    "Homebound",
+  ];
+  const cRow2 = [
+    "Other",
+    "EPSDT",
+    "Family planning",
+    "Emergency",
+    "Worker's Compensation",
+  ];
 
   const condChk = (lbl) => (
-    <FormControlLabel key={lbl} sx={{ mr: 3, ml: 0, mb: 0 }}
-      control={<Checkbox size="small" sx={{ p: 0.5, color: "#D0D5E0", "&.Mui-checked": { color: C.orange }, "& svg": { fontSize: 17 } }} />}
-      label={<Typography sx={{ fontSize: 13.5, color: C.textDark }}>{lbl}</Typography>}
+    <FormControlLabel
+      key={lbl}
+      sx={{ mr: 3, ml: 0, mb: 0 }}
+      control={
+        <Checkbox
+          size="small"
+          sx={{
+            p: 0.5,
+            color: "#D0D5E0",
+            "&.Mui-checked": { color: C.orange },
+            "& svg": { fontSize: 17 },
+          }}
+        />
+      }
+      label={
+        <Typography sx={{ fontSize: 13.5, color: C.textDark }}>
+          {lbl}
+        </Typography>
+      }
     />
   );
 
   return (
     <SectionCard
-      id="conditions" sectionRef={sectionRef}
-      number={3} title="Conditions & Authorisation / Referrals"
-      accentColor={C.orange} accentBg={C.orangeBg}
+      id="conditions"
+      sectionRef={sectionRef}
+      number={3}
+      title="Conditions & Authorisation / Referrals"
+      accentColor={C.orange}
+      accentBg={C.orangeBg}
     >
       <Box>
-        <Typography sx={{ fontSize: 12, fontWeight: 600, color: C.textLabel, mb: 1 }}>
+        <Typography
+          sx={{ fontSize: 12, fontWeight: 600, color: C.textLabel, mb: 1 }}
+        >
           Condition related to
         </Typography>
-        <Stack direction="row" flexWrap="wrap" rowGap={0.25}>{cRow1.map(condChk)}</Stack>
-        <Stack direction="row" flexWrap="wrap" rowGap={0.25} sx={{ mt: 0.3 }}>{cRow2.map(condChk)}</Stack>
+        {/* 5-col grid for checkboxes — 2 rows */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(5, 1fr)" },
+            rowGap: 0.5,
+            columnGap: 1,
+          }}
+        >
+          {[...cRow1, ...cRow2].map(condChk)}
+        </Box>
       </Box>
 
-      <Grid container spacing={{ xs: 1.5, md: 2 }}>
-        <Grid item xs={12} sm={6} md={4}>
-          <Typography component="label" sx={labelSx}>Condition Date Type</Typography>
-          <TextField fullWidth size="small" select defaultValue="None"
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr 1fr",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 1.5,
+          width: "100%",
+        }}
+      >
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Condition Date Type
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            select
+            defaultValue="None"
             SelectProps={{ IconComponent: ArrowDropDownIcon }}
             InputProps={{ sx: { ...inputOrange(), borderRadius: "8px" } }}
+            sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
           >
-            {["None", "Initial", "Last seen", "Acute manifestation"].map((o) => (
-              <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>{o}</MenuItem>
-            ))}
+            {["None", "Initial", "Last seen", "Acute manifestation"].map(
+              (o) => (
+                <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>
+                  {o}
+                </MenuItem>
+              ),
+            )}
           </TextField>
-        </Grid>
-        <Grid item xs={12} sm={3} md={4}>
-          <Typography component="label" sx={labelSx}>Start Date</Typography>
-          <TextField fullWidth size="small" defaultValue="NA" InputProps={{ sx: inputNormal() }} />
-        </Grid>
-        <Grid item xs={12} sm={3} md={4}>
-          <Typography component="label" sx={labelSx}>End Date</Typography>
-          <TextField fullWidth size="small" defaultValue="NA" InputProps={{ sx: inputNormal() }} />
-        </Grid>
-      </Grid>
+        </Box>
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Start Date
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="NA"
+            InputProps={{ sx: inputNormal() }}
+            sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
+          />
+        </Box>
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            End Date
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="NA"
+            InputProps={{ sx: inputNormal() }}
+            sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
+          />
+        </Box>
+      </Box>
 
       <Box>
-        <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}>Authorizations</Typography>
+        <Typography
+          sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}
+        >
+          Authorizations
+        </Typography>
         {buildTable(authCols, authRows)}
       </Box>
 
       <Box>
-        <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}>Referrals</Typography>
+        <Typography
+          sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}
+        >
+          Referrals
+        </Typography>
         {buildTable(refCols, refRows)}
       </Box>
     </SectionCard>
@@ -1013,15 +1571,38 @@ function ConditionsSection({ sectionRef }) {
    ========================================================= */
 function ChargesSection({ sectionRef }) {
   const procColumns = [
-    "DOS FROM", "DOS TO", "POS", "PROCEDURES",
-    "MOD 1", "MAP", "DAYS/UNIT", "UNIT CHARGE",
-    "TOTAL", "COPAY", "UC", "UM", "MOD 3",
+    "DOS FROM",
+    "DOS TO",
+    "POS",
+    "PROCEDURES",
+    "MOD 1",
+    "MAP",
+    "DAYS/UNIT",
+    "UNIT CHARGE",
+    "TOTAL",
+    "COPAY",
+    "UC",
+    "UM",
+    "MOD 3",
   ];
 
-  const procRows = [[
-    "05/27/2026", "05/27/2026", "GCH-IP", "36389.IH",
-    "99214", "ABCDE", "1", "$100", "$100", "$10", "1", "5 ML", "0.00",
-  ]];
+  const procRows = [
+    [
+      "05/27/2026",
+      "05/27/2026",
+      "GCH-IP",
+      "36389.IH",
+      "99214",
+      "ABCDE",
+      "1",
+      "$100",
+      "$100",
+      "$10",
+      "1",
+      "5 ML",
+      "0.00",
+    ],
+  ];
 
   return (
     <SectionCard
@@ -1032,72 +1613,147 @@ function ChargesSection({ sectionRef }) {
       accentColor={C.amber}
       accentBg={C.amberBg}
     >
-      <FieldRow fields={[
-        { label: "From Date",    value: "08/15/2026" },
-        { label: "Through Date", value: "08/15/2026" },
-        { label: "Post Date",    value: "08/28/2026" },
-        { label: "Batch #",      value: "--" },
-      ]} />
+      <FieldRow
+        fields={[
+          { label: "From Date", value: "08/15/2026" },
+          { label: "Through Date", value: "08/15/2026" },
+          { label: "Post Date", value: "08/28/2026" },
+          { label: "Batch #", value: "--" },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "Scheduling Provider",  value: "Kumar V2, Jayram" },
-        { label: "Rendering Provider",   value: "Kumar V2, Jayram" },
-        { label: "Supervising Provider", value: "NA" },
-        { label: "Location",             value: "The University RL", highlightedGreen: true },
-      ]} />
+      <FieldRow
+        fields={[
+          { label: "Scheduling Provider", value: "Kumar V2, Jayram" },
+          { label: "Rendering Provider", value: "Kumar V2, Jayram" },
+          { label: "Supervising Provider", value: "NA" },
+          {
+            label: "Location",
+            value: "The University RL",
+            highlightedGreen: true,
+          },
+        ]}
+      />
 
-      <Grid container spacing={{ xs: 1.5, md: 2 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Typography component="label" sx={labelSx}>Place of Service</Typography>
-          <TextField fullWidth size="small" defaultValue="11 - Office"
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr 1fr",
+            md: "repeat(4, 1fr)",
+          },
+          gap: 1.5,
+          width: "100%",
+        }}
+      >
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Place of Service
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="11 - Office"
             sx={{
+              "& .MuiFormHelperText-root": { display: "none" },
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
                 backgroundColor: "#FBF5E3",
                 fontSize: 13.5,
-                "& input": { py: "7px", px: "12px", fontSize: 13.5, color: "#2B2842" },
-                "& .MuiOutlinedInput-notchedOutline": { borderColor: "#FBE6B4" },
-                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#E8C96A" },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FBE6B4", borderWidth: "1.5px" },
+                "& input": {
+                  py: "7px",
+                  px: "12px",
+                  fontSize: 13.5,
+                  color: "#2B2842",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#FBE6B4",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#E8C96A",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#FBE6B4",
+                  borderWidth: "1.5px",
+                },
               },
             }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Typography component="label" sx={labelSx}>Encounter Mode</Typography>
-          <TextField fullWidth size="small" defaultValue="In Office"
+        </Box>
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Encounter Mode
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="In Office"
             sx={{
+              "& .MuiFormHelperText-root": { display: "none" },
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
                 backgroundColor: "#FBF5E3",
                 fontSize: 13.5,
-                "& input": { py: "7px", px: "12px", fontSize: 13.5, color: "#2B2842" },
-                "& .MuiOutlinedInput-notchedOutline": { borderColor: "#FBE6B4" },
-                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#E8C96A" },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FBE6B4", borderWidth: "1.5px" },
+                "& input": {
+                  py: "7px",
+                  px: "12px",
+                  fontSize: 13.5,
+                  color: "#2B2842",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#FBE6B4",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#E8C96A",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#FBE6B4",
+                  borderWidth: "1.5px",
+                },
               },
             }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Typography component="label" sx={labelSx}>Copay Due</Typography>
-          <TextField fullWidth size="small" defaultValue="0.00"
+        </Box>
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Copay Due
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="0.00"
             InputProps={{ sx: inputNormal() }}
+            sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Typography component="label" sx={labelSx}>Payment Amount</Typography>
-          <TextField fullWidth size="small" defaultValue="0.00"
+        </Box>
+        <Box>
+          <Typography component="label" sx={labelSx}>
+            Payment Amount
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="0.00"
             InputProps={{ sx: inputNormal() }}
+            sx={{ "& .MuiFormHelperText-root": { display: "none" } }}
           />
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: C.amber, mb: 1 }}>
+        <Typography
+          sx={{ fontSize: 13, fontWeight: 700, color: C.amber, mb: 1 }}
+        >
           Diagnosis pointers
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" rowGap={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          flexWrap="wrap"
+          rowGap={1}
+        >
           <Chip
             label="A_F73"
             onDelete={() => {}}
@@ -1132,7 +1788,7 @@ function ChargesSection({ sectionRef }) {
             label="+ Add"
             variant="outlined"
             sx={{
-              borderColor: "#C8C3EE",
+              borderColor: "#DCD6F8",
               color: "#5443C4",
               fontWeight: 600,
               fontSize: 13,
@@ -1149,7 +1805,7 @@ function ChargesSection({ sectionRef }) {
         sx={{
           border: `1px solid ${C.borderLight}`,
           borderRadius: "10px",
-          p: { xs: 1.5, md: 2 },
+          overflow: "hidden",
         }}
       >
         <Stack
@@ -1158,24 +1814,31 @@ function ChargesSection({ sectionRef }) {
           justifyContent="space-between"
           flexWrap="wrap"
           rowGap={1}
-          sx={{ mb: 1.5 }}
+          sx={{
+            bgcolor: C.amberBg,
+            px: 1.5,
+            py: 1,
+          }}
         >
           <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
             Procedures
           </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            rowGap={0}
+            sx={{ ml: "auto" }}
+          >
             <OutlineBtn>+ Customised Columns</OutlineBtn>
             <OutlineBtn>+ Add line</OutlineBtn>
-            <OutlineBtn startIcon={<CheckIcon sx={{ fontSize: 14 }} />}>
-              Check codes
-            </OutlineBtn>
           </Stack>
         </Stack>
 
         <TableContainer
           sx={{
-            border: `1px solid ${C.borderLight}`,
-            borderRadius: "8px",
+            borderTop: `1px solid ${C.borderLight}`,
+            borderRadius: 0,
             overflowX: "auto",
             ...scrollHide,
           }}
@@ -1206,12 +1869,15 @@ function ChargesSection({ sectionRef }) {
             </TableHead>
             <TableBody>
               {procRows.map((row, i) => (
-                <TableRow key={i} sx={{ "&:last-child td": { borderBottom: 0 } }}>
+                <TableRow
+                  key={i}
+                  sx={{ "&:last-child td": { borderBottom: 0 } }}
+                >
                   {row.map((cell, j) => (
                     <TableCell
                       key={j}
                       sx={{
-                        fontSize: 13,
+                        fontSize: 12,
                         color: C.textDark,
                         whiteSpace: "nowrap",
                         borderBottom: "1px solid #EEF1F7",
@@ -1238,30 +1904,112 @@ function ChargesSection({ sectionRef }) {
 function AdditionalDetailsSection({ sectionRef }) {
   return (
     <SectionCard
-      id="additional" sectionRef={sectionRef}
-      number={5} title="Additional Details"
-      accentColor={C.teal5} accentBg={C.teal5Bg}
+      id="additional"
+      sectionRef={sectionRef}
+      number={5}
+      title="Additional Details"
+      accentColor={C.teal5}
+      accentBg={C.teal5Bg}
     >
-      <FieldRow fields={[
-        { label: "Has other claim ID",         value: "Yes", select: true, options: ["Yes", "No"] },
-        { label: "Agency claim no.",            value: "",    placeholder: "Type here" },
-        { label: "Unable to work from date",    value: "08/28/2026" },
-        { label: "Unable to work to date",      value: "09/28/2026" },
-      ]} />
+      {/* Row 1 */}
+      <FieldRow
+        fields={[
+          {
+            label: "Outside Lab",
+            type: "checkboxGroup",
+            options: ["Yes", "No"],
+          },
+          {
+            label: "Outside Lab Charges",
+            value: "0",
+          },
+          {
+            label: "Is LMP",
+            type: "checkboxGroup",
+            options: ["Yes"],
+          },
+          {
+            label: "Date of current illness",
+            value: "09/28/2026",
+          },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "Initial visit date",       value: "07/28/2026", icon: true },
-        { label: "Last related visit date",  value: "07/28/2026", icon: true },
-        { label: "Claim code",               value: "W3", select: true, options: ["W3", "W2", "W1"] },
-        { label: "Other date",               value: "09/28/2026", icon: true },
-      ]} />
+      {/* Row 2 */}
+      <FieldRow
+        fields={[
+          {
+            label: "Has other claim ID",
+            value: "Yes",
+            select: true,
+            options: ["Yes", "No"],
+          },
+          {
+            label: "Agency claim no.",
+            value: "",
+            placeholder: "Type here",
+          },
+          {
+            label: "Unable to work from date",
+            value: "08/28/2026",
+          },
+          {
+            label: "Unable to work to date",
+            value: "09/28/2026",
+          },
+        ]}
+      />
 
-      <FieldRow fields={[
-        { label: "Other date qualifier",    value: "-", select: true, options: ["-"] },
-        { label: "Resubmission code",       value: "-" },
-        { label: "Original reference no.", value: "-" },
-        { label: "Additional Claim info",   value: "-" },
-      ]} />
+      {/* Row 3 */}
+      <FieldRow
+        fields={[
+          {
+            label: "Initial visit date",
+            value: "07/28/2026",
+            icon: true,
+          },
+          {
+            label: "Last related visit date",
+            value: "07/28/2026",
+            icon: true,
+          },
+          {
+            label: "Claim code",
+            value: "W3",
+            select: true,
+            options: ["W3", "W2", "W1"],
+          },
+          {
+            label: "Other date",
+            value: "09/28/2026",
+            icon: true,
+          },
+        ]}
+      />
+
+      {/* Row 4 */}
+      <FieldRow
+        fields={[
+          {
+            label: "Other date qualifier",
+            value: "-",
+            select: true,
+            options: ["-"],
+          },
+          {
+            label: "Resubmission code",
+            value: "-",
+          },
+          {
+            label: "Original reference no.",
+            value: "-",
+          },
+          {
+            label: "Additional Claim info",
+            value: "-",
+          },
+        ]}
+      />
     </SectionCard>
   );
 }
@@ -1271,60 +2019,130 @@ function AdditionalDetailsSection({ sectionRef }) {
    ========================================================= */
 function FooterBar() {
   return (
-    <Paper elevation={3} sx={{
-      position: "sticky", bottom: 0, zIndex: 25,
-      border: `1px solid ${C.borderLight}`, borderRadius: "12px",
-      bgcolor: "#fff", px: { xs: 2, md: 3 }, py: 1.8,
-      display: "flex", alignItems: { xs: "flex-start", md: "center" },
-      justifyContent: "space-between",
-      flexDirection: { xs: "column", md: "row" }, gap: 2,
-    }}>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1, sm: 3 }}
-        alignItems={{ xs: "flex-start", sm: "center" }} flexWrap="wrap" rowGap={1}
+    <Paper
+      elevation={3}
+      sx={{
+        //position: "sticky",
+        bottom: 0,
+        zIndex: 25,
+        border: `1px solid ${C.borderLight}`,
+        borderRadius: "12px",
+        bgcolor: "#fff",
+        px: { xs: 2, md: 3 },
+        py: 1.8,
+        display: "flex",
+        alignItems: { xs: "flex-start", md: "center" },
+        justifyContent: "space-between",
+        flexDirection: { xs: "column", md: "row" },
+        gap: 2,
+      }}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={{ xs: 1, sm: 3 }}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        flexWrap="wrap"
+        rowGap={1}
       >
         <Box sx={{ minWidth: 120 }}>
           <Typography sx={{ ...labelSx, mb: 0.5 }}>
-            Total Charges <Box component="span" sx={{ color: "red" }}>*</Box>
+            Total Charges{" "}
+            <Box component="span" sx={{ color: "red" }}>
+              *
+            </Box>
           </Typography>
-          <TextField size="small" defaultValue="118.00" sx={{ width: 130 }}
+          <TextField
+            size="small"
+            defaultValue="118.00"
+            sx={{ width: 130 }}
             InputProps={{ sx: inputNormal() }}
           />
         </Box>
-        <Typography sx={{ fontSize: 14, color: "#6B7280", whiteSpace: "nowrap" }}>
+        <Typography
+          sx={{ fontSize: 14, color: "#6B7280", whiteSpace: "nowrap" }}
+        >
           Grand total{" "}
-          <Box component="span" sx={{ fontSize: 18, fontWeight: 800, color: C.textDark }}>
+          <Box
+            component="span"
+            sx={{ fontSize: 18, fontWeight: 800, color: C.textDark }}
+          >
             $118.00
           </Box>
         </Typography>
       </Stack>
 
-      <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1} alignItems="center">
-        <Box sx={{ display: "flex", border: `1px solid ${C.border}`, borderRadius: "8px", overflow: "hidden" }}>
-          <Button disableElevation sx={{
-            textTransform: "none", fontSize: 13, fontWeight: 600,
-            color: C.textDark, borderRadius: 0, px: 2, py: 0.7,
-            bgcolor: "#fff", borderRight: `1px solid ${C.border}`,
-            "&:hover": { bgcolor: "#F5F6F8" },
-          }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        flexWrap="wrap"
+        rowGap={1}
+        alignItems="center"
+      >
+        <Box
+          sx={{
+            display: "flex",
+            border: `1px solid ${C.border}`,
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <Button
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 600,
+              color: C.textDark,
+              borderRadius: 0,
+              px: 2,
+              py: 0.7,
+              bgcolor: "#fff",
+              borderRight: `1px solid ${C.border}`,
+              "&:hover": { bgcolor: "#F5F6F8" },
+            }}
+          >
             Select Action
           </Button>
-          <IconButton size="small" sx={{ borderRadius: 0, px: 1, bgcolor: "#fff", "&:hover": { bgcolor: "#F5F6F8" } }}>
+          <IconButton
+            size="small"
+            sx={{
+              borderRadius: 0,
+              px: 1,
+              bgcolor: "#fff",
+              "&:hover": { bgcolor: "#F5F6F8" },
+            }}
+          >
             <ArrowDropDownIcon sx={{ fontSize: 20, color: "#6B7280" }} />
           </IconButton>
         </Box>
 
-        <Button variant="outlined" sx={{
-          textTransform: "none", borderRadius: "8px", fontSize: 13,
-          fontWeight: 600, color: C.textDark, borderColor: C.border, px: 2,
-          "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
-        }}>
+        <Button
+          variant="outlined"
+          sx={{
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13,
+            fontWeight: 700,
+            color: C.textDark,
+            borderColor: C.border,
+            px: 2,
+            "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
+          }}
+        >
           Cancel
         </Button>
 
-        <Button variant="contained" disableElevation startIcon={<CheckIcon sx={{ fontSize: 15 }} />}
+        <Button
+          variant="contained"
+          disableElevation
+          startIcon={<CheckIcon sx={{ fontSize: 15 }} />}
           sx={{
-            textTransform: "none", borderRadius: "8px", fontSize: 13,
-            fontWeight: 600, bgcolor: C.blue, px: 2.5,
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13,
+            fontWeight: 700,
+            bgcolor: C.blue,
+            px: 2.5,
             "&:hover": { bgcolor: C.blueHover },
           }}
         >
@@ -1344,7 +2162,9 @@ export default function NewEncounter() {
   const headerRef = React.useRef(null);
   const [activeId, setActiveId] = React.useState(STEPS[0].id);
 
-  const setRef = (id) => (node) => { sectionRefs.current[id] = node; };
+  const setRef = (id) => (node) => {
+    sectionRefs.current[id] = node;
+  };
 
   React.useEffect(() => {
     /* Scroll-based detection — finds the last card whose top edge has
@@ -1401,7 +2221,9 @@ export default function NewEncounter() {
     };
 
     const scrollParents = getScrollParents(rootRef.current);
-    scrollParents.forEach((el) => el.addEventListener("scroll", onScroll, { passive: true }));
+    scrollParents.forEach((el) =>
+      el.addEventListener("scroll", onScroll, { passive: true }),
+    );
     window.addEventListener("resize", onScroll, { passive: true });
     computeActive(); /* run once on mount */
 
@@ -1411,33 +2233,64 @@ export default function NewEncounter() {
     };
   }, []);
 
+  const scrollLockRef = React.useRef(false);
+
   const handleStepClick = (id) => {
+    // Immediately set active step on click
+    setActiveId(id);
+    // Lock scroll-based detection briefly so smooth scroll doesn't override
+    scrollLockRef.current = true;
     const node = sectionRefs.current[id];
     if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Unlock after smooth scroll completes (~800ms)
+    setTimeout(() => {
+      scrollLockRef.current = false;
+    }, 800);
   };
 
   return (
-    <Box ref={rootRef} sx={{ bgcolor: C.pageBg, minHeight: "100vh", width: "100%", boxSizing: "border-box" }}>
-      <Box ref={headerRef} sx={{
-        position: "sticky", top: 0, zIndex: 30,
+    <Box
+      ref={rootRef}
+      sx={{
         bgcolor: C.pageBg,
-        px: { xs: 1.5, sm: 3, md: 4, lg: 5 },
-        pt: { xs: 1.5, md: 2 }, pb: 0,
-        borderBottom: `1px solid ${C.borderLight}`,
-      }}>
+        minHeight: "100vh",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <Box
+        ref={headerRef}
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
+          bgcolor: C.pageBg,
+          px: { xs: 1.5, sm: 2, md: 3 },
+          pt: { xs: 1.5, md: 2 },
+          pb: 0,
+          borderBottom: `1px solid ${C.borderLight}`,
+        }}
+      >
         <TopBar />
         <StepperNav activeId={activeId} onStepClick={handleStepClick} />
       </Box>
 
-      <Box sx={{ px: { xs: 1.5, sm: 3, md: 4, lg: 5 }, pt: 2.5, pb: 6, boxSizing: "border-box" }}>
+      <Box
+        sx={{
+          px: { xs: 1.5, sm: 2, md: 3 },
+          pt: 2.5,
+          pb: 6,
+          boxSizing: "border-box",
+        }}
+      >
         <Stack spacing={2.5}>
           <EncounterSummary />
           <AssistBanner />
 
-          <PatientSection           sectionRef={setRef("patient")} />
-          <CaseInsuranceSection     sectionRef={setRef("case")} />
-          <ConditionsSection        sectionRef={setRef("conditions")} />
-          <ChargesSection           sectionRef={setRef("charges")} />
+          <PatientSection sectionRef={setRef("patient")} />
+          <CaseInsuranceSection sectionRef={setRef("case")} />
+          <ConditionsSection sectionRef={setRef("conditions")} />
+          <ChargesSection sectionRef={setRef("charges")} />
           <AdditionalDetailsSection sectionRef={setRef("additional")} />
 
           <FooterBar />
