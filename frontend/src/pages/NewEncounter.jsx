@@ -11,6 +11,8 @@ import {
   FormControlLabel,
   Button,
   IconButton,
+  Popover,
+  Dialog,
   Chip,
   Table,
   TableBody,
@@ -127,6 +129,18 @@ const inputGreen = () =>
   inputBase(C.inputGreenBg, C.inputGreenBorder, "#6366F1");
 const inputOrange = () =>
   inputBase(C.inputHighlight, C.inputHighlightBorder, C.orange);
+const inputBlue = () => ({
+  ...inputBase("#EEF4FF", "#006FFD", "#006FFD"),
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#006FFD",
+    borderStyle: "dashed",
+    borderWidth: "1.5px",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#006FFD",
+    borderStyle: "dashed",
+  },
+});
 
 /* =========================================================
    FORM FIELD
@@ -147,16 +161,63 @@ function FormField({
   options = [],
   placeholder,
   highlightedGreen,
+  highlightedBlue,
   highlighted,
   icon,
   required,
   md,
+  type,
 }) {
   const sx = highlightedGreen
     ? inputGreen()
-    : highlighted
-      ? inputOrange()
-      : inputNormal();
+    : highlightedBlue
+      ? inputBlue()
+      : highlighted
+        ? inputOrange()
+        : inputNormal();
+
+  /* ── Checkbox group variant ── */
+  if (type === "checkboxGroup") {
+    return (
+      <Box sx={{ width: "100%", minWidth: 0 }}>
+        <Typography component="label" sx={labelSx}>{label}</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            border: `1px solid ${C.border}`,
+            borderRadius: "8px",
+            bgcolor: "#fff",
+            px: 1.5,
+            py: "6px",
+            minHeight: 36,
+          }}
+        >
+          {options.map((opt) => (
+            <FormControlLabel
+              key={opt}
+              sx={{ mr: 0, ml: 0 }}
+              control={
+                <Checkbox
+                  size="small"
+                  sx={{
+                    p: 0.4,
+                    color: "#C8CDD8",
+                    "&.Mui-checked": { color: C.blue },
+                    "& svg": { fontSize: 16 },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ fontSize: 13, color: C.textDark }}>{opt}</Typography>
+              }
+            />
+          ))}
+        </Box>
+      </Box>
+    );
+  }
 
   /* ── Date picker variant (icon: true) ── */
   if (icon) {
@@ -759,6 +820,24 @@ function AssistBanner() {
    CARD 1 - PATIENT
    ========================================================= */
 function PatientSection({ sectionRef }) {
+  const [showDetails, setShowDetails] = React.useState(false);
+
+  const patient = {
+    legalName: "Wayne Jimmy",
+    dob: "08/25/1978",
+    gender: "Male",
+    mrn: "563526626",
+    ssn: "563526626",
+    mobile: "(313) 404-6928",
+    address: "Capitol Way S,\nWashingtone, AR 12344",
+    maritalStatus: "NA",
+    emplStatus: "NA",
+    referralSource: "NA",
+    employer: "NA",
+    pcp: "NA",
+    referringPhysician: "NA",
+  };
+
   return (
     <SectionCard
       id="patient"
@@ -769,7 +848,9 @@ function PatientSection({ sectionRef }) {
       accentBg={C.purpleBg}
       rightSlot={
         <Stack direction="row" spacing={1}>
-          <OutlineBtn>Select existing</OutlineBtn>
+          <OutlineBtn onClick={() => setShowDetails((p) => !p)}>
+            Select existing
+          </OutlineBtn>
           <Button
             variant="contained"
             disableElevation
@@ -789,52 +870,168 @@ function PatientSection({ sectionRef }) {
         </Stack>
       }
     >
-      <FieldRow
-        fields={[
-          { label: "Legal Name", value: "Wayne, Jimmy" },
-          { label: "Date of Birth", value: "06/15/1978" },
-          { label: "Gender", value: "Male" },
-          { label: "MRN", value: "326362969" },
-        ]}
-      />
+      {/* Patient details panel — shown when Select existing is clicked */}
+      {showDetails && (
+        <Box
+          sx={{
+            borderRadius: "10px",
+            px: { xs: 2, md: 3 },
+            py: 2,
+            bgcolor: "#fff",
+            position: "relative",
+          }}
+        >
+          {/* Edit icon */}
+          <IconButton
+            size="small"
+            sx={{ position: "absolute", top: 10, right: 10, color: C.blue }}
+          >
+            <EditOutlinedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
 
-      <FieldRow
-        fields={[
-          { label: "SSN", value: "000-00-5433", md: 3 },
-          { label: "Mobile Phone", value: "(313) 404-6928", md: 3 },
-          {
-            label: "Address",
-            value: "Capitol Way S, Washingtone, AR 12344",
-            md: 6,
-          },
-        ]}
-      />
+          {/* PATIENT DETAILS label */}
+          <Typography
+            sx={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              color: C.textMuted,
+              textTransform: "uppercase",
+              mb: 1.2,
+            }}
+          >
+            Patient Details
+          </Typography>
 
-      <FieldRow
-        fields={[
-          { label: "Marital Status", value: "NA" },
-          { label: "Employment Status", value: "NA" },
-          { label: "Referral Source", value: "Not Specified" },
-          { label: "Employer", value: "NA" },
-        ]}
-      />
+          {/* 4-col info grid */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "repeat(4, 1fr)",
+              },
+              gap: { xs: 1, md: 0 },
+            }}
+          >
+            {/* Col 1 */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {[
+                { label: "Legal Name", value: patient.legalName },
+                { label: "DOB", value: patient.dob },
+                { label: "Gender", value: patient.gender },
+                { label: "MRN", value: patient.mrn },
+              ].map(({ label, value }) => (
+                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                  {label}{" "}
+                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                    {value}
+                  </Box>
+                </Typography>
+              ))}
+            </Box>
 
-      <FieldRow
-        fields={[
-          {
-            label: "Primary Care Physician",
-            value: "NA",
-            highlightedBlue: true,
-          },
-          { label: "Referring Physician", value: "NA" },
-          { label: "Default Rendering Provider", value: "Kumar V2, Jayram" },
-          {
-            label: "Default Service Location",
-            value: "The University RL",
-            highlightedGreen: true,
-          },
-        ]}
-      />
+            {/* Col 2 */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {[
+                { label: "SSN", value: patient.ssn },
+                { label: "Mobile", value: patient.mobile },
+                { label: "Marital Status", value: patient.maritalStatus },
+                { label: "Empl. Status", value: patient.emplStatus },
+              ].map(({ label, value }) => (
+                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                  {label}{" "}
+                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                    {value}
+                  </Box>
+                </Typography>
+              ))}
+            </Box>
+
+            {/* Col 3 — Address */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: C.textBody }}>
+                Address:{" "}
+                <Box
+                  component="span"
+                  sx={{ fontWeight: 700, color: C.textDark, whiteSpace: "pre-line" }}
+                >
+                  {patient.address}
+                </Box>
+              </Typography>
+            </Box>
+
+            {/* Col 4 */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {[
+                { label: "Referral Source", value: patient.referralSource },
+                { label: "Employer", value: patient.employer },
+                { label: "PCP", value: patient.pcp },
+                { label: "Referring Physician", value: patient.referringPhysician },
+              ].map(({ label, value }) => (
+                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                  {label}{" "}
+                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                    {value}
+                  </Box>
+                </Typography>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* Form fields — hidden when Select existing is active */}
+      {!showDetails && (
+        <>
+          <FieldRow
+            fields={[
+              { label: "Legal Name", value: "Wayne, Jimmy" },
+              { label: "Date of Birth", value: "06/15/1978" },
+              { label: "Gender", value: "Male" },
+              { label: "MRN", value: "326362969" },
+            ]}
+          />
+
+          <FieldRow
+            fields={[
+              { label: "SSN", value: "000-00-5433", md: 3 },
+              { label: "Mobile Phone", value: "(313) 404-6928", md: 3 },
+              {
+                label: "Address",
+                value: "Capitol Way S, Washingtone, AR 12344",
+                md: 6,
+              },
+            ]}
+          />
+
+          <FieldRow
+            fields={[
+              { label: "Marital Status", value: "NA" },
+              { label: "Employment Status", value: "NA" },
+              { label: "Referral Source", value: "Not Specified" },
+              { label: "Employer", value: "NA" },
+            ]}
+          />
+
+          <FieldRow
+            fields={[
+              {
+                label: "Primary Care Physician",
+                value: "NA",
+              },
+              { label: "Referring Physician", value: "NA" },
+              { label: "Default Rendering Provider", value: "Kumar V2, Jayram" },
+              {
+                label: "Default Service Location",
+                value: "The University RL",
+                highlightedGreen: true,
+              },
+            ]}
+          />
+        </>
+      )}
     </SectionCard>
   );
 }
@@ -1570,6 +1767,8 @@ function ConditionsSection({ sectionRef }) {
    CARD 4 - ENCOUNTER DETAILS & CHARGES
    ========================================================= */
 function ChargesSection({ sectionRef }) {
+  const [selectedColumns, setSelectedColumns] = React.useState(["NDC"]);
+
   const procColumns = [
     "DOS FROM",
     "DOS TO",
@@ -1808,32 +2007,36 @@ function ChargesSection({ sectionRef }) {
           overflow: "hidden",
         }}
       >
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          alignItems={{ xs: "flex-start", sm: "center" }}
-          justifyContent="space-between"
-          flexWrap="wrap"
-          rowGap={1}
-          sx={{
-            bgcolor: C.amberBg,
-            px: 1.5,
-            py: 1,
-          }}
-        >
-          <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
-            Procedures
-          </Typography>
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            rowGap={0}
-            sx={{ ml: "auto" }}
-          >
-            <OutlineBtn>+ Customised Columns</OutlineBtn>
-            <OutlineBtn>+ Add line</OutlineBtn>
-          </Stack>
-        </Stack>
+<Stack
+  direction={{ xs: "column", sm: "row" }}
+  alignItems={{ xs: "flex-start", sm: "center" }}
+  justifyContent="space-between"
+  flexWrap="wrap"
+  rowGap={1}
+  sx={{
+    bgcolor: C.amberBg,
+    px: 1.5,
+    py: 1,
+  }}
+>
+  <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
+    Procedures
+  </Typography>
+  <Stack
+    direction="row"
+    spacing={1}
+    flexWrap="wrap"
+    rowGap={0}
+    sx={{ ml: "auto" }}
+  >
+    <SelectColumnsMenu
+      selectedColumns={selectedColumns}
+      onChange={setSelectedColumns}
+    />
+    <OutlineBtn>+ Add line</OutlineBtn>
+    <OutlineBtn>✓ Check Codes</OutlineBtn>
+  </Stack>
+</Stack>
 
         <TableContainer
           sx={{
@@ -1902,6 +2105,16 @@ function ChargesSection({ sectionRef }) {
    CARD 5 - ADDITIONAL DETAILS
    ========================================================= */
 function AdditionalDetailsSection({ sectionRef }) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const colOpen = Boolean(anchorEl);
+  const [selectedCols, setSelectedCols] = React.useState(["NDC"]);
+  const colOptions = ["Emergency", "NDC", "MOD", "Unspecified Code"];
+
+  const toggleCol = (col) =>
+    setSelectedCols((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+
   return (
     <SectionCard
       id="additional"
@@ -1914,102 +2127,131 @@ function AdditionalDetailsSection({ sectionRef }) {
       {/* Row 1 */}
       <FieldRow
         fields={[
-          {
-            label: "Outside Lab",
-            type: "checkboxGroup",
-            options: ["Yes", "No"],
-          },
-          {
-            label: "Outside Lab Charges",
-            value: "0",
-          },
-          {
-            label: "Is LMP",
-            type: "checkboxGroup",
-            options: ["Yes"],
-          },
-          {
-            label: "Date of current illness",
-            value: "09/28/2026",
-          },
+          { label: "Outside Lab", type: "checkboxGroup", options: ["Yes", "No"] },
+          { label: "Outside Lab Charges", value: "0" },
+          { label: "Is LMP", type: "checkboxGroup", options: ["Yes"] },
+          { label: "Date of current illness", value: "09/28/2026" },
         ]}
       />
 
       {/* Row 2 */}
       <FieldRow
         fields={[
-          {
-            label: "Has other claim ID",
-            value: "Yes",
-            select: true,
-            options: ["Yes", "No"],
-          },
-          {
-            label: "Agency claim no.",
-            value: "",
-            placeholder: "Type here",
-          },
-          {
-            label: "Unable to work from date",
-            value: "08/28/2026",
-          },
-          {
-            label: "Unable to work to date",
-            value: "09/28/2026",
-          },
+          { label: "Has other claim ID", value: "Yes", select: true, options: ["Yes", "No"] },
+          { label: "Agency claim no.", value: "", placeholder: "Type here" },
+          { label: "Unable to work from date", value: "08/28/2026" },
+          { label: "Unable to work to date", value: "09/28/2026" },
         ]}
       />
 
       {/* Row 3 */}
       <FieldRow
         fields={[
-          {
-            label: "Initial visit date",
-            value: "07/28/2026",
-            icon: true,
-          },
-          {
-            label: "Last related visit date",
-            value: "07/28/2026",
-            icon: true,
-          },
-          {
-            label: "Claim code",
-            value: "W3",
-            select: true,
-            options: ["W3", "W2", "W1"],
-          },
-          {
-            label: "Other date",
-            value: "09/28/2026",
-            icon: true,
-          },
+          { label: "Initial visit date", value: "07/28/2026", icon: true },
+          { label: "Last related visit date", value: "07/28/2026", icon: true },
+          { label: "Claim code", value: "W3", select: true, options: ["W3", "W2", "W1"] },
+          { label: "Other date", value: "09/28/2026", icon: true },
         ]}
       />
 
       {/* Row 4 */}
       <FieldRow
         fields={[
-          {
-            label: "Other date qualifier",
-            value: "-",
-            select: true,
-            options: ["-"],
-          },
-          {
-            label: "Resubmission code",
-            value: "-",
-          },
-          {
-            label: "Original reference no.",
-            value: "-",
-          },
-          {
-            label: "Additional Claim info",
-            value: "-",
-          },
+          { label: "Other date qualifier", value: "-", select: true, options: ["-"] },
+          { label: "Resubmission code", value: "-" },
+          { label: "Original reference no.", value: "-" },
+          { label: "Additional Claim info", value: "-" },
         ]}
       />
+
+      {/* Select Columns popup trigger */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
+        <Button
+          variant="outlined"
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+          sx={{
+            textTransform: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            color: C.blue,
+            borderColor: "#BFD3F7",
+            borderRadius: "8px",
+            px: 2,
+            py: 0.55,
+            "&:hover": { borderColor: C.blue, bgcolor: "#F4F8FF" },
+          }}
+        >
+          + Customised Columns
+        </Button>
+      </Box>
+
+      {/* Select Columns Popover */}
+      <Popover
+        open={colOpen}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            width: 280,
+            overflow: "hidden",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+            mt: 0.5,
+          },
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2.5,
+            pt: 2,
+            pb: 1.5,
+          }}
+        >
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1A1D23" }}>
+            Select Columns
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setAnchorEl(null)}
+            sx={{ p: 0.3, color: C.blue }}
+          >
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
+
+        {/* Options */}
+        <Box sx={{ px: 2, pb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+          {colOptions.map((col) => {
+            const active = selectedCols.includes(col);
+            return (
+              <Box
+                key={col}
+                onClick={() => toggleCol(col)}
+                sx={{
+                  px: 2.5,
+                  py: 1.4,
+                  borderRadius: "12px",
+                  bgcolor: active ? "#EEF4FF" : "#F4F6FA",
+                  cursor: "pointer",
+                  border: active ? `1.5px solid #BFD3F7` : "1.5px solid transparent",
+                  transition: "all 0.15s",
+                  "&:hover": { bgcolor: "#EEF4FF" },
+                }}
+              >
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.blue }}>
+                  {col}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      </Popover>
     </SectionCard>
   );
 }
@@ -2150,6 +2392,77 @@ function FooterBar() {
         </Button>
       </Stack>
     </Paper>
+  );
+}
+
+/* =========================================================
+   CUSTOMISED COLUMNS POPUP
+   ========================================================= */
+const OPTIONAL_COLUMNS = ["Emergency", "NDC", "MOD", "Unspecified Code"];
+
+function SelectColumnsMenu({ selectedColumns, onChange }) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+
+  const toggleColumn = (col) => {
+    const next = selectedColumns.includes(col)
+      ? selectedColumns.filter((c) => c !== col)
+      : [...selectedColumns, col];
+    onChange(next);
+  };
+
+  return (
+    <>
+      <OutlineBtn onClick={(e) => setAnchorEl(e.currentTarget)}>
+        + Customised Columns
+      </OutlineBtn>
+
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: { mt: 1, width: 300, borderRadius: 3, p: 0, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" },
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5, px: 2.5, pt: 2.5 }}>
+          <Typography sx={{ fontWeight: 600, fontSize: 16 }}>Select Columns</Typography>
+          <IconButton size="small" onClick={() => setAnchorEl(null)} sx={{ color: "#1976d2" }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+
+        <Box sx={{ borderBottom: "1px solid #eee", mb: 1.5 }} />
+
+        <Stack spacing={2} sx={{ px: 2, pb: 2.5 }}>
+          {OPTIONAL_COLUMNS.map((col) => {
+            const isSelected = selectedColumns.includes(col);
+            return (
+              <Box
+                key={col}
+                onClick={() => toggleColumn(col)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: "12px",
+                  px: 2.5,
+                  py: 1.6,
+                  border: "1px solid",
+                  borderColor: isSelected ? "#bfdbfe" : "#e5e7eb",
+                  bgcolor: isSelected ? "#eaf2ff" : "#fff",
+                  "&:hover": { borderColor: "#93c5fd", bgcolor: "#f0f7ff" },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: isSelected ? "#1976d2" : "#1e40af", fontSize: 14 }}>
+                  {col}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Stack>
+      </Popover>
+    </>
   );
 }
 
