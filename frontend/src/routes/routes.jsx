@@ -4,7 +4,7 @@ import AllPatient from "../pages/AllPatient";
 import AddNewPatient from "../pages/AddNewPatient";
 import NewEncounter from "../pages/NewEncounter";
 import Statement from "../pages/Statement";
-import Refunds from "../pages/Refunds";
+import RefundsNew from "../pages/RefundsNew";
 import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
@@ -214,7 +214,7 @@ const AppRoutes = () => {
         path="/refunds"
         element={
           <ProtectedRoute>
-            <Refunds />
+            <RefundsNew />
           </ProtectedRoute>
         }
       />
