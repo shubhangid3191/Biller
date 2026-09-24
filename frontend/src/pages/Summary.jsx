@@ -6,15 +6,16 @@ import {
   Button,
   ButtonGroup,
   Stack,
-  Chip,
   Divider,
   LinearProgress,
 } from "@mui/material";
+
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+
 import {
   BarChart,
   Bar,
@@ -24,11 +25,14 @@ import {
   Cell,
   LineChart,
   Line,
+  XAxis,
+  YAxis,
+  Tooltip,
 } from "recharts";
 
-// ---------------------------------------------------------------------------
-// Mock data — replace with live data from the relevant service/context layer
-// ---------------------------------------------------------------------------
+/* =========================================================
+   DATA
+========================================================= */
 
 const METRICS = [
   {
@@ -86,7 +90,7 @@ const PRIORITIES = [
     title: "Re-verify Meridian Medicaid coverage for 7 patients",
     subtitle: "2 inactive · terms 04/30 · prevents downstream denials",
     amount: "$3,180",
-    tag: "Risktology",
+    tag: "Riskology",
   },
   {
     rank: 3,
@@ -117,83 +121,238 @@ const CHARGES_COLLECTIONS = [
   { day: "Wed", value: 44 },
   { day: "Thu", value: 61 },
   { day: "Fri", value: 58 },
-  { day: "Sat", value: 58 },
+  { day: "Sat", value: 48 },
   { day: "Sun", value: 64 },
 ];
 
 const CLAIM_PIPELINE = [
-  { label: "Charges captured", value: 673, max: 673, color: "#111827" },
-  { label: "Coded & scrubbed", value: 611, max: 673, color: "#3b82f6" },
-  { label: "Submitted", value: 548, max: 673, color: "#3b82f6" },
-  { label: "Adjudicated", value: 467, max: 673, color: "#a855f7" },
-  { label: "Paid", value: 412, max: 673, color: "#22c55e" },
+  {
+    label: "Charges captured",
+    value: 673,
+    max: 673,
+    color: "#111827",
+  },
+  {
+    label: "Coded & scrubbed",
+    value: 611,
+    max: 673,
+    color: "#3b82f6",
+  },
+  {
+    label: "Submitted",
+    value: 548,
+    max: 673,
+    color: "#3b82f6",
+  },
+  {
+    label: "Adjudicated",
+    value: 467,
+    max: 673,
+    color: "#a855f7",
+  },
+  {
+    label: "Paid",
+    value: 412,
+    max: 673,
+    color: "#22c55e",
+  },
 ];
 
 const DENIAL_ROOT_CAUSES = [
-  { name: "Authorization", value: 38, color: "#ef4444" },
-  { name: "Missing Info", value: 29, color: "#f97316" },
-  { name: "Medical Necessity", value: 21, color: "#eab308" },
-  { name: "Timely Filing", value: 14, color: "#3b82f6" },
+  {
+    name: "Authorization",
+    value: 38,
+    color: "#ef4444",
+  },
+  {
+    name: "Missing Info",
+    value: 29,
+    color: "#f97316",
+  },
+  {
+    name: "Medical Necessity",
+    value: 21,
+    color: "#eab308",
+  },
+  {
+    name: "Timely Filing",
+    value: 14,
+    color: "#3b82f6",
+  },
 ];
-const DENIAL_TOTAL = DENIAL_ROOT_CAUSES.reduce((s, d) => s + d.value, 0);
+
+const DENIAL_TOTAL = DENIAL_ROOT_CAUSES.reduce(
+  (sum, item) => sum + item.value,
+  0,
+);
 
 const AR_AGING = [
-  { label: "0-30 days", amount: "$184.2K", pct: 100, color: "#22c55e" },
-  { label: "31-60 days", amount: "$96.4K", pct: 52, color: "#84cc16" },
-  { label: "61-90 days", amount: "$61.3K", pct: 33, color: "#eab308" },
-  { label: "91-120 days", amount: "$42.8K", pct: 23, color: "#f97316" },
-  { label: "120+ days", amount: "$33.5K", pct: 18, color: "#ef4444" },
+  {
+    label: "0-30 days",
+    amount: "$184.2K",
+    pct: 100,
+    color: "#22c55e",
+  },
+  {
+    label: "31-60 days",
+    amount: "$96.4K",
+    pct: 52,
+    color: "#84cc16",
+  },
+  {
+    label: "61-90 days",
+    amount: "$61.3K",
+    pct: 33,
+    color: "#eab308",
+  },
+  {
+    label: "91-120 days",
+    amount: "$42.8K",
+    pct: 23,
+    color: "#f97316",
+  },
+  {
+    label: "120+ days",
+    amount: "$33.5K",
+    pct: 18,
+    color: "#ef4444",
+  },
 ];
 
-// ---------------------------------------------------------------------------
-// Small presentational helpers
-// ---------------------------------------------------------------------------
+/* =========================================================
+   CARD STYLE
+========================================================= */
 
-const StatusIcon = ({ status }) => {
-  if (status === "good")
-    return <CheckCircleIcon sx={{ fontSize: 16, color: "#22c55e" }} />;
-  if (status === "bad")
-    return <ErrorIcon sx={{ fontSize: 16, color: "#ef4444" }} />;
-  return <InfoOutlinedIcon sx={{ fontSize: 16, color: "#3b82f6" }} />;
+const CARD_STYLE = {
+  backgroundColor: "#FFFFFF",
+  border: "1px solid #E5E7EB",
+  borderRadius: "7px",
+  boxShadow: "none",
 };
 
+/* =========================================================
+   STATUS ICON
+========================================================= */
+
+const StatusIcon = ({ status }) => {
+  if (status === "good") {
+    return (
+      <CheckCircleIcon
+        sx={{
+          fontSize: 15,
+          color: "#22c55e",
+        }}
+      />
+    );
+  }
+
+  if (status === "bad") {
+    return (
+      <ErrorIcon
+        sx={{
+          fontSize: 15,
+          color: "#ef4444",
+        }}
+      />
+    );
+  }
+
+  return (
+    <InfoOutlinedIcon
+      sx={{
+        fontSize: 15,
+        color: "#3b82f6",
+      }}
+    />
+  );
+};
+
+/* =========================================================
+   METRIC CARD
+========================================================= */
+
 const MetricCard = ({ metric }) => {
-  const trendData = metric.trend.map((v, i) => ({ i, v }));
+  const trendData = metric.trend.map((value, index) => ({
+    index,
+    value,
+  }));
+
   return (
     <Paper
       variant="outlined"
       sx={{
-        flex: 1,
+        ...CARD_STYLE,
+        height: 120,
         minWidth: 0,
-        p: 2,
-        borderRadius: 2,
-        borderColor: "#e5e7eb",
+        p: 1.5,
+        boxSizing: "border-box",
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="caption" sx={{ color: "#6b7280", fontWeight: 500 }}>
+        <Typography
+          sx={{
+            fontSize: 10,
+            fontWeight: 500,
+            color: "#6B7280",
+            lineHeight: 1.15,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           {metric.label}
         </Typography>
+
         <StatusIcon status={metric.status} />
       </Stack>
-      <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5, color: "#111827" }}>
+
+      <Typography
+        sx={{
+          fontSize: 21,
+          fontWeight: 700,
+          color: "111827",
+          lineHeight: 1,
+          mt: 2,
+        }}
+      >
         {metric.value}
       </Typography>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
+
+      <Stack
+        direction="row"
+        alignItems="flex-end"
+        justifyContent="space-between"
+        sx={{
+          mt: 1.3,
+        }}
+      >
         <Typography
-          variant="caption"
-          sx={{ color: metric.trendColor, fontWeight: 600 }}
+          sx={{
+            fontSize: 9,
+            color: metric.trendColor,
+            fontWeight: 600,
+            lineHeight: 1.15,
+            whiteSpace: "nowrap",
+          }}
         >
+          {metric.status === "info" ? "↓ " : "↑ "}
           {metric.delta}
         </Typography>
-        <Box sx={{ width: 56, height: 24 }}>
+
+        <Box
+          sx={{
+            width: 65,
+            height: 26,
+            flexShrink: 0,
+          }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>
               <Line
                 type="monotone"
-                dataKey="v"
+                dataKey="value"
                 stroke={metric.trendColor}
-                strokeWidth={2}
+                strokeWidth={1.6}
                 dot={false}
               />
             </LineChart>
@@ -204,281 +363,796 @@ const MetricCard = ({ metric }) => {
   );
 };
 
+/* =========================================================
+   PRIORITY ROW
+========================================================= */
+
 const PriorityRow = ({ item, isLast }) => (
   <Box>
-    <Stack direction="row" alignItems="flex-start" spacing={1.5} sx={{ py: 1.25 }}>
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1}
+      sx={{
+        minHeight: 39,
+        px: 0.7,
+        py: 0.5,
+
+        // Normal state
+        backgroundColor: "#FFFFFF",
+        borderLeft: "2px solid transparent",
+
+        // Hover state
+        transition: "background-color 0.15s ease, border-color 0.15s ease",
+
+        "&:hover": {
+          backgroundColor: "#EFF6FF",
+          borderLeft: "2px solid #2563EB",
+
+          "& .priority-rank": {
+            backgroundColor: "#2563EB",
+            color: "#FFFFFF",
+          },
+        },
+      }}
+    >
+      {/* Rank */}
       <Box
+        className="priority-rank"
         sx={{
-          width: 20,
-          height: 20,
+          width: 19,
+          height: 19,
+          minWidth: 19,
           borderRadius: "50%",
-          bgcolor: item.rank === 1 ? "#2563eb" : "#e5e7eb",
-          color: item.rank === 1 ? "#fff" : "#6b7280",
+
+          // Normal state
+          backgroundColor: "#E5E7EB",
+          color: "#6B7280",
+
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 11,
+          fontSize: 9,
           fontWeight: 700,
-          flexShrink: 0,
-          mt: 0.25,
+
+          transition: "background-color 0.15s ease, color 0.15s ease",
         }}
       >
         {item.rank}
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, color: "#111827" }}>
+
+      {/* Text */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 9.5,
+            fontWeight: 600,
+            color: "#111827",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           {item.title}
         </Typography>
-        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+        <Typography
+          sx={{
+            fontSize: 8,
+            color: "#9CA3AF",
+            lineHeight: 1.2,
+            mt: 0.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           {item.subtitle}
         </Typography>
       </Box>
-      <Stack alignItems="flex-end" spacing={0.25} sx={{ flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
+
+      {/* Amount */}
+      <Stack
+        alignItems="flex-end"
+        spacing={0.15}
+        sx={{
+          width: 58,
+          minWidth: 58,
+          flexShrink: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            color: "#111827",
+            lineHeight: 1.1,
+            whiteSpace: "nowrap",
+          }}
+        >
           {item.amount}
         </Typography>
-        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+        <Typography
+          sx={{
+            fontSize: 7.5,
+            color: "#9CA3AF",
+            lineHeight: 1.1,
+          }}
+        >
           {item.tag}
         </Typography>
       </Stack>
     </Stack>
-    {!isLast && <Divider />}
+
+    {!isLast && (
+      <Divider
+        sx={{
+          borderColor: "#EEF0F3",
+        }}
+      />
+    )}
   </Box>
 );
 
+/* =========================================================
+   PIPELINE ROW
+========================================================= */
+
 const PipelineRow = ({ row }) => (
-  <Box sx={{ mb: 1.5 }}>
-    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-      <Typography variant="body2" sx={{ color: "#4b5563" }}>
+  <Box sx={{ mb: 1.25 }}>
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{
+        mb: 0.4,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 9.5,
+          color: "#4B5563",
+          lineHeight: 1.15,
+          whiteSpace: "nowrap",
+        }}
+      >
         {row.label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
+
+      <Typography
+        sx={{
+          fontSize: 9.5,
+          fontWeight: 700,
+          color: "#111827",
+          lineHeight: 1.15,
+          whiteSpace: "nowrap",
+        }}
+      >
         {row.value}
       </Typography>
     </Stack>
+
     <LinearProgress
       variant="determinate"
       value={(row.value / row.max) * 100}
       sx={{
-        height: 6,
+        height: 5,
         borderRadius: 3,
-        bgcolor: "#f3f4f6",
-        "& .MuiLinearProgress-bar": { bgcolor: row.color, borderRadius: 3 },
+        backgroundColor: "#EEF0F3",
+
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: row.color,
+          borderRadius: 3,
+        },
       }}
     />
   </Box>
 );
 
+/* =========================================================
+   AGING ROW
+========================================================= */
+
 const AgingRow = ({ row }) => (
-  <Box sx={{ mb: 1.5 }}>
-    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-      <Typography variant="body2" sx={{ color: "#4b5563" }}>
+  <Box sx={{ mb: 1.1 }}>
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{
+        mb: 0.4,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 9,
+          color: "#4B5563",
+          lineHeight: 1.15,
+        }}
+      >
         {row.label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
+
+      <Typography
+        sx={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: "#111827",
+          lineHeight: 1.15,
+        }}
+      >
         {row.amount}
       </Typography>
     </Stack>
+
     <LinearProgress
       variant="determinate"
       value={row.pct}
       sx={{
-        height: 6,
+        height: 5,
         borderRadius: 3,
-        bgcolor: "#f3f4f6",
-        "& .MuiLinearProgress-bar": { bgcolor: row.color, borderRadius: 3 },
+        backgroundColor: "#EEF0F3",
+
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: row.color,
+          borderRadius: 3,
+        },
       }}
     />
   </Box>
 );
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
+/* =========================================================
+   SUMMARY PAGE
+========================================================= */
 
 export default function Summary() {
   const [range, setRange] = useState("Today");
 
   return (
-    <Box sx={{ bgcolor: "#f5f6f8", p: 3, minHeight: "100vh" }}>
-      {/* Header */}
-      <Typography
-        variant="overline"
-        sx={{ color: "#9ca3af", fontWeight: 600, letterSpacing: 1 }}
-      >
-        OVERVIEW
-      </Typography>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ mb: 2 }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#111827" }}>
-            Summary
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#6b7280", mt: 0.5 }}>
-            Good morning, Ashok. TiaStat surfaced 5 priorities protecting $19.2K
-            in revenue today.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <ButtonGroup
-            variant="outlined"
-            size="small"
-            sx={{
-              bgcolor: "#fff",
-              "& .MuiButton-root": {
-                textTransform: "none",
-                borderColor: "#e5e7eb",
-                color: "#6b7280",
-              },
-            }}
-          >
-            {["Today", "Week", "Month"].map((r) => (
-              <Button
-                key={r}
-                onClick={() => setRange(r)}
-                sx={
-                  r === range
-                    ? { bgcolor: "#111827 !important", color: "#fff !important" }
-                    : {}
-                }
-              >
-                {r}
-              </Button>
-            ))}
-          </ButtonGroup>
-          <Button
-            variant="contained"
-            startIcon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" },
-              borderRadius: 1.5,
-              px: 2,
-            }}
-          >
-            Generate daily brief
-          </Button>
-        </Stack>
-      </Stack>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        backgroundColor: "#F5F6F8",
+        p: 2.25,
+        boxSizing: "border-box",
 
-      {/* Metric cards */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        {METRICS.map((m) => (
-          <MetricCard key={m.label} metric={m} />
-        ))}
-      </Stack>
+        "& *": {
+          boxSizing: "border-box",
+        },
+      }}
+    >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
-      {/* Priorities + Charges/Collections */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Paper
-          variant="outlined"
-          sx={{ flex: 1.4, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}
+      <Box
+        sx={{
+          mb: 1.75,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: "#9CA3AF",
+            letterSpacing: 0.7,
+            textTransform: "uppercase",
+            lineHeight: 1,
+            mb: 0.55,
+          }}
         >
-          <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
-              AI Daily Priorities
+          OVERVIEW
+        </Typography>
+
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          {/* Left */}
+          <Box
+            sx={{
+              minWidth: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 21,
+                fontWeight: 700,
+                color: "#111827",
+                lineHeight: 1.1,
+              }}
+            >
+              Summary
             </Typography>
-            <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 600, cursor: "pointer" }}>
-              View all tasks
+
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "#4B5563",
+                mt: 0.5,
+                lineHeight: 1.2,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Good morning, Ashok. TiaStat surfaced 5 priorities protecting
+              $19.2K in revenue today.
             </Typography>
-          </Stack>
-          <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-            Ranked by revenue impact and deadline risk · refreshed 7:02 AM
-          </Typography>
-          <Box sx={{ mt: 1 }}>
-            {PRIORITIES.map((p, i) => (
-              <PriorityRow key={p.rank} item={p} isLast={i === PRIORITIES.length - 1} />
-            ))}
           </Box>
-        </Paper>
+
+          {/* Controls */}
+   <Stack
+  direction="row"
+  alignItems="center"
+  justifyContent="center"
+  spacing={1}
+  sx={{
+    ml: "auto",
+    flexShrink: 0,
+    height: "100%",
+  }}
+>
+  {/* Today / Week / Month */}
+  <ButtonGroup
+    sx={{
+      height: 34,
+      borderRadius: "8px",
+      overflow: "hidden",
+      border: "1px solid #DDE3EA",
+      backgroundColor: "#F4F6F8",
+
+      "& .MuiButtonGroup-grouped": {
+        minWidth: 58,
+        height: 32,
+        border: "none !important",
+        borderRadius: "7px !important",
+        padding: "0 10px",
+        color: "#64748B",
+        fontSize: "13px",
+        fontWeight: 600,
+        textTransform: "none",
+      },
+    }}
+  >
+    {["Today", "Week", "Month"].map((item) => (
+      <Button
+        key={item}
+        onClick={() => setRange(item)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+
+          backgroundColor:
+            range === item ? "#FFFFFF" : "transparent",
+
+          color:
+            range === item ? "#1E293B" : "#64748B",
+
+          boxShadow:
+            range === item
+              ? "0 1px 3px rgba(0,0,0,0.10)"
+              : "none",
+
+          "&:hover": {
+            backgroundColor:
+              range === item ? "#FFFFFF" : "#EEF2F6",
+          },
+        }}
+      >
+        {item}
+      </Button>
+    ))}
+  </ButtonGroup>
+
+  {/* Generate Daily Brief */}
+  <Button
+    variant="contained"
+    startIcon={
+      <span
+        style={{
+          fontSize: "12px",
+          lineHeight: 1,
+        }}
+      >
+        ✦
+      </span>
+    }
+    sx={{
+      height: 34,
+      minWidth: 155,
+      px: 1.5,
+      borderRadius: "5px",
+      backgroundColor: "#0878F9",
+      color: "#FFFFFF",
+      fontSize: "13px",
+      fontWeight: 600,
+      textTransform: "none",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: "none",
+
+      "& .MuiButton-startIcon": {
+        marginRight: "5px",
+      },
+
+      "&:hover": {
+        backgroundColor: "#0878F9",
+        boxShadow: "none",
+      },
+    }}
+  >
+    Generate daily brief
+  </Button>
+</Stack>
+        </Stack>
+      </Box>
+
+      {/* ===================================================
+          METRICS
+      =================================================== */}
+
+      <Box
+  sx={{
+    display: "grid",
+    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+    gap: "10px",
+    mb: "14px",
+    width: "100%",
+    alignItems: "stretch",
+  }}
+>
+  {METRICS.map((metric) => (
+    <MetricCard
+      key={metric.label}
+      metric={metric}
+    />
+  ))}
+</Box>
+
+      {/* ===================================================
+          MIDDLE ROW
+      =================================================== */}
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1.7fr) minmax(250px, 0.82fr)",
+          gap: 1.5,
+          mb: 1.75,
+          alignItems: "stretch",
+        }}
+      >
+        {/* =================================================
+            AI DAILY PRIORITIES
+        ================================================= */}
+
+        <Paper
+  variant="outlined"
+  sx={{
+    ...CARD_STYLE,
+    minHeight: 275,
+    p: 1.75,
+  }}
+>
+  {/* Header */}
+  <Stack
+    direction="row"
+    alignItems="center"
+    justifyContent="space-between"
+    sx={{
+      mb: 0.45,
+    }}
+  >
+    <Stack direction="row" alignItems="center" spacing={0.7}>
+      <Box
+        sx={{
+          width: 18,
+          height: 18,
+          borderRadius: "3px",
+          backgroundColor: "#2563EB",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <AutoAwesomeIcon
+          sx={{
+            fontSize: 10,
+            color: "#FFFFFF",
+          }}
+        />
+      </Box>
+
+      <Typography
+        sx={{
+          fontSize: 12,
+          fontWeight: 700,
+          color: "#111827",
+        }}
+      >
+        AI Daily Priorities
+      </Typography>
+    </Stack>
+
+    {/* Right side */}
+<Typography
+  sx={{
+    fontSize: 10,
+    color: "#2563EB",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+    marginLeft: "auto",
+    textAlign: "right",
+  }}
+>
+  View all tasks
+</Typography>
+  </Stack>
+
+  {/* Subheading */}
+  <Typography
+    sx={{
+      fontSize: 10,
+      color: "#9CA3AF",
+      lineHeight: 1.2,
+      mb: 1.5,
+    }}
+  >
+    Ranked by revenue impact & deadline risk · refreshed 7:02 AM
+  </Typography>
+
+  {/* Priority rows */}
+  <Box>
+    {PRIORITIES.map((item, index) => (
+      <PriorityRow
+        key={item.rank}
+        item={item}
+        isLast={index === PRIORITIES.length - 1}
+      />
+    ))}
+  </Box>
+</Paper>
+
+        {/* =================================================
+            CHARGES & COLLECTIONS
+        ================================================= */}
 
         <Paper
           variant="outlined"
-          sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}
+          sx={{
+            ...CARD_STYLE,
+            minHeight: 275,
+            p: 1.75,
+          }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
+          <Typography
+            sx={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#111827",
+              lineHeight: 1.1,
+            }}
+          >
             Charges & Collections
           </Typography>
-          <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+          <Typography
+            sx={{
+              fontSize: 8,
+              color: "#9CA3AF",
+              mt: 2,
+            }}
+          >
             Trailing 7 days
           </Typography>
-          <Box sx={{ height: 140, mt: 1 }}>
+
+          <Box
+            sx={{
+              width: "100%",
+              height: 125,
+              mt: 0.7,
+            }}
+          >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={CHARGES_COLLECTIONS}>
-                <Bar dataKey="value" fill="#2563eb" radius={[3, 3, 0, 0]} barSize={22} />
+              <BarChart
+                data={CHARGES_COLLECTIONS}
+                margin={{
+                  top: 8,
+                  right: 4,
+                  left: -22,
+                  bottom: 0,
+                }}
+                barCategoryGap="22%"
+              >
+                <XAxis
+                  dataKey="day"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 8,
+                    fill: "#6B7280",
+                  }}
+                />
+
+                <YAxis hide domain={[0, 70]} />
+
+                <Tooltip
+                  cursor={{
+                    fill: "transparent",
+                  }}
+                  contentStyle={{
+                    fontSize: 9,
+                    borderRadius: 4,
+                    border: "1px solid #E5E7EB",
+                  }}
+                />
+
+                <Bar
+                  dataKey="value"
+                  fill="#2563EB"
+                  radius={[2, 2, 0, 0]}
+                  barSize={17}
+                />
               </BarChart>
             </ResponsiveContainer>
           </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ px: 0.5, mt: -1, mb: 1.5 }}>
-            {CHARGES_COLLECTIONS.map((d) => (
-              <Typography key={d.day} variant="caption" sx={{ color: "#9ca3af" }}>
-                {d.day.slice(0, 3)}
-                <br />
-                {d.value}K
-              </Typography>
-            ))}
-          </Stack>
-          <Divider sx={{ mb: 1.5 }} />
-          <Stack spacing={0.75}>
-            {[
-              ["Total billed", "$1.43M"],
-              ["Collected", "$1.29M"],
-              ["Net collection rate", "96.2%"],
-              ["Outstanding A/R", "$418.2K"],
-            ].map(([label, val]) => (
-              <Stack key={label} direction="row" justifyContent="space-between">
-                <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                  {label}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
-                  {val}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
-        </Paper>
-      </Stack>
 
-      {/* Pipeline + Denial causes + A/R aging */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827", mb: 1.5 }}>
+          <Divider
+            sx={{
+              borderColor: "#EEF0F3",
+              mb: 1.4,
+            }}
+          />
+
+         <Stack spacing={1.2} sx={{ width: '100%' }}>
+  {[
+    ["Total billed", "$1.43M"],
+    ["Collected", "$1.29M"],
+    ["Net collection rate", "96.2%"],
+    ["Outstanding A/R", "$418.2K"],
+  ].map(([label, value]) => (
+    <Stack
+      key={label}
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{ width: '100%' }}
+    >
+      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+        {label}
+      </Typography>
+
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#111827" }}>
+        {value}
+      </Typography>
+    </Stack>
+  ))}
+</Stack>
+        </Paper>
+      </Box>
+
+      {/* ===================================================
+          BOTTOM ROW
+      =================================================== */}
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 1.5,
+          mb: 1.75,
+        }}
+      >
+        {/* =================================================
+            CLAIM PIPELINE
+        ================================================= */}
+
+        <Paper
+          variant="outlined"
+          sx={{
+            ...CARD_STYLE,
+            height: 215,
+            p: 1.75,
+            boxSizing: "border-box",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#111827",
+              mb: 1.35,
+            }}
+          >
             Claim Pipeline
           </Typography>
+
           {CLAIM_PIPELINE.map((row) => (
             <PipelineRow key={row.label} row={row} />
           ))}
         </Paper>
 
-        <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
+        {/* =================================================
+            DENIAL ROOT CAUSES
+        ================================================= */}
+
+        <Paper
+          variant="outlined"
+          sx={{
+            ...CARD_STYLE,
+            height: 215,
+            p: 1.75,
+            boxSizing: "border-box",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#111827",
+              lineHeight: 1.1,
+            }}
+          >
             Denial Root Causes
           </Typography>
-          <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+          <Typography
+            sx={{
+              fontSize: 8,
+              color: "#9CA3AF",
+              mt: 0.3,
+            }}
+          >
             Last 30 days
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1 }}>
-            <Box sx={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.25}
+            sx={{
+              mt: 0.8,
+            }}
+          >
+            {/* Donut */}
+            <Box
+              sx={{
+                position: "relative",
+                width: 115,
+                height: 115,
+                minWidth: 115,
+                flexShrink: 0,
+              }}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={DENIAL_ROOT_CAUSES}
                     dataKey="value"
-                    innerRadius={38}
-                    outerRadius={56}
+                    innerRadius={34}
+                    outerRadius={51}
                     paddingAngle={2}
                   >
-                    {DENIAL_ROOT_CAUSES.map((d) => (
-                      <Cell key={d.name} fill={d.color} stroke="none" />
+                    {DENIAL_ROOT_CAUSES.map((item) => (
+                      <Cell key={item.name} fill={item.color} stroke="none" />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
+
               <Box
                 sx={{
                   position: "absolute",
@@ -488,25 +1162,73 @@ export default function Summary() {
                   textAlign: "center",
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700, color: "#111827", lineHeight: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: 19,
+                    fontWeight: 700,
+                    color: "#111827",
+                    lineHeight: 1,
+                  }}
+                >
                   {DENIAL_TOTAL}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+                <Typography
+                  sx={{
+                    fontSize: 7,
+                    color: "#9CA3AF",
+                    mt: 0.2,
+                  }}
+                >
                   denials
                 </Typography>
               </Box>
             </Box>
-            <Stack spacing={0.75} sx={{ flex: 1 }}>
-              {DENIAL_ROOT_CAUSES.map((d) => (
-                <Stack key={d.name} direction="row" alignItems="center" justifyContent="space-between">
-                  <Stack direction="row" alignItems="center" spacing={0.75}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: d.color }} />
-                    <Typography variant="body2" sx={{ color: "#4b5563" }}>
-                      {d.name}
+
+            {/* Legend */}
+            <Stack
+              spacing={0.75}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {DENIAL_ROOT_CAUSES.map((item) => (
+                <Stack
+                  key={item.name}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Box
+                      sx={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: "50%",
+                        backgroundColor: item.color,
+                      }}
+                    />
+
+                    <Typography
+                      sx={{
+                        fontSize: 8.5,
+                        color: "#4B5563",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.name}
                     </Typography>
                   </Stack>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: "#111827" }}>
-                    {d.value}
+
+                  <Typography
+                    sx={{
+                      fontSize: 8.5,
+                      fontWeight: 600,
+                      color: "#111827",
+                    }}
+                  >
+                    {item.value}
                   </Typography>
                 </Stack>
               ))}
@@ -514,79 +1236,181 @@ export default function Summary() {
           </Stack>
         </Paper>
 
-        <Paper variant="outlined" sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
+        {/* =================================================
+            A/R AGING
+        ================================================= */}
+
+        <Paper
+          variant="outlined"
+          sx={{
+            ...CARD_STYLE,
+            height: 215,
+            p: 1.75,
+            boxSizing: "border-box",
+          }}
+        >
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
               A/R Aging
             </Typography>
-            <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+
+            <Typography
+              sx={{
+                fontSize: 8,
+                color: "#9CA3AF",
+                whiteSpace: "nowrap",
+              }}
+            >
               $418.2K outstanding
             </Typography>
           </Stack>
-          <Box sx={{ mt: 1.5 }}>
+
+          <Box
+            sx={{
+              mt: 1.25,
+            }}
+          >
             {AR_AGING.map((row) => (
               <AgingRow key={row.label} row={row} />
             ))}
           </Box>
         </Paper>
-      </Stack>
+      </Box>
 
-      {/* Predictive forecast banner */}
+      {/* ===================================================
+          PREDICTIVE FORECAST
+      =================================================== */}
+
       <Paper
         variant="outlined"
         sx={{
-          p: 2,
-          borderRadius: 2,
-          bgcolor: "#eff6ff",
-          borderColor: "#dbeafe",
+          backgroundColor: "#EFF6FF",
+          border: "1px solid #BFDBFE",
+          borderRadius: "6px",
+          boxShadow: "none",
+          minHeight: 78,
+          px: 1.75,
+          py: 1.25,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          boxSizing: "border-box",
         }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="flex-start">
+        {/* Left */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="flex-start"
+          sx={{
+            minWidth: 0,
+          }}
+        >
           <Box
             sx={{
-              width: 22,
-              height: 22,
-              borderRadius: 1,
-              bgcolor: "#2563eb",
+              width: 20,
+              height: 20,
+              minWidth: 20,
+              borderRadius: "3px",
+              backgroundColor: "#2563EB",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
-              mt: 0.25,
+              mt: 0.1,
             }}
           >
-            <AutoAwesomeIcon sx={{ fontSize: 13, color: "#fff" }} />
+            <AutoAwesomeIcon
+              sx={{
+                fontSize: 11,
+                color: "#FFFFFF",
+              }}
+            />
           </Box>
-          <Box>
-            <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 700, letterSpacing: 0.5 }}>
+
+          <Box
+            sx={{
+              minWidth: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 7.5,
+                fontWeight: 700,
+                letterSpacing: 0.45,
+                color: "#2563EB",
+                lineHeight: 1,
+              }}
+            >
               PREDICTIVE FORECAST
             </Typography>
-            <Typography variant="body2" sx={{ color: "#374151", mt: 0.25 }}>
+
+            <Typography
+              sx={{
+                fontSize: 9.5,
+                color: "#374151",
+                fontWeight: 500,
+                lineHeight: 1.4,
+                mt: 0.35,
+                whiteSpace: "nowrap",
+              }}
+            >
               Projected collections next 30 days:{" "}
-              <Box component="span" sx={{ color: "#2563eb", fontWeight: 700 }}>
+              <Box
+                component="span"
+                sx={{
+                  color: "#2563EB",
+                  fontWeight: 700,
+                }}
+              >
                 $1.34M (&plusmn;$48K)
               </Box>
-              . Cash velocity is improving 6% on faster ERA posting. Watch
-              BCBSM medical-necessity denials trending +18% &ndash; addressing
-              now protects an estimated{" "}
-              <Box component="span" sx={{ color: "#2563eb", fontWeight: 700 }}>
+              . Cash velocity is improving 6% on faster ERA posting. Watch BCBSM
+              medical-necessity denials trending +18% — addressing now protects
+              an estimated{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: "#2563EB",
+                  fontWeight: 700,
+                }}
+              >
                 $21.3K
               </Box>
               .
             </Typography>
           </Box>
         </Stack>
+
+        {/* Button */}
         <Button
           variant="contained"
           sx={{
-            textTransform: "none",
-            bgcolor: "#111827",
-            "&:hover": { bgcolor: "#000" },
-            flexShrink: 0,
+            minWidth: 82,
+            height: 28,
             ml: 2,
+            px: 1.25,
+            flexShrink: 0,
+            textTransform: "none",
+            backgroundColor: "#111827",
+            fontSize: 8.5,
+            fontWeight: 500,
+            borderRadius: "3px",
+            boxShadow: "none",
+
+            "&:hover": {
+              backgroundColor: "#000000",
+              boxShadow: "none",
+            },
           }}
         >
           Open forecast

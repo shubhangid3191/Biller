@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -22,8 +23,12 @@ import {
   Tooltip,
   Select,
   FormControl,
+  Switch,
 } from "@mui/material";
-import { ViewList, ViewModule, KeyboardArrowDown, Close, CalendarToday } from "@mui/icons-material";
+import { ViewList, ViewModule, KeyboardArrowDown, Close, CalendarToday, Add,  
+  ArrowBackIosNew,
+  ArrowForwardIos,
+} from "@mui/icons-material";
 import {
   Search,
   FilterIcon1,
@@ -36,15 +41,93 @@ import {
   Icon5,
   Icon6,
   Star,
+  RefreshIcon,
+  ViewIconRemittance,
+  DownloadIconRemittance,
 } from "../assets/Assets";
 
+
+function ClaimField({ label, value, calendar, disabled }) {
+  return (
+    <Box>
+      <Typography sx={{ fontSize: 8, color: "#6B7280", mb: 0.5 }}>
+        {label}
+      </Typography>
+      <TextField
+        fullWidth
+        size="small"
+        value={value}
+        disabled={disabled}
+        sx={{
+          "& .MuiInputBase-root": {
+            height: 26,
+            fontSize: 9,
+            backgroundColor: disabled ? "#F3F4F6" : "#FFFFFF",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#E5E7EB",
+          },
+        }}
+        InputProps={
+          calendar
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <CalendarToday sx={{ fontSize: 12, color: "#9CA3AF" }} />
+                  </InputAdornment>
+                ),
+              }
+            : undefined
+        }
+      />
+    </Box>
+  );
+}
+
+function ClaimSelect({ label, value }) {
+  return (
+    <Box>
+      <Typography sx={{ fontSize: 8, color: "#6B7280", mb: 0.5 }}>
+        {label}
+      </Typography>
+      <FormControl fullWidth size="small">
+        <Select
+          value={value}
+          IconComponent={KeyboardArrowDown}
+          sx={{
+            fontSize: 9,
+            backgroundColor: "#FFFFFF",
+            "& .MuiSelect-select": { py: 0.6, height: 14 },
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#E5E7EB",
+            },
+          }}
+        >
+          <MenuItem value={value}>{value}</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+  );
+}
+
 function PreBillingClaim() {
-  const [currentTab, setCurrentTab] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Restore the requested tab whenever we land here with a target tab in
+  // navigation state (e.g. Cancel from New Payment sending us back to
+  // "Remittance ERA/EOB"), even if this page instance is already mounted.
+  useEffect(() => {
+    if (location.state?.activeTab !== undefined) {
+      setCurrentTab(location.state.activeTab);
+    }
+  }, [location.state]);
   
   // Advanced filter states
   const [filterPractice, setFilterPractice] = useState("");
@@ -69,6 +152,37 @@ function PreBillingClaim() {
   const [adjRelatedPayment, setAdjRelatedPayment] = useState("");
   const [adjChangeStatus, setAdjChangeStatus] = useState("");
   const [adjNotes, setAdjNotes] = useState("");
+
+  // State for showing claim details in a separate view
+  const [showClaimDetails, setShowClaimDetails] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState(null);
+
+  // State for showing EOB/ERA details
+  const [showEobDetails, setShowEobDetails] = useState(false);
+  const [selectedEobClaim, setSelectedEobClaim] = useState(null);
+
+  // State for Remittance filter
+  const [remittanceFilter, setRemittanceFilter] = useState("all");
+
+  const handleEditClick = (claim) => {
+    setSelectedClaim(claim);
+    setShowClaimDetails(true);
+  };
+
+  const handleBackToTable = () => {
+    setShowClaimDetails(false);
+    setSelectedClaim(null);
+  };
+
+  const handleShowEobDetails = (claim) => {
+    setSelectedEobClaim(claim);
+    setShowEobDetails(true);
+  };
+
+  const handleCloseEobDetails = () => {
+    setShowEobDetails(false);
+    setSelectedEobClaim(null);
+  };
 
   const handleResetFilters = () => {
     setFilterPractice("");
@@ -745,6 +859,197 @@ function PreBillingClaim() {
       firstBilled: "$1,240",
       encounterId: "1234567",
       claimId: "1234567",
+    },
+  ];
+
+  // Sample data for Remittance ERA/EOB - 11 unique records
+  const remittanceData = [
+    {
+      id: 1,
+      remittanceId: "1234567",
+      location: "GCH-IH",
+      provider: "Ramesh M. MD",
+      payer: "Aetna",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316136",
+      amount: "$455",
+      checkDate: "11/20/2025",
+      receivedDate: "11/21/2025",
+      claimNumbers: 3,
+      unpostedAmount: "$0",
+      status: "Posted",
+      statusColor: "#C8E6C9",
+      statusTextColor: "#2E7D32",
+    },
+    {
+      id: 2,
+      remittanceId: "1234568",
+      location: "GCH-OH",
+      provider: "Sarah K. MD",
+      payer: "BCBS",
+      paymentMethod: "EFT",
+      chequeNumber: "14315316137",
+      amount: "$1,240",
+      checkDate: "11/21/2025",
+      receivedDate: "11/22/2025",
+      claimNumbers: 5,
+      unpostedAmount: "$240",
+      status: "Partially posted",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+    },
+    {
+      id: 3,
+      remittanceId: "1234569",
+      location: "GCH-IH",
+      provider: "David L. MD",
+      payer: "Cigna",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316138",
+      amount: "$820",
+      checkDate: "11/19/2025",
+      receivedDate: "11/20/2025",
+      claimNumbers: 2,
+      unpostedAmount: "$820",
+      status: "Not Posted",
+      statusColor: "#FFEBEE",
+      statusTextColor: "#C62828",
+    },
+    {
+      id: 4,
+      remittanceId: "1234570",
+      location: "GCH-OH",
+      provider: "Emily R. MD",
+      payer: "UnitedHealth",
+      paymentMethod: "EFT",
+      chequeNumber: "14315316139",
+      amount: "$2,100",
+      checkDate: "11/22/2025",
+      receivedDate: "11/23/2025",
+      claimNumbers: 7,
+      unpostedAmount: "$0",
+      status: "Fully posted",
+      statusColor: "#B2DFDB",
+      statusTextColor: "#00695C",
+    },
+    {
+      id: 5,
+      remittanceId: "1234571",
+      location: "GCH-IH",
+      provider: "Michael T. MD",
+      payer: "Aetna",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316140",
+      amount: "$675",
+      checkDate: "11/18/2025",
+      receivedDate: "11/19/2025",
+      claimNumbers: 4,
+      unpostedAmount: "$675",
+      status: "Not Posted",
+      statusColor: "#FFEBEE",
+      statusTextColor: "#C62828",
+    },
+    {
+      id: 6,
+      remittanceId: "1234572",
+      location: "GCH-OH",
+      provider: "Jennifer W. MD",
+      payer: "Medicare",
+      paymentMethod: "EFT",
+      chequeNumber: "14315316141",
+      amount: "$3,450",
+      checkDate: "11/23/2025",
+      receivedDate: "11/24/2025",
+      claimNumbers: 12,
+      unpostedAmount: "$450",
+      status: "Partially posted",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+    },
+    {
+      id: 7,
+      remittanceId: "1234573",
+      location: "GCH-IH",
+      provider: "Robert H. MD",
+      payer: "BCBS",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316142",
+      amount: "$1,890",
+      checkDate: "11/17/2025",
+      receivedDate: "11/18/2025",
+      claimNumbers: 6,
+      unpostedAmount: "$0",
+      status: "Posted",
+      statusColor: "#C8E6C9",
+      statusTextColor: "#2E7D32",
+    },
+    {
+      id: 8,
+      remittanceId: "1234574",
+      location: "GCH-OH",
+      provider: "Lisa M. MD",
+      payer: "Cigna",
+      paymentMethod: "EFT",
+      chequeNumber: "14315316143",
+      amount: "$920",
+      checkDate: "11/24/2025",
+      receivedDate: "11/25/2025",
+      claimNumbers: 3,
+      unpostedAmount: "$120",
+      status: "Partially posted",
+      statusColor: "#FFF3E0",
+      statusTextColor: "#F57C00",
+    },
+    {
+      id: 9,
+      remittanceId: "1234575",
+      location: "GCH-IH",
+      provider: "James P. MD",
+      payer: "UnitedHealth",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316144",
+      amount: "$1,550",
+      checkDate: "11/16/2025",
+      receivedDate: "11/17/2025",
+      claimNumbers: 5,
+      unpostedAmount: "$1,550",
+      status: "Not Posted",
+      statusColor: "#FFEBEE",
+      statusTextColor: "#C62828",
+    },
+    {
+      id: 10,
+      remittanceId: "1234576",
+      location: "GCH-OH",
+      provider: "Patricia D. MD",
+      payer: "Aetna",
+      paymentMethod: "EFT",
+      chequeNumber: "14315316145",
+      amount: "$2,340",
+      checkDate: "11/25/2025",
+      receivedDate: "11/26/2025",
+      claimNumbers: 8,
+      unpostedAmount: "$0",
+      status: "Fully posted",
+      statusColor: "#B2DFDB",
+      statusTextColor: "#00695C",
+    },
+    {
+      id: 11,
+      remittanceId: "1234577",
+      location: "GCH-IH",
+      provider: "William S. MD",
+      payer: "Medicare",
+      paymentMethod: "Cheque",
+      chequeNumber: "14315316146",
+      amount: "$780",
+      checkDate: "11/15/2025",
+      receivedDate: "11/16/2025",
+      claimNumbers: 2,
+      unpostedAmount: "$780",
+      status: "Mark as review",
+      statusColor: "#E1BEE7",
+      statusTextColor: "#6A1B9A",
     },
   ];
 
@@ -2644,7 +2949,26 @@ function PreBillingClaim() {
 
       {/* Post-billing Tab Content */}
       {currentTab === 1 && (
-        <>
+        <Box
+          sx={{
+            height: "calc(100vh - 160px)",
+            overflowY: "auto",
+            // Custom scrollbar styling - thin line style
+            "&::-webkit-scrollbar": {
+              width: "4px",
+            },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: "#9ca3af",
+            },
+          }}
+        >
           {/* Info Banner for Post-billing */}
            <Box
           sx={{
@@ -3590,7 +3914,11 @@ function PreBillingClaim() {
                             }}
                           >
                             <Tooltip title="Edit" placement="top">
-                              <IconButton size="small" sx={{ padding: "4px" }}>
+                              <IconButton 
+                                size="small" 
+                                sx={{ padding: "4px" }}
+                                onClick={() => handleEditClick(row)}
+                              >
                                 <EditIconClaim />
                               </IconButton>
                             </Tooltip>
@@ -3725,7 +4053,7 @@ function PreBillingClaim() {
         <Box>
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 15,
               fontWeight: 600,
               color: "#374151",
               mb: 0.7,
@@ -4083,23 +4411,1779 @@ function PreBillingClaim() {
           Cancel
         </Button>
       </Box>
-    </Box>
-  </Box>
-</Box>
-        </>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
       )}
 
       {/* Remittance ERA/EOB Tab Content */}
-      {currentTab === 2 && (
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Remittance ERA/EOB
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            ERA/EOB content will be displayed here. This is tab 3.
-          </Typography>
+      {currentTab === 2 && !showEobDetails && (
+        <Box>
+          {/* Info Banner */}
+          <Box
+            sx={{
+              backgroundColor: "#EFF7FF",
+              border: "1px solid #D5E3F2",
+              p: "10px 12px",
+              mx: 2,
+              mt: 2,
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              minHeight: "52px",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Left Content */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minWidth: 0,
+                gap: "3px",
+              }}
+            >
+              {/* Heading */}
+              <Typography
+                component="div"
+                sx={{
+                  fontWeight: 700,
+                  color: "#0066FF",
+                  fontSize: "10px",
+                  lineHeight: 1.2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
+              >
+                <Star />
+                <span>CHARGE-CAPTURE ASSIST</span>
+              </Typography>
+
+              {/* Description */}
+              <Typography
+                component="div"
+                sx={{
+                  color: "#374151",
+                  fontSize: "11px",
+                  lineHeight: 1.45,
+                  whiteSpace: "normal",
+                }}
+              >
+                TiaStat auto-coded <strong>11 encounters</strong> from clinical
+                notes. <strong>3 are clean and ready to bill</strong>; the rest
+                have flagged edits (gender conflicts, missing etiology dx,
+                cosmetic-vs-functional). Toggle Grid to see full problem/procedure
+                detail without opening each record.
+              </Typography>
+            </Box>
+
+            {/* View Details Button */}
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#0066FF",
+                color: "#fff",
+                boxShadow: "none",
+                fontSize: "11px",
+                px: 2,
+                py: 0,
+                minWidth: "89px",
+                height: "30px",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                borderRadius: "6px",
+                "&:hover": {
+                  backgroundColor: "#0066FF",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              View details
+            </Button>
+          </Box>
+
+          {/* Filter Chips */}
+          <Box sx={{ display: "flex", gap: 1, px: 2, py: 1.5, alignItems: "center" }}>
+            <Chip
+              label="All 11"
+              clickable
+              onClick={() => setRemittanceFilter("all")}
+              sx={{
+                backgroundColor: remittanceFilter === "all" ? "#0066ff" : "white",
+                color: remittanceFilter === "all" ? "white" : "rgba(0, 0, 0, 0.7)",
+                fontWeight: remittanceFilter === "all" ? 600 : 500,
+                fontSize: 11,
+                height: 28,
+                border: remittanceFilter === "all" ? "none" : "1px solid #e0e0e0",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: remittanceFilter === "all" ? "#0052cc" : "#f5f5f5",
+                },
+              }}
+            />
+            <Chip
+              label="Not Posted 5"
+              clickable
+              onClick={() => setRemittanceFilter("notPosted")}
+              sx={{
+                backgroundColor: remittanceFilter === "notPosted" ? "#0066ff" : "white",
+                color: remittanceFilter === "notPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                fontWeight: remittanceFilter === "notPosted" ? 600 : 500,
+                fontSize: 11,
+                height: 28,
+                border: remittanceFilter === "notPosted" ? "none" : "1px solid #e0e0e0",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: remittanceFilter === "notPosted" ? "#0052cc" : "#f5f5f5",
+                },
+              }}
+            />
+            <Chip
+              label="Partially posted 3"
+              clickable
+              onClick={() => setRemittanceFilter("partiallyPosted")}
+              sx={{
+                backgroundColor: remittanceFilter === "partiallyPosted" ? "#0066ff" : "white",
+                color: remittanceFilter === "partiallyPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                fontWeight: remittanceFilter === "partiallyPosted" ? 600 : 500,
+                fontSize: 11,
+                height: 28,
+                border: remittanceFilter === "partiallyPosted" ? "none" : "1px solid #e0e0e0",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: remittanceFilter === "partiallyPosted" ? "#0052cc" : "#f5f5f5",
+                },
+              }}
+            />
+            <Chip
+              label="Fully posted 2"
+              clickable
+              onClick={() => setRemittanceFilter("fullyPosted")}
+              sx={{
+                backgroundColor: remittanceFilter === "fullyPosted" ? "#0066ff" : "white",
+                color: remittanceFilter === "fullyPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                fontWeight: remittanceFilter === "fullyPosted" ? 600 : 500,
+                fontSize: 11,
+                height: 28,
+                border: remittanceFilter === "fullyPosted" ? "none" : "1px solid #e0e0e0",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: remittanceFilter === "fullyPosted" ? "#0052cc" : "#f5f5f5",
+                },
+              }}
+            />
+            <Chip
+              label="Mark as review 1"
+              clickable
+              onClick={() => setRemittanceFilter("markReview")}
+              sx={{
+                backgroundColor: remittanceFilter === "markReview" ? "#0066ff" : "white",
+                color: remittanceFilter === "markReview" ? "white" : "rgba(0, 0, 0, 0.7)",
+                fontWeight: remittanceFilter === "markReview" ? 600 : 500,
+                fontSize: 11,
+                height: 28,
+                border: remittanceFilter === "markReview" ? "none" : "1px solid #e0e0e0",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: remittanceFilter === "markReview" ? "#0052cc" : "#f5f5f5",
+                },
+              }}
+            />
+
+            <Box sx={{ flex: 1 }} />
+
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
+              <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+              <Button
+                variant="outlined"
+                endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
+                sx={{
+                  textTransform: "none",
+                  color: "#1f2937",
+                  borderColor: "transparent",
+                  backgroundColor: "white",
+                  fontWeight: 500,
+                  fontSize: 13,
+                  height: 30,
+                  px: 2,
+                  minWidth: "auto",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    borderColor: "transparent",
+                    backgroundColor: "#f9fafb",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                Select Action
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/new-payment')}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#0066ff",
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: 13,
+                  height: 30,
+                  px: 2,
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: "#0052cc",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                New Payment
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Remittance Table */}
+          <Box sx={{ pb: 2, px: 2 }}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                boxShadow: "none",
+                border: "1px solid #e0e0e0",
+                maxHeight: "calc(100vh - 280px)",
+                overflowY: "auto",
+                overflowX: "auto",
+                // Custom scrollbar styling - thin line style
+                "&::-webkit-scrollbar": {
+                  width: "4px",
+                  height: "4px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#d1d5db",
+                  borderRadius: "2px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  backgroundColor: "#9ca3af",
+                },
+              }}
+            >
+              <Table size="small" sx={{ minWidth: 1600 }}>
+                <TableHead
+                  sx={{
+                    "& .MuiTableCell-root": {
+                      fontWeight: 600,
+                      fontSize: 11,
+                      color: "#374151",
+                      py: 2,
+                      px: 1.5,
+                      lineHeight: 1.2,
+                      whiteSpace: "nowrap",
+                      verticalAlign: "middle",
+                    },
+                  }}
+                >
+                  <TableRow sx={{ backgroundColor: "#fafafa" }}>
+                    <TableCell padding="checkbox" sx={{ width: 40, py: 0.8 }}>
+                      <Checkbox size="small" />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      ID
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Location
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Provider
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Payer
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Payment Method
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Cheque #
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Amount
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Check Date
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Received Date
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Claim Numbers
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Unposted Amount
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                      Status
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: 11, py: 0.8, color: "rgba(0, 0, 0, 0.6)" }}>
+                      Action
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {remittanceData
+                    .filter((row) => {
+                      if (remittanceFilter === "all") return true;
+                      if (remittanceFilter === "notPosted")
+                        return row.status === "Not Posted";
+                      if (remittanceFilter === "partiallyPosted")
+                        return row.status === "Partially posted";
+                      if (remittanceFilter === "fullyPosted")
+                        return row.status === "Fully posted";
+                      if (remittanceFilter === "markReview")
+                        return row.status === "Mark as review";
+                      return true;
+                    })
+                    .map((row, index) => {
+                      const bgColor = getListColor(index);
+                      return (
+                        <TableRow
+                          key={row.id}
+                          sx={{
+                            backgroundColor: bgColor,
+                            borderBottom: "none",
+                          }}
+                        >
+                          <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+                            <Checkbox size="small" />
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.remittanceId}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.location}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.provider}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.payer}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.paymentMethod}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.chequeNumber}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.amount}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.checkDate}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.receivedDate}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.claimNumbers}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                            {row.unpostedAmount}
+                          </TableCell>
+                          <TableCell sx={{ py: 1.2 }}>
+                            <Chip
+                              label={row.status}
+                              size="small"
+                              sx={{
+                                backgroundColor: row.statusColor,
+                                color: row.statusTextColor,
+                                fontWeight: 600,
+                                fontSize: 10,
+                                height: 20,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ py: 1.2 }}>
+                            <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+                              <Tooltip title="Refresh/Sync" placement="top">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleShowEobDetails(row)}
+                                  sx={{ padding: "2px" }}
+                                >
+                                  <RefreshIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="View" placement="top">
+                                <IconButton size="small" sx={{ padding: "4px" }}>
+                                  <ViewIconRemittance />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Download" placement="top">
+                                <IconButton size="small" sx={{ padding: "4px" }}>
+                                  <DownloadIconRemittance />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </Box>
       )}
+
+      {/* EOB/ERA Details - Full Page View with Claim Details */}
+  {showEobDetails && selectedEobClaim && currentTab === 2 && (
+  <Box
+    sx={{
+      height: "calc(100vh - 82px)",
+      backgroundColor: "#F5F7FA",
+      overflowY: "auto",
+      px: 1.5,
+      py: 1.5,
+
+      "&::-webkit-scrollbar": {
+        width: "4px",
+      },
+
+      "&::-webkit-scrollbar-track": {
+        backgroundColor: "transparent",
+      },
+
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#D1D5DB",
+        borderRadius: "4px",
+      },
+    }}
+  >
+    {/* ===================================================== */}
+    {/* HEADER */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        mb: 1.5,
+        minHeight: 48,
+      }}
+    >
+      {/* Patient Information */}
+      <Box>
+        <Typography
+          sx={{
+            fontSize: 18,
+            fontWeight: 700,
+            color: "#1F2937",
+            lineHeight: 1.2,
+          }}
+        >
+          Marian, Kalki P (3664)
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            mt: 0.6,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+            }}
+          >
+            Claim <b>6178</b>
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+            }}
+          >
+            Encounter <b>3501</b>
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+            }}
+          >
+            <b>Born</b> 15 Apr 1958
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+            }}
+          >
+            <b>Patient</b> 2885
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Header Buttons */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.75,
+        }}
+      >
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={
+            <ArrowBackIosNew
+              sx={{
+                fontSize: "11px !important",
+              }}
+            />
+          }
+          sx={{
+            height: 32,
+            minWidth: 105,
+            px: 1.5,
+            textTransform: "none",
+            borderColor: "#E5E7EB",
+            color: "#374151",
+            fontSize: 12,
+            borderRadius: "7px",
+            backgroundColor: "#FFFFFF",
+            boxShadow: "none",
+          }}
+        >
+          Previous claim
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="small"
+          endIcon={
+            <ArrowForwardIos
+              sx={{
+                fontSize: "11px !important",
+              }}
+            />
+          }
+          sx={{
+            height: 32,
+            minWidth: 92,
+            px: 1.5,
+            textTransform: "none",
+            borderColor: "#E5E7EB",
+            color: "#374151",
+            fontSize: 12,
+            borderRadius: "7px",
+            backgroundColor: "#FFFFFF",
+            boxShadow: "none",
+          }}
+        >
+          Next claim
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleCloseEobDetails}
+          sx={{
+            height: 32,
+            minWidth: 58,
+            px: 1.5,
+            textTransform: "none",
+            borderColor: "#E5E7EB",
+            color: "#374151",
+            fontSize: 12,
+            borderRadius: "7px",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            height: 32,
+            minWidth: 48,
+            px: 1.5,
+            textTransform: "none",
+            backgroundColor: "#0066FF",
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: "7px",
+            boxShadow: "none",
+
+            "&:hover": {
+              backgroundColor: "#0052CC",
+              boxShadow: "none",
+            },
+          }}
+        >
+          Apply
+        </Button>
+      </Box>
+    </Box>
+
+    {/* ===================================================== */}
+    {/* MAIN TWO COLUMN LAYOUT */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+        gap: 1.5,
+        alignItems: "start",
+      }}
+    >
+      {/* ===================================================== */}
+      {/* LEFT COLUMN */}
+      {/* ===================================================== */}
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+        }}
+      >
+        {/* ================================================= */}
+        {/* CARD 1 - CLAIM DETAILS */}
+        {/* ================================================= */}
+
+        <Box
+          sx={{
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: "10px",
+            overflow: "hidden",
+          }}
+        >
+          {/* Card Header */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 1.5,
+              py: 1.25,
+              borderBottom: "1px solid #E5E7EB",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#1F2937",
+              }}
+            >
+              Claim Details
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+              }}
+            >
+              <Switch
+                size="small"
+                sx={{
+                  width: 32,
+                  height: 20,
+                  p: 0,
+
+                  "& .MuiSwitch-switchBase": {
+                    p: 0.3,
+                  },
+
+                  "& .MuiSwitch-thumb": {
+                    width: 13,
+                    height: 13,
+                  },
+
+                  "& .MuiSwitch-track": {
+                    borderRadius: 10,
+                    backgroundColor: "#D1D5DB",
+                    opacity: 1,
+                  },
+                }}
+              />
+
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#6B7280",
+                }}
+              >
+                Show applied
+              </Typography>
+
+              <Button
+                size="small"
+                startIcon={
+                  <Add
+                    sx={{
+                      fontSize: "16px !important",
+                    }}
+                  />
+                }
+                sx={{
+                  minWidth: "auto",
+                  ml: 0.5,
+                  p: 0,
+                  textTransform: "none",
+                  color: "#0066FF",
+                  fontSize: 11,
+                }}
+              >
+                Add New
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Claim Details Table */}
+          <TableContainer>
+            <Table
+              size="small"
+              sx={{
+                tableLayout: "fixed",
+              }}
+            >
+              <TableHead>
+                <TableRow
+                  sx={{
+                    backgroundColor: "#F9FAFB",
+                  }}
+                >
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      width: 30,
+                      py: 0.7,
+                      borderBottom: "1px solid #E5E7EB",
+                    }}
+                  />
+
+                  {[
+                    "DOS",
+                    "Location",
+                    "CPT",
+                    "Claim#",
+                    "ICN",
+                    "Status",
+                  ].map((header) => (
+                    <TableCell
+                      key={header}
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        py: 1,
+                        px: 0.8,
+                        whiteSpace: "nowrap",
+                        borderBottom: "1px solid #E5E7EB",
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {[1, 2].map((row, index) => (
+                  <TableRow
+                    key={row}
+                    sx={{
+                      backgroundColor:
+                        index === 1 ? "#EEF4FF" : "#FFFFFF",
+                      borderBottom: "none",
+                    }}
+                  >
+                    <TableCell
+                      padding="checkbox"
+                      sx={{
+                        py: 1.2,
+                      }}
+                    >
+                      <Checkbox
+                        size="small"
+                        defaultChecked={index === 1}
+                        sx={{
+                          p: 0.25,
+                        }}
+                      />
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1.2,
+                        px: 0.8,
+                        color: "rgba(0, 0, 0, 0.87)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      08/21/26
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1.2,
+                        px: 0.8,
+                        color: "rgba(0, 0, 0, 0.87)",
+                      }}
+                    >
+                      TU-RL
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1.2,
+                        px: 0.8,
+                        color: "rgba(0, 0, 0, 0.87)",
+                      }}
+                    >
+                      11980
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1.2,
+                        px: 0.8,
+                        color: "rgba(0, 0, 0, 0.87)",
+                      }}
+                    >
+                      PRSH6002
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1.2,
+                        px: 0.8,
+                        color: "rgba(0, 0, 0, 0.87)",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      202608211142023
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        py: 1.2,
+                        px: 0.8,
+                      }}
+                    >
+                      <Chip
+                        label="Primary, Forwarded"
+                        size="small"
+                        sx={{
+                          height: 22,
+                          backgroundColor:
+                            index === 1
+                              ? "#0066FF"
+                              : "#EFF6FF",
+                          color:
+                            index === 1
+                              ? "#FFFFFF"
+                              : "#0066FF",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          borderRadius: "4px",
+
+                          "& .MuiChip-label": {
+                            px: 0.8,
+                          },
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {/* ================================================= */}
+        {/* CARD 2 - POSTING DATA */}
+        {/* ================================================= */}
+
+      <Box
+  sx={{
+    backgroundColor: "#FFFFFF",
+    border: "1px solid #E5E7EB",
+    borderRadius: "10px",
+    overflow: "hidden",
+    width: "100%",
+  }}
+>
+  {/* ================= POSTING DATA HEADER ================= */}
+  <Box
+    sx={{
+      px: 1.2,
+      py: 1,
+      borderBottom: "1px solid #E5E7EB",
+    }}
+  >
+    <Typography
+      sx={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: "#1F2937",
+        lineHeight: 1.2,
+      }}
+    >
+      Posting Data
+    </Typography>
+  </Box>
+
+  {/* ================= POSTING DATA BODY ================= */}
+  <Box
+    sx={{
+      px: 1.2,
+      py: 1.15,
+
+      /* ================= INPUT / SELECT ================= */
+      "& .MuiInputBase-root": {
+        height: 29,
+        minHeight: 29,
+        fontSize: 12,
+        borderRadius: "6px",
+        backgroundColor: "#F1F3F7",
+      },
+
+      "& .MuiOutlinedInput-root": {
+        height: 29,
+        minHeight: 29,
+        borderRadius: "6px",
+        backgroundColor: "#F1F3F7",
+      },
+
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#E5E7EB",
+      },
+
+      "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#D7DBE2",
+      },
+
+      "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+        {
+          borderColor: "#0066FF",
+        },
+
+      /* ================= INPUT TEXT ================= */
+      "& .MuiOutlinedInput-input": {
+        fontSize: 12,
+        color: "#6B7280",
+        padding: "5px 9px",
+      },
+
+      /* ================= SELECT TEXT ================= */
+      "& .MuiSelect-select": {
+        fontSize: 12,
+        color: "#6B7280",
+        padding: "5px 30px 5px 9px !important",
+        minHeight: "unset !important",
+        backgroundColor: "#F1F3F7",
+        display: "flex",
+        alignItems: "center",
+      },
+
+      /* ================= BLUE DROPDOWN ARROWS ================= */
+      "& .MuiSelect-icon": {
+        color: "#0066FF",
+        fontSize: 18,
+        right: 7,
+      },
+
+      "& .MuiSelect-iconOutlined": {
+        color: "#0066FF",
+      },
+
+      /* ================= LABEL ================= */
+      "& .MuiInputLabel-root": {
+        fontSize: 11,
+        color: "#6B7280",
+      },
+
+      /* ================= DISABLED FIELDS ================= */
+      "& .MuiInputBase-root.Mui-disabled": {
+        backgroundColor: "#E9EBF0",
+      },
+
+      "& .MuiInputBase-root.Mui-disabled input": {
+        color: "#8A8F98",
+        WebkitTextFillColor: "#8A8F98",
+      },
+
+      "& .MuiInputBase-root.Mui-disabled .MuiSelect-select": {
+        color: "#8A8F98",
+        WebkitTextFillColor: "#8A8F98",
+      },
+
+      /* ================= CALENDAR / OTHER ICON ================= */
+      "& .MuiInputAdornment-root svg": {
+        fontSize: 16,
+      },
+
+      /* ================= SELECT ARROW HOVER ================= */
+      "& .MuiSelect-root:hover .MuiSelect-icon": {
+        color: "#0052CC",
+      },
+    }}
+  >
+    {/* ===================================================== */}
+    {/* ROW 1 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimField
+        label="Posting Date"
+        value="09/13/2026"
+        calendar
+      />
+
+      <ClaimSelect
+        label="Payer sequence"
+        value="Primary"
+      />
+
+      <ClaimSelect
+        label="Payer"
+        value="6734759 - ICI"
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 2 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimField
+        label="Allowed"
+        value="$73.13"
+      />
+
+      <ClaimField
+        label="Paid"
+        value="$26.4"
+      />
+
+      <ClaimField
+        label="Contract Adj."
+        value="$43.22"
+        disabled
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 3 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimField
+        label="Adj. Code"
+        value="CO-45, CO-253, C..."
+      />
+
+      <ClaimField
+        label="Second Adj."
+        value="$113.52"
+        disabled
+      />
+
+      <ClaimSelect
+        label="Adj. Code"
+        value="OA-9"
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 4 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimField
+        label="Coinsurance"
+        value="$15.49"
+        disabled
+      />
+
+      <ClaimField
+        label="Copay"
+        value="$21.37"
+        disabled
+      />
+
+      <ClaimField
+        label="Deductible"
+        value="$0"
+        disabled
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 5 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimField
+        label="Other PR Codes"
+        value="-"
+        disabled
+      />
+
+      <ClaimField
+        label="Other PR Amount"
+        value="$0"
+        disabled
+      />
+
+      <ClaimSelect
+        label="Payment Method"
+        value="EFT"
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 6 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+        mb: 1.15,
+      }}
+    >
+      <ClaimSelect
+        label="Actions"
+        value="Settle"
+      />
+
+      <ClaimField
+        label="Remarks"
+        value="Lorem ipsum dum..."
+      />
+
+      <ClaimField
+        label="Prov. Adj."
+        value="-"
+      />
+    </Box>
+
+    {/* ===================================================== */}
+    {/* ROW 7 */}
+    {/* ===================================================== */}
+
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        columnGap: 1.5,
+      }}
+    >
+      <ClaimSelect
+        label="Denial Category"
+        value="NA"
+      />
+
+      <ClaimField
+        label="Balance"
+        value="$0"
+      />
+
+      <Box />
+    </Box>
+  </Box>
+</Box>
+      </Box>
+
+      {/* ===================================================== */}
+      {/* RIGHT COLUMN */}
+      {/* ===================================================== */}
+
+      {/* ===================================================== */}
+{/* RIGHT COLUMN - EOB / ERA */}
+{/* ===================================================== */}
+
+<Box
+  sx={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 1.5,
+  }}
+>
+  {/* ================================================= */}
+  {/* CARD 3 - EOB / ERA DETAILS */}
+  {/* ================================================= */}
+
+  <Box
+    sx={{
+      backgroundColor: "#FFFFFF",
+      border: "1px solid #E5E7EB",
+      borderRadius: "10px",
+      overflow: "hidden",
+      width: "100%",
+    }}
+  >
+    <Box
+      sx={{
+        px: 1.5,
+        py: 1.5,
+      }}
+    >
+      {/* Title */}
+      <Typography
+        sx={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#1F2937",
+          lineHeight: 1.2,
+          mb: 1.2,
+        }}
+      >
+        EOB/ERA Details
+      </Typography>
+
+      {/* Fields + View File in SAME ROW */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr auto",
+          gap: 1.25,
+          alignItems: "end",
+          width: "100%",
+        }}
+      >
+        {/* Note */}
+        <Box>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+              mb: 0.55,
+              lineHeight: 1.2,
+            }}
+          >
+            Note
+          </Typography>
+
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Type here"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                height: 34,
+                borderRadius: "6px",
+                backgroundColor: "#FFFFFF",
+              },
+
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#E5E7EB",
+              },
+
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#D1D5DB",
+              },
+
+              "& .MuiInputBase-input": {
+                fontSize: 12,
+                color: "#374151",
+                py: 0,
+              },
+
+              "& .MuiInputBase-input::placeholder": {
+                fontSize: 12,
+                color: "#9CA3AF",
+                opacity: 1,
+              },
+            }}
+          />
+        </Box>
+
+        {/* Reference Number */}
+        <Box>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+              mb: 0.55,
+              lineHeight: 1.2,
+            }}
+          >
+            Reference number
+          </Typography>
+
+          <Box
+            sx={{
+              height: 34,
+              display: "flex",
+              alignItems: "center",
+              px: 1.2,
+              border: "1px solid #E5E7EB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#374151",
+              boxSizing: "border-box",
+            }}
+          >
+            150219802000
+          </Box>
+        </Box>
+
+        {/* ERA Balance */}
+        <Box>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+              mb: 0.55,
+              lineHeight: 1.2,
+            }}
+          >
+            ERA Balance
+          </Typography>
+
+          <Box
+            sx={{
+              height: 34,
+              display: "flex",
+              alignItems: "center",
+              px: 1.2,
+              border: "1px solid #E5E7EB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#374151",
+              boxSizing: "border-box",
+            }}
+          >
+            $0
+          </Box>
+        </Box>
+
+        {/* View File */}
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            height: 34,
+            minWidth: 68,
+            px: 1.5,
+            mb: 0,
+            textTransform: "none",
+            backgroundColor: "#0066FF",
+            color: "#FFFFFF",
+            fontSize: 11,
+            fontWeight: 600,
+            borderRadius: "7px",
+            boxShadow: "none",
+            whiteSpace: "nowrap",
+
+            "&:hover": {
+              backgroundColor: "#0052CC",
+              boxShadow: "none",
+            },
+          }}
+        >
+          View File
+        </Button>
+      </Box>
+    </Box>
+  </Box>
+
+  {/* ================================================= */}
+  {/* CARD 4 - TRANSACTION TABLE */}
+  {/* ================================================= */}
+
+  <Box
+    sx={{
+      backgroundColor: "#FFFFFF",
+      border: "1px solid #E5E7EB",
+      borderRadius: "10px",
+      overflow: "hidden",
+      width: "100%",
+    }}
+  >
+    <TableContainer
+      sx={{
+        width: "100%",
+        maxHeight: "calc(100vh - 245px)",
+        overflowY: "auto",
+        overflowX: "hidden",
+
+        "&::-webkit-scrollbar": {
+          width: "4px",
+        },
+
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: "transparent",
+        },
+
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "#D1D5DB",
+          borderRadius: "4px",
+        },
+
+        "&::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: "#9CA3AF",
+        },
+      }}
+    >
+      <Table
+        size="small"
+        stickyHeader
+        sx={{
+          tableLayout: "fixed",
+          width: "100%",
+        }}
+      >
+        {/* ================= TABLE HEADER ================= */}
+        <TableHead>
+          <TableRow>
+            <TableCell
+              sx={{
+                width: "14%",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#374151",
+                py: 1.15,
+                px: 1,
+                backgroundColor: "#F1F3FF",
+                borderBottom: "1px solid #E5E7EB",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Date
+            </TableCell>
+
+            <TableCell
+              sx={{
+                width: "39%",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#374151",
+                py: 1.15,
+                px: 1,
+                backgroundColor: "#F1F3FF",
+                borderBottom: "1px solid #E5E7EB",
+              }}
+            >
+              Transaction
+            </TableCell>
+
+            <TableCell
+              sx={{
+                width: "15%",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#374151",
+                py: 1.15,
+                px: 1,
+                textAlign: "right",
+                backgroundColor: "#F1F3FF",
+                borderBottom: "1px solid #E5E7EB",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Amount
+            </TableCell>
+
+            <TableCell
+              sx={{
+                width: "15%",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#374151",
+                py: 1.15,
+                px: 1,
+                textAlign: "right",
+                backgroundColor: "#F1F3FF",
+                borderBottom: "1px solid #E5E7EB",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Pat Resp.
+            </TableCell>
+
+            <TableCell
+              sx={{
+                width: "17%",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#374151",
+                py: 1.15,
+                px: 1,
+                textAlign: "right",
+                backgroundColor: "#F1F3FF",
+                borderBottom: "1px solid #E5E7EB",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Total Balance
+            </TableCell>
+          </TableRow>
+        </TableHead>
+
+        {/* ================= TABLE BODY ================= */}
+        <TableBody>
+          {[
+            {
+              date: "26 Aug 26",
+              type: "Claim created and added to Queue",
+              amount: "$550.14",
+              patResp: "$550.14",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Claim submitted to Payer - ICIC, $150",
+              amount: "-",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Payer Settlement EFT/Check #: 150219802000/0906",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+            {
+              date: "26 Aug 26",
+              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+              amount: "$0.00",
+              patResp: "$0.00",
+              balance: "$550.14",
+            },
+          ].map((transaction, idx) => (
+            <TableRow
+              key={idx}
+              sx={{
+                backgroundColor:
+                  idx % 2 === 0 ? "#FFFFFF" : "#F5F7FF",
+
+                "&:last-child td": {
+                  borderBottom: 0,
+                },
+              }}
+            >
+              {/* Date */}
+              <TableCell
+                sx={{
+                  fontSize: 12,
+                  py: 1.25,
+                  px: 1,
+                  color: "#374151",
+                  verticalAlign: "top",
+                  whiteSpace: "nowrap",
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                {transaction.date}
+              </TableCell>
+
+              {/* Transaction */}
+              <TableCell
+                sx={{
+                  fontSize: 12,
+                  py: 1.25,
+                  px: 1,
+                  color: "#4B5563",
+                  verticalAlign: "top",
+                  lineHeight: 1.4,
+                  wordBreak: "break-word",
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                {transaction.type}
+              </TableCell>
+
+              {/* Amount */}
+              <TableCell
+                sx={{
+                  fontSize: 12,
+                  py: 1.25,
+                  px: 1,
+                  color: "#374151",
+                  textAlign: "right",
+                  verticalAlign: "top",
+                  whiteSpace: "nowrap",
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                {transaction.amount}
+              </TableCell>
+
+              {/* Patient Responsibility */}
+              <TableCell
+                sx={{
+                  fontSize: 12,
+                  py: 1.25,
+                  px: 1,
+                  color: "#374151",
+                  textAlign: "right",
+                  verticalAlign: "top",
+                  whiteSpace: "nowrap",
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                {transaction.patResp}
+              </TableCell>
+
+              {/* Total Balance */}
+              <TableCell
+                sx={{
+                  fontSize: 12,
+                  py: 1.25,
+                  px: 1,
+                  color: "#374151",
+                  textAlign: "right",
+                  verticalAlign: "top",
+                  whiteSpace: "nowrap",
+                  fontWeight: 600,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                {transaction.balance}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Box>
+</Box>
+    </Box>
+  </Box>
+)}
 
       {/* Patient Statement Tab Content */}
       {currentTab === 3 && (

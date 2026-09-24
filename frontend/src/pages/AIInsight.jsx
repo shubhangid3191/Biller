@@ -7,53 +7,56 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
+
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import BoltIcon from "@mui/icons-material/Bolt";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+
 import {
-  AreaChart,
+  ResponsiveContainer,
+  ComposedChart,
   Area,
   Line,
-  ComposedChart,
-  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 
-// ---------------------------------------------------------------------------
-// Mock data — replace with live data from the relevant service/context layer
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// DATA
+// -----------------------------------------------------------------------------
 
 const SUMMARY_CARDS = [
   {
     label: "REVENUE LEAKAGE",
     value: "$33.4K",
-    color: "#ef4444",
+    color: "#ff3b3b",
     note: "Missed charges & underpayments (30d)",
   },
   {
     label: "UNDERPAYMENTS",
     value: "$8.6K",
-    color: "#2563eb",
+    color: "#0878ff",
     note: "42 claims paid below contract",
   },
   {
     label: "PREVENTABLE DENIALS",
     value: "$14.8K",
-    color: "#f59e0b",
+    color: "#f5a400",
     note: "71% from missing authorization",
   },
 ];
 
-// projected collections with an upper/lower confidence band
 const FORECAST = [
   { week: "W1", low: 1.02, mid: 1.1, high: 1.18 },
-  { week: "W", low: 1.08, mid: 1.16, high: 1.24 },
-  { week: "W2", low: 1.14, mid: 1.22, high: 1.3 },
-  { week: "W3", low: 1.16, mid: 1.25, high: 1.34 },
-  { week: "W", low: 1.2, mid: 1.28, high: 1.36 },
-  { week: "W", low: 1.22, mid: 1.3, high: 1.38 },
-  { week: "W", low: 1.24, mid: 1.32, high: 1.4 },
-].map((d) => ({ ...d, band: d.high - d.low }));
+  { week: "W2", low: 1.08, mid: 1.16, high: 1.24 },
+  { week: "W3", low: 1.14, mid: 1.22, high: 1.3 },
+  { week: "W4", low: 1.16, mid: 1.25, high: 1.34 },
+  { week: "W5", low: 1.2, mid: 1.28, high: 1.36 },
+  { week: "W6", low: 1.22, mid: 1.3, high: 1.38 },
+  { week: "W7", low: 1.24, mid: 1.32, high: 1.4 },
+];
 
 const FINDINGS = [
   {
@@ -85,301 +88,777 @@ const FINDINGS = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Small presentational helpers
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SUMMARY CARD
+// -----------------------------------------------------------------------------
 
-const SummaryCard = ({ card }) => (
-  <Paper
-    variant="outlined"
-    sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}
-  >
-    <Typography
-      variant="caption"
-      sx={{ color: "#9ca3af", fontWeight: 600, letterSpacing: 0.5 }}
+const SummaryCard = ({ card }) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        height: 118,
+        px: 2,
+        py: 1.7,
+        borderRadius: "6px",
+        border: "1px solid #e5e7eb",
+        backgroundColor: "#ffffff",
+        boxSizing: "border-box",
+      }}
     >
-      {card.label}
-    </Typography>
-    <Typography
-      variant="h4"
-      sx={{ fontWeight: 700, color: card.color, mt: 0.5 }}
-    >
-      {card.value}
-    </Typography>
-    <Typography variant="body2" sx={{ color: "#6b7280", mt: 0.5 }}>
-      {card.note}
-    </Typography>
-    <Stack
-      direction="row"
-      alignItems="center"
-      spacing={0.5}
-      sx={{ mt: 1.5, cursor: "pointer" }}
-    >
-      <Typography variant="body2" sx={{ color: "#2563eb", fontWeight: 600 }}>
-        Investigate
-      </Typography>
-      <ArrowForwardIcon sx={{ fontSize: 14, color: "#2563eb" }} />
-    </Stack>
-  </Paper>
-);
-
-const FindingRow = ({ item, isLast }) => (
-  <Box>
-    <Stack
-      direction="row"
-      alignItems="center"
-      spacing={1.5}
-      sx={{ py: 1.5 }}
-    >
-      <BoltIcon sx={{ fontSize: 16, color: "#2563eb", flexShrink: 0 }} />
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, color: "#111827" }}>
-          {item.title}
-        </Typography>
-        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-          {item.detail}
-        </Typography>
-      </Box>
       <Typography
-        variant="body2"
-        sx={{ fontWeight: 700, color: "#111827", flexShrink: 0 }}
-      >
-        {item.amount}
-      </Typography>
-      <Button
-        size="small"
-        variant="contained"
         sx={{
-          textTransform: "none",
-          bgcolor: "#2563eb",
-          "&:hover": { bgcolor: "#1d4ed8" },
-          borderRadius: 1.5,
-          flexShrink: 0,
+          fontSize: "7px",
+          lineHeight: 1,
+          color: "#9ca3af",
+          fontWeight: 700,
+          letterSpacing: "0.45px",
+          mb: 1,
+        }}
+      >
+        {card.label}
+      </Typography>
+
+      <Typography
+        sx={{
+          fontSize: "16px",
+          lineHeight: 1.2,
+          fontWeight: 700,
+          color: card.color,
+          mb: 0.8,
+        }}
+      >
+        {card.value}
+      </Typography>
+
+      <Typography
+        sx={{
+          fontSize: "8px",
+          lineHeight: 1.35,
+          color: "#6b7280",
           whiteSpace: "nowrap",
         }}
       >
-        {item.action}
-      </Button>
-    </Stack>
-    {!isLast && <Divider />}
-  </Box>
-);
-
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
-
-export default function AIInsight() {
-  return (
-    <Box sx={{ bgcolor: "#f5f6f8", p: 3, minHeight: "100vh" }}>
-      {/* Header */}
-      <Typography
-        variant="overline"
-        sx={{ color: "#9ca3af", fontWeight: 600, letterSpacing: 1 }}
-      >
-        COMMAND
+        {card.note}
       </Typography>
+
       <Stack
         direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ mb: 2 }}
+        alignItems="center"
+        spacing={0.25}
+        sx={{
+          mt: 1.2,
+          cursor: "pointer",
+          width: "fit-content",
+        }}
       >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#111827" }}>
-            AI Insights Center
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#6b7280", mt: 0.5 }}>
-            Proactive intelligence: revenue leakage, underpayment detection,
-            denial root-cause, and predictive forecasting — surfaced before
-            you ask.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<ForumOutlinedIcon sx={{ fontSize: 16 }} />}
+        <Typography
           sx={{
-            textTransform: "none",
-            bgcolor: "#111827",
-            "&:hover": { bgcolor: "#000" },
-            borderRadius: 1.5,
-            flexShrink: 0,
+            fontSize: "8px",
+            color: "#0878ff",
+            fontWeight: 600,
           }}
         >
-          Ask the analyst
+          Investigate
+        </Typography>
+
+        <ArrowForwardIcon
+          sx={{
+            fontSize: 10,
+            color: "#0878ff",
+          }}
+        />
+      </Stack>
+    </Paper>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// FINDING ROW
+// -----------------------------------------------------------------------------
+
+const FindingRow = ({ item, isLast }) => {
+  return (
+    <Box>
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{
+          minHeight: 43,
+          py: 0.8,
+          gap: 1,
+        }}
+      >
+        {/* Blue lightning icon */}
+        <BoltIcon
+          sx={{
+            fontSize: 13,
+            color: "#0878ff",
+            flexShrink: 0,
+          }}
+        />
+
+        {/* Text */}
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "8px",
+              lineHeight: 1.25,
+              fontWeight: 700,
+              color: "#111827",
+              mb: 0.3,
+            }}
+          >
+            {item.title}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "6.8px",
+              lineHeight: 1.3,
+              color: "#9ca3af",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {item.detail}
+          </Typography>
+        </Box>
+
+        {/* Amount */}
+        <Typography
+          sx={{
+            fontSize: "8px",
+            fontWeight: 700,
+            color: "#111827",
+            flexShrink: 0,
+            minWidth: 40,
+            textAlign: "right",
+          }}
+        >
+          {item.amount}
+        </Typography>
+
+        {/* Action */}
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            height: 19,
+            minWidth: 0,
+            px: 1,
+            borderRadius: "3px",
+            textTransform: "none",
+            fontSize: "6px",
+            fontWeight: 600,
+            lineHeight: 1,
+            backgroundColor: "#0878ff",
+            boxShadow: "none",
+            whiteSpace: "nowrap",
+            "&:hover": {
+              backgroundColor: "#0067e8",
+              boxShadow: "none",
+            },
+          }}
+        >
+          {item.action}
         </Button>
       </Stack>
 
-      {/* Summary cards */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        {SUMMARY_CARDS.map((c) => (
-          <SummaryCard key={c.label} card={c} />
-        ))}
-      </Stack>
+      {!isLast && (
+        <Divider
+          sx={{
+            borderColor: "#edf0f3",
+          }}
+        />
+      )}
+    </Box>
+  );
+};
 
-      {/* Forecast + Underpayment detector */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Paper
-          variant="outlined"
-          sx={{ flex: 1.6, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
-            Predictive Cash Forecast
-          </Typography>
-          <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-            Next 6 weeks &middot; 90% confidence band
-          </Typography>
-          <Box sx={{ height: 190, mt: 1 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={FORECAST}>
-                <Area
-                  type="monotone"
-                  dataKey="high"
-                  stroke="none"
-                  fill="#dbeafe"
-                  fillOpacity={0.6}
-                  stackId="band"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="low"
-                  stroke="none"
-                  fill="#f5f6f8"
-                  fillOpacity={1}
-                  stackId="band2"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="mid"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#2563eb", strokeWidth: 0 }}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ px: 0.5, mb: 1.5 }}>
-            {FORECAST.map((d, i) => (
-              <Typography key={i} variant="caption" sx={{ color: "#9ca3af" }}>
-                {d.week}
-              </Typography>
-            ))}
-          </Stack>
-          <Divider sx={{ mb: 1.5 }} />
-          <Stack spacing={0.75}>
-            {[
-              ["Projected 30-day collections", "$1.34M"],
-              ["Confidence interval", "\u00B1$48K"],
-            ].map(([label, val]) => (
-              <Stack key={label} direction="row" justifyContent="space-between">
-                <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                  {label}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
-                  {val}
-                </Typography>
-              </Stack>
-            ))}
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                Cash velocity trend
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: "#22c55e" }}>
-                +6%
-              </Typography>
-            </Stack>
-          </Stack>
-        </Paper>
+// -----------------------------------------------------------------------------
+// MAIN PAGE
+// -----------------------------------------------------------------------------
 
-        <Paper
-          variant="outlined"
-          sx={{ flex: 1, p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}
-        >
+export default function AIInsight() {
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        boxSizing: "border-box",
+        backgroundColor: "#f5f5f5",
+        px: {
+          xs: 1.5,
+          sm: 2.5,
+          md: 3,
+        },
+        py: {
+          xs: 2,
+          sm: 2.5,
+          md: 3,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "1200px",
+          mx: "auto",
+        }}
+      >
+        {/* ---------------------------------------------------------------- */}
+        {/* HEADER */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Box sx={{ mb: 2 }}>
           <Typography
-            variant="caption"
-            sx={{ color: "#9ca3af", fontWeight: 600, letterSpacing: 0.5 }}
-          >
-            UNDERPAYMENT DETECTOR
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#374151", mt: 1 }}>
-            BCBSM is paying 33% below contract on G0439 across 6 claims.
-            Revenue: $124.74. This matches a fee-schedule update the payer
-            applied incorrectly.
-          </Typography>
-          <Divider sx={{ my: 1.5 }} />
-          <Stack spacing={1}>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                Contracted rate
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
-                $156.20
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                Average paid
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: "#ef4444" }}>
-                $136.41
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ color: "#6b7280" }}>
-                Recoverable
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: "#111827" }}>
-                $124.74
-              </Typography>
-            </Stack>
-          </Stack>
-          <Button
-            fullWidth
-            variant="contained"
-            startIcon={<LightbulbOutlinedIcon sx={{ fontSize: 16 }} />}
             sx={{
-              textTransform: "none",
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" },
-              borderRadius: 1.5,
-              mt: 2,
+              fontSize: "7px",
+              lineHeight: 1,
+              color: "#9ca3af",
+              fontWeight: 700,
+              letterSpacing: "0.6px",
+              mb: 0.8,
             }}
           >
-            Dispute underpayment
-          </Button>
-        </Paper>
-      </Stack>
+            COMMAND
+          </Typography>
 
-      {/* Tia Findings */}
-      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor: "#e5e7eb" }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-          <Box
-            sx={{
-              width: 22,
-              height: 22,
-              borderRadius: 1,
-              bgcolor: "#2563eb",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            justifyContent="space-between"
+            gap={2}
           >
-            <LightbulbOutlinedIcon sx={{ fontSize: 13, color: "#fff" }} />
-          </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>
-            Tia Findings
-          </Typography>
-        </Stack>
-        <Typography variant="caption" sx={{ color: "#9ca3af", ml: 4.5 }}>
-          Ranked, explainable insights with one-click actions
-        </Typography>
-        <Box sx={{ mt: 1 }}>
-          {FINDINGS.map((f, i) => (
-            <FindingRow key={f.title} item={f} isLast={i === FINDINGS.length - 1} />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontSize: {
+                    xs: "20px",
+                    sm: "22px",
+                  },
+                  lineHeight: 1.15,
+                  fontWeight: 700,
+                  color: "#111827",
+                  mb: 0.6,
+                }}
+              >
+                AI Insights Center
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: "8px",
+                  lineHeight: 1.5,
+                  color: "#7b8491",
+                  maxWidth: 700,
+                }}
+              >
+                Proactive intelligence: revenue leakage, underpayment
+                detection, denial root-cause, and predictive forecasting —
+                surfaced before you ask.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              startIcon={
+                <ForumOutlinedIcon
+                  sx={{
+                    fontSize: "12px !important",
+                  }}
+                />
+              }
+              sx={{
+                flexShrink: 0,
+                height: 28,
+                px: 1.5,
+                borderRadius: "3px",
+                textTransform: "none",
+                fontSize: "8px",
+                fontWeight: 600,
+                backgroundColor: "#0878ff",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: "#0067e8",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Ask the analyst
+            </Button>
+          </Stack>
+        </Box>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* SUMMARY CARDS */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(3, 1fr)",
+            },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          {SUMMARY_CARDS.map((card) => (
+            <SummaryCard
+              key={card.label}
+              card={card}
+            />
           ))}
         </Box>
-      </Paper>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* FORECAST + UNDERPAYMENT */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "1.72fr 0.88fr",
+            },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          {/* Forecast */}
+          <Paper
+            elevation={0}
+            sx={{
+              minWidth: 0,
+              minHeight: 290,
+              p: 2,
+              borderRadius: "6px",
+              border: "1px solid #e5e7eb",
+              backgroundColor: "#ffffff",
+              boxSizing: "border-box",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "10px",
+                lineHeight: 1.2,
+                fontWeight: 700,
+                color: "#111827",
+                mb: 0.55,
+              }}
+            >
+              Predictive Cash Forecast
+            </Typography>
+
+            <Typography
+              sx={{
+                fontSize: "7px",
+                color: "#9ca3af",
+              }}
+            >
+              Next 6 weeks · 90% confidence band
+            </Typography>
+
+            {/* Chart */}
+            <Box
+              sx={{
+                width: "100%",
+                height: 132,
+                mt: 1,
+              }}
+            >
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <ComposedChart
+                  data={FORECAST}
+                  margin={{
+                    top: 8,
+                    right: 5,
+                    left: 5,
+                    bottom: 0,
+                  }}
+                >
+                  <CartesianGrid
+                    horizontal
+                    vertical={false}
+                    stroke="#edf0f3"
+                    strokeWidth={1}
+                  />
+
+                  <XAxis
+                    dataKey="week"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 6,
+                      fill: "#a1a7b0",
+                    }}
+                    dy={5}
+                  />
+
+                  <YAxis
+                    hide
+                    domain={["dataMin - 0.04", "dataMax + 0.04"]}
+                  />
+
+                  {/* Confidence area */}
+                  <Area
+                    type="monotone"
+                    dataKey="high"
+                    stroke="none"
+                    fill="#eaf2ff"
+                    fillOpacity={0.85}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="low"
+                    stroke="none"
+                    fill="#ffffff"
+                    fillOpacity={1}
+                  />
+
+                  {/* Main line */}
+                  <Line
+                    type="monotone"
+                    dataKey="mid"
+                    stroke="#0878ff"
+                    strokeWidth={1.6}
+                    dot={{
+                      r: 2.3,
+                      fill: "#0878ff",
+                      strokeWidth: 0,
+                    }}
+                    activeDot={{
+                      r: 3,
+                    }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Box>
+
+            <Divider
+              sx={{
+                mt: 0.8,
+                mb: 1.2,
+                borderColor: "#edf0f3",
+              }}
+            />
+
+            <Stack spacing={1}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    color: "#7b8491",
+                  }}
+                >
+                  Projected 30-day collections
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  $1.34M
+                </Typography>
+              </Stack>
+
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    color: "#7b8491",
+                  }}
+                >
+                  Confidence interval
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  ±$48K
+                </Typography>
+              </Stack>
+
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    color: "#7b8491",
+                  }}
+                >
+                  Cash velocity trend
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "7px",
+                    fontWeight: 700,
+                    color: "#16a34a",
+                  }}
+                >
+                  +6%
+                </Typography>
+              </Stack>
+            </Stack>
+          </Paper>
+
+          {/* Underpayment detector */}
+          <Paper
+            elevation={0}
+            sx={{
+              minWidth: 0,
+              minHeight: 290,
+              p: 2,
+              borderRadius: "6px",
+              border: "1px solid #e5e7eb",
+              backgroundColor: "#ffffff",
+              boxSizing: "border-box",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "6.5px",
+                lineHeight: 1,
+                color: "#0878ff",
+                fontWeight: 700,
+                letterSpacing: "0.4px",
+                mb: 1.4,
+              }}
+            >
+              UNDERPAYMENT DETECTOR
+            </Typography>
+
+            <Typography
+              sx={{
+                fontSize: "7.5px",
+                lineHeight: 1.55,
+                color: "#374151",
+              }}
+            >
+              BCBSM is paying 33% below contract on G0439 across 6 claims.
+              Revenue: $124.74. This matches a fee-schedule update the payer
+              applied incorrectly.
+            </Typography>
+
+            <Divider
+              sx={{
+                my: 1.4,
+                borderColor: "#edf0f3",
+              }}
+            />
+
+            <Stack spacing={1.25}>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "6px",
+                    color: "#9ca3af",
+                    mb: 0.3,
+                  }}
+                >
+                  Contracted rate
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "8px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  $156.20
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "6px",
+                    color: "#9ca3af",
+                    mb: 0.3,
+                  }}
+                >
+                  Average paid
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "8px",
+                    fontWeight: 700,
+                    color: "#ef4444",
+                  }}
+                >
+                  $136.41
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "6px",
+                    color: "#9ca3af",
+                    mb: 0.3,
+                  }}
+                >
+                  Recoverable
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: "8px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  $124.74
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={
+                <LightbulbOutlinedIcon
+                  sx={{
+                    fontSize: "11px !important",
+                  }}
+                />
+              }
+              sx={{
+                height: 25,
+                mt: 2,
+                borderRadius: "3px",
+                textTransform: "none",
+                fontSize: "7px",
+                fontWeight: 600,
+                backgroundColor: "#0878ff",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: "#0067e8",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Dispute underpayment
+            </Button>
+          </Paper>
+        </Box>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* TIA FINDINGS */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Paper
+          elevation={0}
+          sx={{
+            width: "100%",
+            p: 2,
+            borderRadius: "6px",
+            border: "1px solid #e5e7eb",
+            backgroundColor: "#ffffff",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* Findings Header */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{
+              mb: 0.25,
+            }}
+          >
+            <Box
+              sx={{
+                width: 17,
+                height: 17,
+                borderRadius: "3px",
+                backgroundColor: "#0878ff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <LightbulbOutlinedIcon
+                sx={{
+                  fontSize: 10,
+                  color: "#ffffff",
+                }}
+              />
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: "9px",
+                lineHeight: 1,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
+              Tia Findings
+            </Typography>
+          </Stack>
+
+          <Typography
+            sx={{
+              fontSize: "6px",
+              lineHeight: 1.4,
+              color: "#9ca3af",
+              ml: 3,
+            }}
+          >
+            Ranked, explainable insights with one-click actions
+          </Typography>
+
+          {/* Finding rows */}
+          <Box sx={{ mt: 0.8 }}>
+            {FINDINGS.map((item, index) => (
+              <FindingRow
+                key={item.title}
+                item={item}
+                isLast={index === FINDINGS.length - 1}
+              />
+            ))}
+          </Box>
+        </Paper>
+      </Box>
     </Box>
   );
 }

@@ -10,11 +10,12 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
+
 import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
 import AddIcon from "@mui/icons-material/Add";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
@@ -22,36 +23,39 @@ import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 
-// ---------------------------------------------------------------------------
-// Mock data — replace with live data from the relevant service/context layer
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// DATA
+// -----------------------------------------------------------------------------
 
 const STATUS_CARDS = [
   {
     label: "Needs action now",
     value: 3,
     note: "Critical denials, cash & auth",
-    icon: WarningAmberIcon,
-    color: "#ef4444",
+    icon: WarningAmberOutlinedIcon,
+    iconColor: "#ef4444",
+    iconBg: "#fff1f2",
   },
   {
     label: "Overdue",
     value: 2,
     note: "Past deadline",
-    icon: ScheduleIcon,
-    color: "#ef4444",
+    icon: ScheduleOutlinedIcon,
+    iconColor: "#ef4444",
+    iconBg: "#fff1f2",
   },
   {
     label: "Routine task",
     value: 4,
     note: "Clear when free",
-    icon: AssignmentTurnedInOutlinedIcon,
-    color: "#2563eb",
+    icon: AssignmentOutlinedIcon,
+    iconColor: "#2563eb",
+    iconBg: "#eff6ff",
   },
 ];
 
 const FILTERS = [
-  { label: "All", count: 2, active: true },
+  { label: "All", count: 2 },
   { label: "Charge Capture", count: 3 },
   { label: "Payment Posting", count: 4 },
   { label: "Denials", count: 5 },
@@ -61,9 +65,18 @@ const FILTERS = [
 ];
 
 const PRIORITY_STYLES = {
-  Critical: { bg: "#fee2e2", color: "#dc2626" },
-  High: { bg: "#fef3c7", color: "#b45309" },
-  Routine: { bg: "#dcfce7", color: "#16a34a" },
+  Critical: {
+    bg: "#fee2e2",
+    color: "#dc2626",
+  },
+  High: {
+    bg: "#fef3c7",
+    color: "#b45309",
+  },
+  Routine: {
+    bg: "#dcfce7",
+    color: "#16a34a",
+  },
 };
 
 const TASKS = [
@@ -85,7 +98,7 @@ const TASKS = [
   {
     who: "Sloane, Marcus",
     ref: "RHPL1601",
-    task: "Work UHC 277 rejection \u2014 invalid subscriber ID",
+    task: "Work UHC 277 rejection — invalid subscriber ID",
     priority: "Critical",
     time: "10:45 AM",
   },
@@ -106,7 +119,7 @@ const TASKS = [
   {
     who: "Check 7905000239",
     ref: "14 claims",
-    task: "Post BCBSM ERA \u2014 auto-post blocked",
+    task: "Post BCBSM ERA — auto-post blocked",
     priority: "High",
     time: "8:15 AM",
     overdue: true,
@@ -157,6 +170,10 @@ const TASKS = [
   },
 ];
 
+// -----------------------------------------------------------------------------
+// ROW ICONS
+// -----------------------------------------------------------------------------
+
 const ROW_ICONS = [
   VisibilityOutlinedIcon,
   DescriptionOutlinedIcon,
@@ -165,234 +182,636 @@ const ROW_ICONS = [
   OpenInNewOutlinedIcon,
 ];
 
-// ---------------------------------------------------------------------------
-// Small presentational helpers
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// STATUS CARD
+// -----------------------------------------------------------------------------
 
 const StatusCard = ({ card }) => {
   const Icon = card.icon;
+
   return (
     <Paper
       variant="outlined"
       sx={{
-        flex: 1,
-        p: 2,
-        borderRadius: 2,
-        borderColor: "#e5e7eb",
+        height: 66,
+        px: 1.5,
+        py: 1,
+        borderRadius: "7px",
+        borderColor: "#dfe4ea",
+        backgroundColor: "#fff",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+        minWidth: 0,
       }}
     >
-      <Box>
-        <Typography variant="caption" sx={{ color: "#9ca3af", fontWeight: 500 }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          sx={{
+            fontSize: "8.5px",
+            lineHeight: 1.2,
+            color: "#8993a4",
+            fontWeight: 500,
+            mb: 0.2,
+            whiteSpace: "nowrap",
+          }}
+        >
           {card.label}
         </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#111827" }}>
-          {card.value}
-        </Typography>
-        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-          {card.note}
-        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 0.5,
+            lineHeight: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "17px",
+              lineHeight: 1,
+              fontWeight: 700,
+              color: card.iconColor,
+            }}
+          >
+            {card.value}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "8px",
+              color: "#8b95a5",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {card.note}
+          </Typography>
+        </Box>
       </Box>
-      <Icon sx={{ color: card.color, fontSize: 22 }} />
+
+      <Box
+        sx={{
+          width: 25,
+          height: 25,
+          borderRadius: "6px",
+          backgroundColor: card.iconBg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          ml: 0.5,
+        }}
+      >
+        <Icon
+          sx={{
+            fontSize: 15,
+            color: card.iconColor,
+          }}
+        />
+      </Box>
     </Paper>
   );
 };
 
-const TaskRow = ({ item, isLast }) => {
-  const style = PRIORITY_STYLES[item.priority];
+// -----------------------------------------------------------------------------
+// TASK ROW
+// -----------------------------------------------------------------------------
+
+const TaskRow = ({ item }) => {
+  const priority = PRIORITY_STYLES[item.priority];
+
   return (
-    <Box>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ py: 1.25, px: 1 }}>
-        <Checkbox size="small" sx={{ p: 0.5 }} />
-        <Box sx={{ minWidth: 160 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: "#111827" }}>
-            {item.who}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns:
+          "22px minmax(120px, 1.1fr) minmax(170px, 2fr) 50px 62px 122px",
+        alignItems: "center",
+        minHeight: item.reasonTag ? 37 : 29,
+        px: 0.75,
+        borderBottom: "1px solid #edf0f3",
+        columnGap: 0.75,
+        "&:last-child": {
+          borderBottom: "none",
+        },
+      }}
+    >
+      {/* CHECKBOX */}
+      <Checkbox
+        size="small"
+        sx={{
+          p: 0,
+          color: "#cbd3dc",
+          "& .MuiSvgIcon-root": {
+            fontSize: 15,
+          },
+        }}
+      />
+
+      {/* PATIENT / REFERENCE */}
+      <Box
+        sx={{
+          minWidth: 0,
+          display: "flex",
+          alignItems: "baseline",
+          gap: 0.5,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "8.5px",
+            lineHeight: 1.2,
+            fontWeight: 600,
+            color: "#526071",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {item.who}
+        </Typography>
+
+        {item.ref && (
+          <Typography
+            sx={{
+              fontSize: "7.5px",
+              color: "#9ba5b3",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.ref}
           </Typography>
-          {item.ref && (
-            <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-              {item.ref}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="body2" sx={{ color: "#374151" }}>
-            {item.task}
+        )}
+      </Box>
+
+      {/* TASK */}
+      <Box
+        sx={{
+          minWidth: 0,
+          overflow: "hidden",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "8.5px",
+            lineHeight: 1.2,
+            color: "#263241",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {item.task}
+        </Typography>
+
+        {item.reasonTag && (
+          <Chip
+            label={item.reasonTag}
+            size="small"
+            sx={{
+              mt: 0.15,
+              height: 14,
+              borderRadius: "4px",
+              fontSize: "6.5px",
+              backgroundColor: "#fee2e2",
+              color: "#dc2626",
+              "& .MuiChip-label": {
+                px: 0.6,
+              },
+            }}
+          />
+        )}
+      </Box>
+
+      {/* PRIORITY */}
+      <Chip
+        label={item.priority}
+        size="small"
+        sx={{
+          width: 47,
+          height: 16,
+          borderRadius: "4px",
+          backgroundColor: priority.bg,
+          color: priority.color,
+          fontSize: "6.5px",
+          fontWeight: 600,
+          justifySelf: "center",
+          "& .MuiChip-label": {
+            px: 0.5,
+          },
+        }}
+      />
+
+      {/* TIME */}
+      <Box
+        sx={{
+          textAlign: "right",
+          minWidth: 0,
+        }}
+      >
+        {item.overdue && (
+          <Typography
+            sx={{
+              fontSize: "6.5px",
+              lineHeight: 1,
+              color: "#ef4444",
+              fontWeight: 600,
+            }}
+          >
+            Overdue
           </Typography>
-          {item.reasonTag && (
-            <Chip
-              label={item.reasonTag}
-              size="small"
+        )}
+
+        <Typography
+          sx={{
+            fontSize: "7px",
+            lineHeight: 1.2,
+            color: item.overdue ? "#ef4444" : "#697586",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {item.overdue ? `Due ${item.time}` : item.time}
+        </Typography>
+      </Box>
+
+      {/* ACTION ICONS */}
+      <Stack
+        direction="row"
+        spacing={0}
+        sx={{
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+      >
+        {ROW_ICONS.map((Icon, index) => (
+          <IconButton
+            key={index}
+            size="small"
+            sx={{
+              width: 20,
+              height: 20,
+              p: 0,
+              color: "#1465e8",
+              "&:hover": {
+                backgroundColor: "#eff6ff",
+              },
+            }}
+          >
+            <Icon
               sx={{
-                mt: 0.5,
-                height: 18,
-                fontSize: 11,
-                bgcolor: "#fee2e2",
-                color: "#dc2626",
+                fontSize: 13,
+                strokeWidth: 1.7,
               }}
             />
-          )}
-        </Box>
-        <Chip
-          label={item.priority}
-          size="small"
-          sx={{
-            bgcolor: style.bg,
-            color: style.color,
-            fontWeight: 600,
-            fontSize: 12,
-            flexShrink: 0,
-          }}
-        />
-        <Box sx={{ minWidth: 110, textAlign: "right", flexShrink: 0 }}>
-          {item.overdue && (
-            <Typography variant="caption" sx={{ color: "#dc2626", display: "block" }}>
-              Overdue
-            </Typography>
-          )}
-          <Typography
-            variant="caption"
-            sx={{ color: item.overdue ? "#dc2626" : "#6b7280" }}
-          >
-            {item.overdue ? `Due ${item.time}` : item.time}
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={0.25} sx={{ flexShrink: 0 }}>
-          {ROW_ICONS.map((Icon, i) => (
-            <IconButton key={i} size="small">
-              <Icon sx={{ fontSize: 16, color: "#2563eb" }} />
-            </IconButton>
-          ))}
-        </Stack>
+          </IconButton>
+        ))}
       </Stack>
-      {!isLast && <Divider />}
     </Box>
   );
 };
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// MAIN COMPONENT
+// -----------------------------------------------------------------------------
 
 export default function MyTask() {
   const [activeFilter, setActiveFilter] = useState("All");
 
   return (
-    <Box sx={{ bgcolor: "#f5f6f8", p: 3, minHeight: "100vh" }}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ mb: 2 }}
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "100vh",
+        backgroundColor: "#f5f6f8",
+        px: { xs: 1.5, sm: 2, md: 2.5 },
+        py: { xs: 1.5, sm: 2 },
+        boxSizing: "border-box",
+      }}
+    >
+      {/* ------------------------------------------------------------------ */}
+      {/* HEADER */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          mb: 1.5,
+          gap: 2,
+        }}
       >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#111827" }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontSize: "14px",
+              lineHeight: 1.2,
+              fontWeight: 700,
+              color: "#18212f",
+              mb: 0.35,
+            }}
+          >
             My Tasks
           </Typography>
-          <Typography variant="body2" sx={{ color: "#6b7280", mt: 0.5 }}>
+
+          <Typography
+            sx={{
+              fontSize: "8px",
+              lineHeight: 1.4,
+              color: "#7d8795",
+              whiteSpace: "nowrap",
+            }}
+          >
             Good morning, Ashok. You have 12 open tasks today, Tuesday, Aug 25
-            &mdash; prioritized by revenue impact and deadline.
+            — prioritized by revenue impact and deadline.
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1.5} sx={{ flexShrink: 0 }}>
+
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            flexShrink: 0,
+          }}
+        >
           <Button
             variant="outlined"
-            startIcon={<GroupAddOutlinedIcon sx={{ fontSize: 16 }} />}
+            startIcon={
+              <GroupAddOutlinedIcon
+                sx={{
+                  fontSize: "13px !important",
+                }}
+              />
+            }
             sx={{
+              height: 29,
+              minWidth: 95,
+              px: 1,
               textTransform: "none",
-              borderColor: "#e5e7eb",
-              color: "#374151",
-              bgcolor: "#fff",
-              borderRadius: 1.5,
+              fontSize: "7.5px",
+              fontWeight: 600,
+              color: "#526071",
+              backgroundColor: "#fff",
+              borderColor: "#dfe4ea",
+              borderRadius: "6px",
+              boxShadow: "0 1px 1px rgba(0,0,0,0.02)",
+              "&:hover": {
+                backgroundColor: "#fff",
+                borderColor: "#cbd5e1",
+              },
             }}
           >
             Assign to team
           </Button>
+
           <Button
             variant="contained"
-            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            startIcon={
+              <AddIcon
+                sx={{
+                  fontSize: "13px !important",
+                }}
+              />
+            }
             sx={{
+              height: 29,
+              minWidth: 61,
+              px: 1,
               textTransform: "none",
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" },
-              borderRadius: 1.5,
+              fontSize: "7.5px",
+              fontWeight: 600,
+              color: "#fff",
+              backgroundColor: "#1769e8",
+              borderRadius: "6px",
+              boxShadow: "none",
+              "&:hover": {
+                backgroundColor: "#155dcc",
+                boxShadow: "none",
+              },
             }}
           >
             Add task
           </Button>
         </Stack>
-      </Stack>
+      </Box>
 
-      {/* Status cards */}
-      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        {STATUS_CARDS.map((c) => (
-          <StatusCard key={c.label} card={c} />
+      {/* ------------------------------------------------------------------ */}
+      {/* STATUS CARDS */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr 1.08fr",
+          gap: 0.75,
+          mb: 1.5,
+        }}
+      >
+        {STATUS_CARDS.map((card) => (
+          <StatusCard key={card.label} card={card} />
         ))}
+
+        {/* SUMMARY CARD */}
         <Paper
           variant="outlined"
           sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            borderColor: "#e5e7eb",
+            height: 66,
+            px: 1.5,
+            borderRadius: "7px",
+            borderColor: "#dfe4ea",
+            backgroundColor: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
-          <Typography variant="body2" sx={{ color: "#6b7280", fontWeight: 500 }}>
+          <Typography
+            sx={{
+              fontSize: "8px",
+              color: "#8a94a3",
+              fontWeight: 500,
+            }}
+          >
             My Summary
           </Typography>
+
           <IconButton
             size="small"
-            sx={{ bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" }, borderRadius: 1 }}
+            sx={{
+              width: 23,
+              height: 23,
+              p: 0,
+              borderRadius: "5px",
+              backgroundColor: "#1769e8",
+              "&:hover": {
+                backgroundColor: "#155dcc",
+              },
+            }}
           >
-            <ArrowForwardIcon sx={{ fontSize: 16, color: "#fff" }} />
+            <ArrowForwardIcon
+              sx={{
+                fontSize: 13,
+                color: "#fff",
+              }}
+            />
           </IconButton>
         </Paper>
-      </Stack>
+      </Box>
 
-      {/* Task list */}
-      <Paper variant="outlined" sx={{ borderRadius: 2, borderColor: "#e5e7eb", overflow: "hidden" }}>
-        <Box sx={{ px: 2.5, pt: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#111827", letterSpacing: 0.5 }}>
+      {/* ------------------------------------------------------------------ */}
+      {/* TASK CONTAINER */}
+      {/* ------------------------------------------------------------------ */}
+
+      <Paper
+        variant="outlined"
+        sx={{
+          width: "100%",
+          borderRadius: "8px",
+          borderColor: "#dfe4ea",
+          backgroundColor: "#fff",
+          overflow: "hidden",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+        }}
+      >
+        {/* TITLE */}
+        <Box
+          sx={{
+            px: 1.5,
+            pt: 1.25,
+            pb: 0.8,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "8px",
+              lineHeight: 1.2,
+              fontWeight: 700,
+              letterSpacing: "0.4px",
+              color: "#283342",
+            }}
+          >
             MY TASKS (12 OPEN)
           </Typography>
         </Box>
 
-        {/* Filter pills */}
-        <Stack direction="row" spacing={1} sx={{ px: 2.5, py: 1.5, flexWrap: "wrap" }}>
-          {FILTERS.map((f) => (
-            <Chip
-              key={f.label}
-              label={`${f.label}  ${f.count}`}
-              clickable
-              onClick={() => setActiveFilter(f.label)}
-              size="small"
-              sx={{
-                fontWeight: 600,
-                bgcolor: activeFilter === f.label ? "#111827" : "#f3f4f6",
-                color: activeFilter === f.label ? "#fff" : "#4b5563",
-              }}
-            />
-          ))}
-        </Stack>
-        <Divider />
+        {/* ---------------------------------------------------------------- */}
+        {/* FILTERS */}
+        {/* ---------------------------------------------------------------- */}
 
-        <Box sx={{ px: 1.5 }}>
-          {TASKS.map((t, i) => (
-            <TaskRow key={t.who + t.task} item={t} isLast={i === TASKS.length - 1} />
+        <Box
+          sx={{
+            px: 1.5,
+            pb: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.55,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {FILTERS.map((filter) => {
+            const active = activeFilter === filter.label;
+
+            return (
+              <Chip
+                key={filter.label}
+                clickable
+                onClick={() => setActiveFilter(filter.label)}
+                label={
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.45,
+                    }}
+                  >
+                    <span>{filter.label}</span>
+
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: "6.5px",
+                        fontWeight: 600,
+                        opacity: active ? 0.9 : 0.75,
+                      }}
+                    >
+                      {filter.count}
+                    </Box>
+                  </Box>
+                }
+                sx={{
+                  height: 18,
+                  borderRadius: "9px",
+                  backgroundColor: active ? "#edf4ff" : "#fff",
+                  border: "1px solid",
+                  borderColor: active ? "#c8dcff" : "#e2e7ed",
+                  color: active ? "#1769e8" : "#5d6877",
+                  fontSize: "6.5px",
+                  fontWeight: 500,
+                  "& .MuiChip-label": {
+                    px: 0.8,
+                  },
+                  "&:hover": {
+                    backgroundColor: active ? "#edf4ff" : "#f8fafc",
+                  },
+                }}
+              />
+            );
+          })}
+        </Box>
+
+        <Divider
+          sx={{
+            borderColor: "#edf0f3",
+          }}
+        />
+
+        {/* ---------------------------------------------------------------- */}
+        {/* TASK ROWS */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Box sx={{ px: 0.75 }}>
+          {TASKS.map((task) => (
+            <TaskRow
+              key={`${task.who}-${task.task}`}
+              item={task}
+            />
           ))}
         </Box>
 
-        <Box sx={{ px: 2.5, py: 1.5 }}>
-          <Typography variant="body2" sx={{ color: "#2563eb", fontWeight: 600, cursor: "pointer" }}>
-            &gt; Completed today (4)
+        {/* ---------------------------------------------------------------- */}
+        {/* COMPLETED */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.9,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "7.5px",
+              color: "#526071",
+              fontWeight: 500,
+              cursor: "pointer",
+              "&:hover": {
+                color: "#1769e8",
+              },
+            }}
+          >
+            › Completed today (4)
           </Typography>
         </Box>
       </Paper>
+
+    
     </Box>
   );
 }

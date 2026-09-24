@@ -11,6 +11,8 @@ import ConfirmPatientList from "../pages/ConfirmPatientList";
 import PreBillingClaim from "../pages/PreBillingClaim";
 import PostBillingClaimPage from "../pages/PostBillingClaimPage";
 
+import NewPayment from '../pages/NewPayment';
+
 import Summary from "../pages/Summary";
 import AIInsight from "../pages/AIInsight";
 import MyTask from "../pages/MyTask";
@@ -244,6 +246,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PostBillingClaimPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/new-payment"
+        element={
+          <ProtectedRoute>
+            <NewPayment />
           </ProtectedRoute>
         }
       />
