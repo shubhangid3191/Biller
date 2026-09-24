@@ -1,20 +1,267 @@
-import { Box, Typography } from '@mui/material';
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Checkbox,
+  Stack,
+  Tooltip,
+} from "@mui/material";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import {
+  FilterIcon,
+  ExportIcon,
+  RPEditIcon,
+  SettingsIcon2,
+} from "../assets/Assets";
 
-function Practice() {
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                        */
+/* ------------------------------------------------------------------ */
+const T = {
+  headBg: "#EBF1FE",
+  border: "#BED3FC",
+  rowLine: "#EEF1F7",
+  blue: "#2563EB",
+  page: "#F7F9FC",
+};
+
+/* ------------------------------------------------------------------ */
+/* Dummy rows                                                           */
+/* ------------------------------------------------------------------ */
+const createRows = (count = 11) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i,
+    practice: "Clare Jane",
+    address: "WashingtonUSe, Aleuti...",
+    contact: "8475875747",
+    workPhone: "8475875747",
+    fax: "8475875747",
+    npi: "8475875747",
+    active: true,
+  }));
+
+const ROWS = createRows(11);
+
+/* ------------------------------------------------------------------ */
+/* Cell styles                                                          */
+/* ------------------------------------------------------------------ */
+const cellSx = {
+  borderBottom: `1px solid ${T.rowLine}`,
+  py: 1.2,
+  px: 1.5,
+  fontSize: 13,
+  fontWeight: 500,
+  color: "#2E2E2E",
+};
+
+const headCellSx = {
+  ...cellSx,
+  bgcolor: T.headBg,
+  fontWeight: 700,
+  fontSize: 14,
+  color: "#373B4D",
+  borderBottom: "none",
+  borderRight: `1px solid ${T.border}`,
+  whiteSpace: "nowrap",
+};
+
+/* ------------------------------------------------------------------ */
+/* Main Page                                                            */
+/* ------------------------------------------------------------------ */
+export default function Practice() {
+  const navigate = useNavigate();
+
   return (
     <Box
       sx={{
-        padding: '24px',
-        width: '100%',
-        height: '100%',
+        bgcolor: T.page,
+        minHeight: "100vh",
+        width: "100%",
+        py: { xs: 2, md: 3 },
+        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+        boxSizing: "border-box",
       }}
     >
-      <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-       Practice
-      </Typography>
-    
+      {/* ── HEADER ── */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+          Practice Information
+        </Typography>
+
+        <Stack direction="row" spacing={1.5} flexWrap="wrap">
+          <Button
+            variant="outlined"
+            startIcon={<FilterIcon color="#2563EB" />}
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              borderRadius: "8px",
+              color: T.blue,
+              border: "2px solid #015DFF",
+              px: 2,
+              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+            }}
+          >
+            Filter
+          </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<ExportIcon color="#2563EB" />}
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              borderRadius: "8px",
+              color: T.blue,
+              border: "2px solid #015DFF",
+              px: 2,
+              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+            }}
+          >
+            Export
+          </Button>
+
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 600,
+              borderRadius: "8px",
+              bgcolor: T.blue,
+              px: 2.5,
+              "&:hover": { bgcolor: "#1D4ED8" },
+            }}
+          >
+            Add New
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* ── TABLE ── */}
+      <TableContainer
+        sx={{
+          border: `1px solid ${T.border}`,
+          borderRadius: "10px",
+          bgcolor: "#fff",
+          overflowX: "auto",
+        }}
+      >
+        <Table
+          size="small"
+          sx={{ tableLayout: "auto", borderCollapse: "collapse" }}
+        >
+          <TableHead>
+            <TableRow>
+              {[
+                { label: "Practice", arrow: true },
+                { label: "Address", arrow: true },
+                { label: "Contact number", arrow: true },
+                { label: "Work Phone", arrow: true },
+                { label: "Fax", arrow: true },
+                { label: "NPI", arrow: true },
+                { label: "Active" },
+                { label: "Action", last: true },
+              ].map((col) => (
+                <TableCell
+                  key={col.label}
+                  sx={{
+                    ...headCellSx,
+                    borderRight: col.last ? "none" : `1px solid ${T.border}`,
+                    textAlign: col.label === "Active" ? "center" : "left",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    {col.label}
+                    {col.arrow && (
+                      <KeyboardArrowDownIcon
+                        sx={{ fontSize: 16, color: "#52525B", ml: "auto" }}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {ROWS.map((row) => (
+              <TableRow
+                key={row.id}
+                hover
+                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+              >
+                <TableCell sx={cellSx}>{row.practice}</TableCell>
+                <TableCell sx={cellSx}>{row.address}</TableCell>
+                <TableCell sx={cellSx}>{row.contact}</TableCell>
+                <TableCell sx={cellSx}>{row.workPhone}</TableCell>
+                <TableCell sx={cellSx}>{row.fax}</TableCell>
+                <TableCell sx={cellSx}>{row.npi}</TableCell>
+                <TableCell sx={{ ...cellSx, textAlign: "center" }}>
+                  <Checkbox
+                    defaultChecked={row.active}
+                    size="small"
+                    sx={{
+                      p: 0,
+                      color: "#C8D0DC",
+                      "&.Mui-checked": { color: T.blue },
+                      "& svg": { fontSize: 18 },
+                    }}
+                  />
+                </TableCell>
+                <TableCell sx={{ ...cellSx, borderRight: "none" }}>
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Tooltip title="Edit" arrow>
+                      <IconButton
+                        size="small"
+                        onClick={() => navigate("/practice/edit")}
+                        sx={{
+                          color: T.blue,
+                          "&:hover": { bgcolor: "#EEF4FF" },
+                        }}
+                      >
+                        <RPEditIcon width={20} height={20} color={T.blue} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Settings" arrow>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          color: T.blue,
+                          "&:hover": { bgcolor: "#EEF4FF" },
+                        }}
+                      >
+                        <SettingsIcon2 width={16} height={16} color={T.blue} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 }
-
-export default Practice;

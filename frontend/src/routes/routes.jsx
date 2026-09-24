@@ -8,8 +8,8 @@ import Refunds from "../pages/Refunds";
 import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
-import PreBillingClaim from '../pages/PreBillingClaim';
-import PostBillingClaimPage from '../pages/PostBillingClaimPage';
+import PreBillingClaim from "../pages/PreBillingClaim";
+import PostBillingClaimPage from "../pages/PostBillingClaimPage";
 
 import Summary from "../pages/Summary";
 import AIInsight from "../pages/AIInsight";
@@ -17,14 +17,17 @@ import MyTask from "../pages/MyTask";
 import PerformanceOverview from "../pages/PerformanceOverview";
 
 import ReferringProvider from "../pages/ReferringProvider";
+import ReferringProviderEdit from "../pages/ReferringProviderEdit";
 import RenderingProvider from "../pages/RenderingProvider";
 import Locations from "../pages/Locations";
+import LocationsEdit from "../pages/LocationsEdit";
 import Practice from "../pages/Practice";
+import PracticeEdit from "../pages/PracticeEdit";
 import Fee from "../pages/Fee";
+import FeeConfiguration from "../pages/FeeConfiguration";
 import InsuranceProvider from "../pages/InsuranceProvider";
+import InsuranceProviderEdit from "../pages/InsuranceProviderEdit";
 import Program from "../pages/Program";
-
-
 
 const AppRoutes = () => {
   return (
@@ -37,7 +40,7 @@ const AppRoutes = () => {
         path="/summary"
         element={
           <ProtectedRoute>
-         <Summary />
+            <Summary />
           </ProtectedRoute>
         }
       />
@@ -45,7 +48,7 @@ const AppRoutes = () => {
         path="/ai-insights"
         element={
           <ProtectedRoute>
-         <AIInsight />
+            <AIInsight />
           </ProtectedRoute>
         }
       />
@@ -53,7 +56,7 @@ const AppRoutes = () => {
         path="/my-tasks"
         element={
           <ProtectedRoute>
-          <MyTask/>
+            <MyTask />
           </ProtectedRoute>
         }
       />
@@ -61,72 +64,117 @@ const AppRoutes = () => {
         path="/performance-overview"
         element={
           <ProtectedRoute>
-         <PerformanceOverview/>
-         </ProtectedRoute>
+            <PerformanceOverview />
+          </ProtectedRoute>
         }
       />
       <Route
-  path="/referring-provider"
-  element={
-    <ProtectedRoute>
-      <ReferringProvider />
-    </ProtectedRoute>
-  }
-/>
+        path="/referring-provider"
+        element={
+          <ProtectedRoute>
+            <ReferringProvider />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/rendering-provider"
-  element={
-    <ProtectedRoute>
-      <RenderingProvider />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/referring-provider/edit"
+        element={
+          <ProtectedRoute>
+            <ReferringProviderEdit />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/locations"
-  element={
-    <ProtectedRoute>
-      <Locations />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/rendering-provider"
+        element={
+          <ProtectedRoute>
+            <RenderingProvider />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/practice"
-  element={
-    <ProtectedRoute>
-      <Practice />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/locations"
+        element={
+          <ProtectedRoute>
+            <Locations />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/fee"
-  element={
-    <ProtectedRoute>
-      <Fee />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/locations/edit"
+        element={
+          <ProtectedRoute>
+            <LocationsEdit />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/insurance-provider"
-  element={
-    <ProtectedRoute>
-      <InsuranceProvider />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/practice"
+        element={
+          <ProtectedRoute>
+            <Practice />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/program"
-  element={
-    <ProtectedRoute>
-      <Program />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/practice/edit"
+        element={
+          <ProtectedRoute>
+            <PracticeEdit />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/fee"
+        element={
+          <ProtectedRoute>
+            <Fee />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/fee/configuration"
+        element={
+          <ProtectedRoute>
+            <FeeConfiguration />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/insurance-provider"
+        element={
+          <ProtectedRoute>
+            <InsuranceProvider />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/insurance-provider/edit"
+        element={
+          <ProtectedRoute>
+            <InsuranceProviderEdit />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/program"
+        element={
+          <ProtectedRoute>
+            <Program />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/add-patient"
         element={
@@ -203,7 +251,7 @@ const AppRoutes = () => {
         path="/encounter-list"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Encounter List Page</div>
+            <div style={{ padding: "24px" }}>Encounter List Page</div>
           </ProtectedRoute>
         }
       />
@@ -211,7 +259,7 @@ const AppRoutes = () => {
         path="/era"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>ERA Page</div>
+            <div style={{ padding: "24px" }}>ERA Page</div>
           </ProtectedRoute>
         }
       />
@@ -219,7 +267,7 @@ const AppRoutes = () => {
         path="/collections"
         element={
           <ProtectedRoute>
-            <div style={{ padding: '24px' }}>Collections Page</div>
+            <div style={{ padding: "24px" }}>Collections Page</div>
           </ProtectedRoute>
         }
       />
