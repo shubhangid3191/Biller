@@ -204,7 +204,7 @@ function NewPayment() {
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
             variant="outlined"
-            onClick={() => navigate('/pre-billing-claim', { state: { activeTab: 2 } })}
+            onClick={() => navigate('/encounters', { state: { activeTab: 2 } })}
             sx={{
               textTransform: "none",
               borderColor: "#E5E7EB",

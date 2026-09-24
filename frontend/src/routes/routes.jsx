@@ -8,6 +8,7 @@ import Refunds from "../pages/Refunds";
 import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
+import PreBilling from "../pages/PreBilling";
 import PreBillingClaim from "../pages/PreBillingClaim";
 import PostBillingClaimPage from "../pages/PostBillingClaimPage";
 
@@ -234,7 +235,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/pre-billing-claim"
+        path="/encounters"
         element={
           <ProtectedRoute>
             <PreBillingClaim />
@@ -330,6 +331,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/pre-billing-claim-page"
+        element={
+          <ProtectedRoute>
+            <PreBilling />
+          </ProtectedRoute>
+        }
+      />
+
+    
     </Routes>
   );
 };

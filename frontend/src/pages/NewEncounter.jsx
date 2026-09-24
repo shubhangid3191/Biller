@@ -180,7 +180,9 @@ function FormField({
   if (type === "checkboxGroup") {
     return (
       <Box sx={{ width: "100%", minWidth: 0 }}>
-        <Typography component="label" sx={labelSx}>{label}</Typography>
+        <Typography component="label" sx={labelSx}>
+          {label}
+        </Typography>
         <Box
           sx={{
             display: "flex",
@@ -210,7 +212,9 @@ function FormField({
                 />
               }
               label={
-                <Typography sx={{ fontSize: 13, color: C.textDark }}>{opt}</Typography>
+                <Typography sx={{ fontSize: 13, color: C.textDark }}>
+                  {opt}
+                </Typography>
               }
             />
           ))}
@@ -289,15 +293,7 @@ function FormField({
 }
 
 function FieldRow({ fields }) {
-  // Normalize each field to a span count (out of 12)
-  // md:3 = 1 col (25%), md:4 = 1.33 col, md:6 = 2 col (50%), default = md:3
-  // We map to a simple 4-col grid where:
-  //   md:3 or default → span 1  (25%)
-  //   md:4            → span 1  (we treat 3-field rows as 3 equal cols via gridTemplateColumns)
-  //   md:6            → span 2  (50%)
-  //   md:8 or md:9    → span 3  (75%)
-
-  const hasThird = fields.some((f) => f.md === 4); // 3-col layout
+  const hasThird = fields.some((f) => f.md === 4);
   const cols = hasThird ? 3 : 4;
 
   return (
@@ -529,13 +525,8 @@ function TopBar() {
 
 /* =========================================================
    STEPPER NAV
-   - Active chip highlight now transitions smoothly (color /
-     background-color / border-color) as the active step
-     changes on scroll up or down, instead of snapping.
-   - Separator between chips is now a literal two-dash glyph
-     ("--") instead of a dashed border line.
    ========================================================= */
-function StepperNav({ activeId, onStepClick }) {
+function StepperNav({ activeId, onStepClick, onAlertsClick }) {
   return (
     <Box
       sx={{
@@ -642,6 +633,7 @@ function StepperNav({ activeId, onStepClick }) {
       <Stack direction="row" spacing={0.8} flexShrink={0}>
         <OutlineBtn
           startIcon={<AlertBellIcon />}
+          onClick={onAlertsClick}
           sx={{ color: "#5A6B7E", borderColor: "#E4E9EF", fontWeight: 700 }}
         >
           Alerts
@@ -725,7 +717,6 @@ function EncounterSummary() {
           fontSize: 12,
           borderRadius: "10px",
           height: 24,
-          //border: `1px solid ${C.amberChipBorder}`,
           "& .MuiChip-label": { px: 1.2 },
         }}
       />
@@ -796,7 +787,6 @@ function AssistBanner() {
         </Typography>
       </Box>
 
-      {/* Check icon circle */}
       <Box
         sx={{
           flexShrink: 0,
@@ -870,7 +860,6 @@ function PatientSection({ sectionRef }) {
         </Stack>
       }
     >
-      {/* Patient details panel — shown when Select existing is clicked */}
       {showDetails && (
         <Box
           sx={{
@@ -881,7 +870,6 @@ function PatientSection({ sectionRef }) {
             position: "relative",
           }}
         >
-          {/* Edit icon */}
           <IconButton
             size="small"
             sx={{ position: "absolute", top: 10, right: 10, color: C.blue }}
@@ -889,7 +877,6 @@ function PatientSection({ sectionRef }) {
             <EditOutlinedIcon sx={{ fontSize: 16 }} />
           </IconButton>
 
-          {/* PATIENT DETAILS label */}
           <Typography
             sx={{
               fontSize: 10,
@@ -903,7 +890,6 @@ function PatientSection({ sectionRef }) {
             Patient Details
           </Typography>
 
-          {/* 4-col info grid */}
           <Box
             sx={{
               display: "grid",
@@ -915,7 +901,6 @@ function PatientSection({ sectionRef }) {
               gap: { xs: 1, md: 0 },
             }}
           >
-            {/* Col 1 */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               {[
                 { label: "Legal Name", value: patient.legalName },
@@ -932,7 +917,6 @@ function PatientSection({ sectionRef }) {
               ))}
             </Box>
 
-            {/* Col 2 */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               {[
                 { label: "SSN", value: patient.ssn },
@@ -949,7 +933,6 @@ function PatientSection({ sectionRef }) {
               ))}
             </Box>
 
-            {/* Col 3 — Address */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               <Typography sx={{ fontSize: 13, color: C.textBody }}>
                 Address:{" "}
@@ -962,7 +945,6 @@ function PatientSection({ sectionRef }) {
               </Typography>
             </Box>
 
-            {/* Col 4 */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               {[
                 { label: "Referral Source", value: patient.referralSource },
@@ -982,7 +964,6 @@ function PatientSection({ sectionRef }) {
         </Box>
       )}
 
-      {/* Form fields — hidden when Select existing is active */}
       {!showDetails && (
         <>
           <FieldRow
@@ -1396,7 +1377,6 @@ function CaseInsuranceSection({ sectionRef }) {
           </Button>
         </Stack>
 
-        {/* View log link */}
         <Typography
           sx={{
             fontSize: 13,
@@ -1669,7 +1649,6 @@ function ConditionsSection({ sectionRef }) {
         >
           Condition related to
         </Typography>
-        {/* 5-col grid for checkboxes — 2 rows */}
         <Box
           sx={{
             display: "grid",
@@ -2007,36 +1986,36 @@ function ChargesSection({ sectionRef }) {
           overflow: "hidden",
         }}
       >
-<Stack
-  direction={{ xs: "column", sm: "row" }}
-  alignItems={{ xs: "flex-start", sm: "center" }}
-  justifyContent="space-between"
-  flexWrap="wrap"
-  rowGap={1}
-  sx={{
-    bgcolor: C.amberBg,
-    px: 1.5,
-    py: 1,
-  }}
->
-  <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
-    Procedures
-  </Typography>
-  <Stack
-    direction="row"
-    spacing={1}
-    flexWrap="wrap"
-    rowGap={0}
-    sx={{ ml: "auto" }}
-  >
-    <SelectColumnsMenu
-      selectedColumns={selectedColumns}
-      onChange={setSelectedColumns}
-    />
-    <OutlineBtn>+ Add line</OutlineBtn>
-    <OutlineBtn>✓ Check Codes</OutlineBtn>
-  </Stack>
-</Stack>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          justifyContent="space-between"
+          flexWrap="wrap"
+          rowGap={1}
+          sx={{
+            bgcolor: C.amberBg,
+            px: 1.5,
+            py: 1,
+          }}
+        >
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
+            Procedures
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            rowGap={0}
+            sx={{ ml: "auto" }}
+          >
+            <SelectColumnsMenu
+              selectedColumns={selectedColumns}
+              onChange={setSelectedColumns}
+            />
+            <OutlineBtn>+ Add line</OutlineBtn>
+            <OutlineBtn>✓ Check Codes</OutlineBtn>
+          </Stack>
+        </Stack>
 
         <TableContainer
           sx={{
@@ -2124,7 +2103,6 @@ function AdditionalDetailsSection({ sectionRef }) {
       accentColor={C.teal5}
       accentBg={C.teal5Bg}
     >
-      {/* Row 1 */}
       <FieldRow
         fields={[
           { label: "Outside Lab", type: "checkboxGroup", options: ["Yes", "No"] },
@@ -2134,7 +2112,6 @@ function AdditionalDetailsSection({ sectionRef }) {
         ]}
       />
 
-      {/* Row 2 */}
       <FieldRow
         fields={[
           { label: "Has other claim ID", value: "Yes", select: true, options: ["Yes", "No"] },
@@ -2144,7 +2121,6 @@ function AdditionalDetailsSection({ sectionRef }) {
         ]}
       />
 
-      {/* Row 3 */}
       <FieldRow
         fields={[
           { label: "Initial visit date", value: "07/28/2026", icon: true },
@@ -2154,7 +2130,6 @@ function AdditionalDetailsSection({ sectionRef }) {
         ]}
       />
 
-      {/* Row 4 */}
       <FieldRow
         fields={[
           { label: "Other date qualifier", value: "-", select: true, options: ["-"] },
@@ -2164,7 +2139,6 @@ function AdditionalDetailsSection({ sectionRef }) {
         ]}
       />
 
-      {/* Select Columns popup trigger */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
         <Button
           variant="outlined"
@@ -2185,7 +2159,6 @@ function AdditionalDetailsSection({ sectionRef }) {
         </Button>
       </Box>
 
-      {/* Select Columns Popover */}
       <Popover
         open={colOpen}
         anchorEl={anchorEl}
@@ -2202,7 +2175,6 @@ function AdditionalDetailsSection({ sectionRef }) {
           },
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -2225,7 +2197,6 @@ function AdditionalDetailsSection({ sectionRef }) {
           </IconButton>
         </Box>
 
-        {/* Options */}
         <Box sx={{ px: 2, pb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
           {colOptions.map((col) => {
             const active = selectedCols.includes(col);
@@ -2264,7 +2235,6 @@ function FooterBar() {
     <Paper
       elevation={3}
       sx={{
-        //position: "sticky",
         bottom: 0,
         zIndex: 25,
         border: `1px solid ${C.borderLight}`,
@@ -2424,12 +2394,29 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
-          sx: { mt: 1, width: 300, borderRadius: 3, p: 0, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" },
+          sx: {
+            mt: 1,
+            width: 300,
+            borderRadius: 3,
+            p: 0,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          },
         }}
       >
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5, px: 2.5, pt: 2.5 }}>
-          <Typography sx={{ fontWeight: 600, fontSize: 16 }}>Select Columns</Typography>
-          <IconButton size="small" onClick={() => setAnchorEl(null)} sx={{ color: "#1976d2" }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mb: 1.5, px: 2.5, pt: 2.5 }}
+        >
+          <Typography sx={{ fontWeight: 600, fontSize: 16 }}>
+            Select Columns
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setAnchorEl(null)}
+            sx={{ color: "#1976d2" }}
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
         </Stack>
@@ -2454,7 +2441,13 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
                   "&:hover": { borderColor: "#93c5fd", bgcolor: "#f0f7ff" },
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: isSelected ? "#1976d2" : "#1e40af", fontSize: 14 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: isSelected ? "#1976d2" : "#1e40af",
+                    fontSize: 14,
+                  }}
+                >
                   {col}
                 </Typography>
               </Box>
@@ -2467,9 +2460,428 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
 }
 
 /* =========================================================
+   PATIENT ALERT DIALOG
+   ========================================================= */
+function PatientAlertDialog({ open, onClose }) {
+  const [practice, setPractice] = React.useState("");
+  const [patient, setPatient] = React.useState("");
+  const [showWhen, setShowWhen] = React.useState("");
+  const [message, setMessage] = React.useState("");
+
+  // =========================
+  // SELECT STYLE
+  // =========================
+  const selectSx = {
+    width: "100%",
+    "& .MuiOutlinedInput-root": {
+      height: "26px",
+      minHeight: "26px",
+      borderRadius: "5px",
+      backgroundColor: "#FFFFFF",
+
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#DFE4ED",
+        borderWidth: "1px",
+      },
+
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#C9CFDA",
+      },
+
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#006FFD",
+        borderWidth: "1px",
+      },
+    },
+
+    "& .MuiSelect-select": {
+      fontSize: "10px",
+      fontWeight: 400,
+      color: "#6F7887",
+      padding: "5px 25px 5px 9px !important",
+      minHeight: "auto !important",
+      display: "flex",
+      alignItems: "center",
+    },
+
+    // Arrow
+    "& .MuiSelect-icon": {
+      color: "#006FFD",
+      fontSize: "18px",
+      right: "5px",
+      top: "calc(50% - 9px)",
+    },
+  };
+
+  // =========================
+  // SMALL LABEL
+  // =========================
+  const smallLabelSx = {
+    fontSize: "9px",
+    fontWeight: 500,
+    color: "#5C5878",
+    mb: "4px",
+    lineHeight: 1.2,
+    display: "block",
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          width: "372px",
+          maxWidth: "calc(100% - 32px)",
+          borderRadius: "15px",
+          overflow: "hidden",
+          boxShadow: "0 10px 35px rgba(0,0,0,0.18)",
+          margin: "16px",
+        },
+      }}
+      BackdropProps={{
+        sx: {
+          backgroundColor: "rgba(0, 0, 0, 0.58)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          px: "12px",
+          pt: "12px",
+          pb: "12px",
+        }}
+      >
+        {/* ================= HEADER ================= */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: "20px",
+            mb: "12px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "#111827",
+              lineHeight: 1,
+            }}
+          >
+            Patient Alert
+          </Typography>
+
+          <IconButton
+            size="small"
+            onClick={onClose}
+            sx={{
+              width: "22px",
+              height: "22px",
+              p: 0,
+              color: "#2F3742",
+
+              "&:hover": {
+                backgroundColor: "transparent",
+                color: "#111827",
+              },
+            }}
+          >
+            <CloseIcon sx={{ fontSize: "17px" }} />
+          </IconButton>
+        </Box>
+
+        {/* ================= 3 SELECTS ================= */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: "10px",
+            mb: "10px",
+          }}
+        >
+          {/* Practice */}
+          <Box>
+            <Typography sx={smallLabelSx}>
+              Select Practice
+            </Typography>
+
+            <TextField
+              fullWidth
+              size="small"
+              select
+              value={practice}
+              onChange={(e) => setPractice(e.target.value)}
+              SelectProps={{
+                IconComponent: ArrowDropDownIcon,
+              }}
+              sx={selectSx}
+            >
+              <MenuItem
+                value=""
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Select
+              </MenuItem>
+
+              <MenuItem
+                value="practice1"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Practice 1
+              </MenuItem>
+
+              <MenuItem
+                value="practice2"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Practice 2
+              </MenuItem>
+            </TextField>
+          </Box>
+
+          {/* Patient */}
+          <Box>
+            <Typography sx={smallLabelSx}>
+              Select Patient
+            </Typography>
+
+            <TextField
+              fullWidth
+              size="small"
+              select
+              value={patient}
+              onChange={(e) => setPatient(e.target.value)}
+              SelectProps={{
+                IconComponent: ArrowDropDownIcon,
+              }}
+              sx={selectSx}
+            >
+              <MenuItem
+                value=""
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Select
+              </MenuItem>
+
+              <MenuItem
+                value="wayne"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Wayne, Jimmy
+              </MenuItem>
+
+              <MenuItem
+                value="cook"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Cook, Lisha
+              </MenuItem>
+            </TextField>
+          </Box>
+
+          {/* Show Alert */}
+          <Box>
+            <Typography sx={smallLabelSx}>
+              Show Alert when
+            </Typography>
+
+            <TextField
+              fullWidth
+              size="small"
+              select
+              value={showWhen}
+              onChange={(e) => setShowWhen(e.target.value)}
+              SelectProps={{
+                IconComponent: ArrowDropDownIcon,
+              }}
+              sx={selectSx}
+            >
+              <MenuItem
+                value=""
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                Select
+              </MenuItem>
+
+              <MenuItem
+                value="encounter"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                On Encounter
+              </MenuItem>
+
+              <MenuItem
+                value="claim"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                On Claim
+              </MenuItem>
+
+              <MenuItem
+                value="payment"
+                sx={{
+                  fontSize: "10px",
+                  minHeight: "26px",
+                }}
+              >
+                On Payment
+              </MenuItem>
+            </TextField>
+          </Box>
+        </Box>
+
+        {/* ================= MESSAGE BOX ================= */}
+        <Box
+          sx={{
+            height: "132px",
+            borderRadius: "7px",
+            border: "1px solid #E0E4EE",
+            backgroundColor: "#F1F4F9",
+            px: "10px",
+            pt: "10px",
+            pb: "8px",
+            boxSizing: "border-box",
+            mb: "14px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "9px",
+              fontWeight: 600,
+              color: "#555C69",
+              mb: "5px",
+              lineHeight: 1.2,
+            }}
+          >
+            Enter patient alert message
+          </Typography>
+
+          <TextField
+            fullWidth
+            multiline
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            variant="standard"
+            InputProps={{
+              disableUnderline: true,
+            }}
+            sx={{
+              "& .MuiInputBase-root": {
+                padding: 0,
+                margin: 0,
+                fontSize: "10px",
+                color: "#273142",
+                alignItems: "flex-start",
+              },
+
+              "& textarea": {
+                padding: 0,
+                margin: 0,
+                fontSize: "10px",
+                color: "#273142",
+                lineHeight: 1.45,
+                resize: "none",
+              },
+            }}
+          />
+        </Box>
+
+        {/* ================= FOOTER BUTTONS ================= */}
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          spacing="6px"
+        >
+          {/* Cancel */}
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            sx={{
+              textTransform: "none",
+              height: "22px",
+              minWidth: "42px",
+              borderRadius: "5px",
+              fontSize: "9px",
+              fontWeight: 500,
+              color: "#4F5865",
+              borderColor: "#DDE2EA",
+              backgroundColor: "#FFFFFF",
+              px: "10px",
+              py: 0,
+
+              "&:hover": {
+                borderColor: "#C9CFDA",
+                backgroundColor: "#FAFBFD",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+
+          {/* Save Alert */}
+          <Button
+            variant="contained"
+            disableElevation
+            onClick={onClose}
+            sx={{
+              textTransform: "none",
+              height: "22px",
+              minWidth: "58px",
+              borderRadius: "5px",
+              fontSize: "9px",
+              fontWeight: 600,
+              color: "#FFFFFF",
+              backgroundColor: "#006FFD",
+              px: "10px",
+              py: 0,
+
+              "&:hover": {
+                backgroundColor: "#0065E6",
+              },
+            }}
+          >
+            Save Alert
+          </Button>
+        </Stack>
+      </Box>
+    </Dialog>
+  );
+}
+
+/* =========================================================
    MAIN PAGE
    ========================================================= */
 export default function NewEncounter() {
+  const [alertOpen, setAlertOpen] = React.useState(false);
   const sectionRefs = React.useRef({});
   const rootRef = React.useRef(null);
   const headerRef = React.useRef(null);
@@ -2480,14 +2892,6 @@ export default function NewEncounter() {
   };
 
   React.useEffect(() => {
-    /* Scroll-based detection — finds the last card whose top edge has
-       passed under the sticky header, so chip N lights up exactly when
-       card N reaches the top of the viewport (or its actual scroll
-       container — this page may not always scroll the window itself,
-       e.g. when embedded inside a layout shell with its own
-       overflow:auto wrapper). The header's real height is measured
-       live instead of hard-coded, and requestAnimationFrame throttling
-       keeps recalculation cheap so the highlight change stays smooth. */
     let ticking = false;
 
     const computeActive = () => {
@@ -2518,10 +2922,6 @@ export default function NewEncounter() {
       }
     };
 
-    /* Walk up from the page root and collect every ancestor that can
-       actually scroll (overflowY auto/scroll), plus window itself,
-       and listen on all of them — whichever one really scrolls will
-       fire and keep the active chip in sync. */
     const getScrollParents = (el) => {
       const parents = [window];
       let node = el;
@@ -2538,7 +2938,7 @@ export default function NewEncounter() {
       el.addEventListener("scroll", onScroll, { passive: true }),
     );
     window.addEventListener("resize", onScroll, { passive: true });
-    computeActive(); /* run once on mount */
+    computeActive();
 
     return () => {
       scrollParents.forEach((el) => el.removeEventListener("scroll", onScroll));
@@ -2549,13 +2949,10 @@ export default function NewEncounter() {
   const scrollLockRef = React.useRef(false);
 
   const handleStepClick = (id) => {
-    // Immediately set active step on click
     setActiveId(id);
-    // Lock scroll-based detection briefly so smooth scroll doesn't override
     scrollLockRef.current = true;
     const node = sectionRefs.current[id];
     if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
-    // Unlock after smooth scroll completes (~800ms)
     setTimeout(() => {
       scrollLockRef.current = false;
     }, 800);
@@ -2585,7 +2982,11 @@ export default function NewEncounter() {
         }}
       >
         <TopBar />
-        <StepperNav activeId={activeId} onStepClick={handleStepClick} />
+        <StepperNav
+          activeId={activeId}
+          onStepClick={handleStepClick}
+          onAlertsClick={() => setAlertOpen(true)}
+        />
       </Box>
 
       <Box
@@ -2608,6 +3009,11 @@ export default function NewEncounter() {
 
           <FooterBar />
         </Stack>
+
+        <PatientAlertDialog
+          open={alertOpen}
+          onClose={() => setAlertOpen(false)}
+        />
       </Box>
     </Box>
   );

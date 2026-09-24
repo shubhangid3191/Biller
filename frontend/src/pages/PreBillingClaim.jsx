@@ -2452,6 +2452,7 @@ function PreBillingClaim() {
                                 <IconButton
                                   size="small"
                                   sx={{ padding: "4px" }}
+                                   onClick={() => navigate("/new-encounter")}
                                 >
                                   <EditIconClaim />
                                 </IconButton>
