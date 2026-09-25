@@ -24,10 +24,19 @@ import {
   Select,
   FormControl,
   Switch,
+   Dialog, 
+   
 } from "@mui/material";
 import { ViewList, ViewModule, KeyboardArrowDown, Close, CalendarToday, Add,  
   ArrowBackIosNew,
   ArrowForwardIos,
+  Visibility,
+  InfoOutlined,
+  // DeleteOutline,
+  ForumOutlined,
+  MarkEmailReadOutlined,
+  DescriptionOutlined,
+  
 } from "@mui/icons-material";
 import {
   Search,
@@ -111,6 +120,7 @@ function ClaimSelect({ label, value }) {
 }
 
 function PreBillingClaim() {
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
@@ -119,10 +129,23 @@ function PreBillingClaim() {
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+const [visibleColumns, setVisibleColumns] = useState({
+  dos: true,
+  patientName: true,
+  cpt: true,
+  modifier: true,
+  icd: true,
+  primaryInsurance: true,
+  billedAmount: true,
+  patientCopay: true,
+  status: true,
+  remarks: true,
+  encounterId: true,
+  claimId: true,
+});
 
-  // Restore the requested tab whenever we land here with a target tab in
-  // navigation state (e.g. Cancel from New Payment sending us back to
-  // "Remittance ERA/EOB"), even if this page instance is already mounted.
+
   useEffect(() => {
     if (location.state?.activeTab !== undefined) {
       setCurrentTab(location.state.activeTab);
@@ -163,6 +186,13 @@ function PreBillingClaim() {
 
   // State for Remittance filter
   const [remittanceFilter, setRemittanceFilter] = useState("all");
+
+  // State for Patient Statement tab ("New" vs "History")
+  const [statementSubTab, setStatementSubTab] = useState("new");
+  const [statementSelectedRows, setStatementSelectedRows] = useState([
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  ]);
+  const [historySelectedRows, setHistorySelectedRows] = useState([]);
 
   const handleEditClick = (claim) => {
     setSelectedClaim(claim);
@@ -1052,6 +1082,117 @@ function PreBillingClaim() {
       statusTextColor: "#6A1B9A",
     },
   ];
+
+  // Helper to style Patient Statement "Category" chips
+  const getCategoryChipStyle = (category) => {
+    switch (category) {
+      case "Medicare":
+        return { backgroundColor: "#FEF3E2", color: "#B45309" };
+      case "Payment plan":
+        return { backgroundColor: "#E0EDFF", color: "#0052CC" };
+      case "Commercial":
+        return { backgroundColor: "#DCFCE7", color: "#15803D" };
+      case "Credit bal.":
+        return { backgroundColor: "#FEE2E2", color: "#B91C1C" };
+      case "Self pay":
+      default:
+        return { backgroundColor: "#F3F4F6", color: "#4B5563" };
+    }
+  };
+
+  // Sample data for Patient Statement - "New" tab (15 records)
+  const newStatementData = [
+    { id: 1, name: "Aamir Pathan", pid: "863", dob: "05/13/1984", category: "Self pay", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$600.00", selectedBalance: "$600.00", alert: "" },
+    { id: 2, name: "Ashwani Srivas..", pid: "849", dob: "06/30/2000", category: "Self pay", lastStatement: "11/11/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$44.08", selectedBalance: "$44.08", alert: "" },
+    { id: 3, name: "Asok Rana", pid: "852", dob: "11/27/1980", category: "Self pay", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$220.00", selectedBalance: "$220.00", alert: "" },
+    { id: 4, name: "Beena Rawat", pid: "846", dob: "08/24/1965", category: "Medicare", lastStatement: "11/19/2025", sent: 1, calls: 0, emails: 1, docs: 0, enc: "1/1", balance: "$180.00", selectedBalance: "$180.00", alert: "" },
+    { id: 5, name: "Daniel Mishra", pid: "833", dob: "11/17/1999", category: "Payment plan", lastStatement: "11/11/2025", sent: 2, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "$554.50", selectedBalance: "$554.50", alert: "" },
+    { id: 6, name: "Dinesh Singh", pid: "837", dob: "06/23/1998", category: "Self pay", lastStatement: "12/13/2025", sent: 1, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$101.00", selectedBalance: "$101.00", alert: "", flagged: true },
+    { id: 7, name: "Divesh Sundriyal", pid: "830", dob: "05/18/1987", category: "Self pay", lastStatement: "01/14/2026", sent: 2, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "$120.00", selectedBalance: "$120.00", alert: "" },
+    { id: 8, name: "Divya Negi", pid: "828", dob: "01/27/1990", category: "Self pay", lastStatement: "07/28/2026", sent: 2, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$133.00", selectedBalance: "$133.00", alert: "Bad address on file, mailing" },
+    { id: 9, name: "Govind Singh", pid: "850", dob: "05/12/2013", category: "Commercial", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$226.00", selectedBalance: "$226.00", alert: "Bad address on file, mailing" },
+    { id: 10, name: "Govind Singh", pid: "850", dob: "05/12/2013", category: "Commercial", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$226.00", selectedBalance: "$226.00", alert: "Bad address on file, mailing" },
+    { id: 11, name: "Preeti Bhandari", pid: "868", dob: "03/09/1972", category: "Medicare", lastStatement: "02/02/2026", sent: 3, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$88.25", selectedBalance: "$88.25", alert: "" },
+    { id: 12, name: "Rajkumar Patwal", pid: "827", dob: "02/13/1989", category: "Credit bal.", lastStatement: "Never sent", sent: 0, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "-$1,652.00", selectedBalance: "-$1,652.00", alert: "", negative: true },
+    { id: 13, name: "Ramesh Chopra", pid: "854", dob: "11/29/2001", category: "Payment plan", lastStatement: "11/25/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$284.00", selectedBalance: "$284.00", alert: "" },
+    { id: 14, name: "Salmaan Pathan", pid: "864", dob: "10/29/1979", category: "Commercial", lastStatement: "11/20/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$270.00", selectedBalance: "$270.00", alert: "" },
+    { id: 15, name: "Sunita Joshi", pid: "875", dob: "12/01/1958", category: "Commercial", lastStatement: "10/30/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$96.40", selectedBalance: "$96.40", alert: "" },
+  ];
+
+  // Sample data for Patient Statement - "History" tab (15 batches)
+  const statusChipStyles = {
+    Draft: { backgroundColor: "#F3F4F6", color: "#4B5563" },
+    "Email sent": { backgroundColor: "#DCFCE7", color: "#15803D" },
+    "Partially sent": { backgroundColor: "#FEF3E2", color: "#B45309" },
+    Failure: { backgroundColor: "#FEE2E2", color: "#B91C1C" },
+    "Queued for email": { backgroundColor: "#EDE4FF", color: "#6D28D9" },
+  };
+
+  const historyBatchStatuses = [
+    "Draft",
+    "Email sent",
+    "Partially sent",
+    "Failure",
+    "Draft",
+    "Queued for email",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+    "Draft",
+  ];
+
+  const historyStatementData = historyBatchStatuses.map((status, index) => ({
+    id: index + 1,
+    practice: "Fresh Original",
+    batchId: "863",
+    batchName: "DanialMishra",
+    batchDescription: "—",
+    noOfStatement: 1,
+    totalBalance: "Never sent",
+    batchStatus: status,
+    statementWithErrors: 0,
+  }));
+
+  const statementNewSelectedCount = statementSelectedRows.length;
+  const statementNewSelectedBalance = newStatementData
+    .filter((row) => statementSelectedRows.includes(row.id))
+    .reduce((sum, row) => {
+      const numeric = parseFloat(row.balance.replace(/[$,]/g, ""));
+      return sum + (isNaN(numeric) ? 0 : numeric);
+    }, 0);
+
+  const handleStatementSelectAll = (event) => {
+    if (event.target.checked) {
+      setStatementSelectedRows(newStatementData.map((r) => r.id));
+    } else {
+      setStatementSelectedRows([]);
+    }
+  };
+
+  const handleStatementRowSelect = (id) => {
+    setStatementSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
+    );
+  };
+
+  const handleHistorySelectAll = (event) => {
+    if (event.target.checked) {
+      setHistorySelectedRows(historyStatementData.map((r) => r.id));
+    } else {
+      setHistorySelectedRows([]);
+    }
+  };
+
+  const handleHistoryRowSelect = (id) => {
+    setHistorySelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
+    );
+  };
 
   const tabs = [
     { label: "Pre-billing Claims" },
@@ -2015,6 +2156,8 @@ function PreBillingClaim() {
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <IconButton
               size="small"
+              
+onClick={() => setShowColumnSettings(true)}
               sx={{
                 width: 40,
                 height: 30,
@@ -6187,16 +6330,970 @@ function PreBillingClaim() {
 )}
 
       {/* Patient Statement Tab Content */}
-      {currentTab === 3 && (
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Patient Statement
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Patient statement content will be displayed here. This is tab 4.
-          </Typography>
+    {currentTab === 3 && (
+  <Box
+    sx={{
+      height: "calc(100vh - 160px)",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {/* Toolbar Row: New/History toggle + filter chips + settings/download */}
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        py: 1.5,
+        flexWrap: "wrap",
+        gap: 1,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {/* New / History toggle */}
+        <Button
+          onClick={() => setStatementSubTab("new")}
+          sx={{
+            textTransform: "none",
+            fontSize: 12,
+            fontWeight: 600,
+            height: 30,
+            px: 2,
+            borderRadius: "16px",
+            backgroundColor: statementSubTab === "new" ? "#0066FF" : "#FFFFFF",
+            color: statementSubTab === "new" ? "#FFFFFF" : "#374151",
+            border: statementSubTab === "new" ? "none" : "1px solid #E5E7EB",
+            boxShadow: "none",
+            "&:hover": {
+              backgroundColor: statementSubTab === "new" ? "#0052CC" : "#F9FAFB",
+              boxShadow: "none",
+            },
+          }}
+        >
+          New 15
+        </Button>
+        <Button
+          onClick={() => setStatementSubTab("history")}
+          sx={{
+            textTransform: "none",
+            fontSize: 12,
+            fontWeight: 600,
+            height: 30,
+            px: 2,
+            borderRadius: "16px",
+            backgroundColor: statementSubTab === "history" ? "#0066FF" : "#FFFFFF",
+            color: statementSubTab === "history" ? "#FFFFFF" : "#374151",
+            border: statementSubTab === "history" ? "none" : "1px solid #E5E7EB",
+            boxShadow: "none",
+            "&:hover": {
+              backgroundColor: statementSubTab === "history" ? "#0052CC" : "#F9FAFB",
+              boxShadow: "none",
+            },
+          }}
+        >
+          History 15
+        </Button>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          flexWrap: "wrap",
+        }}
+      >
+        <IconButton
+          size="small"
+          sx={{
+            width: 32,
+            height: 30,
+            border: "none",
+            borderRadius: "8px",
+            backgroundColor: "white",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            "&:hover": { backgroundColor: "#f9fafb" },
+          }}
+        >
+          <SettingsIcon />
+        </IconButton>
+        <IconButton
+          size="small"
+          sx={{
+            width: 32,
+            height: 30,
+            border: "none",
+            borderRadius: "8px",
+            backgroundColor: "white",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            "&:hover": { backgroundColor: "#f9fafb" },
+          }}
+        >
+          <DownloadIcon />
+        </IconButton>
+
+        {/* Filter chips — now shown for BOTH New and History tabs */}
+        <Button
+          variant="outlined"
+          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
+          sx={{
+            textTransform: "none",
+            color: "#374151",
+            borderColor: "#E5E7EB",
+            backgroundColor: "#FFFFFF",
+            fontWeight: 500,
+            fontSize: 12,
+            height: 30,
+            px: 1.5,
+            borderRadius: "16px",
+            "&:hover": {
+              borderColor: "#D1D5DB",
+              backgroundColor: "#F9FAFB",
+            },
+          }}
+        >
+          Balance greater than $
+        </Button>
+        <Button
+          variant="outlined"
+          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
+          sx={{
+            textTransform: "none",
+            color: "#374151",
+            borderColor: "#E5E7EB",
+            backgroundColor: "#FFFFFF",
+            fontWeight: 500,
+            fontSize: 12,
+            height: 30,
+            px: 1.5,
+            borderRadius: "16px",
+            whiteSpace: "nowrap",
+            "&:hover": {
+              borderColor: "#D1D5DB",
+              backgroundColor: "#F9FAFB",
+            },
+          }}
+        >
+          No statement for last days
+        </Button>
+        <Button
+          variant="outlined"
+          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
+          sx={{
+            textTransform: "none",
+            color: "#374151",
+            borderColor: "#E5E7EB",
+            backgroundColor: "#FFFFFF",
+            fontWeight: 500,
+            fontSize: 12,
+            height: 30,
+            px: 1.5,
+            borderRadius: "16px",
+            whiteSpace: "nowrap",
+            "&:hover": {
+              borderColor: "#D1D5DB",
+              backgroundColor: "#F9FAFB",
+            },
+          }}
+        >
+          Fewer [#] statements since last payment
+        </Button>
+      </Box>
+    </Box>
+
+    {/* ================= NEW STATEMENT TABLE ================= */}
+    {statementSubTab === "new" && (
+      <Box sx={{ px: 2, pb: 2, flex: 1, minHeight: 0 }}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            boxShadow: "none",
+            border: "1px solid #e0e0e0",
+            maxHeight: "calc(100vh - 300px)",
+            overflowY: "auto",
+            overflowX: "auto",
+            "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+          }}
+        >
+          <Table size="small" stickyHeader sx={{ minWidth: 1450 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  padding="checkbox"
+                  sx={{ width: 36, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                >
+                  <Checkbox
+                    size="small"
+                    indeterminate={
+                      statementSelectedRows.length > 0 &&
+                      statementSelectedRows.length < newStatementData.length
+                    }
+                    checked={
+                      newStatementData.length > 0 &&
+                      statementSelectedRows.length === newStatementData.length
+                    }
+                    onChange={handleStatementSelectAll}
+                  />
+                </TableCell>
+                {["Patient name", "ID", "DOB", "Category", "Last statement", "Sent"].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: 11,
+                      color: "rgba(0,0,0,0.6)",
+                      backgroundColor: "#fafafa",
+                      borderBottom: "1px solid #e0e0e0",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+                <TableCell
+                  align="center"
+                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                >
+                  <Tooltip title="Calls">
+                    <ForumOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
+                  </Tooltip>
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                >
+                  <Tooltip title="Emails">
+                    <MarkEmailReadOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
+                  </Tooltip>
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                >
+                  <Tooltip title="Documents">
+                    <DescriptionOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
+                  </Tooltip>
+                </TableCell>
+                {["Enc", "Balance", "Balance", "Selected", "Alert"].map((h, i) => (
+                  <TableCell
+                    key={h + i}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: 11,
+                      color: "rgba(0,0,0,0.6)",
+                      backgroundColor: "#fafafa",
+                      borderBottom: "1px solid #e0e0e0",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+                <TableCell
+                  align="center"
+                  sx={{ width: 40, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {newStatementData.map((row, index) => {
+                const isItemSelected = statementSelectedRows.includes(row.id);
+                const bgColor = getListColor(index);
+                const categoryStyle = getCategoryChipStyle(row.category);
+                return (
+                  <TableRow
+                    key={row.id}
+                    sx={{ backgroundColor: bgColor, borderBottom: "none" }}
+                  >
+                    <TableCell padding="checkbox" sx={{ py: 1 }}>
+                      <Checkbox
+                        size="small"
+                        checked={isItemSelected}
+                        onChange={() => handleStatementRowSelect(row.id)}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "#0066FF", fontWeight: 500 }}>
+                      {row.name}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.pid}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.dob}
+                    </TableCell>
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip
+                        label={row.category}
+                        size="small"
+                        sx={{ ...categoryStyle, fontWeight: 600, fontSize: 10, height: 20 }}
+                      />
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontSize: 12,
+                        py: 1,
+                        color: row.lastStatement === "Never sent" ? "#9CA3AF" : "rgba(0,0,0,0.87)",
+                      }}
+                    >
+                      {row.lastStatement}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.sent}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
+                      {row.calls}
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.3 }}>
+                        {row.emails}
+                        {row.flagged && (
+                          <Box sx={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#EF4444" }} />
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
+                      {row.docs}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.enc}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
+                    >
+                      {row.balance}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
+                    >
+                      {row.balance}
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
+                    >
+                      {isItemSelected ? row.selectedBalance : "—"}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 10.5, py: 1, color: "#B45309", maxWidth: 170 }}>
+                      {row.alert && (
+                        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+                          <Box sx={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#F59E0B", mt: "5px", flexShrink: 0 }} />
+                          <span>{row.alert}</span>
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 1 }}>
+                      <Tooltip title="View" placement="top">
+                        <IconButton size="small" sx={{ padding: "3px" }}>
+                          <Visibility sx={{ fontSize: 16, color: "#6B7280" }} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    )}
+
+    {/* ================= HISTORY TABLE ================= */}
+    {statementSubTab === "history" && (
+      <Box sx={{ px: 2, pb: 2, flex: 1, minHeight: 0 }}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            boxShadow: "none",
+            border: "1px solid #e0e0e0",
+            maxHeight: "calc(100vh - 300px)",
+            overflowY: "auto",
+            overflowX: "auto",
+            "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+          }}
+        >
+          <Table size="small" stickyHeader sx={{ minWidth: 1150 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  padding="checkbox"
+                  sx={{ width: 36, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                >
+                  <Checkbox
+                    size="small"
+                    indeterminate={
+                      historySelectedRows.length > 0 &&
+                      historySelectedRows.length < historyStatementData.length
+                    }
+                    checked={
+                      historyStatementData.length > 0 &&
+                      historySelectedRows.length === historyStatementData.length
+                    }
+                    onChange={handleHistorySelectAll}
+                  />
+                </TableCell>
+                {[
+                  "Practice",
+                  "Batch ID",
+                  "Batch name",
+                  "Batch description",
+                  "No. of statement",
+                  "Total balance",
+                  "Batch status",
+                  "Statement with errors",
+                ].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: 11,
+                      color: "rgba(0,0,0,0.6)",
+                      backgroundColor: "#fafafa",
+                      borderBottom: "1px solid #e0e0e0",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+                <TableCell
+                  align="center"
+                  sx={{ width: 70, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
+                />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {historyStatementData.map((row, index) => {
+                const isItemSelected = historySelectedRows.includes(row.id);
+                const bgColor = getListColor(index);
+                const chipStyle = statusChipStyles[row.batchStatus] || statusChipStyles.Draft;
+                return (
+                  <TableRow
+                    key={row.id}
+                    sx={{ backgroundColor: bgColor, borderBottom: "none" }}
+                  >
+                    <TableCell padding="checkbox" sx={{ py: 1 }}>
+                      <Checkbox
+                        size="small"
+                        checked={isItemSelected}
+                        onChange={() => handleHistoryRowSelect(row.id)}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.practice}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.batchId}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.batchName}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.5)" }}>
+                      {row.batchDescription}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.noOfStatement}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "#9CA3AF" }}>
+                      {row.totalBalance}
+                    </TableCell>
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip
+                        label={row.batchStatus}
+                        size="small"
+                        sx={{ ...chipStyle, fontWeight: 600, fontSize: 10, height: 20 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
+                      {row.statementWithErrors}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 1 }}>
+                      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", justifyContent: "center" }}>
+                        <Tooltip title="Info" placement="top">
+                          <IconButton size="small" sx={{ padding: "3px" }}>
+                            <InfoOutlined sx={{ fontSize: 16, color: "#0066FF" }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete" placement="top">
+                          <IconButton size="small" sx={{ padding: "3px" }}>
+    <InfoOutlined sx={{ fontSize: 16, color: "#DC2626" }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    )}
+
+    {/* ================= BOTTOM SUMMARY BAR ================= */}
+   <Box 
+  sx={{ 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    px: 1.5, 
+    py: 1, 
+    borderTop: "1px solid #E5E7EB", 
+    backgroundColor: "#FFFFFF", 
+    borderRadius: "14px", 
+    boxShadow: "0 -4px 16px rgba(15, 23, 42, 0.06)", 
+    flexWrap: "wrap", 
+    gap: 1, 
+  }} 
+>
+  <Box sx={{ display: "flex", alignItems: "center", gap: 3.5 }}> 
+    <Box> 
+      <Typography 
+        sx={{ 
+          fontSize: 10.5, 
+          color: "#9CA3AF", 
+          fontWeight: 600, 
+          letterSpacing: "0.3px", 
+          textTransform: "uppercase" 
+        }}
+      > 
+        Patients selected 
+      </Typography> 
+      <Typography 
+        sx={{ 
+          fontSize: 17, 
+          fontWeight: 700, 
+          color: "#1F2937", 
+          mt: 0.3 
+        }}
+      > 
+        {statementSubTab === "new" 
+          ? statementNewSelectedCount 
+          : historySelectedRows.length} 
+      </Typography> 
+    </Box> 
+
+    <Box 
+      sx={{ 
+        width: "1px", 
+        alignSelf: "stretch", 
+        backgroundColor: "#E5E7EB", 
+      }} 
+    /> 
+
+    <Box> 
+      <Typography 
+        sx={{ 
+          fontSize: 10.5, 
+          color: "#9CA3AF", 
+          fontWeight: 600, 
+          letterSpacing: "0.3px", 
+          textTransform: "uppercase" 
+        }}
+      > 
+        Selected balance 
+      </Typography> 
+      <Typography 
+        sx={{ 
+          fontSize: 17, 
+          fontWeight: 700, 
+          color: "#0066FF", 
+          mt: 0.3 
+        }}
+      > 
+        {statementSubTab === "new" 
+          ? `$${statementNewSelectedBalance.toLocaleString(undefined, { 
+              minimumFractionDigits: 2, 
+              maximumFractionDigits: 2, 
+            })}` 
+          : "$0.00"} 
+      </Typography> 
+    </Box> 
+  </Box> 
+
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}> 
+    <Button 
+      variant="outlined" 
+      endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />} 
+      onClick={(e) => setAnchorEl(e.currentTarget)} 
+      sx={{ 
+        textTransform: "none", 
+        color: "#374151", 
+        borderColor: "#E5E7EB", 
+        backgroundColor: "#FFFFFF", 
+        fontWeight: 600, 
+        fontSize: 13, 
+        height: 36, 
+        px: 1.7, 
+        borderRadius: "9px", 
+        "&:hover": { 
+          borderColor: "#D1D5DB", 
+          backgroundColor: "#F9FAFB" 
+        }, 
+      }} 
+    > 
+      Select action 
+    </Button> 
+
+    <Menu 
+      anchorEl={anchorEl} 
+      open={Boolean(anchorEl)} 
+      onClose={() => setAnchorEl(null)}
+    > 
+      <MenuItem onClick={() => setAnchorEl(null)}>
+        Send statement
+      </MenuItem> 
+      <MenuItem onClick={() => setAnchorEl(null)}>
+        Export selected
+      </MenuItem> 
+      <MenuItem onClick={() => setAnchorEl(null)}>
+        Mark as reviewed
+      </MenuItem> 
+    </Menu> 
+
+    <Button 
+      variant="outlined" 
+      sx={{ 
+        textTransform: "none", 
+        color: "#374151", 
+        borderColor: "#E5E7EB", 
+        backgroundColor: "#FFFFFF", 
+        fontWeight: 600, 
+        fontSize: 13, 
+        height: 36, 
+        px: 2, 
+        borderRadius: "9px", 
+        "&:hover": { 
+          borderColor: "#D1D5DB", 
+          backgroundColor: "#F9FAFB" 
+        }, 
+      }} 
+    > 
+      Cancel 
+    </Button> 
+
+    <Button 
+      variant="contained" 
+      sx={{ 
+        textTransform: "none", 
+        backgroundColor: "#0066FF", 
+        color: "#FFFFFF", 
+        fontWeight: 600, 
+        fontSize: 13, 
+        height: 36, 
+        px: 3, 
+        borderRadius: "9px", 
+        boxShadow: "0 2px 6px rgba(0,102,255,0.25)", 
+        "&:hover": { 
+          backgroundColor: "#0052CC", 
+          boxShadow: "0 2px 8px rgba(0,102,255,0.3)" 
+        }, 
+      }} 
+    > 
+      Save 
+    </Button> 
+  </Box> 
+</Box>
+  </Box>
+)}
+      {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
+<Dialog
+  open={showColumnSettings}
+  onClose={() => setShowColumnSettings(false)}
+  PaperProps={{
+    sx: {
+      width: "100%",
+      maxWidth: 420,
+      borderRadius: "12px",
+      overflow: "hidden",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+    },
+  }}
+>
+  <Box sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>
+    {/* Header */}
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        mb: 0.6,
+      }}
+    >
+      <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1F2937" }}>
+        Customise columns
+      </Typography>
+      <IconButton
+        size="small"
+        onClick={() => setShowColumnSettings(false)}
+        sx={{ p: 0.3, color: "#6B7280" }}
+      >
+        <Close sx={{ fontSize: 17 }} />
+      </IconButton>
+    </Box>
+
+    {/* Subtitle */}
+    <Typography
+      sx={{ fontSize: 11.5, color: "#6B7280", mb: 1.5, lineHeight: 1.4 }}
+    >
+      Choose which columns to show and drag to reorder them.
+    </Typography>
+
+    {/* Select all / Clear all + count */}
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        mb: 1.2,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+        <Typography
+          onClick={() =>
+            setVisibleColumns({
+              dos: true,
+              patientName: true,
+              cpt: true,
+              modifier: true,
+              icd: true,
+              primaryInsurance: true,
+              billedAmount: true,
+              patientCopay: true,
+              status: true,
+              remarks: true,
+              encounterId: true,
+              claimId: true,
+            })
+          }
+          sx={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: "#0066FF",
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          Select all
+        </Typography>
+        <Typography
+          onClick={() =>
+            setVisibleColumns({
+              dos: false,
+              patientName: false,
+              cpt: false,
+              modifier: false,
+              icd: false,
+              primaryInsurance: false,
+              billedAmount: false,
+              patientCopay: false,
+              status: false,
+              remarks: false,
+              encounterId: false,
+              claimId: false,
+            })
+          }
+          sx={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: "#0066FF",
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          Clear All
+        </Typography>
+      </Box>
+
+      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+        {
+          Object.values(visibleColumns).filter(Boolean).length
+        }{" "}
+        of 12 shown
+      </Typography>
+    </Box>
+  </Box>
+
+  {/* Column list */}
+  <Box
+    sx={{
+      px: 2.5,
+      pb: 1.5,
+      maxHeight: 400,
+      overflowY: "auto",
+      "&::-webkit-scrollbar": { width: "4px" },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#D1D5DB",
+        borderRadius: "4px",
+      },
+    }}
+  >
+    {[
+      { key: "dos", label: "DOS" },
+      { key: "cpt", label: "CPT" },
+      { key: "modifier", label: "Modifier" },
+      { key: "icd", label: "ICD" },
+      { key: "primaryInsurance", label: "Primary Insurance" },
+      { key: "billedAmount", label: "Billed Amount" },
+      { key: "patientCopay", label: "Patient Copay" },
+      { key: "status", label: "Status" },
+      { key: "remarks", label: "Remarks" },
+      { key: "encounterId", label: "Encounter ID #" },
+      { key: "claimId", label: "Claim ID" },
+    ].map((col) => (
+      <Box
+        key={col.key}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.2,
+          py: 1,
+          px: 0.5,
+          borderBottom: "1px solid #F3F4F6",
+          "&:last-child": { borderBottom: "none" },
+        }}
+      >
+        {/* Drag handle */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "2px",
+            cursor: "grab",
+            mr: 0.4,
+          }}
+        >
+          {[...Array(6)].map((_, i) => (
+            <Box
+              key={i}
+              sx={{
+                width: 3,
+                height: 3,
+                borderRadius: "50%",
+                backgroundColor: "#C4C9D4",
+              }}
+            />
+          ))}
         </Box>
-      )}
+
+        {/* Checkbox */}
+        <Checkbox
+          size="small"
+          checked={visibleColumns[col.key]}
+          onChange={(e) =>
+            setVisibleColumns((prev) => ({
+              ...prev,
+              [col.key]: e.target.checked,
+            }))
+          }
+          sx={{
+            p: 0.4,
+            color: "#C8CDD8",
+            "&.Mui-checked": { color: "#0066FF" },
+            "& svg": { fontSize: 17 },
+          }}
+        />
+
+        {/* Label */}
+        <Typography sx={{ fontSize: 12.5, color: "#374151" }}>
+          {col.label}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+
+  {/* Footer */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      px: 2.5,
+      py: 1.6,
+      borderTop: "1px solid #F3F4F6",
+    }}
+  >
+    <Typography
+      onClick={() =>
+        setVisibleColumns({
+          dos: true,
+          patientName: true,
+          cpt: true,
+          modifier: true,
+          icd: true,
+          primaryInsurance: true,
+          billedAmount: true,
+          patientCopay: true,
+          status: true,
+          remarks: true,
+          encounterId: true,
+          claimId: true,
+        })
+      }
+      sx={{
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: "#0066FF",
+        cursor: "pointer",
+        "&:hover": { textDecoration: "underline" },
+      }}
+    >
+      Reset to default
+    </Typography>
+
+    <Box sx={{ display: "flex", gap: 1 }}>
+      <Button
+        variant="outlined"
+        onClick={() => setShowColumnSettings(false)}
+        sx={{
+          textTransform: "none",
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#374151",
+          borderColor: "#E5E7EB",
+          borderRadius: "8px",
+          px: 2,
+          py: 0.55,
+          minWidth: 70,
+          "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        disableElevation
+        onClick={() => setShowColumnSettings(false)}
+        sx={{
+          textTransform: "none",
+          fontSize: 12,
+          fontWeight: 600,
+          bgcolor: "#0066FF",
+          color: "#fff",
+          borderRadius: "8px",
+          px: 2,
+          py: 0.55,
+          minWidth: 90,
+          boxShadow: "none",
+          "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+        }}
+      >
+        Save View
+      </Button>
+    </Box>
+  </Box>
+</Dialog>
     </Box>
   );
 }
