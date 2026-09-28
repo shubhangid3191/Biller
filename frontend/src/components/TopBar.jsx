@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { StarIcon, EditIcon, NotificationIcon, TiaChatIcon} from '../assets/Assets';
+import { StarIcon, EditIcon, Bell, TiaChatIcon} from '../assets/Assets';
 
 const drawerWidth = 240;
 
@@ -96,19 +96,9 @@ function TopBar() {
         </Box>
 
         {/* Right Side Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {/* Edit Icon */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid #E4E9EF',
-              borderRadius: 2,
-              width: 36,
-              height: 36,
-            }}
-          >
+       
             <IconButton
               size="small"
               sx={{
@@ -121,20 +111,10 @@ function TopBar() {
             >
               <EditIcon width={16} height={16} color="rgba(0, 0, 0, 0.54)" />
             </IconButton>
-          </Box>
+         
 
           {/* Notification Bell */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid #E4E9EF',
-              borderRadius: 2,
-              width: 36,
-              height: 36,
-            }}
-          >
+         
             <IconButton
               size="small"
               sx={{
@@ -145,9 +125,8 @@ function TopBar() {
                 },
               }}
             >
-              <NotificationIcon width={14} height={16} color="rgba(0, 0, 0, 0.54)" />
+              <Bell width={14} height={16} color="rgba(0, 0, 0, 0.54)" />
             </IconButton>
-          </Box>
 
           {/* TiaChat Button */}
           <Button
@@ -156,7 +135,7 @@ function TopBar() {
               backgroundColor: '#0066ff',
               color: '#ffffff',
               textTransform: 'none',
-              fontWeight: 600,
+              fontWeight: 500,
               px: 2.5,
               py: 1,
               borderRadius: 2,

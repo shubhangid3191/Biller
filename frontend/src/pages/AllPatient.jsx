@@ -240,9 +240,9 @@ const outlinedActionSx = {
   borderRadius: "8px",
   textTransform: "none",
   fontSize: 13.5,
-  fontWeight: 700,
+  fontWeight: 500,
   color: T.blue,
-  border: "2px solid #015DFF",
+  border: "1.5px solid #015DFF",
   bgcolor: "#fff",
   whiteSpace: "nowrap",
   flexShrink: 0,
@@ -1119,13 +1119,13 @@ export default function AllPatients() {
           md: 2,
         },
 
-        px: {
-          xs: 1.5,
-          sm: 3,
-          md: 5,
-          lg: 7,
-          xl: 8,
-        },
+          px: {
+      xs: 1,
+      sm: 1.5,
+      md: 2,
+      lg: 2.5,
+      xl: 2.5,
+    },
 
         overflowX: "hidden",
 

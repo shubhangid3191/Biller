@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import PostBillingEditPage from "./Postbillingeditpage";
+import PostBillingEditPage from "./PostBillingEditPage";
+// import PostBillingEditPage from "./PostBillingEditPage";
 import {
   Box,
   Typography,
@@ -4400,7 +4401,7 @@ function PreBillingClaim() {
                               alignItems: "center",
                             }}
                           >
-                            <Tooltip title="Edit" placement="top">
+                            <Tooltip title="Editt" placement="top">
                               <IconButton
                                 size="small"
                                 sx={{ padding: "4px" }}

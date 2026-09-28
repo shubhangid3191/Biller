@@ -94,7 +94,7 @@ export default function InsuranceProvider() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -120,10 +120,10 @@ export default function InsuranceProvider() {
             sx={{
               textTransform: "none",
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
-              border: "2px solid #015DFF",
+              border: "1.5px solid #015DFF",
               px: 2,
               whiteSpace: "nowrap",
               "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
@@ -138,10 +138,10 @@ export default function InsuranceProvider() {
             sx={{
               textTransform: "none",
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
-              border: "2px solid #015DFF",
+              border: "1.5px solid #015DFF",
               px: 2,
               whiteSpace: "nowrap",
               "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
@@ -157,7 +157,7 @@ export default function InsuranceProvider() {
             sx={{
               textTransform: "none",
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
               px: 2.5,

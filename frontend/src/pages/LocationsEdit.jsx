@@ -185,7 +185,7 @@ export default function LocationsEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -321,10 +321,10 @@ export default function LocationsEdit() {
             sx={{
               textTransform: "none",
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               color: "#015DFF",
-              border: "2px solid #015DFF",
+              border: "1.5px solid #015DFF",
               px: 3,
               "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
             }}
@@ -337,7 +337,7 @@ export default function LocationsEdit() {
             sx={{
               textTransform: "none",
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
               px: 4,

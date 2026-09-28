@@ -138,11 +138,10 @@ function DOSNavigator({ date, onPrev, onNext }) {
         alignItems: "center",
         gap: 0.5,
         bgcolor: "#fff",
-        border: "1.5px solid #E2E8F0",
         borderRadius: "8px",
         px: 1,
         py: 0.5,
-        height: 32,
+        height: 38,
       }}
     >
       {/* Left arrow */}
@@ -220,7 +219,7 @@ export default function ConfirmPatientList() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -344,24 +343,21 @@ export default function ConfirmPatientList() {
           mt: 3,
         }}
       >
-        <Button
-          variant="outlined"
-          //onClick={() => navigate(-1)}
-          sx={{
-            height: 40,
-            px: 3.5,
-            borderRadius: "8px",
-            textTransform: "none",
-            fontSize: 14,
-            fontWeight: 600,
-            color: "#3182CE",
-            border: "1.5px solid #3182CE",
-            bgcolor: "#fff",
-            "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
-          }}
-        >
-          Cancel
-        </Button>
+         <Button
+                                 variant="outlined"
+                                 onClick={() => navigate(-1)}
+                                 sx={{
+                                   textTransform: "none",
+                                   fontSize: 14,
+                                   fontWeight: 500,
+                                   borderRadius: "8px",
+                                   color: "#015DFF",
+                                   border: "1.5px solid #015DFF",
+                                   px: 3,
+                                 }}
+                               >
+                                 Cancel
+                               </Button>
 
         <Button
           variant="contained"
@@ -372,7 +368,7 @@ export default function ConfirmPatientList() {
             borderRadius: "8px",
             textTransform: "none",
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 500,
             bgcolor: T.blue,
             "&:hover": { bgcolor: "#0055CC" },
           }}

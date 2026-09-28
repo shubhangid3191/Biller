@@ -356,7 +356,7 @@ export default function PracticeEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -657,37 +657,37 @@ export default function PracticeEdit() {
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
         >
-          <Button
-            variant="outlined"
-            onClick={() => navigate(-1)}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: "8px",
-              color: "#374151",
-              borderColor: "#D1D5DB",
-              px: 3,
-              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            disableElevation
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: "8px",
-              bgcolor: T.blue,
-              px: 4,
-              "&:hover": { bgcolor: "#1D4ED8" },
-            }}
-          >
-            Save
-          </Button>
+        <Button
+                    variant="outlined"
+                    onClick={() => navigate(-1)}
+                    sx={{
+                      textTransform: "none",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      borderRadius: "8px",
+                      color: "#015DFF",
+                      border: "1.5px solid #015DFF",
+                      px: 3,
+                      "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    sx={{
+                      textTransform: "none",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      borderRadius: "8px",
+                      bgcolor: T.blue,
+                      px: 4,
+                      "&:hover": { bgcolor: "#1D4ED8" },
+                    }}
+                  >
+                    Save
+                  </Button>
         </Box>
       </Box>
     </Box>

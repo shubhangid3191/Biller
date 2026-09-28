@@ -194,7 +194,7 @@ export default function ReferringProviderEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -368,7 +368,7 @@ export default function ReferringProviderEdit() {
             sx={{
               textTransform: "none",
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               color: "#0052E1",
               borderColor: "#0052E1",
@@ -384,7 +384,7 @@ export default function ReferringProviderEdit() {
             sx={{
               textTransform: "none",
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
               px: 4,

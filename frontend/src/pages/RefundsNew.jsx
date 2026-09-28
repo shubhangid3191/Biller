@@ -139,42 +139,39 @@ function Toolbar({ activeTab, onTabChange }) {
       {/* Right — icons + search + filter */}
       <Stack direction="row" alignItems="center" spacing={1}>
         {/* Settings */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 58,
-            height: 38,
-            border: "1.5px solid #E5E7EB",
-            borderRadius: "10px",
-            bgcolor: "#fff",
-            cursor: "pointer",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            "&:hover": { bgcolor: "#F9FAFB" },
-          }}
-        >
-          <SettingsIcon />
-        </Box>
+        <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
 
-        {/* Download */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 58,
-            height: 38,
-            border: "1.5px solid #E5E7EB",
-            borderRadius: "10px",
-            bgcolor: "#fff",
-            cursor: "pointer",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            "&:hover": { bgcolor: "#F9FAFB" },
-          }}
-        >
-          <DownloadIcon />
-        </Box>
+     <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
 
         {/* Search bar */}
         <Box
@@ -512,7 +509,7 @@ export default function RefundsNew() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-        px: { xs: 2, sm: 3, md: 5, lg: 7 },
+         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >

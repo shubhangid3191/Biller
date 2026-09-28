@@ -908,13 +908,13 @@ function AddNewPatient() {
             variant="outlined"
             onClick={() => navigate("/add-patient")}
             sx={{
-              borderColor: "#3182CE",
-              color: "#3182CE",
+              borderColor: "#2563EB",
+              color: "#2563EB",
               px: 4,
               py: 1,
               fontSize: 14,
-              fontWeight: 600,
-              borderRadius: "10px",
+              fontWeight: 500,
+              borderRadius: "8px",
               "&:hover": { borderColor: "#2563EB", background: "#EFF6FF" },
             }}
           >
@@ -935,6 +935,10 @@ function AddNewPatient() {
           >
             Add Patient
           </Button>
+
+
+
+          
         </Box>
       </Box>
     </ThemeProvider>

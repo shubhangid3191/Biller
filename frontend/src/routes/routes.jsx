@@ -39,6 +39,15 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       {/* Protected Routes */}
+
+        <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <div style={{ padding: "24px" }}>Welcome to TiaSTAT</div>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/summary"
         element={
@@ -314,14 +323,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <div style={{ padding: "24px" }}>Welcome to TiaSTAT</div>
-          </ProtectedRoute>
-        }
-      />
+    
 
       <Route
         path="/new-encounter"

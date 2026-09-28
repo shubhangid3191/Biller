@@ -6,8 +6,6 @@ import {
   Tab,
   Button,
   TextField,
-  InputAdornment,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -20,41 +18,75 @@ import {
   FormControl,
 } from "@mui/material";
 
-import {
-  KeyboardArrowDown,
-  CalendarToday,
-} from "@mui/icons-material";
+import { KeyboardArrowDown } from "@mui/icons-material";
+
+const MODIFIER_OPTIONS = ["None", "26", "LT", "RT", "25", "59", "TC"];
+
+const thinScrollSx = {
+  "&::-webkit-scrollbar": { width: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#D1D5DB",
+    borderRadius: "4px",
+  },
+};
+
+const outlineBtnSx = {
+  textTransform: "none",
+  color: "#374151",
+  borderColor: "#E1E5EA",
+  backgroundColor: "#FFFFFF",
+  fontWeight: 600,
+  fontSize: 10,
+  height: 28,
+  minHeight: 28,
+  px: 1.2,
+  borderRadius: "5px",
+  minWidth: "auto",
+  whiteSpace: "nowrap",
+
+  "&:hover": {
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
+  },
+};
 
 /* =========================================================
-   Claim Field
+   Inline Field
 ========================================================= */
 
-function ClaimField({ label, value, calendar, disabled }) {
+function InlineField({ label, value, onChange }) {
   return (
-    <Box sx={{ minWidth: 0 }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        minWidth: 0,
+      }}
+    >
       <Typography
         sx={{
-          fontSize: 10,
-          color: "#8B95A5",
-          mb: 0.4,
-          lineHeight: 1.2,
+          fontSize: 10.5,
+          color: "#9CA3AF",
+          whiteSpace: "nowrap",
         }}
       >
         {label}
       </Typography>
 
       <TextField
-        fullWidth
         size="small"
         value={value}
-        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
         sx={{
+          flex: 1,
+          minWidth: 0,
+
           "& .MuiInputBase-root": {
             height: 30,
             fontSize: 11,
-            backgroundColor: disabled
-              ? "#F3F4F6"
-              : "#FFFFFF",
+            backgroundColor: "#F3F4F6",
             borderRadius: "6px",
           },
 
@@ -63,29 +95,10 @@ function ClaimField({ label, value, calendar, disabled }) {
           },
 
           "& .MuiInputBase-input": {
-            padding: "5px 8px",
-          },
-
-          "& .MuiInputBase-input.Mui-disabled": {
-            WebkitTextFillColor: "#9CA3AF",
+            padding: "5px 9px",
+            color: "#6B7280",
           },
         }}
-        InputProps={
-          calendar
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <CalendarToday
-                      sx={{
-                        fontSize: 12,
-                        color: "#9CA3AF",
-                      }}
-                    />
-                  </InputAdornment>
-                ),
-              }
-            : undefined
-        }
       />
     </Box>
   );
@@ -95,36 +108,37 @@ function ClaimField({ label, value, calendar, disabled }) {
    Claim Select
 ========================================================= */
 
-function ClaimSelect({ label, value }) {
+function ClaimSelect({ label, value, options, onChange }) {
+  const opts = options.includes(value) ? options : [value, ...options];
+
   return (
     <Box sx={{ minWidth: 0 }}>
       <Typography
         sx={{
           fontSize: 10,
           color: "#8B95A5",
-          mb: 0.4,
+          mb: 0.5,
           lineHeight: 1.2,
         }}
       >
         {label}
       </Typography>
 
-      <FormControl
-        fullWidth
-        size="small"
-      >
+      <FormControl fullWidth size="small">
         <Select
           value={value}
+          onChange={(e) => onChange(e.target.value)}
           IconComponent={KeyboardArrowDown}
           sx={{
             height: 30,
             fontSize: 11,
-            backgroundColor: "#FFFFFF",
+            color: "#6B7280",
+            backgroundColor: "#F3F4F6",
             borderRadius: "6px",
 
             "& .MuiSelect-select": {
               py: 0.5,
-              px: 0.9,
+              px: 1.1,
             },
 
             "& .MuiOutlinedInput-notchedOutline": {
@@ -132,16 +146,16 @@ function ClaimSelect({ label, value }) {
             },
 
             "& .MuiSelect-icon": {
-              fontSize: 16,
+              fontSize: 17,
+              color: "#9CA3AF",
             },
           }}
         >
-          <MenuItem
-            value={value}
-            sx={{ fontSize: 10 }}
-          >
-            {value}
-          </MenuItem>
+          {opts.map((opt) => (
+            <MenuItem key={opt} value={opt} sx={{ fontSize: 11 }}>
+              {opt}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
     </Box>
@@ -152,189 +166,142 @@ function ClaimSelect({ label, value }) {
    Main Page
 ========================================================= */
 
-export default function PostBillingEditPage({
-  claim,
-  onBack,
-}) {
-  const [actionAnchorEl, setActionAnchorEl] =
-    useState(null);
+export default function PostBillingEditPage({ claim, onBack, onSave }) {
+  const [actionAnchorEl, setActionAnchorEl] = useState(null);
+
+  const initialModifiers = (claim?.modifier || "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+
+  const initialDx = (claim?.icd || "").split(" ").filter(Boolean);
+
+  const [modifier1, setModifier1] = useState(
+    initialModifiers[0] || "None"
+  );
+  const [modifier2, setModifier2] = useState(
+    initialModifiers[1] || "None"
+  );
+  const [dx1, setDx1] = useState(initialDx[0] || "S06.5X0A");
+  const [dx2, setDx2] = useState(initialDx[1] || "");
+  const [units, setUnits] = useState(claim?.units || "1.00 unit");
+  const [billed, setBilled] = useState(claim?.billed || "$550");
 
   if (!claim) return null;
+
+  const handleSave = () => {
+    const modifier = [modifier1, modifier2]
+      .filter((m) => m && m !== "None")
+      .join(", ");
+
+    const icd = [dx1, dx2].filter(Boolean).join(" ");
+
+    if (onSave) {
+      onSave({
+        ...claim,
+        modifier,
+        icd,
+        units,
+        billed,
+      });
+    }
+
+    if (onBack) onBack();
+  };
 
   /* =========================================================
      Existing fallback values
   ========================================================= */
 
-  const born =
-    claim.dob || "15 Apr 1958";
+  const born = claim.dob || "15 Apr 1958";
 
-  const patientNo = claim.mrn
-    ? claim.mrn.slice(-4)
-    : "2885";
+  const patientNo = claim.mrn ? claim.mrn.slice(-4) : "2885";
 
-  const location =
-    claim.pos || "Garden City Hospital";
+  const location = claim.pos || "Garden City Hospital";
 
   const caseName =
     claim.billedTo ||
     claim.primaryInsurance ||
     "United Healthcare";
 
-  const typeOfService =
-    "3-Consultation";
+  const typeOfService = "3-Consultation";
 
-  const provider =
-    "Dr. Mohan YS, M.D";
+  const provider = "Mohan YS, M.D";
 
   const clearingTrk =
-    claim.clearingHouse ||
-    "250826543810";
+    claim.clearingHouse || "2508265438810";
 
-  const outstanding =
-    claim.billed || "$824.22";
+  const outstanding = billed || "$824.22";
 
   /* =========================================================
      Transactions
   ========================================================= */
 
+  const GREEN = "#0E9F6E";
+  const BLUE = "#0066FF";
+
+  const created = {
+    label: "Created",
+    color: GREEN,
+    bg: "#FFFBF3",
+    desc: `Service line built from encounter ${claim.encounterId} using ICD-10 coding`,
+    amount: billed,
+    patResp: billed,
+    balance: billed,
+  };
+
+  const billedRow = {
+    label: "Billed",
+    color: GREEN,
+    bg: "#F1FFFD",
+    desc: `Electronic claim submitted to primary insurance, ${
+      claim.billedTo || "UHC Community Plan"
+    }, with ICD-10 coding`,
+    amount: "$0.00",
+    patResp: "$0.00",
+    balance: billed,
+  };
+
+  const processed = (desc) => ({
+    label: "Claim processed",
+    color: BLUE,
+    bg: "#F4F5FF",
+    desc,
+    link: "Raw clearinghouse message",
+    amount: "$0.00",
+    patResp: "$0.00",
+    balance: billed,
+  });
+
+  const ackDesc =
+    "GatewayEDI confirmed the claim arrived intact and reported an acknowledged status.";
+
   const transactions = [
-    {
-      label: "Created",
-      color: "#F59E0B",
-      bg: "#FFFFFF",
-      desc: `Service line built from encounter ${
-        claim.encounterId
-      } using ICD-10 coding`,
-      amount: claim.billed,
-      patResp: claim.billed,
-      balance: claim.billed,
-    },
+    created,
 
     {
       label: "Transfer",
-      color: "#0066FF",
-      bg: "#FFFFFF",
-      desc: `${
-        claim.billed
-      } moved to primary insurance, ${
-        claim.billedTo ||
-        "UHC Community Plan"
+      color: BLUE,
+      bg: "#F4F5FF",
+      desc: `${billed} moved to primary insurance, ${
+        claim.billedTo || "UHC Community Plan"
       }. Patient responsibility set to $0.00`,
       amount: "–",
       patResp: "$0.00",
-      balance: claim.billed,
+      balance: billed,
     },
 
-    {
-      label: "Billed",
-      color: "#8B5CF6",
-      bg: "#F0FFFC",
-      desc: `Electronic claim submitted to primary insurance, ${
-        claim.billedTo ||
-        "UHC Community Plan"
-      }, with ICD-10 coding`,
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Claim processed",
-      color: "#0066FF",
-      bg: "#F4F5FF",
-      desc:
-        "Handed to GatewayEDI in batch 103709866",
-      link: "Raw clearinghouse message",
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Claim processed",
-      color: "#0066FF",
-      bg: "#F4F5FF",
-      desc:
-        "GatewayEDI confirmed the claim arrived intact and reported an acknowledged status.",
-      link: "Raw clearinghouse message",
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Billed",
-      color: "#8B5CF6",
-      bg: "#F0FFFC",
-      desc: `Electronic claim submitted to primary insurance, ${
-        claim.billedTo ||
-        "UHC Community Plan"
-      }, with ICD-10 coding`,
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Claim processed",
-      color: "#0066FF",
-      bg: "#F4F5FF",
-      desc:
-        "GatewayEDI confirmed the claim arrived intact and reported an acknowledged status.",
-      link: "Raw clearinghouse message",
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Claim processed",
-      color: "#0066FF",
-      bg: "#F4F5FF",
-      desc:
-        "No syntax or eligibility errors were flagged before the file went out to the payer.",
-      link: "Raw clearinghouse message",
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Created",
-      color: "#F59E0B",
-      bg: "#FFFFFF",
-      desc: `Service line built from encounter ${
-        claim.encounterId
-      } using ICD-10 coding`,
-      amount: claim.billed,
-      patResp: claim.billed,
-      balance: claim.billed,
-    },
-
-    {
-      label: "Billed",
-      color: "#8B5CF6",
-      bg: "#F0FFFC",
-      desc: `Electronic claim submitted to primary insurance, ${
-        claim.billedTo ||
-        "UHC Community Plan"
-      }, with ICD-10 coding`,
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
-
-    {
-      label: "Claim processed",
-      color: "#0066FF",
-      bg: "#F4F5FF",
-      desc:
-        "GatewayEDI confirmed the claim arrived intact and reported an acknowledged status.",
-      link: "Raw clearinghouse message",
-      amount: "$0.00",
-      patResp: "$0.00",
-      balance: claim.billed,
-    },
+    billedRow,
+    processed("Handed to GatewayEDI in batch 103709866"),
+    processed(ackDesc),
+    billedRow,
+    processed(ackDesc),
+    processed(
+      "No syntax or eligibility errors were flagged before the file went out to the payer."
+    ),
+    created,
+    billedRow,
+    processed(ackDesc),
   ];
 
   /* =========================================================
@@ -344,57 +311,62 @@ export default function PostBillingEditPage({
   const balanceRow = (
     label,
     value,
-    bold = false
-  ) => (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        minHeight: 20,
-      }}
-    >
+    dotColor,
+    options = {}
+  ) => {
+    const { bold = false, muted = false } = options;
+
+    return (
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 0.7,
+          justifyContent: "space-between",
+          minHeight: 24,
         }}
       >
         <Box
           sx={{
-            width: 5,
-            height: 5,
-            borderRadius: "50%",
-            backgroundColor: "#A7C9F8",
-            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.9,
           }}
-        />
+        >
+          <Box
+            sx={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              backgroundColor: dotColor,
+              flexShrink: 0,
+            }}
+          />
+
+          <Typography
+            sx={{
+              fontSize: 10.5,
+              fontWeight: bold ? 700 : 500,
+              color: "#4B5563",
+              lineHeight: 1.2,
+            }}
+          >
+            {label}
+          </Typography>
+        </Box>
 
         <Typography
           sx={{
-            fontSize: 10,
-            fontWeight: bold ? 700 : 500,
-            color: "#4B5563",
+            fontSize: 10.5,
+            fontWeight: muted ? 500 : 700,
+            color: muted ? "#9CA3AF" : "#1F2937",
             lineHeight: 1.2,
           }}
         >
-          {label}
+          {value}
         </Typography>
       </Box>
-
-      <Typography
-        sx={{
-          fontSize: 10,
-          fontWeight: bold ? 700 : 500,
-          color: "#374151",
-          lineHeight: 1.2,
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
+    );
+  };
 
   /* =========================================================
      Info Field
@@ -403,21 +375,25 @@ export default function PostBillingEditPage({
   const infoField = (
     label,
     value,
-    isLink
+    isLink,
+    plain
   ) => (
     <Box
       sx={{
-        mb: 0.8,
+        display: "flex",
+        alignItems: "baseline",
+        gap: 0.8,
+        mb: 1,
         minWidth: 0,
       }}
     >
       {label && (
         <Typography
           sx={{
-            fontSize: 9,
-            color: "#9CA3AF",
-            mb: 0.1,
-            lineHeight: 1.15,
+            fontSize: 10.5,
+            color: "#6B7280",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
           }}
         >
           {label}
@@ -427,13 +403,9 @@ export default function PostBillingEditPage({
       <Typography
         sx={{
           fontSize: 10.5,
-          fontWeight: 600,
-          color: isLink
-            ? "#0066FF"
-            : "#374151",
-          textDecoration: isLink
-            ? "underline"
-            : "none",
+          fontWeight: plain ? 500 : 700,
+          color: "#374151",
+          textDecoration: isLink ? "underline" : "none",
           lineHeight: 1.2,
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -446,6 +418,102 @@ export default function PostBillingEditPage({
   );
 
   /* =========================================================
+     Diagnosis Row
+  ========================================================= */
+
+  const dxRow = (
+    n,
+    value,
+    onChange,
+    placeholder,
+    hint
+  ) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        px: 1,
+        py: 1.1,
+        backgroundColor: "#F8F9FB",
+        border: "1px solid #EEF0F3",
+        borderRadius: "6px",
+      }}
+    >
+      <Box
+        sx={{
+          width: 20,
+          height: 15,
+          borderRadius: "3px",
+          backgroundColor: value
+            ? "#E6EAF5"
+            : "#EDEFF3",
+          color: value
+            ? "#5B6B8C"
+            : "#9CA3AF",
+          fontSize: 10,
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        {n}
+      </Box>
+
+      <TextField
+        size="small"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        sx={{
+          width: 76,
+          flexShrink: 0,
+
+          "& .MuiInputBase-root": {
+            height: 26,
+            fontSize: 10.5,
+            fontWeight: 600,
+            backgroundColor: "#FFFFFF",
+            borderRadius: "5px",
+          },
+
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#E5E7EB",
+          },
+
+          "& .MuiInputBase-input": {
+            padding: "4px 8px",
+            color: "#374151",
+          },
+
+          "& .MuiInputBase-input::placeholder": {
+            fontWeight: 400,
+            fontSize: 10,
+            color: "#9CA3AF",
+            opacity: 1,
+          },
+        }}
+      />
+
+      {hint && (
+        <Typography
+          sx={{
+            fontSize: 10,
+            color: "#9CA3AF",
+            lineHeight: 1.3,
+          }}
+        >
+          {hint}
+        </Typography>
+      )}
+    </Box>
+  );
+
+  /* =========================================================
      Card Style
   ========================================================= */
 
@@ -453,16 +521,18 @@ export default function PostBillingEditPage({
     backgroundColor: "#FFFFFF",
     border: "1px solid #E5E7EB",
     borderRadius: "8px",
-    p: 1.2,
+    overflow: "hidden",
     boxShadow:
       "0 1px 3px rgba(15, 23, 42, 0.03)",
   };
 
   const cardTitleSx = {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
     color: "#1F2937",
-    mb: 0.8,
+    px: 1.7,
+    py: 1.2,
+    borderBottom: "1px solid #EEF0F3",
     lineHeight: 1.2,
   };
 
@@ -476,9 +546,12 @@ export default function PostBillingEditPage({
         width: "100%",
         height: "100%",
         backgroundColor: "#F5F7FA",
-        overflow: "hidden",
+        overflowY: "auto",
+        overflowX: "hidden",
         display: "flex",
         flexDirection: "column",
+        fontSize: "1.08em",
+        ...thinScrollSx,
       }}
     >
       {/* =====================================================
@@ -488,8 +561,7 @@ export default function PostBillingEditPage({
       <Box
         sx={{
           backgroundColor: "#FFFFFF",
-          borderBottom:
-            "1px solid #E5E7EB",
+          borderBottom: "1px solid #E5E7EB",
           flexShrink: 0,
         }}
       >
@@ -501,14 +573,14 @@ export default function PostBillingEditPage({
             alignItems: "center",
             justifyContent: "space-between",
             px: 1.5,
-            pt: 0.9,
-            pb: 0.4,
+            pt: 1.3,
+            pb: 0.7,
           }}
         >
           <Box>
             <Typography
               sx={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: 700,
                 color: "#1F2937",
                 lineHeight: 1.2,
@@ -521,77 +593,34 @@ export default function PostBillingEditPage({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1.2,
-                mt: 0.4,
+                gap: 1.4,
+                mt: 0.6,
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: 9,
-                  color: "#6B7280",
-                }}
-              >
-                Claim{" "}
-                <span
-                  style={{
-                    color: "#374151",
-                    fontWeight: 600,
+              {[
+                ["Claim", claim.claimId],
+                ["Encounter", claim.encounterId],
+                ["Born", born],
+                ["Patient", patientNo],
+              ].map(([label, val]) => (
+                <Typography
+                  key={label}
+                  sx={{
+                    fontSize: 10,
+                    color: "#6B7280",
                   }}
                 >
-                  {claim.claimId}
-                </span>
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: 9,
-                  color: "#6B7280",
-                }}
-              >
-                Encounter{" "}
-                <span
-                  style={{
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  {claim.encounterId}
-                </span>
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: 9,
-                  color: "#6B7280",
-                }}
-              >
-                Born{" "}
-                <span
-                  style={{
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  {born}
-                </span>
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: 9,
-                  color: "#6B7280",
-                }}
-              >
-                Patient{" "}
-                <span
-                  style={{
-                    color: "#374151",
-                    fontWeight: 600,
-                  }}
-                >
-                  {patientNo}
-                </span>
-              </Typography>
+                  {label}{" "}
+                  <span
+                    style={{
+                      color: "#374151",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {val}
+                  </span>
+                </Typography>
+              ))}
             </Box>
           </Box>
 
@@ -599,35 +628,47 @@ export default function PostBillingEditPage({
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 1.2,
+              gap: 1.5,
             }}
           >
-            <Chip
-              label={`● Waiting on ${caseName}`}
-              size="small"
+            <Box
               sx={{
-                height: 22,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.6,
+                height: 24,
+                px: 1.2,
+                borderRadius: "12px",
                 backgroundColor: "#FEF3E2",
+                border: "1px solid #F3DDA8",
                 color: "#A16207",
-                fontSize: 8,
+                fontSize: 10,
                 fontWeight: 600,
-                border:
-                  "1px solid #F3DDA8",
-
-                "& .MuiChip-label": {
-                  px: 0.8,
-                },
+                whiteSpace: "nowrap",
               }}
-            />
+            >
+              <Box
+                sx={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: "50%",
+                  backgroundColor: "#F59E0B",
+                }}
+              />
+
+              Waiting on {caseName}
+            </Box>
 
             <Box
               sx={{
-                textAlign: "right",
+                display: "flex",
+                alignItems: "baseline",
+                gap: 0.5,
               }}
             >
               <Typography
                 sx={{
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 700,
                   color: "#111827",
                   lineHeight: 1,
@@ -638,9 +679,8 @@ export default function PostBillingEditPage({
 
               <Typography
                 sx={{
-                  fontSize: 7.5,
+                  fontSize: 9,
                   color: "#9CA3AF",
-                  mt: 0.2,
                 }}
               >
                 Outstanding
@@ -649,242 +689,184 @@ export default function PostBillingEditPage({
           </Box>
         </Box>
 
-        {/* Buttons */}
+        {/* Tabs + Buttons */}
 
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
             px: 1.5,
-            pb: 0.6,
-            gap: 0.5,
+            pb: 0.9,
           }}
         >
-          <Button
-            variant="contained"
-            size="small"
+          <Tabs
+            value={0}
+            TabIndicatorProps={{
+              style: { display: "none" },
+            }}
             sx={{
-              textTransform: "none",
-              backgroundColor: "#0066FF",
-              color: "#FFFFFF",
-              fontWeight: 600,
-              fontSize: 9,
-              height: 26,
-              minHeight: 26,
-              px: 1.3,
-              borderRadius: "5px",
-              boxShadow:
-                "0 2px 5px rgba(0,102,255,0.2)",
-              minWidth: "auto",
+              minHeight: 28,
 
-              "&:hover": {
-                backgroundColor: "#0052CC",
+              "& .MuiTabs-flexContainer": {
+                gap: 0.5,
+              },
+
+              "& .MuiTab-root": {
+                minHeight: 28,
+                height: 28,
+                textTransform: "none",
+                fontSize: 10.5,
+                fontWeight: 600,
+                color: "#6B7280",
+                minWidth: "auto",
+                px: 1.6,
+                py: 0,
+                borderRadius: "5px",
+              },
+
+              "& .Mui-selected": {
+                color: "#FFFFFF !important",
+                backgroundColor: "#0066FF",
+                fontWeight: 600,
+              },
+            }}
+          >
+            <Tab label="General" />
+            <Tab label="Details" />
+            <Tab label="Log" />
+          </Tabs>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              mb: 1.2,
+            }}
+          >
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleSave}
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#0066FF",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 10,
+                height: 28,
+                minHeight: 28,
+                px: 1.6,
+                borderRadius: "5px",
                 boxShadow:
                   "0 2px 5px rgba(0,102,255,0.2)",
-              },
-            }}
-          >
-            Save changes
-          </Button>
+                minWidth: "auto",
+                whiteSpace: "nowrap",
 
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={onBack}
-            sx={{
-              textTransform: "none",
-              color: "#374151",
-              borderColor: "#E1E5EA",
-              backgroundColor: "#FFFFFF",
-              fontWeight: 600,
-              fontSize: 9,
-              height: 26,
-              minHeight: 26,
-              px: 1.1,
-              borderRadius: "5px",
-              minWidth: "auto",
-
-              "&:hover": {
-                borderColor: "#D1D5DB",
-                backgroundColor: "#F9FAFB",
-              },
-            }}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            sx={{
-              textTransform: "none",
-              color: "#374151",
-              borderColor: "#E1E5EA",
-              backgroundColor: "#FFFFFF",
-              fontWeight: 600,
-              fontSize: 9,
-              height: 26,
-              minHeight: 26,
-              px: 1.1,
-              borderRadius: "5px",
-              minWidth: "auto",
-
-              "&:hover": {
-                borderColor: "#D1D5DB",
-                backgroundColor: "#F9FAFB",
-              },
-            }}
-          >
-            Delete
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            sx={{
-              textTransform: "none",
-              color: "#374151",
-              borderColor: "#E1E5EA",
-              backgroundColor: "#FFFFFF",
-              fontWeight: 600,
-              fontSize: 9,
-              height: 26,
-              minHeight: 26,
-              px: 1.1,
-              borderRadius: "5px",
-              minWidth: "auto",
-              whiteSpace: "nowrap",
-
-              "&:hover": {
-                borderColor: "#D1D5DB",
-                backgroundColor: "#F9FAFB",
-              },
-            }}
-          >
-            Delete last transaction
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="small"
-            endIcon={
-              <KeyboardArrowDown
-                sx={{ fontSize: 14 }}
-              />
-            }
-            onClick={(e) =>
-              setActionAnchorEl(
-                e.currentTarget
-              )
-            }
-            sx={{
-              textTransform: "none",
-              color: "#374151",
-              borderColor: "#E1E5EA",
-              backgroundColor: "#FFFFFF",
-              fontWeight: 600,
-              fontSize: 9,
-              height: 26,
-              minHeight: 26,
-              px: 0.9,
-              borderRadius: "5px",
-              minWidth: "auto",
-
-              "& .MuiButton-endIcon": {
-                marginLeft: 0,
-                marginRight: -0.2,
-              },
-
-              "&:hover": {
-                borderColor: "#D1D5DB",
-                backgroundColor: "#F9FAFB",
-              },
-            }}
-          >
-            Select Action
-          </Button>
-
-          <Menu
-            anchorEl={actionAnchorEl}
-            open={Boolean(actionAnchorEl)}
-            onClose={() =>
-              setActionAnchorEl(null)
-            }
-            slotProps={{
-              paper: {
-                sx: {
-                  mt: 0.5,
-                  minWidth: 130,
+                "&:hover": {
+                  backgroundColor: "#0052CC",
+                  boxShadow:
+                    "0 2px 5px rgba(0,102,255,0.2)",
                 },
-              },
-            }}
-          >
-            <MenuItem
-              sx={{ fontSize: 11 }}
-              onClick={() =>
-                setActionAnchorEl(null)
-              }
+              }}
             >
-              Print Claim
-            </MenuItem>
+              Save changes
+            </Button>
 
-            <MenuItem
-              sx={{ fontSize: 11 }}
-              onClick={() =>
-                setActionAnchorEl(null)
-              }
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={onBack}
+              sx={outlineBtnSx}
             >
-              Rebill
-            </MenuItem>
+              Cancel
+            </Button>
 
-            <MenuItem
-              sx={{ fontSize: 11 }}
-              onClick={() =>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={outlineBtnSx}
+            >
+              Delete
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              sx={outlineBtnSx}
+            >
+              Delete last transaction
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              endIcon={
+                <KeyboardArrowDown
+                  sx={{ fontSize: 15 }}
+                />
+              }
+              onClick={(e) =>
+                setActionAnchorEl(e.currentTarget)
+              }
+              sx={{
+                ...outlineBtnSx,
+                px: 1.2,
+
+                "& .MuiButton-endIcon": {
+                  marginLeft: 0.5,
+                  marginRight: -0.2,
+                },
+              }}
+            >
+              Select Action
+            </Button>
+
+            <Menu
+              anchorEl={actionAnchorEl}
+              open={Boolean(actionAnchorEl)}
+              onClose={() =>
                 setActionAnchorEl(null)
               }
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 0.5,
+                    minWidth: 135,
+                  },
+                },
+              }}
             >
-              Apply Payment
-            </MenuItem>
-          </Menu>
+              <MenuItem
+                sx={{ fontSize: 11 }}
+                onClick={() =>
+                  setActionAnchorEl(null)
+                }
+              >
+                Print Claim
+              </MenuItem>
+
+              <MenuItem
+                sx={{ fontSize: 11 }}
+                onClick={() =>
+                  setActionAnchorEl(null)
+                }
+              >
+                Rebill
+              </MenuItem>
+
+              <MenuItem
+                sx={{ fontSize: 11 }}
+                onClick={() =>
+                  setActionAnchorEl(null)
+                }
+              >
+                Apply Payment
+              </MenuItem>
+            </Menu>
+          </Box>
         </Box>
-
-        {/* Tabs */}
-
-        <Tabs
-          value={0}
-          sx={{
-            minHeight: 32,
-            px: 1.5,
-
-            "& .MuiTab-root": {
-              minHeight: 32,
-              height: 32,
-              textTransform: "none",
-              fontSize: 10,
-              fontWeight: 500,
-              color: "#6B7280",
-              minWidth: "auto",
-              px: 1.2,
-              py: 0,
-            },
-
-            "& .Mui-selected": {
-              color:
-                "#0066FF !important",
-              fontWeight: 600,
-            },
-
-            "& .MuiTabs-indicator": {
-              backgroundColor: "#0066FF",
-              height: 2,
-            },
-          }}
-        >
-          <Tab label="General" />
-          <Tab label="Details" />
-          <Tab label="Log" />
-        </Tabs>
       </Box>
 
       {/* =====================================================
@@ -894,12 +876,10 @@ export default function PostBillingEditPage({
       <Box
         sx={{
           display: "flex",
-          alignItems: "stretch",
-          gap: 1,
-          p: 1,
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
+          alignItems: "flex-start",
+          gap: 1.5,
+          p: 1.5,
+          flexShrink: 0,
         }}
       >
         {/* ===================================================
@@ -908,19 +888,16 @@ export default function PostBillingEditPage({
 
         <Box
           sx={{
-            width: 300,
-            flexShrink: 0,
+            flex: "0 0 42%",
+            minWidth: 330,
             display: "flex",
             flexDirection: "column",
-            gap: 0.8,
-            minHeight: 0,
+            gap: 1,
           }}
         >
-          {/* =================================================
-              PATIENT DETAILS
-          ================================================= */}
+          {/* PATIENT DETAILS */}
 
-          <Box sx={cardSx}>
+          <Box sx={{ ...cardSx, flexShrink: 0 }}>
             <Typography sx={cardTitleSx}>
               Patient Details
             </Typography>
@@ -928,16 +905,19 @@ export default function PostBillingEditPage({
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns:
-                  "1fr 1fr",
-                columnGap: 1.2,
+                gridTemplateColumns: "1fr 1fr",
+                columnGap: 1.5,
+                px: 1.5,
+                pt: 1.3,
+                pb: 0.4,
               }}
             >
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 {infoField(
                   "",
                   claim.patientName,
-                  false
+                  false,
+                  true
                 )}
 
                 {infoField(
@@ -959,7 +939,7 @@ export default function PostBillingEditPage({
                 )}
               </Box>
 
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 {infoField(
                   "Location",
                   location,
@@ -975,7 +955,7 @@ export default function PostBillingEditPage({
                 {infoField(
                   "Type of Service",
                   typeOfService,
-                  false
+                  true
                 )}
 
                 {infoField(
@@ -987,304 +967,149 @@ export default function PostBillingEditPage({
             </Box>
           </Box>
 
-          {/* =================================================
-              CPT & MODIFIERS
-          ================================================= */}
+          {/* CPT & ICD */}
 
-          <Box sx={cardSx}>
+          <Box sx={{ ...cardSx, flexShrink: 0 }}>
             <Typography sx={cardTitleSx}>
-              CPT &amp; Modifiers
+              CPT &amp; ICD
             </Typography>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns:
-                  "1fr 1fr",
-                gap: 1,
-                mb: 0.8,
-              }}
-            >
-              <ClaimSelect
-                label="Modifier 1"
-                value="None"
-              />
-
-              <ClaimSelect
-                label="Modifier 2"
-                value="None"
-              />
-            </Box>
-
-            {[
-              {
-                n: 1,
-                code:
-                  claim.icd?.split(
-                    " "
-                  )[0] ||
-                  "S06.5X0A",
-
-                desc:
-                  "Traumatic subdural haemorrhage, loss of consciousness unspecified, initial encounter",
-              },
-            ].map((d) => (
+            <Box sx={{ p: 1.5 }}>
               <Box
-                key={d.n}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "1fr 1fr",
+                  gap: 1.2,
+                  mb: 1.2,
+                }}
+              >
+                <ClaimSelect
+                  label="Modifier 1"
+                  value={modifier1}
+                  options={MODIFIER_OPTIONS}
+                  onChange={setModifier1}
+                />
+
+                <ClaimSelect
+                  label="Modifier 2"
+                  value={modifier2}
+                  options={MODIFIER_OPTIONS}
+                  onChange={setModifier2}
+                />
+              </Box>
+
+              <Box
                 sx={{
                   display: "flex",
-                  gap: 0.8,
-                  mb: 0.65,
+                  flexDirection: "column",
+                  gap: 1,
                 }}
               >
-                <Box
-                  sx={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: "4px",
-                    backgroundColor:
-                      "#EEF4FF",
-                    color: "#0066FF",
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent:
-                      "center",
-                    flexShrink: 0,
-                    mt: 0.05,
-                  }}
-                >
-                  {d.n}
-                </Box>
+                {dxRow(
+                  1,
+                  dx1,
+                  setDx1,
+                  "Diagnosis"
+                )}
 
-                <Box
-                  sx={{
-                    minWidth: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems:
-                        "center",
-                      gap: 0.5,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#374151",
-                        backgroundColor:
-                          "#F8FAFC",
-                        border:
-                          "1px solid #E5E7EB",
-                        borderRadius:
-                          "3px",
-                        px: 0.55,
-                        py: 0.15,
-                      }}
-                    >
-                      {d.code}
-                    </Typography>
-                  </Box>
-
-                  <Typography
-                    sx={{
-                      fontSize: 9,
-                      color: "#9CA3AF",
-                      lineHeight: 1.25,
-                      mt: 0.15,
-                    }}
-                  >
-                    {d.desc}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-
-            <Box
-              sx={{
-                display: "flex",
-                gap: 0.8,
-                mb: 0.5,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "4px",
-                  backgroundColor:
-                    "#F3F4F6",
-                  color: "#9CA3AF",
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent:
-                    "center",
-                  flexShrink: 0,
-                }}
-              >
-                2
-              </Box>
-
-              <Box
-                sx={{
-                  minWidth: 0,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "#9CA3AF",
-                    fontStyle: "italic",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Not coded
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: 9,
-                    color: "#C4C9D4",
-                    lineHeight: 1.25,
-                  }}
-                >
-                  Add a secondary diagnosis
-                  if the payer needs one
-                </Typography>
+                {dxRow(
+                  2,
+                  dx2,
+                  setDx2,
+                  "Not coded",
+                  dx2
+                    ? ""
+                    : "Add a secondary diagnosis if the payer needs one"
+                )}
               </Box>
             </Box>
-
-            <Typography
-              sx={{
-                fontSize: 9,
-                fontWeight: 600,
-                color: "#0066FF",
-                cursor: "pointer",
-                mt: 0.3,
-
-                "&:hover": {
-                  textDecoration:
-                    "underline",
-                },
-              }}
-            >
-              + Add diagnosis
-            </Typography>
           </Box>
 
-          {/* =================================================
-              CHARGES AND BALANCE
-          ================================================= */}
+          {/* CHARGES AND BALANCE */}
 
-          <Box
-            sx={{
-              ...cardSx,
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <Box sx={{ ...cardSx, flexShrink: 0 }}>
             <Typography sx={cardTitleSx}>
               Charges and balance
             </Typography>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns:
-                  "1fr 1fr",
-                gap: 1,
-                mb: 0.8,
-              }}
-            >
-              <ClaimField
-                label="Units"
-                value="1.00 unit"
-              />
-
-              <ClaimField
-                label="Unit Charge"
-                value={
-                  claim.billed ||
-                  "$550"
-                }
-              />
-            </Box>
-
-            <Box
-              sx={{
-                borderTop:
-                  "1px solid #F0F2F5",
-                pt: 0.6,
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box>
-                {balanceRow(
-                  "Total Charges",
-                  "$0.00"
-                )}
-
-                {balanceRow(
-                  "Adjustments:",
-                  "$0.00"
-                )}
-
-                {balanceRow(
-                  "Adjusted charges",
-                  "$0.00"
-                )}
-
-                {balanceRow(
-                  "Patient payments",
-                  claim.patientPayment ||
-                    "$0.00"
-                )}
-
-                {balanceRow(
-                  "Total payments",
-                  claim.insurancePayment ||
-                    "$824.22"
-                )}
-
-                {balanceRow(
-                  "Patient Balance",
-                  "$0.0"
-                )}
-
-                {balanceRow(
-                  "Insurance Balance",
-                  claim.billed ||
-                    "$550.14"
-                )}
-              </Box>
-
+            <Box sx={{ p: 1.5 }}>
               <Box
                 sx={{
-                  borderTop:
-                    "1px solid #F0F2F5",
-                  mt: 0.3,
-                  pt: 0.3,
+                  display: "grid",
+                  gridTemplateColumns:
+                    "1fr 1fr",
+                  gap: 1.5,
+                  mb: 1.4,
                 }}
               >
-                {balanceRow(
-                  "Total Balance",
-                  claim.billed ||
-                    "$550.14",
-                  true
-                )}
+                <InlineField
+                  label="Units"
+                  value={units}
+                  onChange={setUnits}
+                />
+
+                <InlineField
+                  label="Unit Charge"
+                  value={billed}
+                  onChange={setBilled}
+                />
               </Box>
+
+              {balanceRow(
+                "Total Charges",
+                "$0.00",
+                "#8ED1B5",
+                { muted: true }
+              )}
+
+              {balanceRow(
+                "Adjustments:",
+                "$0.00",
+                "#8ED1B5",
+                { muted: true }
+              )}
+
+              {balanceRow(
+                "Adjusted charges",
+                "$0.00",
+                "#E9CF7B",
+                { muted: true }
+              )}
+
+              {balanceRow(
+                "Patient payments",
+                claim.patientPayment ||
+                  "$0.00",
+                "#F2AA8C",
+                { muted: true }
+              )}
+
+              {balanceRow(
+                "Total payments",
+                claim.insurancePayment ||
+                  "$824.22",
+                "#A7C9F8"
+              )}
+
+              {balanceRow(
+                "Patient Balance",
+                "$0.0",
+                "#A7C9F8"
+              )}
+
+              {balanceRow(
+                "Insurance Balance",
+                billed || "$550.14",
+                "#A7C9F8"
+              )}
+
+              {balanceRow(
+                "Total Balance",
+                billed || "$550.14",
+                "#7FB0F0",
+                { bold: true }
+              )}
             </Box>
           </Box>
         </Box>
@@ -1297,58 +1122,31 @@ export default function PostBillingEditPage({
           sx={{
             flex: 1,
             minWidth: 0,
-            minHeight: 0,
             backgroundColor: "#FFFFFF",
-            border:
-              "1px solid #E5E7EB",
-            borderRadius: "7px",
-            overflow: "hidden",
+            border: "1px solid #E5E7EB",
+            borderRadius: "8px",
+            overflow: "clip",
             display: "flex",
-            flexDirection:
-              "column",
+            flexDirection: "column",
           }}
         >
           <TableContainer
-            sx={{
-              flex: 1,
-              overflowX: "hidden",
-              overflowY: "hidden",
-            }}
+            sx={{ overflow: "visible" }}
           >
             <Table
               size="small"
+              stickyHeader
               sx={{
                 width: "100%",
-                tableLayout:
-                  "fixed",
+                tableLayout: "fixed",
               }}
             >
               <colgroup>
-                <col
-                  style={{
-                    width: "60px",
-                  }}
-                />
-
+                <col style={{ width: "68px" }} />
                 <col />
-
-                <col
-                  style={{
-                    width: "72px",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "74px",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "84px",
-                  }}
-                />
+                <col style={{ width: "76px" }} />
+                <col style={{ width: "78px" }} />
+                <col style={{ width: "92px" }} />
               </colgroup>
 
               <TableHead>
@@ -1368,17 +1166,16 @@ export default function PostBillingEditPage({
                           : "left"
                       }
                       sx={{
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: 700,
                         color: "#374151",
                         backgroundColor:
                           "#F1F3FF",
                         borderBottom:
                           "1px solid #E5E7EB",
-                        whiteSpace:
-                          "nowrap",
-                        py: 0.8,
-                        px: 0.8,
+                        whiteSpace: "nowrap",
+                        py: 1.15,
+                        px: 1,
                         lineHeight: 1.1,
                       }}
                     >
@@ -1394,30 +1191,27 @@ export default function PostBillingEditPage({
                     <TableRow
                       key={idx}
                       sx={{
-                        backgroundColor:
-                          t.bg,
+                        backgroundColor: t.bg,
 
-                        "&:last-child td":
-                          {
-                            borderBottom:
-                              0,
-                          },
+                        "&:last-child td": {
+                          borderBottom: 0,
+                        },
                       }}
                     >
                       {/* DATE */}
 
                       <TableCell
                         sx={{
-                          fontSize: 9,
+                          fontSize: 10,
+                          fontWeight: 600,
                           color: "#374151",
                           verticalAlign:
-                            "top",
+                            "middle",
                           whiteSpace:
                             "nowrap",
-                          py: 0.85,
-                          px: 0.8,
-                          lineHeight:
-                            1.15,
+                          py: 1.2,
+                          px: 1,
+                          lineHeight: 1.15,
                         }}
                       >
                         26 Aug 26
@@ -1428,66 +1222,35 @@ export default function PostBillingEditPage({
                       <TableCell
                         sx={{
                           verticalAlign:
-                            "top",
-                          py: 0.85,
-                          px: 0.8,
-                          overflow:
-                            "hidden",
+                            "middle",
+                          py: 1.2,
+                          px: 1,
+                          overflow: "hidden",
                         }}
                       >
-                        <Box
+                        <Typography
                           sx={{
-                            display:
-                              "flex",
-                            alignItems:
-                              "center",
-                            gap: 0.5,
-                            mb: 0.15,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: t.color,
+                            lineHeight: 1.2,
+                            mb: 0.2,
                           }}
                         >
-                          <Box
-                            sx={{
-                              width: 5,
-                              height: 5,
-                              borderRadius:
-                                "50%",
-                              backgroundColor:
-                                t.color,
-                              flexShrink: 0,
-                            }}
-                          />
-
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 700,
-                              color:
-                                t.color,
-                              lineHeight:
-                                1.1,
-                              whiteSpace:
-                                "nowrap",
-                            }}
-                          >
-                            {t.label}
-                          </Typography>
-                        </Box>
+                          • {t.label}
+                        </Typography>
 
                         <Typography
                           sx={{
-                            fontSize: 8,
-                            color:
-                              "#6B7280",
-                            lineHeight:
-                              1.3,
+                            fontSize: 9,
+                            color: "#6B7280",
+                            lineHeight: 1.35,
                             display:
                               "-webkit-box",
-                            WebkitLineClamp:
-                              2,
+                            WebkitLineClamp: 2,
                             WebkitBoxOrient:
                               "vertical",
-                            overflow:
-                              "hidden",
+                            overflow: "hidden",
                           }}
                         >
                           {t.desc}
@@ -1496,16 +1259,13 @@ export default function PostBillingEditPage({
                         {t.link && (
                           <Typography
                             sx={{
-                              fontSize: 8,
-                              color:
-                                "#0066FF",
+                              fontSize: 9,
+                              color: "#0066FF",
                               textDecoration:
                                 "underline",
-                              cursor:
-                                "pointer",
-                              lineHeight:
-                                1.1,
-                              mt: 0.1,
+                              cursor: "pointer",
+                              lineHeight: 1.2,
+                              mt: 0.15,
                             }}
                           >
                             {t.link}
@@ -1518,17 +1278,15 @@ export default function PostBillingEditPage({
                       <TableCell
                         align="right"
                         sx={{
-                          fontSize: 9,
-                          color:
-                            "#374151",
+                          fontSize: 10,
+                          color: "#374151",
                           verticalAlign:
-                            "top",
-                          py: 0.85,
-                          px: 0.8,
+                            "middle",
+                          py: 1.2,
+                          px: 1,
                           whiteSpace:
                             "nowrap",
-                          lineHeight:
-                            1.15,
+                          lineHeight: 1.15,
                         }}
                       >
                         {t.amount}
@@ -1539,17 +1297,15 @@ export default function PostBillingEditPage({
                       <TableCell
                         align="right"
                         sx={{
-                          fontSize: 9,
-                          color:
-                            "#374151",
+                          fontSize: 10,
+                          color: "#374151",
                           verticalAlign:
-                            "top",
-                          py: 0.85,
-                          px: 0.8,
+                            "middle",
+                          py: 1.2,
+                          px: 1,
                           whiteSpace:
                             "nowrap",
-                          lineHeight:
-                            1.15,
+                          lineHeight: 1.15,
                         }}
                       >
                         {t.patResp}
@@ -1560,18 +1316,16 @@ export default function PostBillingEditPage({
                       <TableCell
                         align="right"
                         sx={{
-                          fontSize: 9,
+                          fontSize: 10,
                           fontWeight: 600,
-                          color:
-                            "#374151",
+                          color: "#374151",
                           verticalAlign:
-                            "top",
-                          py: 0.85,
-                          px: 0.8,
+                            "middle",
+                          py: 1.2,
+                          px: 1,
                           whiteSpace:
                             "nowrap",
-                          lineHeight:
-                            1.15,
+                          lineHeight: 1.15,
                         }}
                       >
                         {t.balance}
