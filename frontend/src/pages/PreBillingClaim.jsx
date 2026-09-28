@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import PostBillingEditPage from "./Postbillingeditpage";
 import {
   Box,
   Typography,
@@ -24,19 +25,21 @@ import {
   Select,
   FormControl,
   Switch,
-   Dialog, 
-   
+  Dialog,
 } from "@mui/material";
-import { ViewList, ViewModule, KeyboardArrowDown, Close, CalendarToday, Add,  
+import {
+  ViewList,
+  ViewModule,
+  KeyboardArrowDown,
+  Close,
+  CalendarToday,
+  Add,
   ArrowBackIosNew,
   ArrowForwardIos,
   Visibility,
   InfoOutlined,
-  // DeleteOutline,
-  ForumOutlined,
-  MarkEmailReadOutlined,
-  DescriptionOutlined,
-  
+  VisibilityOutlined,
+  DeleteOutlineOutlined,
 } from "@mui/icons-material";
 import {
   Search,
@@ -53,8 +56,149 @@ import {
   RefreshIcon,
   ViewIconRemittance,
   DownloadIconRemittance,
+  SmsIcon,
+  AtRateIcon,
+  PrinterIcon,
+  ListIcon,
 } from "../assets/Assets";
 
+// Sample data for Patient Statement - "History" tab (15 batches)
+const BLUE = "#0B63F6";
+const ICON_BLUE = "#2F6FED";
+
+const headBg = "#F1F5FC";
+const selHeadBg = "#E6EDFC";
+const selBodyBg = "#EEF3FE";
+
+const thSx = {
+  fontWeight: 600,
+  fontSize: 11,
+  color: "#4B5563",
+  backgroundColor: headBg,
+  borderBottom: "1px solid #E5E7EB",
+  whiteSpace: "nowrap",
+  padding: "8px 8px",
+};
+
+const tdSx = {
+  fontSize: 11,
+  color: "#1F2937",
+  padding: "6px 8px",
+  borderBottom: "1px solid #F0F1F4",
+};
+
+const checkboxSx = {
+  p: 0,
+  color: "#9CA3AF",
+  "& .MuiSvgIcon-root": { fontSize: 18 },
+  "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: BLUE },
+};
+
+const pillBtnSx = (active) => ({
+  textTransform: "none",
+  fontSize: 12,
+  fontWeight: 600,
+  height: 28,
+  minWidth: 0,
+  px: 1.75,
+  borderRadius: "14px",
+  gap: 0.6,
+  backgroundColor: active ? BLUE : "#FFFFFF",
+  color: active ? "#FFFFFF" : "#111827",
+  border: active ? "1px solid " + BLUE : "1px solid #E5E7EB",
+  boxShadow: "none",
+  "&:hover": {
+    backgroundColor: active ? "#0952CC" : "#F9FAFB",
+    boxShadow: "none",
+  },
+});
+
+const squareIconBtnSx = {
+  width: 34,
+  height: 32,
+  borderRadius: "8px",
+  backgroundColor: "#FFFFFF",
+  border: "1px solid #E5E7EB",
+  "&:hover": { backgroundColor: "#F9FAFB" },
+};
+
+const filterChipSx = {
+  textTransform: "none",
+  color: "#1F2937",
+  borderColor: "#E5E7EB",
+  backgroundColor: "#FFFFFF",
+  fontWeight: 500,
+  fontSize: 12,
+  height: 32,
+  px: 1.75,
+  borderRadius: "8px",
+  whiteSpace: "nowrap",
+  "&:hover": { borderColor: "#D1D5DB", backgroundColor: "#F9FAFB" },
+};
+
+const footerBtnSx = {
+  textTransform: "none",
+  color: "#1F2937",
+  borderColor: "#E5E7EB",
+  backgroundColor: "#FFFFFF",
+  fontWeight: 500,
+  fontSize: 12,
+  height: 34,
+  px: 1.75,
+  borderRadius: "6px",
+  "&:hover": { borderColor: "#D1D5DB", backgroundColor: "#F9FAFB" },
+};
+
+const chipBase = {
+  height: "auto",
+  maxWidth: 70,
+  borderRadius: "4px",
+  fontWeight: 600,
+  fontSize: 9.5,
+  "& .MuiChip-label": {
+    whiteSpace: "normal",
+    px: 0.75,
+    py: 0.25,
+    lineHeight: 1.25,
+  },
+};
+
+const categoryStyles = {
+  "Self pay": { backgroundColor: "#E8ECFB", color: "#3B4CB8" },
+  Medicare: { backgroundColor: "#FDF1DC", color: "#9A5B0B" },
+  "Payment plan": { backgroundColor: "#DFF5EA", color: "#1E7F55" },
+  Commercial: { backgroundColor: "#E3EEFB", color: "#2F5FA8" },
+  "Credit bal.": { backgroundColor: "#FCE4E4", color: "#C0392B" },
+};
+
+const statusChipStyles = {
+  Draft: { backgroundColor: "#E8ECFB", color: "#3B4CB8" },
+  "Email sent": { backgroundColor: "#DFF5EA", color: "#1E7F55" },
+  "Partially sent": { backgroundColor: "#FDF1DC", color: "#B45309" },
+  Failure: { backgroundColor: "#FCE4E4", color: "#C0392B" },
+  "Queued for email": { backgroundColor: "#E3EEFB", color: "#2F5FA8" },
+};
+
+const HeadLabel = ({ children }) => (
+  <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.25 }}>
+    {children}
+    <KeyboardArrowDown sx={{ fontSize: 14, color: "#9CA3AF" }} />
+  </Box>
+);
+
+const tableContainerSx = {
+  boxShadow: "none",
+  border: "1px solid #E5E7EB",
+  borderRadius: "10px",
+  maxHeight: "None",
+  overflow: "auto",
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+};
 
 function ClaimField({ label, value, calendar, disabled }) {
   return (
@@ -119,8 +263,99 @@ function ClaimSelect({ label, value }) {
   );
 }
 
+function ChargeCaptureBanner() {
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        backgroundColor: "#EFF7FF",
+        border: "1px solid #D5E3F2",
+        p: "10px 12px",
+        mx: 2,
+        mt: 2,
+        borderRadius: "10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 2,
+        minHeight: "52px",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Left Content */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minWidth: 0,
+          gap: "3px",
+        }}
+      >
+        <Typography
+          component="div"
+          sx={{
+            fontWeight: 700,
+            color: "#0066FF",
+            fontSize: "10px",
+            lineHeight: 1.2,
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+          }}
+        >
+          <Star />
+          <span>CHARGE-CAPTURE ASSIST</span>
+        </Typography>
+
+        <Typography
+          component="div"
+          sx={{
+            color: "#374151",
+            fontSize: "11px",
+            lineHeight: 1.45,
+            whiteSpace: "normal",
+          }}
+        >
+          TiaStat auto-coded <strong>11 encounters</strong> from clinical
+          notes. <strong>3 are clean and ready to bill</strong>; the rest have
+          flagged edits (gender conflicts, missing etiology dx,
+          cosmetic-vs-functional). Toggle Grid to see full problem/procedure
+          detail without opening each record.
+        </Typography>
+      </Box>
+
+      {/* View Details Button */}
+      <Button
+        variant="contained"
+        size="small"
+        sx={{
+          textTransform: "none",
+          backgroundColor: "#0066FF",
+          color: "#fff",
+          boxShadow: "none",
+          fontSize: "11px",
+          px: 2,
+          py: 0,
+          minWidth: "89px",
+          height: "30px",
+          fontWeight: 600,
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+          borderRadius: "6px",
+          "&:hover": {
+            backgroundColor: "#0066FF",
+            boxShadow: "none",
+          },
+        }}
+      >
+        View details
+      </Button>
+    </Box>
+  );
+}
+
 function PreBillingClaim() {
-  
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
@@ -130,28 +365,27 @@ function PreBillingClaim() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showColumnSettings, setShowColumnSettings] = useState(false);
-const [visibleColumns, setVisibleColumns] = useState({
-  dos: true,
-  patientName: true,
-  cpt: true,
-  modifier: true,
-  icd: true,
-  primaryInsurance: true,
-  billedAmount: true,
-  patientCopay: true,
-  status: true,
-  remarks: true,
-  encounterId: true,
-  claimId: true,
-});
-
+  const [visibleColumns, setVisibleColumns] = useState({
+    dos: true,
+    patientName: true,
+    cpt: true,
+    modifier: true,
+    icd: true,
+    primaryInsurance: true,
+    billedAmount: true,
+    patientCopay: true,
+    status: true,
+    remarks: true,
+    encounterId: true,
+    claimId: true,
+  });
 
   useEffect(() => {
     if (location.state?.activeTab !== undefined) {
       setCurrentTab(location.state.activeTab);
     }
   }, [location.state]);
-  
+
   // Advanced filter states
   const [filterPractice, setFilterPractice] = useState("");
   const [filterServiceLocation, setFilterServiceLocation] = useState("");
@@ -1102,31 +1336,249 @@ const [visibleColumns, setVisibleColumns] = useState({
 
   // Sample data for Patient Statement - "New" tab (15 records)
   const newStatementData = [
-    { id: 1, name: "Aamir Pathan", pid: "863", dob: "05/13/1984", category: "Self pay", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$600.00", selectedBalance: "$600.00", alert: "" },
-    { id: 2, name: "Ashwani Srivas..", pid: "849", dob: "06/30/2000", category: "Self pay", lastStatement: "11/11/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$44.08", selectedBalance: "$44.08", alert: "" },
-    { id: 3, name: "Asok Rana", pid: "852", dob: "11/27/1980", category: "Self pay", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$220.00", selectedBalance: "$220.00", alert: "" },
-    { id: 4, name: "Beena Rawat", pid: "846", dob: "08/24/1965", category: "Medicare", lastStatement: "11/19/2025", sent: 1, calls: 0, emails: 1, docs: 0, enc: "1/1", balance: "$180.00", selectedBalance: "$180.00", alert: "" },
-    { id: 5, name: "Daniel Mishra", pid: "833", dob: "11/17/1999", category: "Payment plan", lastStatement: "11/11/2025", sent: 2, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "$554.50", selectedBalance: "$554.50", alert: "" },
-    { id: 6, name: "Dinesh Singh", pid: "837", dob: "06/23/1998", category: "Self pay", lastStatement: "12/13/2025", sent: 1, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$101.00", selectedBalance: "$101.00", alert: "", flagged: true },
-    { id: 7, name: "Divesh Sundriyal", pid: "830", dob: "05/18/1987", category: "Self pay", lastStatement: "01/14/2026", sent: 2, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "$120.00", selectedBalance: "$120.00", alert: "" },
-    { id: 8, name: "Divya Negi", pid: "828", dob: "01/27/1990", category: "Self pay", lastStatement: "07/28/2026", sent: 2, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$133.00", selectedBalance: "$133.00", alert: "Bad address on file, mailing" },
-    { id: 9, name: "Govind Singh", pid: "850", dob: "05/12/2013", category: "Commercial", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$226.00", selectedBalance: "$226.00", alert: "Bad address on file, mailing" },
-    { id: 10, name: "Govind Singh", pid: "850", dob: "05/12/2013", category: "Commercial", lastStatement: "Never sent", sent: 0, calls: 0, emails: 0, docs: 0, enc: "1/1", balance: "$226.00", selectedBalance: "$226.00", alert: "Bad address on file, mailing" },
-    { id: 11, name: "Preeti Bhandari", pid: "868", dob: "03/09/1972", category: "Medicare", lastStatement: "02/02/2026", sent: 3, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$88.25", selectedBalance: "$88.25", alert: "" },
-    { id: 12, name: "Rajkumar Patwal", pid: "827", dob: "02/13/1989", category: "Credit bal.", lastStatement: "Never sent", sent: 0, calls: 1, emails: 1, docs: 0, enc: "1/1", balance: "-$1,652.00", selectedBalance: "-$1,652.00", alert: "", negative: true },
-    { id: 13, name: "Ramesh Chopra", pid: "854", dob: "11/29/2001", category: "Payment plan", lastStatement: "11/25/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$284.00", selectedBalance: "$284.00", alert: "" },
-    { id: 14, name: "Salmaan Pathan", pid: "864", dob: "10/29/1979", category: "Commercial", lastStatement: "11/20/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$270.00", selectedBalance: "$270.00", alert: "" },
-    { id: 15, name: "Sunita Joshi", pid: "875", dob: "12/01/1958", category: "Commercial", lastStatement: "10/30/2025", sent: 1, calls: 1, emails: 0, docs: 0, enc: "1/1", balance: "$96.40", selectedBalance: "$96.40", alert: "" },
+    {
+      id: 1,
+      name: "Aamir Pathan",
+      pid: "863",
+      dob: "05/13/1984",
+      category: "Self pay",
+      lastStatement: "Never sent",
+      sent: 0,
+      calls: 0,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$600.00",
+      selectedBalance: "$600.00",
+      alert: "",
+    },
+    {
+      id: 2,
+      name: "Ashwani Srivas..",
+      pid: "849",
+      dob: "06/30/2000",
+      category: "Self pay",
+      lastStatement: "11/11/2025",
+      sent: 1,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$44.08",
+      selectedBalance: "$44.08",
+      alert: "",
+    },
+    {
+      id: 3,
+      name: "Asok Rana",
+      pid: "852",
+      dob: "11/27/1980",
+      category: "Self pay",
+      lastStatement: "Never sent",
+      sent: 0,
+      calls: 0,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$220.00",
+      selectedBalance: "$220.00",
+      alert: "",
+    },
+    {
+      id: 4,
+      name: "Beena Rawat",
+      pid: "846",
+      dob: "08/24/1965",
+      category: "Medicare",
+      lastStatement: "11/19/2025",
+      sent: 1,
+      calls: 0,
+      emails: 1,
+      docs: 0,
+      enc: "1/1",
+      balance: "$180.00",
+      selectedBalance: "$180.00",
+      alert: "",
+    },
+    {
+      id: 5,
+      name: "Daniel Mishra",
+      pid: "833",
+      dob: "11/17/1999",
+      category: "Payment plan",
+      lastStatement: "11/11/2025",
+      sent: 2,
+      calls: 1,
+      emails: 1,
+      docs: 0,
+      enc: "1/1",
+      balance: "$554.50",
+      selectedBalance: "$554.50",
+      alert: "",
+    },
+    {
+      id: 6,
+      name: "Dinesh Singh",
+      pid: "837",
+      dob: "06/23/1998",
+      category: "Self pay",
+      lastStatement: "12/13/2025",
+      sent: 1,
+      calls: 0,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$101.00",
+      selectedBalance: "$101.00",
+      alert: "",
+      flagged: true,
+    },
+    {
+      id: 7,
+      name: "Divesh Sundriyal",
+      pid: "830",
+      dob: "05/18/1987",
+      category: "Self pay",
+      lastStatement: "01/14/2026",
+      sent: 2,
+      calls: 1,
+      emails: 1,
+      docs: 0,
+      enc: "1/1",
+      balance: "$120.00",
+      selectedBalance: "$120.00",
+      alert: "",
+    },
+    {
+      id: 8,
+      name: "Divya Negi",
+      pid: "828",
+      dob: "01/27/1990",
+      category: "Self pay",
+      lastStatement: "07/28/2026",
+      sent: 2,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$133.00",
+      selectedBalance: "$133.00",
+      alert: "Bad address on file, mailing",
+    },
+    {
+      id: 9,
+      name: "Govind Singh",
+      pid: "850",
+      dob: "05/12/2013",
+      category: "Commercial",
+      lastStatement: "Never sent",
+      sent: 0,
+      calls: 0,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$226.00",
+      selectedBalance: "$226.00",
+      alert: "Bad address on file, mailing",
+    },
+    {
+      id: 10,
+      name: "Govind Singh",
+      pid: "850",
+      dob: "05/12/2013",
+      category: "Commercial",
+      lastStatement: "Never sent",
+      sent: 0,
+      calls: 0,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$226.00",
+      selectedBalance: "$226.00",
+      alert: "Bad address on file, mailing",
+    },
+    {
+      id: 11,
+      name: "Preeti Bhandari",
+      pid: "868",
+      dob: "03/09/1972",
+      category: "Medicare",
+      lastStatement: "02/02/2026",
+      sent: 3,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$88.25",
+      selectedBalance: "$88.25",
+      alert: "",
+    },
+    {
+      id: 12,
+      name: "Rajkumar Patwal",
+      pid: "827",
+      dob: "02/13/1989",
+      category: "Credit bal.",
+      lastStatement: "Never sent",
+      sent: 0,
+      calls: 1,
+      emails: 1,
+      docs: 0,
+      enc: "1/1",
+      balance: "-$1,652.00",
+      selectedBalance: "-$1,652.00",
+      alert: "",
+      negative: true,
+    },
+    {
+      id: 13,
+      name: "Ramesh Chopra",
+      pid: "854",
+      dob: "11/29/2001",
+      category: "Payment plan",
+      lastStatement: "11/25/2025",
+      sent: 1,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$284.00",
+      selectedBalance: "$284.00",
+      alert: "",
+    },
+    {
+      id: 14,
+      name: "Salmaan Pathan",
+      pid: "864",
+      dob: "10/29/1979",
+      category: "Commercial",
+      lastStatement: "11/20/2025",
+      sent: 1,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$270.00",
+      selectedBalance: "$270.00",
+      alert: "",
+    },
+    {
+      id: 15,
+      name: "Sunita Joshi",
+      pid: "875",
+      dob: "12/01/1958",
+      category: "Commercial",
+      lastStatement: "10/30/2025",
+      sent: 1,
+      calls: 1,
+      emails: 0,
+      docs: 0,
+      enc: "1/1",
+      balance: "$96.40",
+      selectedBalance: "$96.40",
+      alert: "",
+    },
   ];
-
-  // Sample data for Patient Statement - "History" tab (15 batches)
-  const statusChipStyles = {
-    Draft: { backgroundColor: "#F3F4F6", color: "#4B5563" },
-    "Email sent": { backgroundColor: "#DCFCE7", color: "#15803D" },
-    "Partially sent": { backgroundColor: "#FEF3E2", color: "#B45309" },
-    Failure: { backgroundColor: "#FEE2E2", color: "#B91C1C" },
-    "Queued for email": { backgroundColor: "#EDE4FF", color: "#6D28D9" },
-  };
 
   const historyBatchStatuses = [
     "Draft",
@@ -1176,7 +1628,7 @@ const [visibleColumns, setVisibleColumns] = useState({
 
   const handleStatementRowSelect = (id) => {
     setStatementSelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id],
     );
   };
 
@@ -1190,7 +1642,7 @@ const [visibleColumns, setVisibleColumns] = useState({
 
   const handleHistoryRowSelect = (id) => {
     setHistorySelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id],
     );
   };
 
@@ -1223,6 +1675,11 @@ const [visibleColumns, setVisibleColumns] = useState({
           return true;
         })
       : postBillingClaimsData;
+  if (showClaimDetails && selectedClaim) {
+    return (
+      <PostBillingEditPage claim={selectedClaim} onBack={handleBackToTable} />
+    );
+  }
 
   return (
     <Box
@@ -1231,7 +1688,7 @@ const [visibleColumns, setVisibleColumns] = useState({
         height: "100%",
         backgroundColor: "#f5f7fa",
         overflow: "hidden",
-         overflowY: "auto", 
+        overflowY: "auto",
       }}
     >
       {/* Main Tabs and Search Bar in Same Row */}
@@ -1438,682 +1895,596 @@ const [visibleColumns, setVisibleColumns] = useState({
       </Box>
 
       {/* Advanced Filters Panel - For Post-billing tab */}
-     {currentTab === 1 && showAdvancedFilters && (
-  <Box
-    sx={{
-      backgroundColor: "#F5F7FA",
-      px: 2,
-      py: 2,
-    }}
-  >
-    <Box
-      sx={{
-        backgroundColor: "#FFFFFF",
-        borderRadius: "12px",
-        border: "1px solid #E5E7EB",
-        p: 3,
-        position: "relative",
-      }}
-    >
-      {/* First Row */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        {/* Select Practice */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Select Practice
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={filterPractice}
-              onChange={(e) => setFilterPractice(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 13,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#6B7280",
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="practice1">Practice 1</MenuItem>
-              <MenuItem value="practice2">Practice 2</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Service Location */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Service Location
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={filterServiceLocation}
-              onChange={(e) => setFilterServiceLocation(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 13,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#6B7280",
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="location1">Location 1</MenuItem>
-              <MenuItem value="location2">Location 2</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Patient Name */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Patient Name
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type"
-            value={filterPatientName}
-            onChange={(e) => setFilterPatientName(e.target.value)}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Search style={{ width: 16, height: 16 }} />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* FIN ID */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            FIN ID
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type"
-            value={filterFinId}
-            onChange={(e) => setFilterFinId(e.target.value)}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Search style={{ width: 16, height: 16 }} />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* MRN */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            MRN
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type"
-            value={filterMrn}
-            onChange={(e) => setFilterMrn(e.target.value)}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Search style={{ width: 16, height: 16 }} />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* Batch Number */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Batch Number
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type"
-            value={filterBatchNumber}
-            onChange={(e) => setFilterBatchNumber(e.target.value)}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Search style={{ width: 16, height: 16 }} />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* Second Row */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
-          gap: 2,
-          mb: 2.5,
-        }}
-      >
-        {/* Claim number */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Claim number
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type"
-            value={filterClaimNumber}
-            onChange={(e) => setFilterClaimNumber(e.target.value)}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Search style={{ width: 16, height: 16 }} />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* DOS From */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            DOS From
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            value={filterDosFrom}
-            onChange={(e) => setFilterDosFrom(e.target.value)}
-            placeholder="Select provider"
-            InputLabelProps={{ shrink: true }}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <CalendarToday sx={{ fontSize: 18, color: "#9CA3AF" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* DOS Till */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            DOS Till
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            value={filterDosTill}
-            onChange={(e) => setFilterDosTill(e.target.value)}
-            placeholder="Select provider"
-            InputLabelProps={{ shrink: true }}
-            sx={{
-              fontSize: 13,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 13,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <CalendarToday sx={{ fontSize: 18, color: "#9CA3AF" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        {/* Select Status */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Select Status
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 13,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#6B7280",
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="submitted">Submitted</MenuItem>
-              <MenuItem value="ready">Ready for statement</MenuItem>
-              <MenuItem value="settled">Settled</MenuItem>
-              <MenuItem value="era">ERA Received</MenuItem>
-              <MenuItem value="posted">Posted</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Select Insurance */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-            }}
-          >
-            Select Insurance
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={filterInsurance}
-              onChange={(e) => setFilterInsurance(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 13,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#6B7280",
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="aetna">Aetna</MenuItem>
-              <MenuItem value="bcbs">BCBS</MenuItem>
-              <MenuItem value="cigna">Cigna</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Select submission Method */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.8,
-                whiteSpace: "nowrap",
-            }}
-          >
-            Select submission Method
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={filterSubmissionMethod}
-              onChange={(e) => setFilterSubmissionMethod(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 13,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#E5E7EB",
-                  borderRadius: "8px",
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select location
-              </MenuItem>
-              <MenuItem value="electronic">Electronic</MenuItem>
-              <MenuItem value="paper">Paper</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Box>
-
-      {/* Action Buttons */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1.5,
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#0066FF",
-            color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: 13,
-            px: 3,
-            py: 0.8,
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: "#0052CC",
-              boxShadow: "none",
-            },
-          }}
-        >
-          Search
-        </Button>
-
-        <Button
-          variant="outlined"
-          onClick={handleResetFilters}
-          sx={{
-            textTransform: "none",
-            color: "#374151",
-            borderColor: "#E5E7EB",
-            fontWeight: 600,
-            fontSize: 13,
-            px: 3,
-            py: 0.8,
-            "&:hover": {
-              borderColor: "#D1D5DB",
-              backgroundColor: "#F9FAFB",
-            },
-          }}
-        >
-          Reset
-        </Button>
-      </Box>
-    </Box>
-  </Box>
-)}
-
-      {/* Info Banner */}
-      {currentTab === 0 && (
+      {currentTab === 1 && showAdvancedFilters && (
         <Box
           sx={{
-            backgroundColor: "#EFF7FF",
-            border: "1px solid #D5E3F2",
-            p: "10px 12px",
-            mx: 2,
-            mt: 2,
-            borderRadius: "10px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
-            minHeight: "52px",
-            boxSizing: "border-box",
+            backgroundColor: "#F5F7FA",
+            px: 2,
+            py: 2,
           }}
         >
-          {/* Left Content */}
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-              minWidth: 0,
-              gap: "3px",
+              backgroundColor: "#FFFFFF",
+              borderRadius: "12px",
+              border: "1px solid #E5E7EB",
+              p: 3,
+              position: "relative",
             }}
           >
-            {/* Heading */}
-            <Typography
-              component="div"
+            {/* First Row */}
+            <Box
               sx={{
-                fontWeight: 700,
-                color: "#0066FF",
-                fontSize: "10px",
-                lineHeight: 1.2,
+                display: "grid",
+                gridTemplateColumns: "repeat(6, 1fr)",
+                gap: 2,
+                mb: 2,
+              }}
+            >
+              {/* Select Practice */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Select Practice
+                </Typography>
+
+                <FormControl fullWidth size="small">
+                  <Select
+                    displayEmpty
+                    value={filterPractice}
+                    onChange={(e) => setFilterPractice(e.target.value)}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                      "& .MuiSelect-icon": {
+                        color: "#6B7280",
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select
+                    </MenuItem>
+                    <MenuItem value="practice1">Practice 1</MenuItem>
+                    <MenuItem value="practice2">Practice 2</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* Service Location */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Service Location
+                </Typography>
+
+                <FormControl fullWidth size="small">
+                  <Select
+                    displayEmpty
+                    value={filterServiceLocation}
+                    onChange={(e) => setFilterServiceLocation(e.target.value)}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                      "& .MuiSelect-icon": {
+                        color: "#6B7280",
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select
+                    </MenuItem>
+                    <MenuItem value="location1">Location 1</MenuItem>
+                    <MenuItem value="location2">Location 2</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* Patient Name */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Patient Name
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type"
+                  value={filterPatientName}
+                  onChange={(e) => setFilterPatientName(e.target.value)}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Search style={{ width: 16, height: 16 }} />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* FIN ID */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  FIN ID
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type"
+                  value={filterFinId}
+                  onChange={(e) => setFilterFinId(e.target.value)}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Search style={{ width: 16, height: 16 }} />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* MRN */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  MRN
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type"
+                  value={filterMrn}
+                  onChange={(e) => setFilterMrn(e.target.value)}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Search style={{ width: 16, height: 16 }} />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* Batch Number */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Batch Number
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type"
+                  value={filterBatchNumber}
+                  onChange={(e) => setFilterBatchNumber(e.target.value)}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Search style={{ width: 16, height: 16 }} />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Second Row */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(6, 1fr)",
+                gap: 2,
+                mb: 2.5,
+              }}
+            >
+              {/* Claim number */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Claim number
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Type"
+                  value={filterClaimNumber}
+                  onChange={(e) => setFilterClaimNumber(e.target.value)}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <Search style={{ width: 16, height: 16 }} />
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* DOS From */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  DOS From
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="date"
+                  value={filterDosFrom}
+                  onChange={(e) => setFilterDosFrom(e.target.value)}
+                  placeholder="Select provider"
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <CalendarToday
+                          sx={{ fontSize: 18, color: "#9CA3AF" }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* DOS Till */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  DOS Till
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="date"
+                  value={filterDosTill}
+                  onChange={(e) => setFilterDosTill(e.target.value)}
+                  placeholder="Select provider"
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    fontSize: 13,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <CalendarToday
+                          sx={{ fontSize: 18, color: "#9CA3AF" }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* Select Status */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Select Status
+                </Typography>
+
+                <FormControl fullWidth size="small">
+                  <Select
+                    displayEmpty
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                      "& .MuiSelect-icon": {
+                        color: "#6B7280",
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select
+                    </MenuItem>
+                    <MenuItem value="submitted">Submitted</MenuItem>
+                    <MenuItem value="ready">Ready for statement</MenuItem>
+                    <MenuItem value="settled">Settled</MenuItem>
+                    <MenuItem value="era">ERA Received</MenuItem>
+                    <MenuItem value="posted">Posted</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* Select Insurance */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                  }}
+                >
+                  Select Insurance
+                </Typography>
+
+                <FormControl fullWidth size="small">
+                  <Select
+                    displayEmpty
+                    value={filterInsurance}
+                    onChange={(e) => setFilterInsurance(e.target.value)}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                      "& .MuiSelect-icon": {
+                        color: "#6B7280",
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select
+                    </MenuItem>
+                    <MenuItem value="aetna">Aetna</MenuItem>
+                    <MenuItem value="bcbs">BCBS</MenuItem>
+                    <MenuItem value="cigna">Cigna</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {/* Select submission Method */}
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 0.8,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Select submission Method
+                </Typography>
+
+                <FormControl fullWidth size="small">
+                  <Select
+                    displayEmpty
+                    value={filterSubmissionMethod}
+                    onChange={(e) => setFilterSubmissionMethod(e.target.value)}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: 13,
+                      borderRadius: "8px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                        borderRadius: "8px",
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select location
+                    </MenuItem>
+                    <MenuItem value="electronic">Electronic</MenuItem>
+                    <MenuItem value="paper">Paper</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
+
+            {/* Action Buttons */}
+            <Box
+              sx={{
                 display: "flex",
-                alignItems: "center",
-                gap: "5px",
+                gap: 1.5,
               }}
             >
-              <Star />
+              <Button
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#0066FF",
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  px: 3,
+                  py: 0.8,
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: "#0052CC",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                Search
+              </Button>
 
-              <span>CHARGE-CAPTURE ASSIST</span>
-            </Typography>
-
-            {/* Description */}
-            <Typography
-              component="div"
-              sx={{
-                color: "#374151",
-                fontSize: "11px",
-                lineHeight: 1.45,
-                whiteSpace: "normal",
-              }}
-            >
-              TiaStat auto-coded <strong>11 encounters</strong> from clinical
-              notes. <strong>3 are clean and ready to bill</strong>; the rest
-              have flagged edits (gender conflicts, missing etiology dx,
-              cosmetic-vs-functional). Toggle Grid to see full problem/procedure
-              detail without opening each record.
-            </Typography>
+              <Button
+                variant="outlined"
+                onClick={handleResetFilters}
+                sx={{
+                  textTransform: "none",
+                  color: "#374151",
+                  borderColor: "#E5E7EB",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  px: 3,
+                  py: 0.8,
+                  "&:hover": {
+                    borderColor: "#D1D5DB",
+                    backgroundColor: "#F9FAFB",
+                  },
+                }}
+              >
+                Reset
+              </Button>
+            </Box>
           </Box>
-
-          {/* View Details Button */}
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#0066FF",
-              color: "#fff",
-              boxShadow: "none",
-              fontSize: "11px",
-              px: 2,
-              py: 0,
-              minWidth: "89px",
-              height: "30px",
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              borderRadius: "6px",
-              "&:hover": {
-                backgroundColor: "#0066FF",
-                boxShadow: "none",
-              },
-            }}
-          >
-            View details
-          </Button>
         </Box>
       )}
+
+      {/* Info Banner */}
+      {currentTab === 0 && <ChargeCaptureBanner />}
 
       {/* Status Filter Chips and Actions in Same Row - Only for Pre-billing */}
       {currentTab === 0 && (
@@ -2156,8 +2527,7 @@ const [visibleColumns, setVisibleColumns] = useState({
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <IconButton
               size="small"
-              
-onClick={() => setShowColumnSettings(true)}
+              onClick={() => setShowColumnSettings(true)}
               sx={{
                 width: 40,
                 height: 30,
@@ -2595,7 +2965,7 @@ onClick={() => setShowColumnSettings(true)}
                                 <IconButton
                                   size="small"
                                   sx={{ padding: "4px" }}
-                                   onClick={() => navigate("/new-encounter")}
+                                  onClick={() => navigate("/new-encounter")}
                                 >
                                   <EditIconClaim />
                                 </IconButton>
@@ -3114,95 +3484,7 @@ onClick={() => setShowColumnSettings(true)}
           }}
         >
           {/* Info Banner for Post-billing */}
-           <Box
-          sx={{
-            backgroundColor: "#EFF7FF",
-            border: "1px solid #D5E3F2",
-            p: "10px 12px",
-            mx: 2,
-            mt: 2,
-            borderRadius: "10px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
-            minHeight: "52px",
-            boxSizing: "border-box",
-          }}
-        >
-          {/* Left Content */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-              minWidth: 0,
-              gap: "3px",
-            }}
-          >
-            {/* Heading */}
-            <Typography
-              component="div"
-              sx={{
-                fontWeight: 700,
-                color: "#0066FF",
-                fontSize: "10px",
-                lineHeight: 1.2,
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              <Star />
-
-              <span>CHARGE-CAPTURE ASSIST</span>
-            </Typography>
-
-            {/* Description */}
-            <Typography
-              component="div"
-              sx={{
-                color: "#374151",
-                fontSize: "11px",
-                lineHeight: 1.45,
-                whiteSpace: "normal",
-              }}
-            >
-              TiaStat auto-coded <strong>11 encounters</strong> from clinical
-              notes. <strong>3 are clean and ready to bill</strong>; the rest
-              have flagged edits (gender conflicts, missing etiology dx,
-              cosmetic-vs-functional). Toggle Grid to see full problem/procedure
-              detail without opening each record.
-            </Typography>
-          </Box>
-
-          {/* View Details Button */}
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              textTransform: "none",
-              backgroundColor: "#0066FF",
-              color: "#fff",
-              boxShadow: "none",
-              fontSize: "11px",
-              px: 2,
-              py: 0,
-              minWidth: "89px",
-              height: "30px",
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              borderRadius: "6px",
-              "&:hover": {
-                backgroundColor: "#0066FF",
-                boxShadow: "none",
-              },
-            }}
-          >
-            View details
-          </Button>
-        </Box>
+         <ChargeCaptureBanner />
 
           {/* Action Buttons Row */}
           <Box
@@ -3360,7 +3642,6 @@ onClick={() => setShowColumnSettings(true)}
                     display: "flex",
                     flexDirection: "column",
                     gap: 0.8,
-                    
                   }}
                 >
                   {/* Print Claim */}
@@ -3386,7 +3667,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Print Claim</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+P
                     </span>
                   </Box>
@@ -3419,7 +3706,8 @@ onClick={() => setShowColumnSettings(true)}
                     <span
                       style={{
                         color: "#9CA3AF",
-                        fontSize: 10,fontWeight:500
+                        fontSize: 10,
+                        fontWeight: 500,
                       }}
                     >
                       Ctrl+R
@@ -3449,7 +3737,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Transfer balance</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+T
                     </span>
                   </Box>
@@ -3486,9 +3780,10 @@ onClick={() => setShowColumnSettings(true)}
                     <span
                       style={{
                         color: "#9CA3AF",
-                       fontSize: 10,
+                        fontSize: 10,
                         whiteSpace: "nowrap",
-                        marginLeft: 8,fontWeight:500
+                        marginLeft: 8,
+                        fontWeight: 500,
                       }}
                     >
                       Ctrl+Shift+T
@@ -3518,7 +3813,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Note</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10 ,fontWeight:500}}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+N
                     </span>
                   </Box>
@@ -3546,7 +3847,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Settle</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+S
                     </span>
                   </Box>
@@ -3574,7 +3881,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Re-open</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+Shift+R
                     </span>
                   </Box>
@@ -3602,7 +3915,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Void</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+O
                     </span>
                   </Box>
@@ -3629,7 +3948,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Apply Payment</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+Shift+A
                     </span>
                   </Box>
@@ -3656,7 +3981,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Adjustment</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+J
                     </span>
                   </Box>
@@ -3683,7 +4014,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Apply payment &amp; adjust</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500}}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+Shift+J
                     </span>
                   </Box>
@@ -3710,7 +4047,13 @@ onClick={() => setShowColumnSettings(true)}
                     }}
                   >
                     <span>Set follow-up date</span>
-                    <span style={{ color: "#9CA3AF", fontSize: 10,fontWeight:500 }}>
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: 10,
+                        fontWeight: 500,
+                      }}
+                    >
                       Ctrl+Shift+F
                     </span>
                   </Box>
@@ -4058,8 +4401,8 @@ onClick={() => setShowColumnSettings(true)}
                             }}
                           >
                             <Tooltip title="Edit" placement="top">
-                              <IconButton 
-                                size="small" 
+                              <IconButton
+                                size="small"
                                 sx={{ padding: "4px" }}
                                 onClick={() => handleEditClick(row)}
                               >
@@ -4102,459 +4445,453 @@ onClick={() => setShowColumnSettings(true)}
           </Box>
 
           {/* Adjustment Details Section */}
-        <Box
-  sx={{
-    px: 2,
-    pb: 2,
-  }}
->
-  <Box
-    sx={{
-      backgroundColor: "#FFFFFF",
-      borderRadius: "12px",
-      border: "1px solid #E5E7EB",
-      p: 3,
-    }}
-  >
-    {/* Section Title */}
-    <Typography
-      sx={{
-        fontSize: 14,
-        fontWeight: 600,
-        color: "#374151",
-        mb: 2,
-      }}
-    >
-      Adjustment Details
-    </Typography>
-
-    {/* Grey Form Area */}
-    <Box
-      sx={{
-        backgroundColor: "#F5F6FA",
-        borderRadius: "10px",
-        p: 2,
-      }}
-    >
-      {/* First Row */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        {/* Type */}
-        <Box>
-          <Typography
+          <Box
             sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
+              px: 2,
+              pb: 2,
             }}
           >
-            Type
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={adjType}
-              onChange={(e) => setAdjType(e.target.value)}
-              IconComponent={KeyboardArrowDown}
+            <Box
               sx={{
-                fontSize: 12,
-                borderRadius: "10px",
                 backgroundColor: "#FFFFFF",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#555555",
-                  fontSize: 18,
-                  right: 7,
-                },
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                p: 3,
               }}
             >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="adjustment1">
-                Adjustment Type 1
-              </MenuItem>
-              <MenuItem value="adjustment2">
-                Adjustment Type 2
-              </MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+              {/* Section Title */}
+              <Typography
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#374151",
+                  mb: 2,
+                }}
+              >
+                Adjustment Details
+              </Typography>
 
-        {/* Posting Date */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Posting Date
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            value={adjPostingDate}
-            onChange={(e) => setAdjPostingDate(e.target.value)}
-            sx={{
-              fontSize: 12,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& fieldset": {
-                  borderColor: "#D9DEE7",
+              {/* Grey Form Area */}
+              <Box
+                sx={{
+                  backgroundColor: "#F5F6FA",
                   borderRadius: "10px",
-                },
-                "& input::-webkit-calendar-picker-indicator": {
-                  opacity: 1,
-                  cursor: "pointer",
-                  width: 16,
-                  height: 16,
-                  filter: "brightness(0)",
-                },
-              },
-            }}
-          />
-        </Box>
+                  p: 2,
+                }}
+              >
+                {/* First Row */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  {/* Type */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Type
+                    </Typography>
 
-        {/* Adjustment */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Adjustment
-          </Typography>
+                    <FormControl fullWidth size="small">
+                      <Select
+                        displayEmpty
+                        value={adjType}
+                        onChange={(e) => setAdjType(e.target.value)}
+                        IconComponent={KeyboardArrowDown}
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                          "& .MuiSelect-icon": {
+                            color: "#555555",
+                            fontSize: 18,
+                            right: 7,
+                          },
+                        }}
+                      >
+                        <MenuItem value="" disabled>
+                          Select
+                        </MenuItem>
+                        <MenuItem value="adjustment1">
+                          Adjustment Type 1
+                        </MenuItem>
+                        <MenuItem value="adjustment2">
+                          Adjustment Type 2
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
 
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type here"
-            value={adjAdjustment}
-            onChange={(e) => setAdjAdjustment(e.target.value)}
-            sx={{
-              fontSize: 12,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& fieldset": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-              },
-            }}
-          />
-        </Box>
+                  {/* Posting Date */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Posting Date
+                    </Typography>
 
-        {/* Adjustment Code */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Adjustment Code
-          </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="date"
+                      value={adjPostingDate}
+                      onChange={(e) => setAdjPostingDate(e.target.value)}
+                      sx={{
+                        fontSize: 12,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& fieldset": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                          "& input::-webkit-calendar-picker-indicator": {
+                            opacity: 1,
+                            cursor: "pointer",
+                            width: 16,
+                            height: 16,
+                            filter: "brightness(0)",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
 
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type here.."
-            value={adjAdjustmentCode}
-            onChange={(e) => setAdjAdjustmentCode(e.target.value)}
-            sx={{
-              fontSize: 12,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& fieldset": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-              },
-            }}
-          />
-        </Box>
-      </Box>
+                  {/* Adjustment */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Adjustment
+                    </Typography>
 
-      {/* Second Row */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        {/* Reason Code */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Reason Code
-          </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Type here"
+                      value={adjAdjustment}
+                      onChange={(e) => setAdjAdjustment(e.target.value)}
+                      sx={{
+                        fontSize: 12,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& fieldset": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
 
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={adjReasonCode}
-              onChange={(e) => setAdjReasonCode(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#555555",
-                  fontSize: 18,
-                  right: 7,
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="reason1">
-                Reason Code 1
-              </MenuItem>
-              <MenuItem value="reason2">
-                Reason Code 2
-              </MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+                  {/* Adjustment Code */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Adjustment Code
+                    </Typography>
 
-        {/* Related Payment */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Related payment
-          </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Type here.."
+                      value={adjAdjustmentCode}
+                      onChange={(e) => setAdjAdjustmentCode(e.target.value)}
+                      sx={{
+                        fontSize: 12,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& fieldset": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
 
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search"
-            value={adjRelatedPayment}
-            onChange={(e) => setAdjRelatedPayment(e.target.value)}
-            sx={{
-              fontSize: 12,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& fieldset": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Search
+                {/* Second Row */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  {/* Reason Code */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Reason Code
+                    </Typography>
+
+                    <FormControl fullWidth size="small">
+                      <Select
+                        displayEmpty
+                        value={adjReasonCode}
+                        onChange={(e) => setAdjReasonCode(e.target.value)}
+                        IconComponent={KeyboardArrowDown}
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                          "& .MuiSelect-icon": {
+                            color: "#555555",
+                            fontSize: 18,
+                            right: 7,
+                          },
+                        }}
+                      >
+                        <MenuItem value="" disabled>
+                          Select
+                        </MenuItem>
+                        <MenuItem value="reason1">Reason Code 1</MenuItem>
+                        <MenuItem value="reason2">Reason Code 2</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Related Payment */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Related payment
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Search"
+                      value={adjRelatedPayment}
+                      onChange={(e) => setAdjRelatedPayment(e.target.value)}
+                      sx={{
+                        fontSize: 12,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& fieldset": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                        },
+                      }}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Search
+                              sx={{
+                                fontSize: 16,
+                                color: "#111827",
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
+
+                  {/* Change Status */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Change status
+                    </Typography>
+
+                    <FormControl fullWidth size="small">
+                      <Select
+                        displayEmpty
+                        value={adjChangeStatus}
+                        onChange={(e) => setAdjChangeStatus(e.target.value)}
+                        IconComponent={KeyboardArrowDown}
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                          "& .MuiSelect-icon": {
+                            color: "#555555",
+                            fontSize: 18,
+                            right: 7,
+                          },
+                        }}
+                      >
+                        <MenuItem value="" disabled>
+                          Select
+                        </MenuItem>
+                        <MenuItem value="submitted">Submitted</MenuItem>
+                        <MenuItem value="ready">Ready for statement</MenuItem>
+                        <MenuItem value="settled">Settled</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Notes */}
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#374151",
+                        mb: 0.7,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Notes
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="date"
+                      value={adjNotes}
+                      onChange={(e) => setAdjNotes(e.target.value)}
+                      sx={{
+                        fontSize: 12,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 12,
+                          borderRadius: "10px",
+                          backgroundColor: "#FFFFFF",
+                          "& fieldset": {
+                            borderColor: "#D9DEE7",
+                            borderRadius: "10px",
+                          },
+                          "& input::-webkit-calendar-picker-indicator": {
+                            opacity: 1,
+                            cursor: "pointer",
+                            width: 16,
+                            height: 16,
+                            filter: "brightness(0)",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Action Buttons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 1,
+                    mt: 1,
+                  }}
+                >
+                  {/* Apply - FIRST */}
+                  <Button
+                    variant="contained"
                     sx={{
-                      fontSize: 16,
-                      color: "#111827",
+                      textTransform: "none",
+                      backgroundColor: "#0066FF",
+                      color: "#FFFFFF",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      px: 2.5,
+                      py: 0.65,
+                      minWidth: 70,
+                      borderRadius: "8px",
+                      boxShadow: "none",
+                      "&:hover": {
+                        backgroundColor: "#0052CC",
+                        boxShadow: "none",
+                      },
                     }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+                  >
+                    Apply
+                  </Button>
 
-        {/* Change Status */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Change status
-          </Typography>
-
-          <FormControl fullWidth size="small">
-            <Select
-              displayEmpty
-              value={adjChangeStatus}
-              onChange={(e) => setAdjChangeStatus(e.target.value)}
-              IconComponent={KeyboardArrowDown}
-              sx={{
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-                "& .MuiSelect-icon": {
-                  color: "#555555",
-                  fontSize: 18,
-                  right: 7,
-                },
-              }}
-            >
-              <MenuItem value="" disabled>
-                Select
-              </MenuItem>
-              <MenuItem value="submitted">Submitted</MenuItem>
-              <MenuItem value="ready">
-                Ready for statement
-              </MenuItem>
-              <MenuItem value="settled">Settled</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Notes */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#374151",
-              mb: 0.7,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Notes
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            value={adjNotes}
-            onChange={(e) => setAdjNotes(e.target.value)}
-            sx={{
-              fontSize: 12,
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "10px",
-                backgroundColor: "#FFFFFF",
-                "& fieldset": {
-                  borderColor: "#D9DEE7",
-                  borderRadius: "10px",
-                },
-                "& input::-webkit-calendar-picker-indicator": {
-                  opacity: 1,
-                  cursor: "pointer",
-                  width: 16,
-                  height: 16,
-                  filter: "brightness(0)",
-                },
-              },
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* Action Buttons */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 1,
-          mt: 1,
-        }}
-      >
-        {/* Apply - FIRST */}
-        <Button
-          variant="contained"
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#0066FF",
-            color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: 12,
-            px: 2.5,
-            py: 0.65,
-            minWidth: 70,
-            borderRadius: "8px",
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: "#0052CC",
-              boxShadow: "none",
-            },
-          }}
-        >
-          Apply
-        </Button>
-
-        {/* Cancel - SECOND */}
-        <Button
-          variant="outlined"
-          sx={{
-            textTransform: "none",
-            color: "#0066FF",
-            borderColor: "#0066FF",
-            fontWeight: 600,
-            fontSize: 12,
-            px: 2.5,
-            py: 0.65,
-            minWidth: 70,
-            borderRadius: "8px",
-            backgroundColor: "#FFFFFF",
-            "&:hover": {
-              borderColor: "#0052CC",
-              backgroundColor: "#F5F9FF",
-            },
-          }}
-        >
-          Cancel
-        </Button>
-      </Box>
+                  {/* Cancel - SECOND */}
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      textTransform: "none",
+                      color: "#0066FF",
+                      borderColor: "#0066FF",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      px: 2.5,
+                      py: 0.65,
+                      minWidth: 70,
+                      borderRadius: "8px",
+                      backgroundColor: "#FFFFFF",
+                      "&:hover": {
+                        borderColor: "#0052CC",
+                        backgroundColor: "#F5F9FF",
+                      },
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -4565,111 +4902,36 @@ onClick={() => setShowColumnSettings(true)}
       {currentTab === 2 && !showEobDetails && (
         <Box>
           {/* Info Banner */}
-          <Box
-            sx={{
-              backgroundColor: "#EFF7FF",
-              border: "1px solid #D5E3F2",
-              p: "10px 12px",
-              mx: 2,
-              mt: 2,
-              borderRadius: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              minHeight: "52px",
-              boxSizing: "border-box",
-            }}
-          >
-            {/* Left Content */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-                minWidth: 0,
-                gap: "3px",
-              }}
-            >
-              {/* Heading */}
-              <Typography
-                component="div"
-                sx={{
-                  fontWeight: 700,
-                  color: "#0066FF",
-                  fontSize: "10px",
-                  lineHeight: 1.2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
-              >
-                <Star />
-                <span>CHARGE-CAPTURE ASSIST</span>
-              </Typography>
-
-              {/* Description */}
-              <Typography
-                component="div"
-                sx={{
-                  color: "#374151",
-                  fontSize: "11px",
-                  lineHeight: 1.45,
-                  whiteSpace: "normal",
-                }}
-              >
-                TiaStat auto-coded <strong>11 encounters</strong> from clinical
-                notes. <strong>3 are clean and ready to bill</strong>; the rest
-                have flagged edits (gender conflicts, missing etiology dx,
-                cosmetic-vs-functional). Toggle Grid to see full problem/procedure
-                detail without opening each record.
-              </Typography>
-            </Box>
-
-            {/* View Details Button */}
-            <Button
-              variant="contained"
-              size="small"
-              sx={{
-                textTransform: "none",
-                backgroundColor: "#0066FF",
-                color: "#fff",
-                boxShadow: "none",
-                fontSize: "11px",
-                px: 2,
-                py: 0,
-                minWidth: "89px",
-                height: "30px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                borderRadius: "6px",
-                "&:hover": {
-                  backgroundColor: "#0066FF",
-                  boxShadow: "none",
-                },
-              }}
-            >
-              View details
-            </Button>
-          </Box>
+          <ChargeCaptureBanner />
 
           {/* Filter Chips */}
-          <Box sx={{ display: "flex", gap: 1, px: 2, py: 1.5, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              px: 2,
+              py: 1.5,
+              alignItems: "center",
+            }}
+          >
             <Chip
               label="All 11"
               clickable
               onClick={() => setRemittanceFilter("all")}
               sx={{
-                backgroundColor: remittanceFilter === "all" ? "#0066ff" : "white",
-                color: remittanceFilter === "all" ? "white" : "rgba(0, 0, 0, 0.7)",
+                backgroundColor:
+                  remittanceFilter === "all" ? "#0066ff" : "white",
+                color:
+                  remittanceFilter === "all" ? "white" : "rgba(0, 0, 0, 0.7)",
                 fontWeight: remittanceFilter === "all" ? 600 : 500,
                 fontSize: 11,
                 height: 28,
-                border: remittanceFilter === "all" ? "none" : "1px solid #e0e0e0",
+                border:
+                  remittanceFilter === "all" ? "none" : "1px solid #e0e0e0",
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: remittanceFilter === "all" ? "#0052cc" : "#f5f5f5",
+                  backgroundColor:
+                    remittanceFilter === "all" ? "#0052cc" : "#f5f5f5",
                 },
               }}
             />
@@ -4678,15 +4940,23 @@ onClick={() => setShowColumnSettings(true)}
               clickable
               onClick={() => setRemittanceFilter("notPosted")}
               sx={{
-                backgroundColor: remittanceFilter === "notPosted" ? "#0066ff" : "white",
-                color: remittanceFilter === "notPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                backgroundColor:
+                  remittanceFilter === "notPosted" ? "#0066ff" : "white",
+                color:
+                  remittanceFilter === "notPosted"
+                    ? "white"
+                    : "rgba(0, 0, 0, 0.7)",
                 fontWeight: remittanceFilter === "notPosted" ? 600 : 500,
                 fontSize: 11,
                 height: 28,
-                border: remittanceFilter === "notPosted" ? "none" : "1px solid #e0e0e0",
+                border:
+                  remittanceFilter === "notPosted"
+                    ? "none"
+                    : "1px solid #e0e0e0",
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: remittanceFilter === "notPosted" ? "#0052cc" : "#f5f5f5",
+                  backgroundColor:
+                    remittanceFilter === "notPosted" ? "#0052cc" : "#f5f5f5",
                 },
               }}
             />
@@ -4695,15 +4965,25 @@ onClick={() => setShowColumnSettings(true)}
               clickable
               onClick={() => setRemittanceFilter("partiallyPosted")}
               sx={{
-                backgroundColor: remittanceFilter === "partiallyPosted" ? "#0066ff" : "white",
-                color: remittanceFilter === "partiallyPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                backgroundColor:
+                  remittanceFilter === "partiallyPosted" ? "#0066ff" : "white",
+                color:
+                  remittanceFilter === "partiallyPosted"
+                    ? "white"
+                    : "rgba(0, 0, 0, 0.7)",
                 fontWeight: remittanceFilter === "partiallyPosted" ? 600 : 500,
                 fontSize: 11,
                 height: 28,
-                border: remittanceFilter === "partiallyPosted" ? "none" : "1px solid #e0e0e0",
+                border:
+                  remittanceFilter === "partiallyPosted"
+                    ? "none"
+                    : "1px solid #e0e0e0",
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: remittanceFilter === "partiallyPosted" ? "#0052cc" : "#f5f5f5",
+                  backgroundColor:
+                    remittanceFilter === "partiallyPosted"
+                      ? "#0052cc"
+                      : "#f5f5f5",
                 },
               }}
             />
@@ -4712,15 +4992,23 @@ onClick={() => setShowColumnSettings(true)}
               clickable
               onClick={() => setRemittanceFilter("fullyPosted")}
               sx={{
-                backgroundColor: remittanceFilter === "fullyPosted" ? "#0066ff" : "white",
-                color: remittanceFilter === "fullyPosted" ? "white" : "rgba(0, 0, 0, 0.7)",
+                backgroundColor:
+                  remittanceFilter === "fullyPosted" ? "#0066ff" : "white",
+                color:
+                  remittanceFilter === "fullyPosted"
+                    ? "white"
+                    : "rgba(0, 0, 0, 0.7)",
                 fontWeight: remittanceFilter === "fullyPosted" ? 600 : 500,
                 fontSize: 11,
                 height: 28,
-                border: remittanceFilter === "fullyPosted" ? "none" : "1px solid #e0e0e0",
+                border:
+                  remittanceFilter === "fullyPosted"
+                    ? "none"
+                    : "1px solid #e0e0e0",
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: remittanceFilter === "fullyPosted" ? "#0052cc" : "#f5f5f5",
+                  backgroundColor:
+                    remittanceFilter === "fullyPosted" ? "#0052cc" : "#f5f5f5",
                 },
               }}
             />
@@ -4729,15 +5017,23 @@ onClick={() => setShowColumnSettings(true)}
               clickable
               onClick={() => setRemittanceFilter("markReview")}
               sx={{
-                backgroundColor: remittanceFilter === "markReview" ? "#0066ff" : "white",
-                color: remittanceFilter === "markReview" ? "white" : "rgba(0, 0, 0, 0.7)",
+                backgroundColor:
+                  remittanceFilter === "markReview" ? "#0066ff" : "white",
+                color:
+                  remittanceFilter === "markReview"
+                    ? "white"
+                    : "rgba(0, 0, 0, 0.7)",
                 fontWeight: remittanceFilter === "markReview" ? 600 : 500,
                 fontSize: 11,
                 height: 28,
-                border: remittanceFilter === "markReview" ? "none" : "1px solid #e0e0e0",
+                border:
+                  remittanceFilter === "markReview"
+                    ? "none"
+                    : "1px solid #e0e0e0",
                 cursor: "pointer",
                 "&:hover": {
-                  backgroundColor: remittanceFilter === "markReview" ? "#0052cc" : "#f5f5f5",
+                  backgroundColor:
+                    remittanceFilter === "markReview" ? "#0052cc" : "#f5f5f5",
                 },
               }}
             />
@@ -4804,7 +5100,7 @@ onClick={() => setShowColumnSettings(true)}
               </Button>
               <Button
                 variant="contained"
-                onClick={() => navigate('/new-payment')}
+                onClick={() => navigate("/new-payment")}
                 sx={{
                   textTransform: "none",
                   backgroundColor: "#0066ff",
@@ -4871,43 +5167,134 @@ onClick={() => setShowColumnSettings(true)}
                     <TableCell padding="checkbox" sx={{ width: 40, py: 0.8 }}>
                       <Checkbox size="small" />
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       ID
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Location
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Provider
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Payer
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Payment Method
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Cheque #
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Amount
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Check Date
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Received Date
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Claim Numbers
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Unposted Amount
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "rgba(0, 0, 0, 0.6)", py: 0.8 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        color: "rgba(0, 0, 0, 0.6)",
+                        py: 0.8,
+                      }}
+                    >
                       Status
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, fontSize: 11, py: 0.8, color: "rgba(0, 0, 0, 0.6)" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 11,
+                        py: 0.8,
+                        color: "rgba(0, 0, 0, 0.6)",
+                      }}
+                    >
                       Action
                     </TableCell>
                   </TableRow>
@@ -4939,37 +5326,103 @@ onClick={() => setShowColumnSettings(true)}
                           <TableCell padding="checkbox" sx={{ py: 1.2 }}>
                             <Checkbox size="small" />
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.remittanceId}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.location}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.provider}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.payer}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.paymentMethod}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.chequeNumber}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.amount}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.checkDate}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.receivedDate}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.claimNumbers}
                           </TableCell>
-                          <TableCell sx={{ fontSize: 12, py: 1.2, color: "rgba(0, 0, 0, 0.87)" }}>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
                             {row.unpostedAmount}
                           </TableCell>
                           <TableCell sx={{ py: 1.2 }}>
@@ -4986,7 +5439,13 @@ onClick={() => setShowColumnSettings(true)}
                             />
                           </TableCell>
                           <TableCell sx={{ py: 1.2 }}>
-                            <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 0.5,
+                                alignItems: "center",
+                              }}
+                            >
                               <Tooltip title="Refresh/Sync" placement="top">
                                 <IconButton
                                   size="small"
@@ -4997,12 +5456,18 @@ onClick={() => setShowColumnSettings(true)}
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="View" placement="top">
-                                <IconButton size="small" sx={{ padding: "4px" }}>
+                                <IconButton
+                                  size="small"
+                                  sx={{ padding: "4px" }}
+                                >
                                   <ViewIconRemittance />
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Download" placement="top">
-                                <IconButton size="small" sx={{ padding: "4px" }}>
+                                <IconButton
+                                  size="small"
+                                  sx={{ padding: "4px" }}
+                                >
                                   <DownloadIconRemittance />
                                 </IconButton>
                               </Tooltip>
@@ -5019,261 +5484,102 @@ onClick={() => setShowColumnSettings(true)}
       )}
 
       {/* EOB/ERA Details - Full Page View with Claim Details */}
-  {showEobDetails && selectedEobClaim && currentTab === 2 && (
-  <Box
-    sx={{
-      height: "calc(100vh - 82px)",
-      backgroundColor: "#F5F7FA",
-      overflowY: "auto",
-      px: 1.5,
-      py: 1.5,
-
-      "&::-webkit-scrollbar": {
-        width: "4px",
-      },
-
-      "&::-webkit-scrollbar-track": {
-        backgroundColor: "transparent",
-      },
-
-      "&::-webkit-scrollbar-thumb": {
-        backgroundColor: "#D1D5DB",
-        borderRadius: "4px",
-      },
-    }}
-  >
-    {/* ===================================================== */}
-    {/* HEADER */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        mb: 1.5,
-        minHeight: 48,
-      }}
-    >
-      {/* Patient Information */}
-      <Box>
-        <Typography
-          sx={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#1F2937",
-            lineHeight: 1.2,
-          }}
-        >
-          Marian, Kalki P (3664)
-        </Typography>
-
+      {showEobDetails && selectedEobClaim && currentTab === 2 && (
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            mt: 0.6,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-            }}
-          >
-            Claim <b>6178</b>
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-            }}
-          >
-            Encounter <b>3501</b>
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-            }}
-          >
-            <b>Born</b> 15 Apr 1958
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-            }}
-          >
-            <b>Patient</b> 2885
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Header Buttons */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0.75,
-        }}
-      >
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={
-            <ArrowBackIosNew
-              sx={{
-                fontSize: "11px !important",
-              }}
-            />
-          }
-          sx={{
-            height: 32,
-            minWidth: 105,
+            height: "calc(100vh - 82px)",
+            backgroundColor: "#F5F7FA",
+            overflowY: "auto",
             px: 1.5,
-            textTransform: "none",
-            borderColor: "#E5E7EB",
-            color: "#374151",
-            fontSize: 12,
-            borderRadius: "7px",
-            backgroundColor: "#FFFFFF",
-            boxShadow: "none",
-          }}
-        >
-          Previous claim
-        </Button>
+            py: 1.5,
 
-        <Button
-          variant="outlined"
-          size="small"
-          endIcon={
-            <ArrowForwardIos
-              sx={{
-                fontSize: "11px !important",
-              }}
-            />
-          }
-          sx={{
-            height: 32,
-            minWidth: 92,
-            px: 1.5,
-            textTransform: "none",
-            borderColor: "#E5E7EB",
-            color: "#374151",
-            fontSize: 12,
-            borderRadius: "7px",
-            backgroundColor: "#FFFFFF",
-            boxShadow: "none",
-          }}
-        >
-          Next claim
-        </Button>
+            "&::-webkit-scrollbar": {
+              width: "4px",
+            },
 
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleCloseEobDetails}
-          sx={{
-            height: 32,
-            minWidth: 58,
-            px: 1.5,
-            textTransform: "none",
-            borderColor: "#E5E7EB",
-            color: "#374151",
-            fontSize: 12,
-            borderRadius: "7px",
-            backgroundColor: "#FFFFFF",
-          }}
-        >
-          Cancel
-        </Button>
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "transparent",
+            },
 
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            height: 32,
-            minWidth: 48,
-            px: 1.5,
-            textTransform: "none",
-            backgroundColor: "#0066FF",
-            fontSize: 12,
-            fontWeight: 600,
-            borderRadius: "7px",
-            boxShadow: "none",
-
-            "&:hover": {
-              backgroundColor: "#0052CC",
-              boxShadow: "none",
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#D1D5DB",
+              borderRadius: "4px",
             },
           }}
         >
-          Apply
-        </Button>
-      </Box>
-    </Box>
+          {/* ===================================================== */}
+          {/* HEADER */}
+          {/* ===================================================== */}
 
-    {/* ===================================================== */}
-    {/* MAIN TWO COLUMN LAYOUT */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-        gap: 1.5,
-        alignItems: "start",
-      }}
-    >
-      {/* ===================================================== */}
-      {/* LEFT COLUMN */}
-      {/* ===================================================== */}
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 1.5,
-        }}
-      >
-        {/* ================================================= */}
-        {/* CARD 1 - CLAIM DETAILS */}
-        {/* ================================================= */}
-
-        <Box
-          sx={{
-            backgroundColor: "#FFFFFF",
-            border: "1px solid #E5E7EB",
-            borderRadius: "10px",
-            overflow: "hidden",
-          }}
-        >
-          {/* Card Header */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              px: 1.5,
-              py: 1.25,
-              borderBottom: "1px solid #E5E7EB",
+              mb: 1.5,
+              minHeight: 48,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#1F2937",
-              }}
-            >
-              Claim Details
-            </Typography>
+            {/* Patient Information */}
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#1F2937",
+                  lineHeight: 1.2,
+                }}
+              >
+                Marian, Kalki P (3664)
+              </Typography>
 
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  mt: 0.6,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                  }}
+                >
+                  Claim <b>6178</b>
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                  }}
+                >
+                  Encounter <b>3501</b>
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                  }}
+                >
+                  <b>Born</b> 15 Apr 1958
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                  }}
+                >
+                  <b>Patient</b> 2885
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Header Buttons */}
             <Box
               sx={{
                 display: "flex",
@@ -5281,1066 +5587,1166 @@ onClick={() => setShowColumnSettings(true)}
                 gap: 0.75,
               }}
             >
-              <Switch
-                size="small"
-                sx={{
-                  width: 32,
-                  height: 20,
-                  p: 0,
-
-                  "& .MuiSwitch-switchBase": {
-                    p: 0.3,
-                  },
-
-                  "& .MuiSwitch-thumb": {
-                    width: 13,
-                    height: 13,
-                  },
-
-                  "& .MuiSwitch-track": {
-                    borderRadius: 10,
-                    backgroundColor: "#D1D5DB",
-                    opacity: 1,
-                  },
-                }}
-              />
-
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#6B7280",
-                }}
-              >
-                Show applied
-              </Typography>
-
               <Button
+                variant="outlined"
                 size="small"
                 startIcon={
-                  <Add
+                  <ArrowBackIosNew
                     sx={{
-                      fontSize: "16px !important",
+                      fontSize: "11px !important",
                     }}
                   />
                 }
                 sx={{
-                  minWidth: "auto",
-                  ml: 0.5,
-                  p: 0,
+                  height: 32,
+                  minWidth: 105,
+                  px: 1.5,
                   textTransform: "none",
-                  color: "#0066FF",
-                  fontSize: 11,
+                  borderColor: "#E5E7EB",
+                  color: "#374151",
+                  fontSize: 12,
+                  borderRadius: "7px",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
                 }}
               >
-                Add New
+                Previous claim
+              </Button>
+
+              <Button
+                variant="outlined"
+                size="small"
+                endIcon={
+                  <ArrowForwardIos
+                    sx={{
+                      fontSize: "11px !important",
+                    }}
+                  />
+                }
+                sx={{
+                  height: 32,
+                  minWidth: 92,
+                  px: 1.5,
+                  textTransform: "none",
+                  borderColor: "#E5E7EB",
+                  color: "#374151",
+                  fontSize: 12,
+                  borderRadius: "7px",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "none",
+                }}
+              >
+                Next claim
+              </Button>
+
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleCloseEobDetails}
+                sx={{
+                  height: 32,
+                  minWidth: 58,
+                  px: 1.5,
+                  textTransform: "none",
+                  borderColor: "#E5E7EB",
+                  color: "#374151",
+                  fontSize: 12,
+                  borderRadius: "7px",
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  height: 32,
+                  minWidth: 48,
+                  px: 1.5,
+                  textTransform: "none",
+                  backgroundColor: "#0066FF",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: "7px",
+                  boxShadow: "none",
+
+                  "&:hover": {
+                    backgroundColor: "#0052CC",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                Apply
               </Button>
             </Box>
           </Box>
 
-          {/* Claim Details Table */}
-          <TableContainer>
-            <Table
-              size="small"
+          {/* ===================================================== */}
+          {/* MAIN TWO COLUMN LAYOUT */}
+          {/* ===================================================== */}
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+              gap: 1.5,
+              alignItems: "start",
+            }}
+          >
+            {/* ===================================================== */}
+            {/* LEFT COLUMN */}
+            {/* ===================================================== */}
+
+            <Box
               sx={{
-                tableLayout: "fixed",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
               }}
             >
-              <TableHead>
-                <TableRow
+              {/* ================================================= */}
+              {/* CARD 1 - CLAIM DETAILS */}
+              {/* ================================================= */}
+
+              <Box
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Card Header */}
+                <Box
                   sx={{
-                    backgroundColor: "#F9FAFB",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    px: 1.5,
+                    py: 1.25,
+                    borderBottom: "1px solid #E5E7EB",
                   }}
                 >
-                  <TableCell
-                    padding="checkbox"
+                  <Typography
                     sx={{
-                      width: 30,
-                      py: 0.7,
-                      borderBottom: "1px solid #E5E7EB",
-                    }}
-                  />
-
-                  {[
-                    "DOS",
-                    "Location",
-                    "CPT",
-                    "Claim#",
-                    "ICN",
-                    "Status",
-                  ].map((header) => (
-                    <TableCell
-                      key={header}
-                      sx={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "#374151",
-                        py: 1,
-                        px: 0.8,
-                        whiteSpace: "nowrap",
-                        borderBottom: "1px solid #E5E7EB",
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      {header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {[1, 2].map((row, index) => (
-                  <TableRow
-                    key={row}
-                    sx={{
-                      backgroundColor:
-                        index === 1 ? "#EEF4FF" : "#FFFFFF",
-                      borderBottom: "none",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#1F2937",
                     }}
                   >
-                    <TableCell
-                      padding="checkbox"
+                    Claim Details
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                    }}
+                  >
+                    <Switch
+                      size="small"
                       sx={{
-                        py: 1.2,
+                        width: 32,
+                        height: 20,
+                        p: 0,
+
+                        "& .MuiSwitch-switchBase": {
+                          p: 0.3,
+                        },
+
+                        "& .MuiSwitch-thumb": {
+                          width: 13,
+                          height: 13,
+                        },
+
+                        "& .MuiSwitch-track": {
+                          borderRadius: 10,
+                          backgroundColor: "#D1D5DB",
+                          opacity: 1,
+                        },
+                      }}
+                    />
+
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        color: "#6B7280",
                       }}
                     >
-                      <Checkbox
-                        size="small"
-                        defaultChecked={index === 1}
+                      Show applied
+                    </Typography>
+
+                    <Button
+                      size="small"
+                      startIcon={
+                        <Add
+                          sx={{
+                            fontSize: "16px !important",
+                          }}
+                        />
+                      }
+                      sx={{
+                        minWidth: "auto",
+                        ml: 0.5,
+                        p: 0,
+                        textTransform: "none",
+                        color: "#0066FF",
+                        fontSize: 11,
+                      }}
+                    >
+                      Add New
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* Claim Details Table */}
+                <TableContainer>
+                  <Table
+                    size="small"
+                    sx={{
+                      tableLayout: "fixed",
+                    }}
+                  >
+                    <TableHead>
+                      <TableRow
                         sx={{
-                          p: 0.25,
+                          backgroundColor: "#F9FAFB",
                         }}
-                      />
-                    </TableCell>
+                      >
+                        <TableCell
+                          padding="checkbox"
+                          sx={{
+                            width: 30,
+                            py: 0.7,
+                            borderBottom: "1px solid #E5E7EB",
+                          }}
+                        />
 
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1.2,
-                        px: 0.8,
-                        color: "rgba(0, 0, 0, 0.87)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      08/21/26
-                    </TableCell>
+                        {[
+                          "DOS",
+                          "Location",
+                          "CPT",
+                          "Claim#",
+                          "ICN",
+                          "Status",
+                        ].map((header) => (
+                          <TableCell
+                            key={header}
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#374151",
+                              py: 1,
+                              px: 0.8,
+                              whiteSpace: "nowrap",
+                              borderBottom: "1px solid #E5E7EB",
+                              lineHeight: 1.1,
+                            }}
+                          >
+                            {header}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
 
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1.2,
-                        px: 0.8,
-                        color: "rgba(0, 0, 0, 0.87)",
-                      }}
-                    >
-                      TU-RL
-                    </TableCell>
+                    <TableBody>
+                      {[1, 2].map((row, index) => (
+                        <TableRow
+                          key={row}
+                          sx={{
+                            backgroundColor:
+                              index === 1 ? "#EEF4FF" : "#FFFFFF",
+                            borderBottom: "none",
+                          }}
+                        >
+                          <TableCell
+                            padding="checkbox"
+                            sx={{
+                              py: 1.2,
+                            }}
+                          >
+                            <Checkbox
+                              size="small"
+                              defaultChecked={index === 1}
+                              sx={{
+                                p: 0.25,
+                              }}
+                            />
+                          </TableCell>
 
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1.2,
-                        px: 0.8,
-                        color: "rgba(0, 0, 0, 0.87)",
-                      }}
-                    >
-                      11980
-                    </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              px: 0.8,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            08/21/26
+                          </TableCell>
 
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1.2,
-                        px: 0.8,
-                        color: "rgba(0, 0, 0, 0.87)",
-                      }}
-                    >
-                      PRSH6002
-                    </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              px: 0.8,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
+                            TU-RL
+                          </TableCell>
 
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1.2,
-                        px: 0.8,
-                        color: "rgba(0, 0, 0, 0.87)",
-                        wordBreak: "break-all",
-                      }}
-                    >
-                      202608211142023
-                    </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              px: 0.8,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
+                            11980
+                          </TableCell>
 
-                    <TableCell
-                      sx={{
-                        py: 1.2,
-                        px: 0.8,
-                      }}
-                    >
-                      <Chip
-                        label="Primary, Forwarded"
-                        size="small"
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              px: 0.8,
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          >
+                            PRSH6002
+                          </TableCell>
+
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.2,
+                              px: 0.8,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              wordBreak: "break-all",
+                            }}
+                          >
+                            202608211142023
+                          </TableCell>
+
+                          <TableCell
+                            sx={{
+                              py: 1.2,
+                              px: 0.8,
+                            }}
+                          >
+                            <Chip
+                              label="Primary, Forwarded"
+                              size="small"
+                              sx={{
+                                height: 22,
+                                backgroundColor:
+                                  index === 1 ? "#0066FF" : "#EFF6FF",
+                                color: index === 1 ? "#FFFFFF" : "#0066FF",
+                                fontSize: 10,
+                                fontWeight: 600,
+                                borderRadius: "4px",
+
+                                "& .MuiChip-label": {
+                                  px: 0.8,
+                                },
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              {/* ================================================= */}
+              {/* CARD 2 - POSTING DATA */}
+              {/* ================================================= */}
+
+              <Box
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  width: "100%",
+                }}
+              >
+                {/* ================= POSTING DATA HEADER ================= */}
+                <Box
+                  sx={{
+                    px: 1.2,
+                    py: 1,
+                    borderBottom: "1px solid #E5E7EB",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#1F2937",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    Posting Data
+                  </Typography>
+                </Box>
+
+                {/* ================= POSTING DATA BODY ================= */}
+                <Box
+                  sx={{
+                    px: 1.2,
+                    py: 1.15,
+
+                    /* ================= INPUT / SELECT ================= */
+                    "& .MuiInputBase-root": {
+                      height: 29,
+                      minHeight: 29,
+                      fontSize: 12,
+                      borderRadius: "6px",
+                      backgroundColor: "#F1F3F7",
+                    },
+
+                    "& .MuiOutlinedInput-root": {
+                      height: 29,
+                      minHeight: 29,
+                      borderRadius: "6px",
+                      backgroundColor: "#F1F3F7",
+                    },
+
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#E5E7EB",
+                    },
+
+                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: "#D7DBE2",
+                      },
+
+                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: "#0066FF",
+                      },
+
+                    /* ================= INPUT TEXT ================= */
+                    "& .MuiOutlinedInput-input": {
+                      fontSize: 12,
+                      color: "#6B7280",
+                      padding: "5px 9px",
+                    },
+
+                    /* ================= SELECT TEXT ================= */
+                    "& .MuiSelect-select": {
+                      fontSize: 12,
+                      color: "#6B7280",
+                      padding: "5px 30px 5px 9px !important",
+                      minHeight: "unset !important",
+                      backgroundColor: "#F1F3F7",
+                      display: "flex",
+                      alignItems: "center",
+                    },
+
+                    /* ================= BLUE DROPDOWN ARROWS ================= */
+                    "& .MuiSelect-icon": {
+                      color: "#0066FF",
+                      fontSize: 18,
+                      right: 7,
+                    },
+
+                    "& .MuiSelect-iconOutlined": {
+                      color: "#0066FF",
+                    },
+
+                    /* ================= LABEL ================= */
+                    "& .MuiInputLabel-root": {
+                      fontSize: 11,
+                      color: "#6B7280",
+                    },
+
+                    /* ================= DISABLED FIELDS ================= */
+                    "& .MuiInputBase-root.Mui-disabled": {
+                      backgroundColor: "#E9EBF0",
+                    },
+
+                    "& .MuiInputBase-root.Mui-disabled input": {
+                      color: "#8A8F98",
+                      WebkitTextFillColor: "#8A8F98",
+                    },
+
+                    "& .MuiInputBase-root.Mui-disabled .MuiSelect-select": {
+                      color: "#8A8F98",
+                      WebkitTextFillColor: "#8A8F98",
+                    },
+
+                    /* ================= CALENDAR / OTHER ICON ================= */
+                    "& .MuiInputAdornment-root svg": {
+                      fontSize: 16,
+                    },
+
+                    /* ================= SELECT ARROW HOVER ================= */
+                    "& .MuiSelect-root:hover .MuiSelect-icon": {
+                      color: "#0052CC",
+                    },
+                  }}
+                >
+                  {/* ===================================================== */}
+                  {/* ROW 1 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimField
+                      label="Posting Date"
+                      value="09/13/2026"
+                      calendar
+                    />
+
+                    <ClaimSelect label="Payer sequence" value="Primary" />
+
+                    <ClaimSelect label="Payer" value="6734759 - ICI" />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 2 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimField label="Allowed" value="$73.13" />
+
+                    <ClaimField label="Paid" value="$26.4" />
+
+                    <ClaimField label="Contract Adj." value="$43.22" disabled />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 3 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimField label="Adj. Code" value="CO-45, CO-253, C..." />
+
+                    <ClaimField label="Second Adj." value="$113.52" disabled />
+
+                    <ClaimSelect label="Adj. Code" value="OA-9" />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 4 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimField label="Coinsurance" value="$15.49" disabled />
+
+                    <ClaimField label="Copay" value="$21.37" disabled />
+
+                    <ClaimField label="Deductible" value="$0" disabled />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 5 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimField label="Other PR Codes" value="-" disabled />
+
+                    <ClaimField label="Other PR Amount" value="$0" disabled />
+
+                    <ClaimSelect label="Payment Method" value="EFT" />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 6 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                      mb: 1.15,
+                    }}
+                  >
+                    <ClaimSelect label="Actions" value="Settle" />
+
+                    <ClaimField label="Remarks" value="Lorem ipsum dum..." />
+
+                    <ClaimField label="Prov. Adj." value="-" />
+                  </Box>
+
+                  {/* ===================================================== */}
+                  {/* ROW 7 */}
+                  {/* ===================================================== */}
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      columnGap: 1.5,
+                    }}
+                  >
+                    <ClaimSelect label="Denial Category" value="NA" />
+
+                    <ClaimField label="Balance" value="$0" />
+
+                    <Box />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ===================================================== */}
+            {/* RIGHT COLUMN */}
+            {/* ===================================================== */}
+
+            {/* ===================================================== */}
+            {/* RIGHT COLUMN - EOB / ERA */}
+            {/* ===================================================== */}
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
+              }}
+            >
+              {/* ================================================= */}
+              {/* CARD 3 - EOB / ERA DETAILS */}
+              {/* ================================================= */}
+
+              <Box
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  width: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 1.5,
+                  }}
+                >
+                  {/* Title */}
+                  <Typography
+                    sx={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#1F2937",
+                      lineHeight: 1.2,
+                      mb: 1.2,
+                    }}
+                  >
+                    EOB/ERA Details
+                  </Typography>
+
+                  {/* Fields + View File in SAME ROW */}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr auto",
+                      gap: 1.25,
+                      alignItems: "end",
+                      width: "100%",
+                    }}
+                  >
+                    {/* Note */}
+                    <Box>
+                      <Typography
                         sx={{
-                          height: 22,
-                          backgroundColor:
-                            index === 1
-                              ? "#0066FF"
-                              : "#EFF6FF",
-                          color:
-                            index === 1
-                              ? "#FFFFFF"
-                              : "#0066FF",
-                          fontSize: 10,
-                          fontWeight: 600,
-                          borderRadius: "4px",
+                          fontSize: 11,
+                          color: "#6B7280",
+                          mb: 0.55,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        Note
+                      </Typography>
 
-                          "& .MuiChip-label": {
-                            px: 0.8,
+                      <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Type here"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            height: 34,
+                            borderRadius: "6px",
+                            backgroundColor: "#FFFFFF",
+                          },
+
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E5E7EB",
+                          },
+
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#D1D5DB",
+                          },
+
+                          "& .MuiInputBase-input": {
+                            fontSize: 12,
+                            color: "#374151",
+                            py: 0,
+                          },
+
+                          "& .MuiInputBase-input::placeholder": {
+                            fontSize: 12,
+                            color: "#9CA3AF",
+                            opacity: 1,
                           },
                         }}
                       />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+                    </Box>
 
-        {/* ================================================= */}
-        {/* CARD 2 - POSTING DATA */}
-        {/* ================================================= */}
+                    {/* Reference Number */}
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "#6B7280",
+                          mb: 0.55,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        Reference number
+                      </Typography>
 
-      <Box
-  sx={{
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #E5E7EB",
-    borderRadius: "10px",
-    overflow: "hidden",
-    width: "100%",
-  }}
->
-  {/* ================= POSTING DATA HEADER ================= */}
-  <Box
-    sx={{
-      px: 1.2,
-      py: 1,
-      borderBottom: "1px solid #E5E7EB",
-    }}
-  >
-    <Typography
-      sx={{
-        fontSize: 12,
-        fontWeight: 600,
-        color: "#1F2937",
-        lineHeight: 1.2,
-      }}
-    >
-      Posting Data
-    </Typography>
-  </Box>
+                      <Box
+                        sx={{
+                          height: 34,
+                          display: "flex",
+                          alignItems: "center",
+                          px: 1.2,
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "6px",
+                          backgroundColor: "#FFFFFF",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#374151",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        150219802000
+                      </Box>
+                    </Box>
 
-  {/* ================= POSTING DATA BODY ================= */}
-  <Box
-    sx={{
-      px: 1.2,
-      py: 1.15,
+                    {/* ERA Balance */}
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: 11,
+                          color: "#6B7280",
+                          mb: 0.55,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        ERA Balance
+                      </Typography>
 
-      /* ================= INPUT / SELECT ================= */
-      "& .MuiInputBase-root": {
-        height: 29,
-        minHeight: 29,
-        fontSize: 12,
-        borderRadius: "6px",
-        backgroundColor: "#F1F3F7",
-      },
+                      <Box
+                        sx={{
+                          height: 34,
+                          display: "flex",
+                          alignItems: "center",
+                          px: 1.2,
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "6px",
+                          backgroundColor: "#FFFFFF",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#374151",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        $0
+                      </Box>
+                    </Box>
 
-      "& .MuiOutlinedInput-root": {
-        height: 29,
-        minHeight: 29,
-        borderRadius: "6px",
-        backgroundColor: "#F1F3F7",
-      },
+                    {/* View File */}
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        height: 34,
+                        minWidth: 68,
+                        px: 1.5,
+                        mb: 0,
+                        textTransform: "none",
+                        backgroundColor: "#0066FF",
+                        color: "#FFFFFF",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        borderRadius: "7px",
+                        boxShadow: "none",
+                        whiteSpace: "nowrap",
 
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#E5E7EB",
-      },
+                        "&:hover": {
+                          backgroundColor: "#0052CC",
+                          boxShadow: "none",
+                        },
+                      }}
+                    >
+                      View File
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
 
-      "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#D7DBE2",
-      },
+              {/* ================================================= */}
+              {/* CARD 4 - TRANSACTION TABLE */}
+              {/* ================================================= */}
 
-      "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-        {
-          borderColor: "#0066FF",
-        },
+              <Box
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  width: "100%",
+                }}
+              >
+                <TableContainer
+                  sx={{
+                    width: "100%",
+                    maxHeight: "calc(100vh - 245px)",
+                    overflowY: "auto",
+                    overflowX: "hidden",
 
-      /* ================= INPUT TEXT ================= */
-      "& .MuiOutlinedInput-input": {
-        fontSize: 12,
-        color: "#6B7280",
-        padding: "5px 9px",
-      },
+                    "&::-webkit-scrollbar": {
+                      width: "4px",
+                    },
 
-      /* ================= SELECT TEXT ================= */
-      "& .MuiSelect-select": {
-        fontSize: 12,
-        color: "#6B7280",
-        padding: "5px 30px 5px 9px !important",
-        minHeight: "unset !important",
-        backgroundColor: "#F1F3F7",
-        display: "flex",
-        alignItems: "center",
-      },
+                    "&::-webkit-scrollbar-track": {
+                      backgroundColor: "transparent",
+                    },
 
-      /* ================= BLUE DROPDOWN ARROWS ================= */
-      "& .MuiSelect-icon": {
-        color: "#0066FF",
-        fontSize: 18,
-        right: 7,
-      },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: "#D1D5DB",
+                      borderRadius: "4px",
+                    },
 
-      "& .MuiSelect-iconOutlined": {
-        color: "#0066FF",
-      },
+                    "&::-webkit-scrollbar-thumb:hover": {
+                      backgroundColor: "#9CA3AF",
+                    },
+                  }}
+                >
+                  <Table
+                    size="small"
+                    stickyHeader
+                    sx={{
+                      tableLayout: "fixed",
+                      width: "100%",
+                    }}
+                  >
+                    {/* ================= TABLE HEADER ================= */}
+                    <TableHead>
+                      <TableRow>
+                        <TableCell
+                          sx={{
+                            width: "14%",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#374151",
+                            py: 1.15,
+                            px: 1,
+                            backgroundColor: "#F1F3FF",
+                            borderBottom: "1px solid #E5E7EB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Date
+                        </TableCell>
 
-      /* ================= LABEL ================= */
-      "& .MuiInputLabel-root": {
-        fontSize: 11,
-        color: "#6B7280",
-      },
+                        <TableCell
+                          sx={{
+                            width: "39%",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#374151",
+                            py: 1.15,
+                            px: 1,
+                            backgroundColor: "#F1F3FF",
+                            borderBottom: "1px solid #E5E7EB",
+                          }}
+                        >
+                          Transaction
+                        </TableCell>
 
-      /* ================= DISABLED FIELDS ================= */
-      "& .MuiInputBase-root.Mui-disabled": {
-        backgroundColor: "#E9EBF0",
-      },
+                        <TableCell
+                          sx={{
+                            width: "15%",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#374151",
+                            py: 1.15,
+                            px: 1,
+                            textAlign: "right",
+                            backgroundColor: "#F1F3FF",
+                            borderBottom: "1px solid #E5E7EB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Amount
+                        </TableCell>
 
-      "& .MuiInputBase-root.Mui-disabled input": {
-        color: "#8A8F98",
-        WebkitTextFillColor: "#8A8F98",
-      },
+                        <TableCell
+                          sx={{
+                            width: "15%",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#374151",
+                            py: 1.15,
+                            px: 1,
+                            textAlign: "right",
+                            backgroundColor: "#F1F3FF",
+                            borderBottom: "1px solid #E5E7EB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Pat Resp.
+                        </TableCell>
 
-      "& .MuiInputBase-root.Mui-disabled .MuiSelect-select": {
-        color: "#8A8F98",
-        WebkitTextFillColor: "#8A8F98",
-      },
+                        <TableCell
+                          sx={{
+                            width: "17%",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#374151",
+                            py: 1.15,
+                            px: 1,
+                            textAlign: "right",
+                            backgroundColor: "#F1F3FF",
+                            borderBottom: "1px solid #E5E7EB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Total Balance
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
 
-      /* ================= CALENDAR / OTHER ICON ================= */
-      "& .MuiInputAdornment-root svg": {
-        fontSize: 16,
-      },
+                    {/* ================= TABLE BODY ================= */}
+                    <TableBody>
+                      {[
+                        {
+                          date: "26 Aug 26",
+                          type: "Claim created and added to Queue",
+                          amount: "$550.14",
+                          patResp: "$550.14",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Claim submitted to Payer - ICIC, $150",
+                          amount: "-",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Payer Settlement EFT/Check #: 150219802000/0906",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                        {
+                          date: "26 Aug 26",
+                          type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+                          amount: "$0.00",
+                          patResp: "$0.00",
+                          balance: "$550.14",
+                        },
+                      ].map((transaction, idx) => (
+                        <TableRow
+                          key={idx}
+                          sx={{
+                            backgroundColor:
+                              idx % 2 === 0 ? "#FFFFFF" : "#F5F7FF",
 
-      /* ================= SELECT ARROW HOVER ================= */
-      "& .MuiSelect-root:hover .MuiSelect-icon": {
-        color: "#0052CC",
-      },
-    }}
-  >
-    {/* ===================================================== */}
-    {/* ROW 1 */}
-    {/* ===================================================== */}
+                            "&:last-child td": {
+                              borderBottom: 0,
+                            },
+                          }}
+                        >
+                          {/* Date */}
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.25,
+                              px: 1,
+                              color: "#374151",
+                              verticalAlign: "top",
+                              whiteSpace: "nowrap",
+                              borderBottom: "1px solid #E5E7EB",
+                            }}
+                          >
+                            {transaction.date}
+                          </TableCell>
 
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimField
-        label="Posting Date"
-        value="09/13/2026"
-        calendar
-      />
+                          {/* Transaction */}
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.25,
+                              px: 1,
+                              color: "#4B5563",
+                              verticalAlign: "top",
+                              lineHeight: 1.4,
+                              wordBreak: "break-word",
+                              borderBottom: "1px solid #E5E7EB",
+                            }}
+                          >
+                            {transaction.type}
+                          </TableCell>
 
-      <ClaimSelect
-        label="Payer sequence"
-        value="Primary"
-      />
+                          {/* Amount */}
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.25,
+                              px: 1,
+                              color: "#374151",
+                              textAlign: "right",
+                              verticalAlign: "top",
+                              whiteSpace: "nowrap",
+                              borderBottom: "1px solid #E5E7EB",
+                            }}
+                          >
+                            {transaction.amount}
+                          </TableCell>
 
-      <ClaimSelect
-        label="Payer"
-        value="6734759 - ICI"
-      />
-    </Box>
+                          {/* Patient Responsibility */}
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.25,
+                              px: 1,
+                              color: "#374151",
+                              textAlign: "right",
+                              verticalAlign: "top",
+                              whiteSpace: "nowrap",
+                              borderBottom: "1px solid #E5E7EB",
+                            }}
+                          >
+                            {transaction.patResp}
+                          </TableCell>
 
-    {/* ===================================================== */}
-    {/* ROW 2 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimField
-        label="Allowed"
-        value="$73.13"
-      />
-
-      <ClaimField
-        label="Paid"
-        value="$26.4"
-      />
-
-      <ClaimField
-        label="Contract Adj."
-        value="$43.22"
-        disabled
-      />
-    </Box>
-
-    {/* ===================================================== */}
-    {/* ROW 3 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimField
-        label="Adj. Code"
-        value="CO-45, CO-253, C..."
-      />
-
-      <ClaimField
-        label="Second Adj."
-        value="$113.52"
-        disabled
-      />
-
-      <ClaimSelect
-        label="Adj. Code"
-        value="OA-9"
-      />
-    </Box>
-
-    {/* ===================================================== */}
-    {/* ROW 4 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimField
-        label="Coinsurance"
-        value="$15.49"
-        disabled
-      />
-
-      <ClaimField
-        label="Copay"
-        value="$21.37"
-        disabled
-      />
-
-      <ClaimField
-        label="Deductible"
-        value="$0"
-        disabled
-      />
-    </Box>
-
-    {/* ===================================================== */}
-    {/* ROW 5 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimField
-        label="Other PR Codes"
-        value="-"
-        disabled
-      />
-
-      <ClaimField
-        label="Other PR Amount"
-        value="$0"
-        disabled
-      />
-
-      <ClaimSelect
-        label="Payment Method"
-        value="EFT"
-      />
-    </Box>
-
-    {/* ===================================================== */}
-    {/* ROW 6 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-        mb: 1.15,
-      }}
-    >
-      <ClaimSelect
-        label="Actions"
-        value="Settle"
-      />
-
-      <ClaimField
-        label="Remarks"
-        value="Lorem ipsum dum..."
-      />
-
-      <ClaimField
-        label="Prov. Adj."
-        value="-"
-      />
-    </Box>
-
-    {/* ===================================================== */}
-    {/* ROW 7 */}
-    {/* ===================================================== */}
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        columnGap: 1.5,
-      }}
-    >
-      <ClaimSelect
-        label="Denial Category"
-        value="NA"
-      />
-
-      <ClaimField
-        label="Balance"
-        value="$0"
-      />
-
-      <Box />
-    </Box>
-  </Box>
-</Box>
-      </Box>
-
-      {/* ===================================================== */}
-      {/* RIGHT COLUMN */}
-      {/* ===================================================== */}
-
-      {/* ===================================================== */}
-{/* RIGHT COLUMN - EOB / ERA */}
-{/* ===================================================== */}
-
-<Box
-  sx={{
-    display: "flex",
-    flexDirection: "column",
-    gap: 1.5,
-  }}
->
-  {/* ================================================= */}
-  {/* CARD 3 - EOB / ERA DETAILS */}
-  {/* ================================================= */}
-
-  <Box
-    sx={{
-      backgroundColor: "#FFFFFF",
-      border: "1px solid #E5E7EB",
-      borderRadius: "10px",
-      overflow: "hidden",
-      width: "100%",
-    }}
-  >
-    <Box
-      sx={{
-        px: 1.5,
-        py: 1.5,
-      }}
-    >
-      {/* Title */}
-      <Typography
-        sx={{
-          fontSize: 14,
-          fontWeight: 600,
-          color: "#1F2937",
-          lineHeight: 1.2,
-          mb: 1.2,
-        }}
-      >
-        EOB/ERA Details
-      </Typography>
-
-      {/* Fields + View File in SAME ROW */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr auto",
-          gap: 1.25,
-          alignItems: "end",
-          width: "100%",
-        }}
-      >
-        {/* Note */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-              mb: 0.55,
-              lineHeight: 1.2,
-            }}
-          >
-            Note
-          </Typography>
-
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Type here"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                height: 34,
-                borderRadius: "6px",
-                backgroundColor: "#FFFFFF",
-              },
-
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#E5E7EB",
-              },
-
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#D1D5DB",
-              },
-
-              "& .MuiInputBase-input": {
-                fontSize: 12,
-                color: "#374151",
-                py: 0,
-              },
-
-              "& .MuiInputBase-input::placeholder": {
-                fontSize: 12,
-                color: "#9CA3AF",
-                opacity: 1,
-              },
-            }}
-          />
-        </Box>
-
-        {/* Reference Number */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-              mb: 0.55,
-              lineHeight: 1.2,
-            }}
-          >
-            Reference number
-          </Typography>
-
-          <Box
-            sx={{
-              height: 34,
-              display: "flex",
-              alignItems: "center",
-              px: 1.2,
-              border: "1px solid #E5E7EB",
-              borderRadius: "6px",
-              backgroundColor: "#FFFFFF",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              boxSizing: "border-box",
-            }}
-          >
-            150219802000
+                          {/* Total Balance */}
+                          <TableCell
+                            sx={{
+                              fontSize: 12,
+                              py: 1.25,
+                              px: 1,
+                              color: "#374151",
+                              textAlign: "right",
+                              verticalAlign: "top",
+                              whiteSpace: "nowrap",
+                              fontWeight: 600,
+                              borderBottom: "1px solid #E5E7EB",
+                            }}
+                          >
+                            {transaction.balance}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Box>
           </Box>
         </Box>
-
-        {/* ERA Balance */}
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-              mb: 0.55,
-              lineHeight: 1.2,
-            }}
-          >
-            ERA Balance
-          </Typography>
-
-          <Box
-            sx={{
-              height: 34,
-              display: "flex",
-              alignItems: "center",
-              px: 1.2,
-              border: "1px solid #E5E7EB",
-              borderRadius: "6px",
-              backgroundColor: "#FFFFFF",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#374151",
-              boxSizing: "border-box",
-            }}
-          >
-            $0
-          </Box>
-        </Box>
-
-        {/* View File */}
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            height: 34,
-            minWidth: 68,
-            px: 1.5,
-            mb: 0,
-            textTransform: "none",
-            backgroundColor: "#0066FF",
-            color: "#FFFFFF",
-            fontSize: 11,
-            fontWeight: 600,
-            borderRadius: "7px",
-            boxShadow: "none",
-            whiteSpace: "nowrap",
-
-            "&:hover": {
-              backgroundColor: "#0052CC",
-              boxShadow: "none",
-            },
-          }}
-        >
-          View File
-        </Button>
-      </Box>
-    </Box>
-  </Box>
-
-  {/* ================================================= */}
-  {/* CARD 4 - TRANSACTION TABLE */}
-  {/* ================================================= */}
-
-  <Box
-    sx={{
-      backgroundColor: "#FFFFFF",
-      border: "1px solid #E5E7EB",
-      borderRadius: "10px",
-      overflow: "hidden",
-      width: "100%",
-    }}
-  >
-    <TableContainer
-      sx={{
-        width: "100%",
-        maxHeight: "calc(100vh - 245px)",
-        overflowY: "auto",
-        overflowX: "hidden",
-
-        "&::-webkit-scrollbar": {
-          width: "4px",
-        },
-
-        "&::-webkit-scrollbar-track": {
-          backgroundColor: "transparent",
-        },
-
-        "&::-webkit-scrollbar-thumb": {
-          backgroundColor: "#D1D5DB",
-          borderRadius: "4px",
-        },
-
-        "&::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: "#9CA3AF",
-        },
-      }}
-    >
-      <Table
-        size="small"
-        stickyHeader
-        sx={{
-          tableLayout: "fixed",
-          width: "100%",
-        }}
-      >
-        {/* ================= TABLE HEADER ================= */}
-        <TableHead>
-          <TableRow>
-            <TableCell
-              sx={{
-                width: "14%",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#374151",
-                py: 1.15,
-                px: 1,
-                backgroundColor: "#F1F3FF",
-                borderBottom: "1px solid #E5E7EB",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Date
-            </TableCell>
-
-            <TableCell
-              sx={{
-                width: "39%",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#374151",
-                py: 1.15,
-                px: 1,
-                backgroundColor: "#F1F3FF",
-                borderBottom: "1px solid #E5E7EB",
-              }}
-            >
-              Transaction
-            </TableCell>
-
-            <TableCell
-              sx={{
-                width: "15%",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#374151",
-                py: 1.15,
-                px: 1,
-                textAlign: "right",
-                backgroundColor: "#F1F3FF",
-                borderBottom: "1px solid #E5E7EB",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Amount
-            </TableCell>
-
-            <TableCell
-              sx={{
-                width: "15%",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#374151",
-                py: 1.15,
-                px: 1,
-                textAlign: "right",
-                backgroundColor: "#F1F3FF",
-                borderBottom: "1px solid #E5E7EB",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Pat Resp.
-            </TableCell>
-
-            <TableCell
-              sx={{
-                width: "17%",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#374151",
-                py: 1.15,
-                px: 1,
-                textAlign: "right",
-                backgroundColor: "#F1F3FF",
-                borderBottom: "1px solid #E5E7EB",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Total Balance
-            </TableCell>
-          </TableRow>
-        </TableHead>
-
-        {/* ================= TABLE BODY ================= */}
-        <TableBody>
-          {[
-            {
-              date: "26 Aug 26",
-              type: "Claim created and added to Queue",
-              amount: "$550.14",
-              patResp: "$550.14",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Claim submitted to Payer - ICIC, $150",
-              amount: "-",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Payer Settlement EFT/Check #: 150219802000/0906",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-            {
-              date: "26 Aug 26",
-              type: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
-              amount: "$0.00",
-              patResp: "$0.00",
-              balance: "$550.14",
-            },
-          ].map((transaction, idx) => (
-            <TableRow
-              key={idx}
-              sx={{
-                backgroundColor:
-                  idx % 2 === 0 ? "#FFFFFF" : "#F5F7FF",
-
-                "&:last-child td": {
-                  borderBottom: 0,
-                },
-              }}
-            >
-              {/* Date */}
-              <TableCell
-                sx={{
-                  fontSize: 12,
-                  py: 1.25,
-                  px: 1,
-                  color: "#374151",
-                  verticalAlign: "top",
-                  whiteSpace: "nowrap",
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                {transaction.date}
-              </TableCell>
-
-              {/* Transaction */}
-              <TableCell
-                sx={{
-                  fontSize: 12,
-                  py: 1.25,
-                  px: 1,
-                  color: "#4B5563",
-                  verticalAlign: "top",
-                  lineHeight: 1.4,
-                  wordBreak: "break-word",
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                {transaction.type}
-              </TableCell>
-
-              {/* Amount */}
-              <TableCell
-                sx={{
-                  fontSize: 12,
-                  py: 1.25,
-                  px: 1,
-                  color: "#374151",
-                  textAlign: "right",
-                  verticalAlign: "top",
-                  whiteSpace: "nowrap",
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                {transaction.amount}
-              </TableCell>
-
-              {/* Patient Responsibility */}
-              <TableCell
-                sx={{
-                  fontSize: 12,
-                  py: 1.25,
-                  px: 1,
-                  color: "#374151",
-                  textAlign: "right",
-                  verticalAlign: "top",
-                  whiteSpace: "nowrap",
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                {transaction.patResp}
-              </TableCell>
-
-              {/* Total Balance */}
-              <TableCell
-                sx={{
-                  fontSize: 12,
-                  py: 1.25,
-                  px: 1,
-                  color: "#374151",
-                  textAlign: "right",
-                  verticalAlign: "top",
-                  whiteSpace: "nowrap",
-                  fontWeight: 600,
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                {transaction.balance}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Box>
-</Box>
-    </Box>
-  </Box>
-)}
+      )}
 
       {/* Patient Statement Tab Content */}
-    {currentTab === 3 && (
+   {currentTab === 3 && (
   <Box
     sx={{
-      height: "calc(100vh - 160px)",
+      height: "calc(100vh - 155px)",
       display: "flex",
       flexDirection: "column",
+      overflow: "hidden",
+      boxSizing: "border-box",
     }}
   >
-    {/* Toolbar Row: New/History toggle + filter chips + settings/download */}
+      
+    {/* ============ INFO BANNER (same as other tabs) ============ */}
+   <ChargeCaptureBanner />
+
+    {/* =========================================================
+        TOOLBAR
+    ========================================================= */}
     <Box
       sx={{
+        flexShrink: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -6350,52 +6756,45 @@ onClick={() => setShowColumnSettings(true)}
         gap: 1,
       }}
     >
+      {/* LEFT */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {/* New / History toggle */}
         <Button
           onClick={() => setStatementSubTab("new")}
-          sx={{
-            textTransform: "none",
-            fontSize: 12,
-            fontWeight: 600,
-            height: 30,
-            px: 2,
-            borderRadius: "16px",
-            backgroundColor: statementSubTab === "new" ? "#0066FF" : "#FFFFFF",
-            color: statementSubTab === "new" ? "#FFFFFF" : "#374151",
-            border: statementSubTab === "new" ? "none" : "1px solid #E5E7EB",
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: statementSubTab === "new" ? "#0052CC" : "#F9FAFB",
-              boxShadow: "none",
-            },
-          }}
+          sx={pillBtnSx(statementSubTab === "new")}
         >
-          New 15
+          New
+          <Box
+            component="span"
+            sx={{
+              fontWeight: 400,
+              opacity: 0.85,
+            }}
+          >
+            15
+          </Box>
         </Button>
+
         <Button
           onClick={() => setStatementSubTab("history")}
-          sx={{
-            textTransform: "none",
-            fontSize: 12,
-            fontWeight: 600,
-            height: 30,
-            px: 2,
-            borderRadius: "16px",
-            backgroundColor: statementSubTab === "history" ? "#0066FF" : "#FFFFFF",
-            color: statementSubTab === "history" ? "#FFFFFF" : "#374151",
-            border: statementSubTab === "history" ? "none" : "1px solid #E5E7EB",
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: statementSubTab === "history" ? "#0052CC" : "#F9FAFB",
-              boxShadow: "none",
-            },
-          }}
+          sx={pillBtnSx(statementSubTab === "history")}
         >
-          History 15
+          History
+          <Box
+            component="span"
+            sx={{
+              fontWeight: 400,
+              color:
+                statementSubTab === "history"
+                  ? "#fff"
+                  : "#9CA3AF",
+            }}
+          >
+            15
+          </Box>
         </Button>
       </Box>
 
+      {/* RIGHT */}
       <Box
         sx={{
           display: "flex",
@@ -6405,895 +6804,1244 @@ onClick={() => setShowColumnSettings(true)}
         }}
       >
         <IconButton
-          size="small"
-          sx={{
-            width: 32,
-            height: 30,
-            border: "none",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            "&:hover": { backgroundColor: "#f9fafb" },
-          }}
-        >
-          <SettingsIcon />
-        </IconButton>
-        <IconButton
-          size="small"
-          sx={{
-            width: 32,
-            height: 30,
-            border: "none",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            "&:hover": { backgroundColor: "#f9fafb" },
-          }}
-        >
-          <DownloadIcon />
-        </IconButton>
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
 
-        {/* Filter chips — now shown for BOTH New and History tabs */}
-        <Button
-          variant="outlined"
-          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
-          sx={{
-            textTransform: "none",
-            color: "#374151",
-            borderColor: "#E5E7EB",
-            backgroundColor: "#FFFFFF",
-            fontWeight: 500,
-            fontSize: 12,
-            height: 30,
-            px: 1.5,
-            borderRadius: "16px",
-            "&:hover": {
-              borderColor: "#D1D5DB",
-              backgroundColor: "#F9FAFB",
-            },
-          }}
-        >
+     <IconButton
+                size="small"
+                sx={{
+                  width: 40,
+                  height: 30,
+                  border: "none",
+                  borderRadius: "8px",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  "&:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+
+        <Button variant="outlined" sx={filterChipSx}>
           Balance greater than $
         </Button>
-        <Button
-          variant="outlined"
-          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
-          sx={{
-            textTransform: "none",
-            color: "#374151",
-            borderColor: "#E5E7EB",
-            backgroundColor: "#FFFFFF",
-            fontWeight: 500,
-            fontSize: 12,
-            height: 30,
-            px: 1.5,
-            borderRadius: "16px",
-            whiteSpace: "nowrap",
-            "&:hover": {
-              borderColor: "#D1D5DB",
-              backgroundColor: "#F9FAFB",
-            },
-          }}
-        >
+
+        <Button variant="outlined" sx={filterChipSx}>
           No statement for last days
         </Button>
-        <Button
-          variant="outlined"
-          endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />}
-          sx={{
-            textTransform: "none",
-            color: "#374151",
-            borderColor: "#E5E7EB",
-            backgroundColor: "#FFFFFF",
-            fontWeight: 500,
-            fontSize: 12,
-            height: 30,
-            px: 1.5,
-            borderRadius: "16px",
-            whiteSpace: "nowrap",
-            "&:hover": {
-              borderColor: "#D1D5DB",
-              backgroundColor: "#F9FAFB",
-            },
-          }}
-        >
+
+        <Button variant="outlined" sx={filterChipSx}>
           Fewer [#] statements since last payment
         </Button>
       </Box>
     </Box>
 
-    {/* ================= NEW STATEMENT TABLE ================= */}
-    {statementSubTab === "new" && (
-      <Box sx={{ px: 2, pb: 2, flex: 1, minHeight: 0 }}>
-        <TableContainer
-          component={Paper}
-          sx={{
-            boxShadow: "none",
-            border: "1px solid #e0e0e0",
-            maxHeight: "calc(100vh - 300px)",
-            overflowY: "auto",
-            overflowX: "auto",
-            "&::-webkit-scrollbar": { width: "4px", height: "4px" },
-            "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "#d1d5db",
-              borderRadius: "2px",
-            },
-            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
-          }}
-        >
-          <Table size="small" stickyHeader sx={{ minWidth: 1450 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  padding="checkbox"
-                  sx={{ width: 36, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                >
-                  <Checkbox
-                    size="small"
-                    indeterminate={
-                      statementSelectedRows.length > 0 &&
-                      statementSelectedRows.length < newStatementData.length
-                    }
-                    checked={
-                      newStatementData.length > 0 &&
-                      statementSelectedRows.length === newStatementData.length
-                    }
-                    onChange={handleStatementSelectAll}
-                  />
-                </TableCell>
-                {["Patient name", "ID", "DOB", "Category", "Last statement", "Sent"].map((h) => (
-                  <TableCell
-                    key={h}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: 11,
-                      color: "rgba(0,0,0,0.6)",
-                      backgroundColor: "#fafafa",
-                      borderBottom: "1px solid #e0e0e0",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {h}
-                  </TableCell>
-                ))}
-                <TableCell
-                  align="center"
-                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                >
-                  <Tooltip title="Calls">
-                    <ForumOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
-                  </Tooltip>
-                </TableCell>
-                <TableCell
-                  align="center"
-                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                >
-                  <Tooltip title="Emails">
-                    <MarkEmailReadOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
-                  </Tooltip>
-                </TableCell>
-                <TableCell
-                  align="center"
-                  sx={{ width: 34, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                >
-                  <Tooltip title="Documents">
-                    <DescriptionOutlined sx={{ fontSize: 15, color: "#9CA3AF" }} />
-                  </Tooltip>
-                </TableCell>
-                {["Enc", "Balance", "Balance", "Selected", "Alert"].map((h, i) => (
-                  <TableCell
-                    key={h + i}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: 11,
-                      color: "rgba(0,0,0,0.6)",
-                      backgroundColor: "#fafafa",
-                      borderBottom: "1px solid #e0e0e0",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {h}
-                  </TableCell>
-                ))}
-                <TableCell
-                  align="center"
-                  sx={{ width: 40, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {newStatementData.map((row, index) => {
-                const isItemSelected = statementSelectedRows.includes(row.id);
-                const bgColor = getListColor(index);
-                const categoryStyle = getCategoryChipStyle(row.category);
-                return (
-                  <TableRow
-                    key={row.id}
-                    sx={{ backgroundColor: bgColor, borderBottom: "none" }}
-                  >
-                    <TableCell padding="checkbox" sx={{ py: 1 }}>
-                      <Checkbox
-                        size="small"
-                        checked={isItemSelected}
-                        onChange={() => handleStatementRowSelect(row.id)}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "#0066FF", fontWeight: 500 }}>
-                      {row.name}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.pid}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.dob}
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Chip
-                        label={row.category}
-                        size="small"
-                        sx={{ ...categoryStyle, fontWeight: 600, fontSize: 10, height: 20 }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 12,
-                        py: 1,
-                        color: row.lastStatement === "Never sent" ? "#9CA3AF" : "rgba(0,0,0,0.87)",
-                      }}
-                    >
-                      {row.lastStatement}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.sent}
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
-                      {row.calls}
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.3 }}>
-                        {row.emails}
-                        {row.flagged && (
-                          <Box sx={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#EF4444" }} />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.6)" }}>
-                      {row.docs}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.enc}
-                    </TableCell>
-                    <TableCell
-                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
-                    >
-                      {row.balance}
-                    </TableCell>
-                    <TableCell
-                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
-                    >
-                      {row.balance}
-                    </TableCell>
-                    <TableCell
-                      sx={{ fontSize: 12, py: 1, fontWeight: 600, color: row.negative ? "#DC2626" : "rgba(0,0,0,0.87)" }}
-                    >
-                      {isItemSelected ? row.selectedBalance : "—"}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, py: 1, color: "#B45309", maxWidth: 170 }}>
-                      {row.alert && (
-                        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
-                          <Box sx={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#F59E0B", mt: "5px", flexShrink: 0 }} />
-                          <span>{row.alert}</span>
-                        </Box>
-                      )}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
-                      <Tooltip title="View" placement="top">
-                        <IconButton size="small" sx={{ padding: "3px" }}>
-                          <Visibility sx={{ fontSize: 16, color: "#6B7280" }} />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    )}
-
-    {/* ================= HISTORY TABLE ================= */}
-    {statementSubTab === "history" && (
-      <Box sx={{ px: 2, pb: 2, flex: 1, minHeight: 0 }}>
-        <TableContainer
-          component={Paper}
-          sx={{
-            boxShadow: "none",
-            border: "1px solid #e0e0e0",
-            maxHeight: "calc(100vh - 300px)",
-            overflowY: "auto",
-            overflowX: "auto",
-            "&::-webkit-scrollbar": { width: "4px", height: "4px" },
-            "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "#d1d5db",
-              borderRadius: "2px",
-            },
-            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
-          }}
-        >
-          <Table size="small" stickyHeader sx={{ minWidth: 1150 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  padding="checkbox"
-                  sx={{ width: 36, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                >
-                  <Checkbox
-                    size="small"
-                    indeterminate={
-                      historySelectedRows.length > 0 &&
-                      historySelectedRows.length < historyStatementData.length
-                    }
-                    checked={
-                      historyStatementData.length > 0 &&
-                      historySelectedRows.length === historyStatementData.length
-                    }
-                    onChange={handleHistorySelectAll}
-                  />
-                </TableCell>
-                {[
-                  "Practice",
-                  "Batch ID",
-                  "Batch name",
-                  "Batch description",
-                  "No. of statement",
-                  "Total balance",
-                  "Batch status",
-                  "Statement with errors",
-                ].map((h) => (
-                  <TableCell
-                    key={h}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: 11,
-                      color: "rgba(0,0,0,0.6)",
-                      backgroundColor: "#fafafa",
-                      borderBottom: "1px solid #e0e0e0",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {h}
-                  </TableCell>
-                ))}
-                <TableCell
-                  align="center"
-                  sx={{ width: 70, backgroundColor: "#fafafa", borderBottom: "1px solid #e0e0e0" }}
-                />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {historyStatementData.map((row, index) => {
-                const isItemSelected = historySelectedRows.includes(row.id);
-                const bgColor = getListColor(index);
-                const chipStyle = statusChipStyles[row.batchStatus] || statusChipStyles.Draft;
-                return (
-                  <TableRow
-                    key={row.id}
-                    sx={{ backgroundColor: bgColor, borderBottom: "none" }}
-                  >
-                    <TableCell padding="checkbox" sx={{ py: 1 }}>
-                      <Checkbox
-                        size="small"
-                        checked={isItemSelected}
-                        onChange={() => handleHistoryRowSelect(row.id)}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.practice}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.batchId}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.batchName}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.5)" }}>
-                      {row.batchDescription}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.noOfStatement}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "#9CA3AF" }}>
-                      {row.totalBalance}
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Chip
-                        label={row.batchStatus}
-                        size="small"
-                        sx={{ ...chipStyle, fontWeight: 600, fontSize: 10, height: 20 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, py: 1, color: "rgba(0,0,0,0.87)" }}>
-                      {row.statementWithErrors}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
-                      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", justifyContent: "center" }}>
-                        <Tooltip title="Info" placement="top">
-                          <IconButton size="small" sx={{ padding: "3px" }}>
-                            <InfoOutlined sx={{ fontSize: 16, color: "#0066FF" }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete" placement="top">
-                          <IconButton size="small" sx={{ padding: "3px" }}>
-    <InfoOutlined sx={{ fontSize: 16, color: "#DC2626" }} />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    )}
-
-    {/* ================= BOTTOM SUMMARY BAR ================= */}
-   <Box 
-  sx={{ 
-    display: "flex", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    px: 1.5, 
-    py: 1, 
-    borderTop: "1px solid #E5E7EB", 
-    backgroundColor: "#FFFFFF", 
-    borderRadius: "14px", 
-    boxShadow: "0 -4px 16px rgba(15, 23, 42, 0.06)", 
-    flexWrap: "wrap", 
-    gap: 1, 
-  }} 
->
-  <Box sx={{ display: "flex", alignItems: "center", gap: 3.5 }}> 
-    <Box> 
-      <Typography 
-        sx={{ 
-          fontSize: 10.5, 
-          color: "#9CA3AF", 
-          fontWeight: 600, 
-          letterSpacing: "0.3px", 
-          textTransform: "uppercase" 
-        }}
-      > 
-        Patients selected 
-      </Typography> 
-      <Typography 
-        sx={{ 
-          fontSize: 17, 
-          fontWeight: 700, 
-          color: "#1F2937", 
-          mt: 0.3 
-        }}
-      > 
-        {statementSubTab === "new" 
-          ? statementNewSelectedCount 
-          : historySelectedRows.length} 
-      </Typography> 
-    </Box> 
-
-    <Box 
-      sx={{ 
-        width: "1px", 
-        alignSelf: "stretch", 
-        backgroundColor: "#E5E7EB", 
-      }} 
-    /> 
-
-    <Box> 
-      <Typography 
-        sx={{ 
-          fontSize: 10.5, 
-          color: "#9CA3AF", 
-          fontWeight: 600, 
-          letterSpacing: "0.3px", 
-          textTransform: "uppercase" 
-        }}
-      > 
-        Selected balance 
-      </Typography> 
-      <Typography 
-        sx={{ 
-          fontSize: 17, 
-          fontWeight: 700, 
-          color: "#0066FF", 
-          mt: 0.3 
-        }}
-      > 
-        {statementSubTab === "new" 
-          ? `$${statementNewSelectedBalance.toLocaleString(undefined, { 
-              minimumFractionDigits: 2, 
-              maximumFractionDigits: 2, 
-            })}` 
-          : "$0.00"} 
-      </Typography> 
-    </Box> 
-  </Box> 
-
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}> 
-    <Button 
-      variant="outlined" 
-      endIcon={<KeyboardArrowDown sx={{ fontSize: 18 }} />} 
-      onClick={(e) => setAnchorEl(e.currentTarget)} 
-      sx={{ 
-        textTransform: "none", 
-        color: "#374151", 
-        borderColor: "#E5E7EB", 
-        backgroundColor: "#FFFFFF", 
-        fontWeight: 600, 
-        fontSize: 13, 
-        height: 36, 
-        px: 1.7, 
-        borderRadius: "9px", 
-        "&:hover": { 
-          borderColor: "#D1D5DB", 
-          backgroundColor: "#F9FAFB" 
-        }, 
-      }} 
-    > 
-      Select action 
-    </Button> 
-
-    <Menu 
-      anchorEl={anchorEl} 
-      open={Boolean(anchorEl)} 
-      onClose={() => setAnchorEl(null)}
-    > 
-      <MenuItem onClick={() => setAnchorEl(null)}>
-        Send statement
-      </MenuItem> 
-      <MenuItem onClick={() => setAnchorEl(null)}>
-        Export selected
-      </MenuItem> 
-      <MenuItem onClick={() => setAnchorEl(null)}>
-        Mark as reviewed
-      </MenuItem> 
-    </Menu> 
-
-    <Button 
-      variant="outlined" 
-      sx={{ 
-        textTransform: "none", 
-        color: "#374151", 
-        borderColor: "#E5E7EB", 
-        backgroundColor: "#FFFFFF", 
-        fontWeight: 600, 
-        fontSize: 13, 
-        height: 36, 
-        px: 2, 
-        borderRadius: "9px", 
-        "&:hover": { 
-          borderColor: "#D1D5DB", 
-          backgroundColor: "#F9FAFB" 
-        }, 
-      }} 
-    > 
-      Cancel 
-    </Button> 
-
-    <Button 
-      variant="contained" 
-      sx={{ 
-        textTransform: "none", 
-        backgroundColor: "#0066FF", 
-        color: "#FFFFFF", 
-        fontWeight: 600, 
-        fontSize: 13, 
-        height: 36, 
-        px: 3, 
-        borderRadius: "9px", 
-        boxShadow: "0 2px 6px rgba(0,102,255,0.25)", 
-        "&:hover": { 
-          backgroundColor: "#0052CC", 
-          boxShadow: "0 2px 8px rgba(0,102,255,0.3)" 
-        }, 
-      }} 
-    > 
-      Save 
-    </Button> 
-  </Box> 
-</Box>
-  </Box>
-)}
-      {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
-<Dialog
-  open={showColumnSettings}
-  onClose={() => setShowColumnSettings(false)}
-  PaperProps={{
-    sx: {
-      width: "100%",
-      maxWidth: 420,
-      borderRadius: "12px",
-      overflow: "hidden",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-    },
-  }}
->
-  <Box sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>
-    {/* Header */}
+    {/* =========================================================
+        TABLE AREA
+    ========================================================= */}
     <Box
       sx={{
+        flex: 1,
+        minHeight: 0,
         display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        mb: 0.6,
+        flexDirection: "column",
       }}
     >
-      <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1F2937" }}>
-        Customise columns
-      </Typography>
-      <IconButton
-        size="small"
-        onClick={() => setShowColumnSettings(false)}
-        sx={{ p: 0.3, color: "#6B7280" }}
-      >
-        <Close sx={{ fontSize: 17 }} />
-      </IconButton>
+      {/* =======================================================
+          NEW TABLE
+      ======================================================= */}
+      {statementSubTab === "new" && (
+        <Box
+          sx={{
+            px: 2,
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <TableContainer
+            component={Paper}
+            sx={{
+              ...tableContainerSx,
+              flex: 1,
+              minHeight: 0,
+              height: "100%",
+              overflow: "auto",
+            }}
+          >
+            <Table
+              size="small"
+              stickyHeader
+              sx={{
+                minWidth: 1250,
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      ...thSx,
+                      width: 40,
+                      pl: 1.5,
+                    }}
+                  >
+                    <Checkbox
+                      sx={checkboxSx}
+                      indeterminate={
+                        statementSelectedRows.length > 0 &&
+                        statementSelectedRows.length <
+                          newStatementData.length
+                      }
+                      checked={
+                        newStatementData.length > 0 &&
+                        statementSelectedRows.length ===
+                          newStatementData.length
+                      }
+                      onChange={handleStatementSelectAll}
+                    />
+                  </TableCell>
+
+                  {[
+                    "Patient name",
+                    "ID",
+                    "DOB",
+                    "Category",
+                  ].map((h) => (
+                    <TableCell key={h} sx={thSx}>
+                      <HeadLabel>{h}</HeadLabel>
+                    </TableCell>
+                  ))}
+
+                  <TableCell
+                    sx={{
+                      ...thSx,
+                      lineHeight: 1.2,
+                      whiteSpace: "normal",
+                    }}
+                  >
+                    <HeadLabel>
+                      <span>
+                        Last
+                        <br />
+                        statement
+                      </span>
+                    </HeadLabel>
+                  </TableCell>
+
+                  <TableCell sx={thSx}>
+                    <HeadLabel>Sent</HeadLabel>
+                  </TableCell>
+
+                  {[
+                    ["Calls", SmsIcon],
+                    ["Emails", AtRateIcon],
+                    ["Prints", PrinterIcon],
+                    ["Documents", ListIcon],
+                  ].map(([title, Icon]) => (
+                    <TableCell
+                      key={title}
+                      align="center"
+                      sx={{
+                        ...thSx,
+                        width: 34,
+                        px: 0.5,
+                      }}
+                    >
+                      <Tooltip title={title}>
+                        <Box
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Icon />
+                        </Box>
+                      </Tooltip>
+                    </TableCell>
+                  ))}
+
+                  <TableCell sx={thSx}>
+                    <HeadLabel>Enc</HeadLabel>
+                  </TableCell>
+
+                  <TableCell sx={thSx}>
+                    <HeadLabel>Balance</HeadLabel>
+                  </TableCell>
+
+                  <TableCell sx={thSx}>
+                    <HeadLabel>Reason</HeadLabel>
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      ...thSx,
+                      backgroundColor: selHeadBg,
+                      minWidth: 90,
+                    }}
+                  >
+                    Selected
+                  </TableCell>
+
+                  <TableCell sx={thSx}>
+                    <HeadLabel>Alert</HeadLabel>
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      ...thSx,
+                      width: 40,
+                    }}
+                  />
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {newStatementData.map((row) => {
+                  const isItemSelected =
+                    statementSelectedRows.includes(row.id);
+
+                  const neg = row.negative;
+
+                  const amountColor = neg
+                    ? "#DC2626"
+                    : "#1F2937";
+
+                  return (
+                    <TableRow
+                      key={row.id}
+                      sx={{
+                        backgroundColor: "#FFFFFF",
+                      }}
+                    >
+                      {/* CHECKBOX */}
+                      <TableCell
+                        padding="checkbox"
+                        sx={{
+                          ...tdSx,
+                          pl: 1.5,
+                        }}
+                      >
+                        <Checkbox
+                          sx={checkboxSx}
+                          checked={isItemSelected}
+                          onChange={() =>
+                            handleStatementRowSelect(row.id)
+                          }
+                        />
+                      </TableCell>
+
+                      {/* PATIENT */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {row.name}
+                      </TableCell>
+
+                      {/* ID */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                        }}
+                      >
+                        {row.pid}
+                      </TableCell>
+
+                      {/* DOB */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                        }}
+                      >
+                        {row.dob}
+                      </TableCell>
+
+                      {/* CATEGORY */}
+                      <TableCell sx={tdSx}>
+                        <Chip
+                          label={row.category}
+                          size="small"
+                          sx={{
+                            ...chipBase,
+                            ...(categoryStyles[row.category] ||
+                              categoryStyles["Self pay"]),
+                          }}
+                        />
+                      </TableCell>
+
+                      {/* LAST STATEMENT */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color:
+                            row.lastStatement === "Never sent"
+                              ? "#B45309"
+                              : "#4B5563",
+                        }}
+                      >
+                        {row.lastStatement}
+                      </TableCell>
+
+                      {/* SENT */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#6B7280",
+                        }}
+                      >
+                        {row.sent}
+                      </TableCell>
+
+                      {/* CALLS */}
+                      <TableCell
+                        align="center"
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                          px: 0.5,
+                        }}
+                      >
+                        {row.calls}
+                      </TableCell>
+
+                      {/* EMAILS */}
+                      <TableCell
+                        align="center"
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                          px: 0.5,
+                        }}
+                      >
+                        {row.flagged ? (
+                          <Box
+                            sx={{
+                              width: 9,
+                              height: 9,
+                              borderRadius: "50%",
+                              backgroundColor: "#EF4444",
+                              display: "inline-block",
+                            }}
+                          />
+                        ) : (
+                          row.emails
+                        )}
+                      </TableCell>
+
+                      {/* PRINTS */}
+                      <TableCell
+                        align="center"
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                          px: 0.5,
+                        }}
+                      >
+                        {row.prints ?? 0}
+                      </TableCell>
+
+                      {/* DOCUMENTS */}
+                      <TableCell
+                        align="center"
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                          px: 0.5,
+                        }}
+                      >
+                        {row.docs}
+                      </TableCell>
+
+                      {/* ENC */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                        }}
+                      >
+                        {row.enc}
+                      </TableCell>
+
+                      {/* BALANCE */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          fontWeight: 600,
+                          color: amountColor,
+                        }}
+                      >
+                        {row.balance}
+                      </TableCell>
+
+                      {/* REASON */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#374151",
+                        }}
+                      >
+                        {row.reason || "Reason here"}
+                      </TableCell>
+
+                      {/* SELECTED */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          fontWeight: 700,
+                          color: amountColor,
+                          backgroundColor: selBodyBg,
+                        }}
+                      >
+                        {isItemSelected
+                          ? row.selectedBalance ?? row.balance
+                          : "—"}
+                      </TableCell>
+
+                      {/* ALERT */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          fontSize: 10.5,
+                          color: "#A16207",
+                          maxWidth: 130,
+                        }}
+                      >
+                        {row.alert ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 0.6,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: "50%",
+                                backgroundColor: "#F59E0B",
+                                mt: "5px",
+                                flexShrink: 0,
+                              }}
+                            />
+
+                            <span>{row.alert}</span>
+                          </Box>
+                        ) : (
+                          <span
+                            style={{
+                              color: "#9CA3AF",
+                            }}
+                          >
+                            —
+                          </span>
+                        )}
+                      </TableCell>
+
+                      {/* VIEW */}
+                      <TableCell
+                        align="center"
+                        sx={tdSx}
+                      >
+                        <Tooltip
+                          title="View"
+                          placement="top"
+                        >
+                          <IconButton
+                            size="small"
+                            sx={{
+                              p: "3px",
+                            }}
+                          >
+                            <VisibilityOutlined
+                              sx={{
+                                fontSize: 16,
+                                color: "#9CA3AF",
+                              }}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* =======================================================
+          HISTORY TABLE
+      ======================================================= */}
+      {statementSubTab === "history" && (
+        <Box
+          sx={{
+            px: 2,
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <TableContainer
+            component={Paper}
+            sx={{
+              ...tableContainerSx,
+              flex: 1,
+              minHeight: 0,
+              height: "100%",
+              overflow: "auto",
+            }}
+          >
+            <Table
+              size="small"
+              stickyHeader
+              sx={{
+                minWidth: 1150,
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      ...thSx,
+                      width: 40,
+                      pl: 1.5,
+                    }}
+                  >
+                    <Checkbox
+                      sx={checkboxSx}
+                      indeterminate={
+                        historySelectedRows.length > 0 &&
+                        historySelectedRows.length <
+                          historyStatementData.length
+                      }
+                      checked={
+                        historyStatementData.length > 0 &&
+                        historySelectedRows.length ===
+                          historyStatementData.length
+                      }
+                      onChange={handleHistorySelectAll}
+                    />
+                  </TableCell>
+
+                  {[
+                    "Practice",
+                    "Batch ID",
+                    "Batch name",
+                    "Batch description",
+                    "No. of statement",
+                    "Total balance",
+                    "Batch status",
+                    "Statement with errors",
+                  ].map((h) => (
+                    <TableCell
+                      key={h}
+                      sx={thSx}
+                    >
+                      <HeadLabel>{h}</HeadLabel>
+                    </TableCell>
+                  ))}
+
+                  <TableCell
+                    sx={{
+                      ...thSx,
+                      width: 80,
+                    }}
+                  />
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {historyStatementData.map((row) => {
+                  const isItemSelected =
+                    historySelectedRows.includes(row.id);
+
+                  const chipStyle =
+                    statusChipStyles[row.batchStatus] ||
+                    statusChipStyles.Draft;
+
+                  return (
+                    <TableRow
+                      key={row.id}
+                      sx={{
+                        backgroundColor: "#FFFFFF",
+                      }}
+                    >
+                      {/* CHECKBOX */}
+                      <TableCell
+                        padding="checkbox"
+                        sx={{
+                          ...tdSx,
+                          pl: 1.5,
+                        }}
+                      >
+                        <Checkbox
+                          sx={checkboxSx}
+                          checked={isItemSelected}
+                          onChange={() =>
+                            handleHistoryRowSelect(row.id)
+                          }
+                        />
+                      </TableCell>
+
+                      {/* PRACTICE */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {row.practice}
+                      </TableCell>
+
+                      {/* BATCH ID */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#4B5563",
+                        }}
+                      >
+                        {row.batchId}
+                      </TableCell>
+
+                      {/* BATCH NAME */}
+                      <TableCell sx={tdSx}>
+                        {row.batchName}
+                      </TableCell>
+
+                      {/* DESCRIPTION */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color: "#9CA3AF",
+                        }}
+                      >
+                        {row.batchDescription}
+                      </TableCell>
+
+                      {/* NO OF STATEMENT */}
+                      <TableCell sx={tdSx}>
+                        {row.noOfStatement}
+                      </TableCell>
+
+                      {/* TOTAL BALANCE */}
+                      <TableCell
+                        sx={{
+                          ...tdSx,
+                          color:
+                            row.totalBalance === "Never sent"
+                              ? "#B45309"
+                              : "#1F2937",
+                        }}
+                      >
+                        {row.totalBalance}
+                      </TableCell>
+
+                      {/* STATUS */}
+                      <TableCell sx={tdSx}>
+                        <Chip
+                          label={row.batchStatus}
+                          size="small"
+                          sx={{
+                            ...chipBase,
+                            maxWidth: "none",
+                            ...chipStyle,
+                          }}
+                        />
+                      </TableCell>
+
+                      {/* ERRORS */}
+                      <TableCell sx={tdSx}>
+                        {row.statementWithErrors}
+                      </TableCell>
+
+                      {/* ACTIONS */}
+                      <TableCell
+                        align="center"
+                        sx={tdSx}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <Tooltip
+                            title="Info"
+                            placement="top"
+                          >
+                            <IconButton
+                              size="small"
+                              sx={{
+                                p: "2px",
+                              }}
+                            >
+                              <InfoOutlined
+                                sx={{
+                                  fontSize: 19,
+                                  color: BLUE,
+                                }}
+                              />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip
+                            title="Delete"
+                            placement="top"
+                          >
+                            <IconButton
+                              size="small"
+                              sx={{
+                                p: "2px",
+                              }}
+                            >
+                              <DeleteOutlineOutlined
+                                sx={{
+                                  fontSize: 19,
+                                  color: "#1E3A8A",
+                                }}
+                              />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
     </Box>
 
-    {/* Subtitle */}
-    <Typography
-      sx={{ fontSize: 11.5, color: "#6B7280", mb: 1.5, lineHeight: 1.4 }}
-    >
-      Choose which columns to show and drag to reorder them.
-    </Typography>
-
-    {/* Select all / Clear all + count */}
+    {/* =========================================================
+        GAP BETWEEN TABLE AND FOOTER
+        Increase/decrease ONLY this value.
+    ========================================================= */}
     <Box
       sx={{
+        height: 42,
+        flexShrink: 0,
+      }}
+    />
+
+    {/* =========================================================
+        FOOTER
+    ========================================================= */}
+    <Box
+      sx={{
+        mx: 2,
+        mb: 1.5,
+        px: 2,
+        py: 1.25,
+        minHeight: 64,
+
+        flexShrink: 0,
+
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        mb: 1.2,
+
+        backgroundColor: "#FFFFFF",
+        border: "1px solid #E5E7EB",
+        borderRadius: "14px",
+
+        boxSizing: "border-box",
+        width: "calc(100% - 32px)",
+
+        flexWrap: "wrap",
+        gap: 1,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-        <Typography
-          onClick={() =>
-            setVisibleColumns({
-              dos: true,
-              patientName: true,
-              cpt: true,
-              modifier: true,
-              icd: true,
-              primaryInsurance: true,
-              billedAmount: true,
-              patientCopay: true,
-              status: true,
-              remarks: true,
-              encounterId: true,
-              claimId: true,
-            })
-          }
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: "#0066FF",
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
-          }}
-        >
-          Select all
-        </Typography>
-        <Typography
-          onClick={() =>
-            setVisibleColumns({
-              dos: false,
-              patientName: false,
-              cpt: false,
-              modifier: false,
-              icd: false,
-              primaryInsurance: false,
-              billedAmount: false,
-              patientCopay: false,
-              status: false,
-              remarks: false,
-              encounterId: false,
-              claimId: false,
-            })
-          }
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: "#0066FF",
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
-          }}
-        >
-          Clear All
-        </Typography>
-      </Box>
-
-      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-        {
-          Object.values(visibleColumns).filter(Boolean).length
-        }{" "}
-        of 12 shown
-      </Typography>
-    </Box>
-  </Box>
-
-  {/* Column list */}
-  <Box
-    sx={{
-      px: 2.5,
-      pb: 1.5,
-      maxHeight: 400,
-      overflowY: "auto",
-      "&::-webkit-scrollbar": { width: "4px" },
-      "&::-webkit-scrollbar-thumb": {
-        backgroundColor: "#D1D5DB",
-        borderRadius: "4px",
-      },
-    }}
-  >
-    {[
-      { key: "dos", label: "DOS" },
-      { key: "cpt", label: "CPT" },
-      { key: "modifier", label: "Modifier" },
-      { key: "icd", label: "ICD" },
-      { key: "primaryInsurance", label: "Primary Insurance" },
-      { key: "billedAmount", label: "Billed Amount" },
-      { key: "patientCopay", label: "Patient Copay" },
-      { key: "status", label: "Status" },
-      { key: "remarks", label: "Remarks" },
-      { key: "encounterId", label: "Encounter ID #" },
-      { key: "claimId", label: "Claim ID" },
-    ].map((col) => (
+      {/* =======================================================
+          FOOTER LEFT
+      ======================================================= */}
       <Box
-        key={col.key}
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.2,
-          py: 1,
-          px: 0.5,
-          borderBottom: "1px solid #F3F4F6",
-          "&:last-child": { borderBottom: "none" },
+          gap: 2,
+          minWidth: 0,
         }}
       >
-        {/* Drag handle */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "2px",
-            cursor: "grab",
-            mr: 0.4,
-          }}
-        >
-          {[...Array(6)].map((_, i) => (
-            <Box
-              key={i}
-              sx={{
-                width: 3,
-                height: 3,
-                borderRadius: "50%",
-                backgroundColor: "#C4C9D4",
-              }}
-            />
-          ))}
+        <Box>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Patients selected
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: "#1F2937",
+              lineHeight: 1.2,
+            }}
+          >
+            {statementSubTab === "new"
+              ? statementNewSelectedCount
+              : historySelectedRows.length}
+          </Typography>
         </Box>
 
-        {/* Checkbox */}
-        <Checkbox
-          size="small"
-          checked={visibleColumns[col.key]}
-          onChange={(e) =>
-            setVisibleColumns((prev) => ({
-              ...prev,
-              [col.key]: e.target.checked,
-            }))
-          }
+        <Box
           sx={{
-            p: 0.4,
-            color: "#C8CDD8",
-            "&.Mui-checked": { color: "#0066FF" },
-            "& svg": { fontSize: 17 },
+            width: "1px",
+            height: 38,
+            backgroundColor: "#E5E7EB",
           }}
         />
 
-        {/* Label */}
-        <Typography sx={{ fontSize: 12.5, color: "#374151" }}>
-          {col.label}
-        </Typography>
+        <Box>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "#6B7280",
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Selected balance
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: "#1E40AF",
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {statementSubTab === "new"
+              ? `$${statementNewSelectedBalance.toLocaleString(
+                  undefined,
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}`
+              : "$0.00"}
+          </Typography>
+        </Box>
       </Box>
-    ))}
-  </Box>
 
-  {/* Footer */}
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      px: 2.5,
-      py: 1.6,
-      borderTop: "1px solid #F3F4F6",
-    }}
-  >
-    <Typography
-      onClick={() =>
-        setVisibleColumns({
-          dos: true,
-          patientName: true,
-          cpt: true,
-          modifier: true,
-          icd: true,
-          primaryInsurance: true,
-          billedAmount: true,
-          patientCopay: true,
-          status: true,
-          remarks: true,
-          encounterId: true,
-          claimId: true,
-        })
-      }
-      sx={{
-        fontSize: 11.5,
-        fontWeight: 600,
-        color: "#0066FF",
-        cursor: "pointer",
-        "&:hover": { textDecoration: "underline" },
-      }}
-    >
-      Reset to default
-    </Typography>
-
-    <Box sx={{ display: "flex", gap: 1 }}>
-      <Button
-        variant="outlined"
-        onClick={() => setShowColumnSettings(false)}
+      {/* =======================================================
+          FOOTER RIGHT
+      ======================================================= */}
+      <Box
         sx={{
-          textTransform: "none",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "#374151",
-          borderColor: "#E5E7EB",
-          borderRadius: "8px",
-          px: 2,
-          py: 0.55,
-          minWidth: 70,
-          "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          flexShrink: 0,
         }}
       >
-        Cancel
-      </Button>
-      <Button
-        variant="contained"
-        disableElevation
-        onClick={() => setShowColumnSettings(false)}
-        sx={{
-          textTransform: "none",
-          fontSize: 12,
-          fontWeight: 600,
-          bgcolor: "#0066FF",
-          color: "#fff",
-          borderRadius: "8px",
-          px: 2,
-          py: 0.55,
-          minWidth: 90,
-          boxShadow: "none",
-          "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
-        }}
-      >
-        Save View
-      </Button>
+        <Button
+          variant="outlined"
+          endIcon={
+            <KeyboardArrowDown
+              sx={{
+                fontSize: 18,
+              }}
+            />
+          }
+          onClick={(e) =>
+            setAnchorEl(e.currentTarget)
+          }
+          sx={{
+            ...footerBtnSx,
+            height: 36,
+            minWidth: 0,
+            px: 1.75,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Select action
+        </Button>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem
+            onClick={() => setAnchorEl(null)}
+          >
+            Send statement
+          </MenuItem>
+
+          <MenuItem
+            onClick={() => setAnchorEl(null)}
+          >
+            Export selected
+          </MenuItem>
+
+          <MenuItem
+            onClick={() => setAnchorEl(null)}
+          >
+            Mark as reviewed
+          </MenuItem>
+        </Menu>
+
+        <Button
+          variant="outlined"
+          sx={{
+            ...footerBtnSx,
+            height: 36,
+            minWidth: 70,
+            px: 1.75,
+          }}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            backgroundColor: BLUE,
+            color: "#FFFFFF",
+            fontWeight: 600,
+            fontSize: 12,
+            height: 36,
+            minWidth: 70,
+            px: 2,
+            borderRadius: "6px",
+            boxShadow: "none",
+
+            "&:hover": {
+              backgroundColor: "#0952CC",
+              boxShadow: "none",
+            },
+          }}
+        >
+          Save
+        </Button>
+      </Box>
     </Box>
   </Box>
-</Dialog>
+)}
+      {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
+      <Dialog
+        open={showColumnSettings}
+        onClose={() => setShowColumnSettings(false)}
+        PaperProps={{
+          sx: {
+            width: "100%",
+            maxWidth: 420,
+            borderRadius: "12px",
+            overflow: "hidden",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          },
+        }}
+      >
+        <Box sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              mb: 0.6,
+            }}
+          >
+            <Typography
+              sx={{ fontSize: 16, fontWeight: 700, color: "#1F2937" }}
+            >
+              Customise columns
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setShowColumnSettings(false)}
+              sx={{ p: 0.3, color: "#6B7280" }}
+            >
+              <Close sx={{ fontSize: 17 }} />
+            </IconButton>
+          </Box>
+
+          {/* Subtitle */}
+          <Typography
+            sx={{ fontSize: 11.5, color: "#6B7280", mb: 1.5, lineHeight: 1.4 }}
+          >
+            Choose which columns to show and drag to reorder them.
+          </Typography>
+
+          {/* Select all / Clear all + count */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1.2,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+              <Typography
+                onClick={() =>
+                  setVisibleColumns({
+                    dos: true,
+                    patientName: true,
+                    cpt: true,
+                    modifier: true,
+                    icd: true,
+                    primaryInsurance: true,
+                    billedAmount: true,
+                    patientCopay: true,
+                    status: true,
+                    remarks: true,
+                    encounterId: true,
+                    claimId: true,
+                  })
+                }
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#0066FF",
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Select all
+              </Typography>
+              <Typography
+                onClick={() =>
+                  setVisibleColumns({
+                    dos: false,
+                    patientName: false,
+                    cpt: false,
+                    modifier: false,
+                    icd: false,
+                    primaryInsurance: false,
+                    billedAmount: false,
+                    patientCopay: false,
+                    status: false,
+                    remarks: false,
+                    encounterId: false,
+                    claimId: false,
+                  })
+                }
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#0066FF",
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Clear All
+              </Typography>
+            </Box>
+
+            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+              {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Column list */}
+        <Box
+          sx={{
+            px: 2.5,
+            pb: 1.5,
+            maxHeight: 400,
+            overflowY: "auto",
+            "&::-webkit-scrollbar": { width: "4px" },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#D1D5DB",
+              borderRadius: "4px",
+            },
+          }}
+        >
+          {[
+            { key: "dos", label: "DOS" },
+            { key: "cpt", label: "CPT" },
+            { key: "modifier", label: "Modifier" },
+            { key: "icd", label: "ICD" },
+            { key: "primaryInsurance", label: "Primary Insurance" },
+            { key: "billedAmount", label: "Billed Amount" },
+            { key: "patientCopay", label: "Patient Copay" },
+            { key: "status", label: "Status" },
+            { key: "remarks", label: "Remarks" },
+            { key: "encounterId", label: "Encounter ID #" },
+            { key: "claimId", label: "Claim ID" },
+          ].map((col) => (
+            <Box
+              key={col.key}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.2,
+                py: 1,
+                px: 0.5,
+                borderBottom: "1px solid #F3F4F6",
+                "&:last-child": { borderBottom: "none" },
+              }}
+            >
+              {/* Drag handle */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "2px",
+                  cursor: "grab",
+                  mr: 0.4,
+                }}
+              >
+                {[...Array(6)].map((_, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      width: 3,
+                      height: 3,
+                      borderRadius: "50%",
+                      backgroundColor: "#C4C9D4",
+                    }}
+                  />
+                ))}
+              </Box>
+
+              {/* Checkbox */}
+              <Checkbox
+                size="small"
+                checked={visibleColumns[col.key]}
+                onChange={(e) =>
+                  setVisibleColumns((prev) => ({
+                    ...prev,
+                    [col.key]: e.target.checked,
+                  }))
+                }
+                sx={{
+                  p: 0.4,
+                  color: "#C8CDD8",
+                  "&.Mui-checked": { color: "#0066FF" },
+                  "& svg": { fontSize: 17 },
+                }}
+              />
+
+              {/* Label */}
+              <Typography sx={{ fontSize: 12.5, color: "#374151" }}>
+                {col.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2.5,
+            py: 1.6,
+            borderTop: "1px solid #F3F4F6",
+          }}
+        >
+          <Typography
+            onClick={() =>
+              setVisibleColumns({
+                dos: true,
+                patientName: true,
+                cpt: true,
+                modifier: true,
+                icd: true,
+                primaryInsurance: true,
+                billedAmount: true,
+                patientCopay: true,
+                status: true,
+                remarks: true,
+                encounterId: true,
+                claimId: true,
+              })
+            }
+            sx={{
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: "#0066FF",
+              cursor: "pointer",
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
+            Reset to default
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowColumnSettings(false)}
+              sx={{
+                textTransform: "none",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#374151",
+                borderColor: "#E5E7EB",
+                borderRadius: "8px",
+                px: 2,
+                py: 0.55,
+                minWidth: 70,
+                "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => setShowColumnSettings(false)}
+              sx={{
+                textTransform: "none",
+                fontSize: 12,
+                fontWeight: 600,
+                bgcolor: "#0066FF",
+                color: "#fff",
+                borderRadius: "8px",
+                px: 2,
+                py: 0.55,
+                minWidth: 90,
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+              }}
+            >
+              Save View
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
