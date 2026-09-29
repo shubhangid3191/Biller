@@ -14,7 +14,6 @@ import {
   TableRow,
   TableCell,
   LinearProgress,
-  Divider,
 } from "@mui/material";
 
 import {
@@ -37,8 +36,6 @@ import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import LocalHospitalOutlinedIcon from "@mui/icons-material/LocalHospitalOutlined";
 
 // -----------------------------------------------------------------------------
 // MOCK DATA
@@ -67,27 +64,59 @@ const arAging = [
   { name: "120+", value: 1 },
 ];
 
-const providerData = [
-  { name: "Abhimani Wickrama", Jan: 20, Feb: 18, Mar: 16, Apr: 10, May: 12 },
-  { name: "Abhimani Wickrama", Jan: 18, Feb: 15, Mar: 14, Apr: 9, May: 12 },
-  { name: "Abhimani Wickrama", Jan: 17, Feb: 13, Mar: 13, Apr: 10, May: 11 },
-  { name: "Abhimani Wickrama", Jan: 16, Feb: 14, Mar: 12, Apr: 8, May: 11 },
-  { name: "Abhimani Wickrama", Jan: 15, Feb: 13, Mar: 12, Apr: 8, May: 10 },
-  { name: "Abhimani Wickrama", Jan: 14, Feb: 12, Mar: 11, Apr: 8, May: 10 },
-  { name: "Abhimani Wickrama", Jan: 13, Feb: 11, Mar: 10, Apr: 7, May: 9 },
-  { name: "Abhimani Wickrama", Jan: 12, Feb: 10, Mar: 10, Apr: 7, May: 9 },
-  { name: "Abhimani Wickrama", Jan: 11, Feb: 10, Mar: 9, Apr: 7, May: 8 },
+const MONTHS_12 = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
-const claimRows = Array.from({ length: 10 }, (_, index) => ({
+const MONTH_COLORS = {
+  Jan: "#2F6FED",
+  Feb: "#1E22A8",
+  Mar: "#F97316",
+  Apr: "#8B1AA8",
+  May: "#EC4899",
+  Jun: "#8B5CF6",
+  Jul: "#EAB308",
+  Aug: "#EF4444",
+  Sep: "#0F9D8A",
+  Oct: "#16A34A",
+  Nov: "#22D3EE",
+  Dec: "#3B82F6",
+};
+
+const PROVIDER_BASE = [10, 22, 12, 14, 4, 3, 1, 5, 8, 20, 6, 4];
+const PROVIDER_SCALE = [
+  1, 0.9, 1.1, 0.8, 1.2, 0.95, 1.05, 1.3, 0.85, 1, 0.9, 1.15,
+];
+
+// Each row gets a unique `id` so recharts doesn't merge identical provider names
+const providerData = PROVIDER_SCALE.map((scale, id) => {
+  const row = { id, name: "Abhimani Wickrama" };
+  MONTHS_12.forEach((m, i) => {
+    row[m] = Math.round(PROVIDER_BASE[i] * scale);
+  });
+  return row;
+});
+
+const claimRows = Array.from({ length: 11 }, () => ({
   provider: "Abhimani Wickrama",
-  jan: index === 0 ? 660 : 660,
+  jan: 660,
   feb: 908,
   mar: 873,
   apr: 204,
-  may: "-",
-  jun: "-",
-  jul: "-",
+  may: "–",
+  jun: "–",
+  jul: "–",
   aug: 90,
   sep: 439,
   oct: 872,
@@ -96,14 +125,14 @@ const claimRows = Array.from({ length: 10 }, (_, index) => ({
   total: 5379,
 }));
 
-const billedRows = Array.from({ length: 9 }, () => ({
+const billedRows = Array.from({ length: 11 }, () => ({
   provider: "Abhimani Wickrama",
   billed: "$1,35,800.00",
   collected: "$1,25,800.68",
 }));
 
 // -----------------------------------------------------------------------------
-// COMMON STYLES
+// COMMON TOKENS
 // -----------------------------------------------------------------------------
 
 const blue = "#0867F2";
@@ -111,126 +140,81 @@ const border = "#E5E7EB";
 const text = "#111827";
 const muted = "#8A929E";
 
+const BAR_DARK = "#1B57B0";
+const BAR_LIGHT = "#7BB2F3";
+const BAR_LIGHTEST = "#C7DEFB";
+
+const monthBarColor = (claims) =>
+  claims >= 3800 ? BAR_DARK : claims < 2000 ? BAR_LIGHTEST : BAR_LIGHT;
+
 // -----------------------------------------------------------------------------
-// SMALL SELECT
+// HEADER CONTROLS
 // -----------------------------------------------------------------------------
 
-const FilterSelect = ({ children, width = 82 }) => (
-  <FormControl size="small">
+const FilterSelect = ({ label, width = 100, xsFull = false }) => (
+  <FormControl
+    size="small"
+    sx={{
+      width: { xs: xsFull ? "100%" : "calc(50% - 6px)", sm: width },
+      flexShrink: 0,
+    }}
+  >
     <Select
-      value={children}
-      displayEmpty
+      value={label}
       IconComponent={KeyboardArrowDownIcon}
       sx={{
-        height: 30,
-        width,
-        borderRadius: "6px",
+        height: 42,
+        borderRadius: "8px",
         backgroundColor: "#fff",
-        fontSize: "10px",
+        fontSize: "14px",
         fontWeight: 500,
-        color: "#20252D",
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: border,
-        },
+        color: text,
+        "& .MuiOutlinedInput-notchedOutline": { borderColor: border },
         "&:hover .MuiOutlinedInput-notchedOutline": {
           borderColor: "#CBD5E1",
         },
         "& .MuiSelect-select": {
-          px: 1.3,
+          pl: 1.75,
           py: 0,
           display: "flex",
           alignItems: "center",
         },
+        "& .MuiSelect-icon": { color: blue, right: 8 },
       }}
     >
-      <MenuItem value={children} sx={{ fontSize: "10px" }}>
-        {children}
+      <MenuItem value={label} sx={{ fontSize: "14px" }}>
+        {label}
       </MenuItem>
     </Select>
   </FormControl>
 );
 
-// -----------------------------------------------------------------------------
-// KPI CARD
-// -----------------------------------------------------------------------------
+const segmentBtn = (active) => ({
+  height: 34,
+  px: 1.75,
+  minWidth: 0,
+  borderRadius: "6px",
+  textTransform: "none",
+  fontSize: "14px",
+  fontWeight: 600,
+  color: active ? "#fff" : "#6B7280",
+  backgroundColor: active ? blue : "transparent",
+  "&:hover": { backgroundColor: active ? blue : "#F5F7FA" },
+});
 
-const KpiCard = ({
-  title,
-  value,
-  subtitle,
-  icon,
-  valueColor = "#1665D8",
-}) => (
-  <Paper
-    elevation={0}
-    sx={{
-      height: 67,
-      border: `1px solid ${border}`,
-      borderRadius: "9px",
-      px: 1.6,
-      py: 1.1,
-      position: "relative",
-      backgroundColor: "#fff",
-    }}
-  >
-    <Typography
-      sx={{
-        fontSize: "8px",
-        color: "#9CA3AF",
-        lineHeight: 1,
-        mb: 0.45,
-      }}
-    >
-      {title}
-    </Typography>
-
-    <Typography
-      sx={{
-        fontSize: "17px",
-        lineHeight: 1.1,
-        fontWeight: 700,
-        color: valueColor,
-      }}
-    >
-      {value}
-    </Typography>
-
-    <Typography
-      sx={{
-        fontSize: "7px",
-        color: "#9CA3AF",
-        mt: 0.25,
-      }}
-    >
-      {subtitle}
-    </Typography>
-
-    <Box
-      sx={{
-        position: "absolute",
-        right: 12,
-        top: 17,
-        width: 29,
-        height: 29,
-        borderRadius: "50%",
-        backgroundColor: "#EAF3FF",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {React.cloneElement(icon, {
-        sx: {
-          fontSize: 15,
-          color: blue,
-        },
-      })}
-    </Box>
-  </Paper>
-);
+const segmentWrap = {
+  display: "flex",
+  alignItems: "center",
+  border: `1px solid ${border}`,
+  borderRadius: "8px",
+  backgroundColor: "#fff",
+  height: 42,
+  p: "3px",
+  flexShrink: 0,
+};
 
 // -----------------------------------------------------------------------------
-// CARD WRAPPER
+// CARDS
 // -----------------------------------------------------------------------------
 
 const DashboardCard = ({ children, sx = {} }) => (
@@ -238,9 +222,12 @@ const DashboardCard = ({ children, sx = {} }) => (
     elevation={0}
     sx={{
       border: `1px solid ${border}`,
-      borderRadius: "9px",
+      borderRadius: "10px",
       backgroundColor: "#fff",
       overflow: "hidden",
+      minWidth: 0,
+      display: "flex",
+      flexDirection: "column",
       ...sx,
     }}
   >
@@ -248,443 +235,120 @@ const DashboardCard = ({ children, sx = {} }) => (
   </Paper>
 );
 
-// -----------------------------------------------------------------------------
-// OVERVIEW
-// -----------------------------------------------------------------------------
+const CardTitle = ({ title, subtitle }) => (
+  <Box sx={{ mb: 1 }}>
+    <Typography
+      sx={{ fontSize: "14px", fontWeight: 700, color: text, lineHeight: 1.3 }}
+    >
+      {title}
+    </Typography>
+    {subtitle && (
+      <Typography sx={{ fontSize: "12px", color: muted, lineHeight: 1.3 }}>
+        {subtitle}
+      </Typography>
+    )}
+  </Box>
+);
 
-const OverviewView = () => {
-  return (
-    <>
-      {/* KPI CARDS */}
-      <Box
+const KpiCard = ({ title, value, subtitle, icon, valueColor = "#1665D8" }) => (
+  <Paper
+    elevation={0}
+    sx={{
+      minHeight: 104,
+      border: `1px solid ${border}`,
+      borderRadius: "10px",
+      p: "18px 20px",
+      backgroundColor: "#fff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 1.5,
+      minWidth: 0,
+    }}
+  >
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.2, mb: 0.75 }}
+      >
+        {title}
+      </Typography>
+
+      <Typography
         sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 1.5,
-          mb: 1.5,
+          fontSize: { xs: "22px", md: "26px" },
+          lineHeight: 1.1,
+          fontWeight: 700,
+          color: valueColor,
         }}
       >
-        <KpiCard
-          title="Total Balance"
-          value="$1.96M"
-          subtitle="Outstanding AR"
-          icon={<AccountBalanceWalletOutlinedIcon />}
-        />
+        {value}
+      </Typography>
 
-        <KpiCard
-          title="Payment Received"
-          value="$16.53M"
-          subtitle="Collected YTD"
-          valueColor="#0A9348"
-          icon={<AccountBalanceWalletOutlinedIcon />}
-        />
+      <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mt: 0.5 }}>
+        {subtitle}
+      </Typography>
+    </Box>
 
-        <KpiCard
-          title="Payment Velocity"
-          value="4 days"
-          subtitle="Avg. payout speed"
-          icon={<AccessTimeOutlinedIcon />}
-        />
-
-        <KpiCard
-          title="Denial Rate"
-          value="1.05%"
-          subtitle="Claims denied"
-          valueColor="#EF4444"
-          icon={<DescriptionOutlinedIcon />}
-        />
-      </Box>
-
-      {/* CHART ROW */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1.35fr 0.9fr 0.9fr",
-          gap: 1.5,
-          mb: 1.5,
-        }}
-      >
-        {/* Monthly claims */}
-        <DashboardCard sx={{ height: 136 }}>
-          <Box sx={{ px: 1.4, pt: 1.2 }}>
-            <Typography
-              sx={{
-                fontSize: "10px",
-                fontWeight: 700,
-                color: text,
-              }}
-            >
-              Total claims by month
-            </Typography>
-          </Box>
-
-          <Box sx={{ height: 105, px: 0.5 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={monthlyClaims}
-                margin={{
-                  top: 5,
-                  right: 5,
-                  bottom: 5,
-                  left: 0,
-                }}
-              >
-                <CartesianGrid
-                  stroke="#EDF2F7"
-                  vertical={false}
-                />
-
-                <XAxis
-                  dataKey="month"
-                  tick={{
-                    fontSize: 7,
-                    fill: "#7890B2",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-
-                <YAxis
-                  tick={{
-                    fontSize: 6,
-                    fill: "#7890B2",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={27}
-                />
-
-                <Tooltip />
-
-                <Bar
-                  dataKey="claims"
-                  radius={[2, 2, 0, 0]}
-                  fill="#2D6CDF"
-                  barSize={12}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        </DashboardCard>
-
-        {/* Collections */}
-        <DashboardCard sx={{ height: 136 }}>
-          <Box sx={{ px: 1.4, pt: 1.2 }}>
-            <Typography
-              sx={{
-                fontSize: "10px",
-                fontWeight: 700,
-              }}
-            >
-              Collections
-            </Typography>
-
-            <Typography
-              sx={{
-                fontSize: "7px",
-                color: muted,
-              }}
-            >
-              Inpatient vs outpatient
-            </Typography>
-          </Box>
-
-          <Stack
-            direction="row"
-            alignItems="center"
-            sx={{
-              px: 1.5,
-              height: 94,
-            }}
-          >
-            <Box sx={{ width: 78, height: 78 }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: "IP", value: 9.67 },
-                      { name: "OP", value: 6.87 },
-                    ]}
-                    dataKey="value"
-                    innerRadius={23}
-                    outerRadius={31}
-                    stroke="none"
-                  >
-                    <Cell fill="#14A44D" />
-                    <Cell fill="#63A7FF" />
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </Box>
-
-            <Stack spacing={1} sx={{ ml: 1, flex: 1 }}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Stack direction="row" spacing={0.7}>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      bgcolor: "#14A44D",
-                    }}
-                  />
-                  <Typography sx={{ fontSize: "7px" }}>
-                    IP
-                  </Typography>
-                </Stack>
-
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#0A9348",
-                    bgcolor: "#DCFCE7",
-                    px: 0.7,
-                    py: 0.3,
-                    borderRadius: "2px",
-                  }}
-                >
-                  $9.67M
-                </Typography>
-              </Stack>
-
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Stack direction="row" spacing={0.7}>
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      bgcolor: "#63A7FF",
-                    }}
-                  />
-                  <Typography sx={{ fontSize: "7px" }}>
-                    OP
-                  </Typography>
-                </Stack>
-
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#0878FF",
-                    bgcolor: "#EAF3FF",
-                    px: 0.7,
-                    py: 0.3,
-                    borderRadius: "2px",
-                  }}
-                >
-                  $6.87M
-                </Typography>
-              </Stack>
-            </Stack>
-          </Stack>
-        </DashboardCard>
-
-        {/* AR Aging */}
-        <DashboardCard sx={{ height: 136 }}>
-          <Box sx={{ px: 1.4, pt: 1.2 }}>
-            <Typography
-              sx={{
-                fontSize: "10px",
-                fontWeight: 700,
-              }}
-            >
-              AR aging
-            </Typography>
-
-            <Typography
-              sx={{
-                fontSize: "7px",
-                color: muted,
-              }}
-            >
-              Amount by days outstanding
-            </Typography>
-          </Box>
-
-          <Box sx={{ height: 100, px: 0.5 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={arAging}
-                margin={{
-                  top: 4,
-                  right: 5,
-                  left: 0,
-                  bottom: 2,
-                }}
-              >
-                <CartesianGrid
-                  vertical={false}
-                  stroke="#EDF2F7"
-                />
-
-                <XAxis
-                  dataKey="name"
-                  tick={{
-                    fontSize: 6,
-                    fill: "#7890B2",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-
-                <YAxis
-                  tick={{
-                    fontSize: 5,
-                    fill: "#7890B2",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={25}
-                />
-
-                <Bar
-                  dataKey="value"
-                  fill="#2D6CDF"
-                  radius={[2, 2, 0, 0]}
-                  barSize={17}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        </DashboardCard>
-      </Box>
-
-      {/* ROUNDING / CODING / NOTES */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 1.5,
-          mb: 1.5,
-        }}
-      >
-        <StatusCard
-          title="Rounding"
-          badge="99%"
-          items={[
-            ["Seen by me", "750", "75%"],
-            ["Not seen", "125", "1%"],
-            ["Seen by others", "125", "24%"],
-          ]}
-          colors={["#14A44D", "#60A5FA", "#84CC16"]}
-        />
-
-        <StatusCard
-          title="Coding"
-          badge="7 Pending"
-          items={[
-            ["Sent to billing", "668", "98.2%"],
-            ["Drafted", "3", "0.4%"],
-            ["Partial", "2", "0.3%"],
-            ["Pending", "7", "1.0%"],
-          ]}
-          colors={["#14A44D", "#60A5FA", "#FBBF24", "#F87171"]}
-        />
-
-        <StatusCard
-          title="Notes"
-          badge="2 Unsigned"
-          items={[
-            ["Signed", "680", "99.7%"],
-            ["Not signed", "2", "0.3%"],
-            ["Not added", "0", "0%"],
-          ]}
-          colors={["#14A44D", "#F59E0B", "#F87171"]}
-        />
-      </Box>
-
-      {/* ICD / CPT */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 1.5,
-        }}
-      >
-        <ProblemsCard
-          title="Top ICD-10 problems"
-          subtitle={
-            <>
-              Top 5 of <b>1,383 total diagnoses</b> this period
-            </>
-          }
-          rows={[
-            ["R42", "172", "Dizziness and giddiness"],
-            ["R51.9", "184", "Headache, unspecified"],
-            ["J11.1", "170", "Influenza with pharyngitis"],
-            ["I63.9", "165", "Cerebral infarction, unspecified"],
-            ["R06.02", "162", "Shortness of breath"],
-          ]}
-        />
-
-        <ProblemsCard
-          title="Top CPT procedures"
-          subtitle={
-            <>
-              Top 5 of <b>1,336 total procedures</b> this period
-            </>
-          }
-          rows={[
-            ["99214", "312", "Clinic visit, moderate complexity"],
-            ["99222", "205", "Initial hospital care"],
-            ["99223", "213", "Initial hospital care, high"],
-            ["99233", "199", "Subsequent hospital care"],
-            ["94664", "213", "MDI or nebulizer demonstration"],
-          ]}
-        />
-      </Box>
-    </>
-  );
-};
+    <Box
+      sx={{
+        width: 44,
+        height: 44,
+        borderRadius: "50%",
+        backgroundColor: "#EAF3FF",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      {React.cloneElement(icon, { sx: { fontSize: 22, color: blue } })}
+    </Box>
+  </Paper>
+);
 
 // -----------------------------------------------------------------------------
-// STATUS CARD
+// STATUS CARD (Rounding / Coding / Notes)
 // -----------------------------------------------------------------------------
 
 const StatusCard = ({
   title,
   badge,
+  badgeColor,
+  badgeBg,
+  total,
   items,
   colors,
+  sx = {},
 }) => {
-  const total = 680;
+  // Build the donut from the real counts
+  const sum = items.reduce((a, it) => a + Number(it[1]), 0) || 1;
+  let acc = 0;
+  const stops = items
+    .map((it, i) => {
+      const start = acc;
+      acc += (Number(it[1]) / sum) * 360;
+      return `${colors[i]} ${start}deg ${acc}deg`;
+    })
+    .join(", ");
 
   return (
-    <DashboardCard sx={{ height: 128, p: 1.3 }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <Typography
-          sx={{
-            fontSize: "10px",
-            fontWeight: 700,
-          }}
-        >
+    <DashboardCard sx={{ p: "18px 20px", minHeight: 190, ...sx }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography sx={{ fontSize: "14px", fontWeight: 700, color: text }}>
           {title}
         </Typography>
 
         <Typography
           sx={{
-            fontSize: "7px",
+            fontSize: "12px",
             fontWeight: 700,
-            color: title === "Coding" ? "#B77900" : "#0A9348",
-            backgroundColor:
-              title === "Coding" ? "#FFF3D6" : "#DCFCE7",
-            px: 0.7,
-            py: 0.35,
-            borderRadius: "2px",
+            color: badgeColor,
+            backgroundColor: badgeBg,
+            px: 1,
+            py: 0.4,
+            ml: "auto",
+            borderRadius: "4px",
+            lineHeight: 1.3,
           }}
         >
           {badge}
@@ -694,26 +358,24 @@ const StatusCard = ({
       <Stack
         direction="row"
         alignItems="center"
-        sx={{ mt: 1 }}
+        spacing={2}
+        sx={{ flex: 1, mt: 1.5 }}
       >
         {/* Donut */}
         <Box
           sx={{
-            width: 66,
-            height: 66,
+            width: 104,
+            height: 104,
             borderRadius: "50%",
             position: "relative",
             flexShrink: 0,
-            background: `conic-gradient(
-              #14A44D 0deg 270deg,
-              #E8F7ED 270deg 360deg
-            )`,
+            background: `conic-gradient(${stops})`,
           }}
         >
           <Box
             sx={{
               position: "absolute",
-              inset: 13,
+              inset: 20,
               borderRadius: "50%",
               backgroundColor: "#fff",
               display: "flex",
@@ -723,19 +385,12 @@ const StatusCard = ({
             }}
           >
             <Typography
-              sx={{
-                fontSize: "9px",
-                fontWeight: 700,
-              }}
+              sx={{ fontSize: "15px", fontWeight: 700, lineHeight: 1.1 }}
             >
-              {title === "Rounding" ? "679" : "680"}
+              {total}
             </Typography>
-
             <Typography
-              sx={{
-                fontSize: "5px",
-                color: muted,
-              }}
+              sx={{ fontSize: "10px", color: muted, lineHeight: 1.1 }}
             >
               Total
             </Typography>
@@ -743,24 +398,18 @@ const StatusCard = ({
         </Box>
 
         {/* Legend */}
-        <Stack
-          spacing={0.65}
-          sx={{
-            ml: 1.2,
-            flex: 1,
-          }}
-        >
+        <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
           {items.map((item, index) => (
             <Stack
               key={item[0]}
               direction="row"
               alignItems="center"
-              spacing={0.6}
+              spacing={0.75}
             >
               <Box
                 sx={{
-                  width: 6,
-                  height: 6,
+                  width: 8,
+                  height: 8,
                   borderRadius: "50%",
                   bgcolor: colors[index],
                   flexShrink: 0,
@@ -769,33 +418,35 @@ const StatusCard = ({
 
               <Typography
                 sx={{
-                  fontSize: "6.5px",
+                  fontSize: "12px",
                   color: "#4B5563",
                   flex: 1,
+                  minWidth: 0,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {item[0]}
               </Typography>
 
               <Typography
-                sx={{
-                  fontSize: "6.5px",
-                  fontWeight: 600,
-                  color: "#4B5563",
-                }}
+                sx={{ fontSize: "12px", fontWeight: 600, color: "#4B5563" }}
               >
                 {item[1]}
               </Typography>
 
               <Typography
                 sx={{
-                  fontSize: "7px",
+                  fontSize: "11px",
                   fontWeight: 700,
                   color: "#0A9348",
                   backgroundColor: "#DCFCE7",
-                  px: 0.5,
-                  py: 0.15,
-                  borderRadius: "2px",
+                  px: 0.75,
+                  py: 0.2,
+                  borderRadius: "4px",
+                  minWidth: 42,
+                  textAlign: "center",
                 }}
               >
                 {item[2]}
@@ -812,181 +463,508 @@ const StatusCard = ({
 // ICD / CPT CARD
 // -----------------------------------------------------------------------------
 
-const ProblemsCard = ({
-  title,
-  subtitle,
-  rows,
-}) => (
-  <DashboardCard sx={{ p: 1.4, minHeight: 154 }}>
-    <Typography
-      sx={{
-        fontSize: "10px",
-        fontWeight: 700,
-        mb: 0.5,
-      }}
-    >
-      {title}
-    </Typography>
+const PROBLEM_COLORS = ["#3478E5", "#7437F5", "#1594AF", "#0D9B75", "#E78900"];
 
-    <Typography
-      sx={{
-        fontSize: "7px",
-        color: "#6B7280",
-        mb: 1.2,
-      }}
-    >
-      {subtitle}
-    </Typography>
+const ProblemsCard = ({ title, subtitle, rows }) => {
+  const max = Math.max(...rows.map((r) => Number(r[1])));
 
-    <Stack spacing={1}>
-      {rows.map((row, index) => (
-        <Stack
-          key={row[0]}
-          direction="row"
-          alignItems="center"
-          spacing={0.8}
-        >
-          <Typography
+  return (
+    <DashboardCard sx={{ p: "20px 24px" }}>
+      <Typography sx={{ fontSize: "14px", fontWeight: 700, mb: 0.5 }}>
+        {title}
+      </Typography>
+
+      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}>
+        {subtitle}
+      </Typography>
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.75 }}>
+        {rows.map((row, index) => (
+          <Box
+            key={row[0]}
             sx={{
-              width: 36,
-              fontSize: "7px",
-              fontWeight: 700,
-              color: "#2970DB",
+              display: "grid",
+              alignItems: "center",
+              columnGap: 1.5,
+              rowGap: 0.5,
+              gridTemplateColumns: {
+                xs: "56px minmax(0,1fr) 34px",
+                sm: "60px minmax(0,1fr) 34px minmax(130px, 190px)",
+              },
             }}
           >
-            {row[0]}
-          </Typography>
+            <Typography
+              sx={{ fontSize: "12px", fontWeight: 700, color: "#2970DB" }}
+            >
+              {row[0]}
+            </Typography>
 
-          <Box sx={{ flex: 1 }}>
             <LinearProgress
               variant="determinate"
-              value={70 - index * 7}
+              value={(Number(row[1]) / max) * 92}
               sx={{
-                height: 5,
-                borderRadius: 5,
+                height: 8,
+                borderRadius: 4,
                 backgroundColor: "#E5E7EB",
                 "& .MuiLinearProgress-bar": {
-                  borderRadius: 5,
-                  backgroundColor:
-                    index === 0
-                      ? "#3478E5"
-                      : index === 1
-                      ? "#7437F5"
-                      : index === 2
-                      ? "#1594AF"
-                      : index === 3
-                      ? "#0D9B75"
-                      : "#E78900",
+                  borderRadius: 4,
+                  backgroundColor: PROBLEM_COLORS[index],
                 },
               }}
             />
+
+            <Typography
+              sx={{ fontSize: "12px", color: "#6B7280", textAlign: "right" }}
+            >
+              {row[1]}
+            </Typography>
+
+            <Typography
+              sx={{
+                fontSize: "12px",
+                color: "#4B5563",
+                lineHeight: 1.3,
+                gridColumn: { xs: "1 / -1", sm: "auto" },
+              }}
+            >
+              {row[2]}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </DashboardCard>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// OVERVIEW
+// -----------------------------------------------------------------------------
+
+const OverviewView = () => (
+  <>
+    {/* KPI CARDS */}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0,1fr)",
+          sm: "repeat(2, minmax(0,1fr))",
+          md: "repeat(4, minmax(0,1fr))",
+        },
+        gap: "20px",
+      }}
+    >
+      <KpiCard
+        title="Total Balance"
+        value="$1.96M"
+        subtitle="Outstanding AR"
+        icon={<AccountBalanceWalletOutlinedIcon />}
+      />
+
+      <KpiCard
+        title="Payment Received"
+        value="$16.53M"
+        subtitle="Collected YTD"
+        valueColor="#0A9348"
+        icon={<AccountBalanceWalletOutlinedIcon />}
+      />
+
+      <KpiCard
+        title="Payment Velocity"
+        value="4 days"
+        subtitle="Avg. payout speed"
+        icon={<AccessTimeOutlinedIcon />}
+      />
+
+      <KpiCard
+        title="Denial Rate"
+        value="1.05%"
+        subtitle="Claims denied"
+        valueColor="#EF4444"
+        icon={<DescriptionOutlinedIcon />}
+      />
+    </Box>
+
+    {/* CHART ROW */}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0,1fr)",
+          md: "repeat(2, minmax(0,1fr))",
+          lg: "minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)",
+        },
+        gap: "20px",
+      }}
+    >
+      {/* Monthly claims */}
+      <DashboardCard
+        sx={{
+          p: "16px 18px",
+          gridColumn: { md: "1 / -1", lg: "auto" },
+        }}
+      >
+        <CardTitle title="Total claims by month" />
+
+        <Box sx={{ height: 166, width: "100%" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={monthlyClaims}
+              margin={{ top: 5, right: 0, bottom: 0, left: 0 }}
+            >
+              <CartesianGrid stroke="#EDF2F7" vertical={false} />
+
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 11, fill: "#7890B2" }}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              <YAxis
+                tick={{ fontSize: 11, fill: "#7890B2" }}
+                axisLine={false}
+                tickLine={false}
+                width={38}
+              />
+
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+
+              <Bar dataKey="claims" radius={[3, 3, 0, 0]} maxBarSize={22}>
+                {monthlyClaims.map((d) => (
+                  <Cell key={d.month} fill={monthBarColor(d.claims)} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      </DashboardCard>
+
+      {/* Collections */}
+      <DashboardCard sx={{ p: "16px 18px" }}>
+        <CardTitle title="Collections" subtitle="Inpatient vs outpatient" />
+
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
+          <Box sx={{ width: 120, height: 120, flexShrink: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "IP", value: 9.67 },
+                    { name: "OP", value: 6.87 },
+                  ]}
+                  dataKey="value"
+                  innerRadius={38}
+                  outerRadius={56}
+                  startAngle={90}
+                  endAngle={-270}
+                  stroke="none"
+                >
+                  <Cell fill="#14A44D" />
+                  <Cell fill="#63A7FF" />
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </Box>
 
-          <Typography
-            sx={{
-              width: 23,
-              fontSize: "7px",
-              color: "#6B7280",
-            }}
-          >
-            {row[1]}
-          </Typography>
+          <Stack spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
+            {[
+              ["IP", "$9.67M", "#14A44D", "#0A9348", "#DCFCE7"],
+              ["OP", "$6.87M", "#63A7FF", "#0878FF", "#EAF3FF"],
+            ].map(([label, value, dot, color, bg]) => (
+              <Stack
+                key={label}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                spacing={1}
+              >
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: dot,
+                    }}
+                  />
+                  <Typography sx={{ fontSize: "12px", color: "#4B5563" }}>
+                    {label}
+                  </Typography>
+                </Stack>
 
-          <Typography
-            sx={{
-              width: 105,
-              fontSize: "6.5px",
-              color: "#4B5563",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {row[2]}
-          </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color,
+                    bgcolor: bg,
+                    px: 1,
+                    py: 0.35,
+                    borderRadius: "4px",
+                  }}
+                >
+                  {value}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
         </Stack>
-      ))}
-    </Stack>
-  </DashboardCard>
+      </DashboardCard>
+
+      {/* AR Aging */}
+      <DashboardCard sx={{ p: "16px 18px" }}>
+        <CardTitle title="AR aging" subtitle="Amount by days outstanding" />
+
+        <Box sx={{ height: 140, width: "100%" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={arAging}
+              margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid vertical={false} stroke="#EDF2F7" />
+
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: "#7890B2" }}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              <YAxis
+                tick={{ fontSize: 10, fill: "#7890B2" }}
+                axisLine={false}
+                tickLine={false}
+                width={28}
+              />
+
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+
+              <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={28}>
+                {arAging.map((d, i) => (
+                  <Cell key={d.name} fill={i === 0 ? BAR_DARK : BAR_LIGHT} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      </DashboardCard>
+    </Box>
+
+    {/* ROUNDING / CODING / NOTES */}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0,1fr)",
+          md: "repeat(2, minmax(0,1fr))",
+          lg: "repeat(3, minmax(0,1fr))",
+        },
+        gap: "20px",
+      }}
+    >
+      <StatusCard
+        title="Rounding"
+        badge="99%"
+        badgeColor="#0A9348"
+        badgeBg="#DCFCE7"
+        total="679"
+        items={[
+          ["Seen by me", "750", "75%"],
+          ["Not seen", "125", "1%"],
+          ["Seen by others", "125", "24%"],
+        ]}
+        colors={["#14A44D", "#60A5FA", "#84CC16"]}
+      />
+
+      <StatusCard
+        title="Coding"
+        badge="7 Pending"
+        badgeColor="#B77900"
+        badgeBg="#FFF3D6"
+        total="680"
+        items={[
+          ["Sent to billing", "668", "98.2%"],
+          ["Drafted", "3", "0.4%"],
+          ["Partial", "2", "0.3%"],
+          ["Pending", "7", "1.0%"],
+        ]}
+        colors={["#14A44D", "#60A5FA", "#FBBF24", "#F87171"]}
+      />
+
+      <StatusCard
+        title="Notes"
+        badge="2 Unsigned"
+        badgeColor="#DC2626"
+        badgeBg="#FEE2E2"
+        total="680"
+        items={[
+          ["Signed", "680", "99.7%"],
+          ["Not signed", "2", "0.3%"],
+          ["Not added", "0", "0%"],
+        ]}
+        colors={["#14A44D", "#F59E0B", "#F87171"]}
+        sx={{ gridColumn: { md: "1 / -1", lg: "auto" } }}
+      />
+    </Box>
+
+    {/* ICD / CPT */}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0,1fr)",
+          md: "repeat(2, minmax(0,1fr))",
+        },
+        gap: "20px",
+      }}
+    >
+      <ProblemsCard
+        title="Top ICD-10 problems"
+        subtitle={
+          <>
+            Top 5 of <b>1,383 total diagnoses</b> this period
+          </>
+        }
+        rows={[
+          ["R42", "172", "Dizziness and giddiness"],
+          ["R51.9", "184", "Headache, unspecified"],
+          ["J11.1", "170", "Influenza with pharyngitis"],
+          ["I63.9", "165", "Cerebral infarction, unspecified"],
+          ["R06.02", "162", "Shortness of breath"],
+        ]}
+      />
+
+      <ProblemsCard
+        title="Top CPT procedures"
+        subtitle={
+          <>
+            Top 5 of <b>1,336 total procedures</b> this period
+          </>
+        }
+        rows={[
+          ["99214", "312", "Clinic visit, moderate complexity"],
+          ["99222", "205", "Initial hospital care"],
+          ["99223", "213", "Initial hospital care, high"],
+          ["99233", "199", "Subsequent hospital care"],
+          ["94664", "213", "MDI or nebulizer demonstration"],
+        ]}
+      />
+    </Box>
+  </>
 );
 
 // -----------------------------------------------------------------------------
 // CLAIMS VIEW
 // -----------------------------------------------------------------------------
 
-const ClaimsView = () => {
-  return (
-    <>
-      {/* TOP CLAIMS TABLES */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1.2fr 0.85fr",
-          gap: 1.5,
-          mb: 1.5,
-        }}
-      >
-        {/* TOTAL CLAIMS */}
-        <DashboardCard>
-          <Box sx={{ px: 1.5, pt: 1.2, pb: 0.8 }}>
-            <Typography
-              sx={{
-                fontSize: "10px",
-                fontWeight: 700,
-              }}
-            >
-              Total Claims
-            </Typography>
-          </Box>
+const CARD_BORDER = "#C3D2F2";
+const CELL_BORDER = "#DCE4F5";
+const HEAD_BG = "#EAF0FF";
+const SUBHEAD_BG = "#F5F8FF";
+const TOTAL_BG = "#1B5FA8";
+const BILLED_BG = "#FAC3C3";
+const COLLECTED_BG = "#C6EFAE";
+const HEAT_MAX = 908;
 
+// Heat-map shade: higher value = darker blue, "–" stays white
+const heatBg = (v) =>
+  typeof v === "number"
+    ? `rgba(37, 99, 235, ${0.1 + 0.5 * (v / HEAT_MAX)})`
+    : "#FFFFFF";
+
+const gridTableSx = (minWidth) => ({
+  minWidth,
+  "& .MuiTableCell-root": {
+    border: `1px solid ${CELL_BORDER}`,
+    padding: "6px 4px",
+    fontSize: "12px",
+    lineHeight: 1.5,
+    whiteSpace: "nowrap",
+    color: text,
+  },
+  "& .MuiTableCell-root.pv": {
+    paddingLeft: "12px",
+    paddingRight: "8px",
+    borderLeft: 0,
+    minWidth: 150,
+  },
+  "& .MuiTableCell-root.total-cell": {
+    backgroundColor: TOTAL_BG,
+    color: "#fff",
+    fontWeight: 700,
+    borderColor: "rgba(255,255,255,0.28)",
+  },
+  "& tr > *:last-child": { borderRight: 0 },
+  "& thead tr:first-of-type > *": { borderTop: 0 },
+  "& tbody tr:last-of-type > *": { borderBottom: 0 },
+});
+
+const SectionTitle = ({ children }) => (
+  <Typography sx={{ fontSize: "14px", fontWeight: 700, color: text, mb: 1 }}>
+    {children}
+  </Typography>
+);
+
+const ProviderHead = ({ rowSpan }) => (
+  <TableCell
+    className="pv"
+    rowSpan={rowSpan}
+    sx={{ backgroundColor: HEAD_BG, fontWeight: 700 }}
+  >
+    <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <span>Provider</span>
+      <KeyboardArrowDownIcon sx={{ fontSize: 18, color: "#374151" }} />
+    </Stack>
+  </TableCell>
+);
+
+// Custom tick: plain SVG <text> never wraps (recharts' default tick does)
+const NameTick = ({ x, y, payload }) => (
+  <text
+    x={x}
+    y={y}
+    dy={4}
+    textAnchor="end"
+    fontSize={11}
+    fontWeight={500}
+    fill={text}
+  >
+    {providerData[payload.value].name}
+  </text>
+);
+
+const ClaimsView = () => (
+  <>
+    {/* TOP: TOTAL CLAIMS + PROVIDER CLAIMS */}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "minmax(0,1fr)",
+          lg: "minmax(0,1.35fr) minmax(0,1fr)",
+        },
+        gap: "20px",
+      }}
+    >
+      {/* TOTAL CLAIMS */}
+      <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <SectionTitle>Total Claims</SectionTitle>
+
+        <DashboardCard sx={{ borderColor: CARD_BORDER, flex: 1 }}>
           <Box sx={{ overflowX: "auto" }}>
-            <Table
-              size="small"
-              sx={{
-                minWidth: 760,
-                "& .MuiTableCell-root": {
-                  borderColor: "#E5E7EB",
-                  padding: "5px 6px",
-                  fontSize: "6.5px",
-                  whiteSpace: "nowrap",
-                },
-              }}
-            >
+            <Table size="small" sx={gridTableSx(660)}>
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      backgroundColor: "#EDF3FF",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Provider
-                  </TableCell>
+                  <ProviderHead />
 
-                  {[
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                    "Total",
-                  ].map((month) => (
+                  {[...MONTHS_12, "Total"].map((m) => (
                     <TableCell
-                      key={month}
+                      key={m}
                       align="center"
-                      sx={{
-                        backgroundColor: "#EDF3FF",
-                        fontWeight: 700,
-                      }}
+                      sx={{ backgroundColor: HEAD_BG, fontWeight: 700 }}
                     >
-                      {month}
+                      {m}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -995,7 +973,8 @@ const ClaimsView = () => {
               <TableBody>
                 {claimRows.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{row.provider}</TableCell>
+                    <TableCell className="pv">{row.provider}</TableCell>
+
                     {[
                       row.jan,
                       row.feb,
@@ -1015,10 +994,7 @@ const ClaimsView = () => {
                         key={i}
                         align="center"
                         sx={{
-                          backgroundColor:
-                            index % 2 === 0
-                              ? "#F4F7FB"
-                              : "#FFFFFF",
+                          backgroundColor: i === 12 ? "#FFFFFF" : heatBg(value),
                         }}
                       >
                         {value}
@@ -1028,337 +1004,204 @@ const ClaimsView = () => {
                 ))}
 
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      backgroundColor: "#1768B5",
-                      color: "#fff",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Total
-                  </TableCell>
+                  <TableCell className="pv total-cell">Total</TableCell>
 
-                  {Array.from({ length: 13 }).map(
-                    (_, index) => (
-                      <TableCell
-                        key={index}
-                        align="center"
-                        sx={{
-                          backgroundColor: "#1768B5",
-                          color: "#fff",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {index === 12 ? "999" : "999"}
-                      </TableCell>
-                    )
-                  )}
+                  {Array.from({ length: 13 }).map((_, index) => (
+                    <TableCell
+                      key={index}
+                      align="center"
+                      className="total-cell"
+                    >
+                      999
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableBody>
             </Table>
           </Box>
         </DashboardCard>
+      </Box>
 
-        {/* PROVIDER CLAIMS */}
-        <DashboardCard>
-          <Box sx={{ px: 1.5, pt: 1.2 }}>
-            <Typography
-              sx={{
-                fontSize: "10px",
-                fontWeight: 700,
-              }}
-            >
-              Provider Claims
-            </Typography>
+      {/* PROVIDER CLAIMS */}
+      <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <SectionTitle>Provider Claims</SectionTitle>
 
+        <DashboardCard sx={{ borderColor: "#E1E8F6", flex: 1 }}>
+          {/* Header strip: name + 12-month legend */}
+          <Box sx={{ backgroundColor: HEAD_BG, px: 2, py: 1.25 }}>
             <Typography
-              sx={{
-                fontSize: "7px",
-                color: muted,
-                mb: 0.5,
-              }}
+              sx={{ fontSize: "12px", fontWeight: 700, color: text, mb: 0.75 }}
             >
               Provider Name
             </Typography>
-          </Box>
 
-          {/* Legend */}
-          <Stack
-            direction="row"
-            spacing={0.8}
-            sx={{
-              px: 1.5,
-              mb: 0.5,
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              ["Jan", "#2563EB"],
-              ["Feb", "#3730A3"],
-              ["Mar", "#E11D48"],
-              ["Apr", "#F97316"],
-              ["May", "#A855F7"],
-            ].map(([name, color]) => (
-              <Stack
-                key={name}
-                direction="row"
-                alignItems="center"
-                spacing={0.25}
-              >
-                <Box
-                  sx={{
-                    width: 5,
-                    height: 5,
-                    backgroundColor: color,
-                  }}
-                />
-
-                <Typography
-                  sx={{
-                    fontSize: "5.5px",
-                    color: "#6B7280",
-                  }}
+            <Stack
+              direction="row"
+              sx={{ flexWrap: "wrap", columnGap: 1.25, rowGap: 0.5 }}
+            >
+              {MONTHS_12.map((m) => (
+                <Stack
+                  key={m}
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.5}
                 >
-                  {name}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      backgroundColor: MONTH_COLORS[m],
+                    }}
+                  />
+                  <Typography sx={{ fontSize: "11px", color: "#4B5563" }}>
+                    {m}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
 
           <Box
             sx={{
-              height: 195,
-              px: 0.8,
+              height: 340,
+              width: "100%",
+              px: 1,
+              py: 1.5,
+              overflowX: "auto",
+              overflowY: "hidden",
             }}
           >
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={420}>
               <BarChart
                 layout="vertical"
                 data={providerData}
-                margin={{
-                  left: 70,
-                  right: 8,
-                  top: 2,
-                  bottom: 2,
-                }}
-                barGap={0}
+                margin={{ left: 0, right: 8, top: 0, bottom: 0 }}
+                barCategoryGap={8}
               >
-                <XAxis
-                  type="number"
-                  hide
-                />
+                <XAxis type="number" hide />
 
+                {/* Unique id per row so identical names don't collapse into one row */}
                 <YAxis
                   type="category"
-                  dataKey="name"
+                  dataKey="id"
+                  interval={0}
                   axisLine={false}
                   tickLine={false}
-                  tick={{
-                    fontSize: 6.5,
-                    fill: "#4B5563",
-                  }}
-                  width={75}
+                  tickFormatter={(id) => providerData[id].name}
+                  tick={<NameTick />}
+                  width={125}
                 />
 
-                <Bar
-                  dataKey="Jan"
-                  stackId="a"
-                  fill="#2563EB"
-                  barSize={6}
-                />
+                <Tooltip cursor={{ fill: "rgba(0,0,0,0.03)" }} />
 
-                <Bar
-                  dataKey="Feb"
-                  stackId="a"
-                  fill="#3730A3"
-                  barSize={6}
-                />
-
-                <Bar
-                  dataKey="Mar"
-                  stackId="a"
-                  fill="#E11D48"
-                  barSize={6}
-                />
-
-                <Bar
-                  dataKey="Apr"
-                  stackId="a"
-                  fill="#F97316"
-                  barSize={6}
-                />
-
-                <Bar
-                  dataKey="May"
-                  stackId="a"
-                  fill="#A855F7"
-                  barSize={6}
-                />
+                {MONTHS_12.map((m) => (
+                  <Bar
+                    key={m}
+                    dataKey={m}
+                    stackId="a"
+                    fill={MONTH_COLORS[m]}
+                    barSize={10}
+                  />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           </Box>
         </DashboardCard>
       </Box>
+    </Box>
 
-      {/* BILLED AND COLLECTED */}
-      <DashboardCard>
-        <Box sx={{ px: 1.5, pt: 1.2, pb: 0.8 }}>
-          <Typography
-            sx={{
-              fontSize: "10px",
-              fontWeight: 700,
-            }}
-          >
-            Total Billed & Collected
-          </Typography>
-        </Box>
+    {/* TOTAL BILLED & COLLECTED */}
+    <Box sx={{ minWidth: 0 }}>
+      <SectionTitle>Total Billed & Collected</SectionTitle>
 
+      <DashboardCard sx={{ borderColor: CARD_BORDER }}>
         <Box sx={{ overflowX: "auto" }}>
-          <Table
-            size="small"
-            sx={{
-              minWidth: 1000,
-              "& .MuiTableCell-root": {
-                padding: "6px 7px",
-                borderColor: "#D9E2F0",
-                fontSize: "6.5px",
-                whiteSpace: "nowrap",
-              },
-            }}
-          >
+          <Table size="small" sx={gridTableSx(1330)}>
             <TableHead>
               <TableRow>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#EDF3FF",
-                    fontWeight: 700,
-                  }}
-                >
-                  Provider
-                </TableCell>
+                <ProviderHead rowSpan={2} />
 
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map(
-                  (month) => (
-                    <TableCell
-                      key={month}
-                      align="center"
-                      colSpan={2}
-                      sx={{
-                        backgroundColor: "#EDF3FF",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {month}
-                    </TableCell>
-                  )
-                )}
+                {MONTHS_12.slice(0, 6).map((m) => (
+                  <TableCell
+                    key={m}
+                    align="center"
+                    colSpan={2}
+                    sx={{
+                      backgroundColor: HEAD_BG,
+                      fontWeight: 700,
+                      py: "9px !important",
+                    }}
+                  >
+                    {m}
+                  </TableCell>
+                ))}
               </TableRow>
 
               <TableRow>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#F5F8FC",
-                  }}
-                />
-
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].flatMap(
-                  (month) => [
-                    <TableCell
-                      key={`${month}-billed`}
-                      align="center"
-                      sx={{
-                        backgroundColor: "#FFF1F1",
-                      }}
-                    >
-                      Billed
-                    </TableCell>,
-
-                    <TableCell
-                      key={`${month}-collected`}
-                      align="center"
-                      sx={{
-                        backgroundColor: "#ECFDF3",
-                      }}
-                    >
-                      Collected
-                    </TableCell>,
-                  ]
-                )}
+                {MONTHS_12.slice(0, 6).flatMap((m) => [
+                  <TableCell
+                    key={`${m}-billed`}
+                    align="center"
+                    sx={{ backgroundColor: SUBHEAD_BG }}
+                  >
+                    Billed
+                  </TableCell>,
+                  <TableCell
+                    key={`${m}-collected`}
+                    align="center"
+                    sx={{ backgroundColor: SUBHEAD_BG }}
+                  >
+                    Collected
+                  </TableCell>,
+                ])}
               </TableRow>
             </TableHead>
 
             <TableBody>
               {billedRows.map((row, index) => (
                 <TableRow key={index}>
-                  <TableCell>{row.provider}</TableCell>
+                  <TableCell className="pv">{row.provider}</TableCell>
 
-                  {Array.from({ length: 6 }).flatMap(
-                    (_, monthIndex) => [
-                      <TableCell
-                        key={`billed-${monthIndex}`}
-                        align="center"
-                        sx={{
-                          backgroundColor:
-                            index % 2 === 0
-                              ? "#FFF1F1"
-                              : "#FFF7F7",
-                        }}
-                      >
-                        {row.billed}
-                      </TableCell>,
-
-                      <TableCell
-                        key={`collected-${monthIndex}`}
-                        align="center"
-                        sx={{
-                          backgroundColor:
-                            index % 2 === 0
-                              ? "#ECFDF3"
-                              : "#F3FFF7",
-                        }}
-                      >
-                        {row.collected}
-                      </TableCell>,
-                    ]
-                  )}
+                  {Array.from({ length: 6 }).flatMap((_, mi) => [
+                    <TableCell
+                      key={`billed-${mi}`}
+                      align="center"
+                      sx={{ backgroundColor: BILLED_BG }}
+                    >
+                      {row.billed}
+                    </TableCell>,
+                    <TableCell
+                      key={`collected-${mi}`}
+                      align="center"
+                      sx={{ backgroundColor: COLLECTED_BG }}
+                    >
+                      {row.collected}
+                    </TableCell>,
+                  ])}
                 </TableRow>
               ))}
 
               <TableRow>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#1768B5",
-                    color: "#fff",
-                    fontWeight: 700,
-                  }}
-                >
-                  Total
-                </TableCell>
+                <TableCell className="pv total-cell">Total</TableCell>
 
-                {Array.from({ length: 6 }).flatMap(
-                  (_, index) => [
-                    <TableCell
-                      key={`total-billed-${index}`}
-                      colSpan={2}
-                      align="center"
-                      sx={{
-                        backgroundColor: "#1768B5",
-                        color: "#fff",
-                        fontWeight: 700,
-                      }}
-                    >
-                      $2,244,234.77
-                    </TableCell>,
-                  ]
-                )}
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <TableCell
+                    key={`total-${i}`}
+                    colSpan={2}
+                    align="center"
+                    className="total-cell"
+                  >
+                    $2,244,234.77
+                  </TableCell>
+                ))}
               </TableRow>
             </TableBody>
           </Table>
         </Box>
       </DashboardCard>
-    </>
-  );
-};
+    </Box>
+  </>
+);
 
 // -----------------------------------------------------------------------------
 // MAIN COMPONENT
@@ -1366,6 +1209,7 @@ const ClaimsView = () => {
 
 export default function PerformanceOverview() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [viewMode, setViewMode] = useState("chart");
 
   return (
     <Box
@@ -1373,204 +1217,119 @@ export default function PerformanceOverview() {
         width: "100%",
         minHeight: "100vh",
         backgroundColor: "#F7F8FA",
-        px: {
-          xs: 1.5,
-          md: 2.5,
-        },
-        py: 2,
+        px: { xs: "12px", sm: "16px", md: "24px" },
+        pt: { xs: "12px", md: "9px" },
+        pb: "24px",
         boxSizing: "border-box",
       }}
     >
-      {/* CONTENT */}
+      {/* Figma: frames are 1224px wide, header → content gap 24px */}
       <Box
         sx={{
-          maxWidth: "1180px",
+          maxWidth: 1224,
           mx: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
         }}
       >
-        {/* PAGE TITLE */}
-        <Typography
+        {/* ------------------------------------------------------------- */}
+        {/* HEADER  (Figma: padding 16px 24px, gap 10px, white)            */}
+        {/* ------------------------------------------------------------- */}
+        <Box
           sx={{
-            fontSize: "14px",
-            fontWeight: 700,
-            color: "#111827",
-            mb: 1.2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "10px",
+            p: { xs: "12px", md: "16px 24px" },
+            backgroundColor: "#FFFFFF",
+            borderRadius: "8px",
           }}
         >
-          Performance Overview
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: "18px", md: "22px" },
+              lineHeight: "32px",
+              fontWeight: 700,
+              color: "#000000",
+            }}
+          >
+            Performance Overview
+          </Typography>
 
-        {/* --------------------------------------------------------------- */}
-        {/* TOGGLE + FILTER BAR */}
-        {/* --------------------------------------------------------------- */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{ flexWrap: "wrap", gap: "12px", width: "100%" }}
+          >
+            {/* OVERVIEW / CLAIMS */}
+            <Box sx={segmentWrap}>
+              <Button
+                onClick={() => setActiveTab("overview")}
+                startIcon={
+                  <DashboardOutlinedIcon sx={{ fontSize: "18px !important" }} />
+                }
+                sx={segmentBtn(activeTab === "overview")}
+              >
+                Overview
+              </Button>
 
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={1}
+              <Button
+                onClick={() => setActiveTab("claims")}
+                startIcon={
+                  <DescriptionOutlinedIcon
+                    sx={{ fontSize: "18px !important" }}
+                  />
+                }
+                sx={segmentBtn(activeTab === "claims")}
+              >
+                Claims
+              </Button>
+            </Box>
+
+            {/* LIST / CHART */}
+            <Box sx={segmentWrap}>
+              <Button
+                aria-label="List view"
+                onClick={() => setViewMode("list")}
+                sx={{ ...segmentBtn(viewMode === "list"), width: 40, px: 0 }}
+              >
+                <ViewListOutlinedIcon sx={{ fontSize: 18 }} />
+              </Button>
+
+              <Button
+                aria-label="Chart view"
+                onClick={() => setViewMode("chart")}
+                sx={{ ...segmentBtn(viewMode === "chart"), width: 40, px: 0 }}
+              >
+                <BarChartOutlinedIcon sx={{ fontSize: 18 }} />
+              </Button>
+            </Box>
+
+            {/* FILTERS */}
+            <FilterSelect label="YTD" width={92} />
+            <FilterSelect label="Practice" width={112} />
+            <FilterSelect label="Insurance" width={120} />
+            <FilterSelect label="Locations" width={120} />
+            <FilterSelect label="Doctors" width={112} />
+            <FilterSelect label="Advanced search" width={168} xsFull />
+          </Stack>
+        </Box>
+
+        {/* ------------------------------------------------------------- */}
+        {/* CONTENT  (Figma: column, gap 20px)                             */}
+        {/* ------------------------------------------------------------- */}
+        <Box
           sx={{
-            mb: 1.5,
-            flexWrap: "wrap",
-            rowGap: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+            minWidth: 0,
           }}
         >
-          {/* OVERVIEW / CLAIMS TOGGLE */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              border: `1px solid ${border}`,
-              borderRadius: "6px",
-              backgroundColor: "#fff",
-              height: 31,
-              p: "2px",
-            }}
-          >
-            <Button
-              onClick={() => setActiveTab("overview")}
-              startIcon={
-                <DashboardOutlinedIcon
-                  sx={{
-                    fontSize: "11px !important",
-                  }}
-                />
-              }
-              sx={{
-                height: 25,
-                minWidth: 72,
-                px: 1,
-                borderRadius: "4px",
-                textTransform: "none",
-                fontSize: "8px",
-                fontWeight: 600,
-                color:
-                  activeTab === "overview"
-                    ? "#fff"
-                    : "#6B7280",
-                backgroundColor:
-                  activeTab === "overview"
-                    ? blue
-                    : "transparent",
-                "&:hover": {
-                  backgroundColor:
-                    activeTab === "overview"
-                      ? blue
-                      : "#F5F7FA",
-                },
-              }}
-            >
-              Overview
-            </Button>
-
-            <Button
-              onClick={() => setActiveTab("claims")}
-              startIcon={
-                <DescriptionOutlinedIcon
-                  sx={{
-                    fontSize: "11px !important",
-                  }}
-                />
-              }
-              sx={{
-                height: 25,
-                minWidth: 64,
-                px: 1,
-                borderRadius: "4px",
-                textTransform: "none",
-                fontSize: "8px",
-                fontWeight: 600,
-                color:
-                  activeTab === "claims"
-                    ? "#fff"
-                    : "#6B7280",
-                backgroundColor:
-                  activeTab === "claims"
-                    ? blue
-                    : "transparent",
-                "&:hover": {
-                  backgroundColor:
-                    activeTab === "claims"
-                      ? blue
-                      : "#F5F7FA",
-                },
-              }}
-            >
-              Claims
-            </Button>
-          </Box>
-
-          {/* VIEW TOGGLE */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              border: `1px solid ${border}`,
-              borderRadius: "6px",
-              backgroundColor: "#fff",
-              height: 31,
-              p: "2px",
-              ml: 1,
-            }}
-          >
-            <Button
-              startIcon={
-                <ViewListOutlinedIcon
-                  sx={{
-                    fontSize: "11px !important",
-                  }}
-                />
-              }
-              sx={{
-                height: 25,
-                minWidth: 36,
-                borderRadius: "4px",
-                color: "#8A929E",
-                fontSize: "8px",
-                textTransform: "none",
-              }}
-            />
-
-            <Button
-              startIcon={
-                <BarChartOutlinedIcon
-                  sx={{
-                    fontSize: "11px !important",
-                  }}
-                />
-              }
-              sx={{
-                height: 25,
-                minWidth: 36,
-                borderRadius: "4px",
-                color: "#fff",
-                backgroundColor: blue,
-                fontSize: "8px",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: blue,
-                },
-              }}
-            />
-          </Box>
-
-          {/* FILTERS */}
-          <FilterSelect width={67}>YTD</FilterSelect>
-          <FilterSelect width={82}>Practice</FilterSelect>
-          <FilterSelect width={82}>Insurance</FilterSelect>
-          <FilterSelect width={88}>Locations</FilterSelect>
-          <FilterSelect width={82}>Doctors</FilterSelect>
-          <FilterSelect width={115}>Advanced search</FilterSelect>
-        </Stack>
-
-        {/* --------------------------------------------------------------- */}
-        {/* CONTENT */}
-        {/* --------------------------------------------------------------- */}
-
-        {activeTab === "overview" ? (
-          <OverviewView />
-        ) : (
-          <ClaimsView />
-        )}
+          {activeTab === "overview" ? <OverviewView /> : <ClaimsView />}
+        </Box>
       </Box>
     </Box>
   );

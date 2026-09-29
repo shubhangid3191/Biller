@@ -17,12 +17,15 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
-import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
-import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+
+import {
+  EyeIcon,
+  NotesIcon,
+  NoteEditIcon2,
+  SharedIcon,
+  OpenNewIcon,
+} from "../assets/Assets";
 
 // -----------------------------------------------------------------------------
 // DATA
@@ -175,13 +178,7 @@ const TASKS = [
 // ROW ICONS
 // -----------------------------------------------------------------------------
 
-const ROW_ICONS = [
-  VisibilityOutlinedIcon,
-  DescriptionOutlinedIcon,
-  EditNoteOutlinedIcon,
-  ShareOutlinedIcon,
-  OpenInNewOutlinedIcon,
-];
+const ROW_ICONS = [EyeIcon, NotesIcon, NoteEditIcon2, SharedIcon, OpenNewIcon];
 
 // -----------------------------------------------------------------------------
 // STATUS CARD
@@ -213,7 +210,7 @@ const StatusCard = ({ card }) => {
             fontSize: "13px",
             lineHeight: 1.2,
             color: "#8A97AB",
-            fontWeight: 500,
+            fontWeight: 600,
             mb: 0.2,
             whiteSpace: "nowrap",
           }}
@@ -288,7 +285,7 @@ const TaskRow = ({ item }) => {
       sx={{
         display: "grid",
         gridTemplateColumns:
-          "22px minmax(120px, 1.1fr) minmax(170px, 2fr) 96px 80px 122px",
+          "22px minmax(120px, 1.1fr) minmax(170px, 2fr) 96px 110px 122px",
         alignItems: "center",
         minHeight: item.reasonTag ? 52 : 42,
         py: 0.75,
@@ -413,6 +410,7 @@ const TaskRow = ({ item }) => {
         sx={{
           textAlign: "right",
           minWidth: 0,
+          pr: 2.5,
         }}
       >
         {item.overdue && (
@@ -443,7 +441,7 @@ const TaskRow = ({ item }) => {
       {/* ACTION ICONS */}
       <Stack
         direction="row"
-        spacing={0}
+        spacing={1}
         sx={{
           justifyContent: "flex-end",
           alignItems: "center",
@@ -642,9 +640,9 @@ export default function MyTask() {
         >
           <Typography
             sx={{
-              fontSize: "8px",
-              color: "#8a94a3",
-              fontWeight: 500,
+              fontSize: "13px",
+              color: "#8A97AB",
+              fontWeight: 600,
             }}
           >
             My Summary
@@ -805,6 +803,8 @@ export default function MyTask() {
         >
           <Typography
             sx={{
+              display: "flex",
+              alignItems: "center",
               fontSize: "13px",
               color: "#475569",
               fontWeight: 600,
@@ -818,8 +818,9 @@ export default function MyTask() {
               sx={{
                 fontSize: 24,
                 color: "#94A3B8",
+                mr: 0.3,
               }}
-            />{" "}
+            />
             Completed today (4)
           </Typography>
         </Box>
