@@ -39,6 +39,7 @@ import {
   PlusBlueIcon,
   BlueCalendarIcon,
   TiaChatIcon,
+  TiaChatIcon2,
   StarIcon,
   encounterAssistCheck,
 } from "../assets/Assets.jsx";
@@ -908,9 +909,15 @@ function PatientSection({ sectionRef }) {
                 { label: "Gender", value: patient.gender },
                 { label: "MRN", value: patient.mrn },
               ].map(({ label, value }) => (
-                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                <Typography
+                  key={label}
+                  sx={{ fontSize: 13, color: C.textBody }}
+                >
                   {label}{" "}
-                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                  <Box
+                    component="span"
+                    sx={{ fontWeight: 700, color: C.textDark }}
+                  >
                     {value}
                   </Box>
                 </Typography>
@@ -924,9 +931,15 @@ function PatientSection({ sectionRef }) {
                 { label: "Marital Status", value: patient.maritalStatus },
                 { label: "Empl. Status", value: patient.emplStatus },
               ].map(({ label, value }) => (
-                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                <Typography
+                  key={label}
+                  sx={{ fontSize: 13, color: C.textBody }}
+                >
                   {label}{" "}
-                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                  <Box
+                    component="span"
+                    sx={{ fontWeight: 700, color: C.textDark }}
+                  >
                     {value}
                   </Box>
                 </Typography>
@@ -938,7 +951,11 @@ function PatientSection({ sectionRef }) {
                 Address:{" "}
                 <Box
                   component="span"
-                  sx={{ fontWeight: 700, color: C.textDark, whiteSpace: "pre-line" }}
+                  sx={{
+                    fontWeight: 700,
+                    color: C.textDark,
+                    whiteSpace: "pre-line",
+                  }}
                 >
                   {patient.address}
                 </Box>
@@ -950,11 +967,20 @@ function PatientSection({ sectionRef }) {
                 { label: "Referral Source", value: patient.referralSource },
                 { label: "Employer", value: patient.employer },
                 { label: "PCP", value: patient.pcp },
-                { label: "Referring Physician", value: patient.referringPhysician },
+                {
+                  label: "Referring Physician",
+                  value: patient.referringPhysician,
+                },
               ].map(({ label, value }) => (
-                <Typography key={label} sx={{ fontSize: 13, color: C.textBody }}>
+                <Typography
+                  key={label}
+                  sx={{ fontSize: 13, color: C.textBody }}
+                >
                   {label}{" "}
-                  <Box component="span" sx={{ fontWeight: 700, color: C.textDark }}>
+                  <Box
+                    component="span"
+                    sx={{ fontWeight: 700, color: C.textDark }}
+                  >
                     {value}
                   </Box>
                 </Typography>
@@ -1003,7 +1029,10 @@ function PatientSection({ sectionRef }) {
                 value: "NA",
               },
               { label: "Referring Physician", value: "NA" },
-              { label: "Default Rendering Provider", value: "Kumar V2, Jayram" },
+              {
+                label: "Default Rendering Provider",
+                value: "Kumar V2, Jayram",
+              },
               {
                 label: "Default Service Location",
                 value: "The University RL",
@@ -2091,7 +2120,7 @@ function AdditionalDetailsSection({ sectionRef }) {
 
   const toggleCol = (col) =>
     setSelectedCols((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col],
     );
 
   return (
@@ -2105,7 +2134,11 @@ function AdditionalDetailsSection({ sectionRef }) {
     >
       <FieldRow
         fields={[
-          { label: "Outside Lab", type: "checkboxGroup", options: ["Yes", "No"] },
+          {
+            label: "Outside Lab",
+            type: "checkboxGroup",
+            options: ["Yes", "No"],
+          },
           { label: "Outside Lab Charges", value: "0" },
           { label: "Is LMP", type: "checkboxGroup", options: ["Yes"] },
           { label: "Date of current illness", value: "09/28/2026" },
@@ -2114,7 +2147,12 @@ function AdditionalDetailsSection({ sectionRef }) {
 
       <FieldRow
         fields={[
-          { label: "Has other claim ID", value: "Yes", select: true, options: ["Yes", "No"] },
+          {
+            label: "Has other claim ID",
+            value: "Yes",
+            select: true,
+            options: ["Yes", "No"],
+          },
           { label: "Agency claim no.", value: "", placeholder: "Type here" },
           { label: "Unable to work from date", value: "08/28/2026" },
           { label: "Unable to work to date", value: "09/28/2026" },
@@ -2125,14 +2163,24 @@ function AdditionalDetailsSection({ sectionRef }) {
         fields={[
           { label: "Initial visit date", value: "07/28/2026", icon: true },
           { label: "Last related visit date", value: "07/28/2026", icon: true },
-          { label: "Claim code", value: "W3", select: true, options: ["W3", "W2", "W1"] },
+          {
+            label: "Claim code",
+            value: "W3",
+            select: true,
+            options: ["W3", "W2", "W1"],
+          },
           { label: "Other date", value: "09/28/2026", icon: true },
         ]}
       />
 
       <FieldRow
         fields={[
-          { label: "Other date qualifier", value: "-", select: true, options: ["-"] },
+          {
+            label: "Other date qualifier",
+            value: "-",
+            select: true,
+            options: ["-"],
+          },
           { label: "Resubmission code", value: "-" },
           { label: "Original reference no.", value: "-" },
           { label: "Additional Claim info", value: "-" },
@@ -2185,7 +2233,7 @@ function AdditionalDetailsSection({ sectionRef }) {
             pb: 1.5,
           }}
         >
-          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#1A1D23" }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#1A1D23" }}>
             Select Columns
           </Typography>
           <IconButton
@@ -2197,7 +2245,15 @@ function AdditionalDetailsSection({ sectionRef }) {
           </IconButton>
         </Box>
 
-        <Box sx={{ px: 2, pb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+        <Box
+          sx={{
+            px: 2,
+            pb: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
+        >
           {colOptions.map((col) => {
             const active = selectedCols.includes(col);
             return (
@@ -2210,12 +2266,16 @@ function AdditionalDetailsSection({ sectionRef }) {
                   borderRadius: "12px",
                   bgcolor: active ? "#EEF4FF" : "#F4F6FA",
                   cursor: "pointer",
-                  border: active ? `1.5px solid #BFD3F7` : "1.5px solid transparent",
+                  border: active
+                    ? `1.5px solid #BFD3F7`
+                    : "1.5px solid transparent",
                   transition: "all 0.15s",
                   "&:hover": { bgcolor: "#EEF4FF" },
                 }}
               >
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.blue }}>
+                <Typography
+                  sx={{ fontSize: 14, fontWeight: 600, color: C.blue }}
+                >
                   {col}
                 </Typography>
               </Box>
@@ -2231,6 +2291,16 @@ function AdditionalDetailsSection({ sectionRef }) {
    FOOTER BAR
    ========================================================= */
 function FooterBar() {
+  const [selectActionAnchor, setSelectActionAnchor] = React.useState(null);
+  const selectActionOpen = Boolean(selectActionAnchor);
+
+  const selectActionItems = [
+    { label: "E-submit to Primary", highlighted: false },
+    { label: "Approve", highlighted: true },
+    { label: "Print Paper Claim", highlighted: false },
+    { label: "Reject", highlighted: false },
+  ];
+
   return (
     <Paper
       elevation={3}
@@ -2241,7 +2311,7 @@ function FooterBar() {
         borderRadius: "12px",
         bgcolor: "#fff",
         px: { xs: 2, md: 3 },
-        py: 1.8,
+        py: 1.5,
         display: "flex",
         alignItems: { xs: "flex-start", md: "center" },
         justifyContent: "space-between",
@@ -2249,40 +2319,34 @@ function FooterBar() {
         gap: 2,
       }}
     >
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={{ xs: 1, sm: 3 }}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        flexWrap="wrap"
-        rowGap={1}
-      >
-        <Box sx={{ minWidth: 120 }}>
-          <Typography sx={{ ...labelSx, mb: 0.5 }}>
-            Total Charges{" "}
-            <Box component="span" sx={{ color: "red" }}>
-              *
-            </Box>
-          </Typography>
-          <TextField
-            size="small"
-            defaultValue="118.00"
-            sx={{ width: 130 }}
-            InputProps={{ sx: inputNormal() }}
-          />
-        </Box>
+      {/* Left: Total Charges */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography
-          sx={{ fontSize: 14, color: "#6B7280", whiteSpace: "nowrap" }}
+          sx={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#5A6B7E",
+            whiteSpace: "nowrap",
+          }}
         >
-          Grand total{" "}
+          Total Charges{" "}
           <Box
             component="span"
-            sx={{ fontSize: 18, fontWeight: 800, color: C.textDark }}
+            sx={{ color: "#5A6B7E", fontWeight: 700, fontSize: 17 }}
           >
-            $118.00
+            *
           </Box>
         </Typography>
-      </Stack>
+        <TextField
+          size="small"
+          defaultValue="118.00"
+          borderRadius="20"
+          sx={{ width: 160, borderRadius: "8px" }}
+          InputProps={{ sx: inputNormal() }}
+        />
+      </Box>
 
+      {/* Right: Action buttons */}
       <Stack
         direction="row"
         spacing={1}
@@ -2290,44 +2354,7 @@ function FooterBar() {
         rowGap={1}
         alignItems="center"
       >
-        <Box
-          sx={{
-            display: "flex",
-            border: `1px solid ${C.border}`,
-            borderRadius: "8px",
-            overflow: "hidden",
-          }}
-        >
-          <Button
-            disableElevation
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 600,
-              color: C.textDark,
-              borderRadius: 0,
-              px: 2,
-              py: 0.7,
-              bgcolor: "#fff",
-              borderRight: `1px solid ${C.border}`,
-              "&:hover": { bgcolor: "#F5F6F8" },
-            }}
-          >
-            Select Action
-          </Button>
-          <IconButton
-            size="small"
-            sx={{
-              borderRadius: 0,
-              px: 1,
-              bgcolor: "#fff",
-              "&:hover": { bgcolor: "#F5F6F8" },
-            }}
-          >
-            <ArrowDropDownIcon sx={{ fontSize: 20, color: "#6B7280" }} />
-          </IconButton>
-        </Box>
-
+        {/* Cancel */}
         <Button
           variant="outlined"
           sx={{
@@ -2338,28 +2365,200 @@ function FooterBar() {
             color: C.textDark,
             borderColor: C.border,
             px: 2,
+            py: 0.65,
             "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
           }}
         >
           Cancel
         </Button>
 
+        {/* Save draft */}
         <Button
-          variant="contained"
-          disableElevation
-          startIcon={<CheckIcon sx={{ fontSize: 15 }} />}
+          variant="outlined"
           sx={{
             textTransform: "none",
             borderRadius: "8px",
             fontSize: 13,
             fontWeight: 700,
-            bgcolor: C.blue,
-            px: 2.5,
-            "&:hover": { bgcolor: C.blueHover },
+            color: C.textDark,
+            borderColor: C.border,
+            px: 2,
+            py: 0.65,
+            gap: 0.7,
+            "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
+          }}
+          startIcon={<SaveDraftFileIcon width={16} height={16} />}
+        >
+          Save draft
+        </Button>
+
+        {/* Scrub */}
+        <Button
+          variant="outlined"
+          startIcon={
+            <TiaChatIcon2
+              sx={{ fontSize: 15, fontWeight: 700, color: C.textBold }}
+            />
+          }
+          sx={{
+            textTransform: "none",
+            borderRadius: "8px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: C.textDark,
+            borderColor: C.border,
+            px: 2,
+            py: 0.65,
+            gap: 0.5,
+            "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
           }}
         >
-          Save
+          Scrub
         </Button>
+
+        {/* Save (blue) + Select Action split button */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0,
+          }}
+        >
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={<CheckIcon sx={{ fontSize: 15, fontWeight: 700 }} />}
+            sx={{
+              textTransform: "none",
+              borderRadius: "8px",
+              fontSize: 13,
+              fontWeight: 700,
+              bgcolor: C.blue,
+              px: 2,
+              py: 0.68,
+              borderRight: "1px solid rgba(255,255,255,0.3)",
+              "&:hover": { bgcolor: C.blueHover },
+            }}
+          >
+            Save
+          </Button>
+        </Box>
+
+        {/* Select Action split segment */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            border: `1px solid ${C.border}`,
+            borderRadius: "8px",
+            overflow: "hidden",
+            borderLeft: "none",
+          }}
+        >
+          <Button
+            disableElevation
+            onClick={(e) => setSelectActionAnchor(e.currentTarget)}
+            endIcon={
+              <ArrowDropDownIcon
+                sx={{ fontSize: 18, color: "#6B7280", ml: -0.5 }}
+              />
+            }
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              color: C.textDark,
+              borderRadius: 0,
+              px: 1.5,
+              py: 0.68,
+              bgcolor: "#fff",
+              borderRight: "1px solid rgba(255,255,255,0.3)",
+              "&:hover": { bgcolor: "#F5F6F8" },
+            }}
+          >
+            Select Action
+          </Button>
+        </Box>
+
+        {/* Select Action Popover */}
+        <Popover
+          open={selectActionOpen}
+          anchorEl={selectActionAnchor}
+          onClose={() => setSelectActionAnchor(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+          PaperProps={{
+            sx: {
+              borderRadius: "12px",
+              width: 220,
+              boxShadow: "0 8px 28px rgba(0,0,0,0.14)",
+              mt: -0.5,
+              overflow: "hidden",
+            },
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2,
+              py: 1.2,
+              borderBottom: `1px solid ${C.borderLight}`,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: C.textDark,
+                borderRight: "1px solid rgba(255,255,255,0.3)",
+              }}
+            >
+              Select Action
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setSelectActionAnchor(null)}
+              sx={{ p: 0.3, color: C.blue }}
+            >
+              <CloseIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Box>
+
+          {/* Action items */}
+          <Box sx={{ py: 0.8, px: 1 }}>
+            {selectActionItems.map((item) => (
+              <Box
+                key={item.label}
+                onClick={() => setSelectActionAnchor(null)}
+                sx={{
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  borderRight: "1px solid rgba(255,255,255,0.3)",
+                  bgcolor: item.highlighted ? "#EEF4FF" : "transparent",
+                  "&:hover": {
+                    bgcolor: item.highlighted ? "#DDE9FF" : "#F5F6F8",
+                  },
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 13.5,
+                    fontWeight: item.highlighted ? 700 : 700,
+                    color: item.highlighted ? C.blue : C.blue,
+                    borderRight: "1px solid rgba(255,255,255,0.3)",
+                  }}
+                >
+                  {item.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Popover>
       </Stack>
     </Paper>
   );
@@ -2407,17 +2606,23 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
           direction="row"
           alignItems="center"
           justifyContent="space-between"
-          sx={{ mb: 1.5, px: 2.5, pt: 2.5 }}
+          sx={{
+            mb: 1.5,
+            px: 2.5,
+            pt: 2.5,
+            gap: 4,
+          }}
         >
-          <Typography sx={{ fontWeight: 600, fontSize: 16 }}>
+          <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
             Select Columns
           </Typography>
+
           <IconButton
             size="small"
             onClick={() => setAnchorEl(null)}
             sx={{ color: "#1976d2" }}
           >
-            <CloseIcon fontSize="small" />
+            <CloseIcon sx={{ fontSize: 16 }} />
           </IconButton>
         </Stack>
 
@@ -2462,200 +2667,148 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
 /* =========================================================
    PATIENT ALERT DIALOG
    ========================================================= */
+
+const SHOW_WHEN_OPTIONS = [
+  "Select all",
+  "Claim form",
+  "Front Desk Appointment",
+  "Rounding list",
+  "Coding Screens",
+  "Billing Screens",
+];
+
 function PatientAlertDialog({ open, onClose }) {
-  const [practice, setPractice] = React.useState("");
   const [patient, setPatient] = React.useState("");
-  const [showWhen, setShowWhen] = React.useState("");
+  const [showWhenAnchor, setShowWhenAnchor] = React.useState(null);
+  const [selectedWhen, setSelectedWhen] = React.useState([]);
   const [message, setMessage] = React.useState("");
 
-  // =========================
-  // SELECT STYLE
-  // =========================
+  const showWhenOpen = Boolean(showWhenAnchor);
+
+  const toggleWhen = (opt) => {
+    if (opt === "Select all") {
+      if (selectedWhen.length === SHOW_WHEN_OPTIONS.length - 1) {
+        setSelectedWhen([]);
+      } else {
+        setSelectedWhen(SHOW_WHEN_OPTIONS.filter((o) => o !== "Select all"));
+      }
+      return;
+    }
+    setSelectedWhen((prev) =>
+      prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt],
+    );
+  };
+
+  const allSelected = selectedWhen.length === SHOW_WHEN_OPTIONS.length - 1;
+
+  const showWhenDisplay =
+    selectedWhen.length === 0
+      ? "Select"
+      : selectedWhen.length === SHOW_WHEN_OPTIONS.length - 1
+        ? "Select all"
+        : selectedWhen.join(", ");
+
+  // ── shared field label ──
+  const fieldLabelSx = {
+    fontSize: 12,
+    fontWeight: 500,
+    color: "#5C5878",
+    mb: "6px",
+    lineHeight: 1.3,
+    display: "block",
+  };
+
+  // ── shared select field style ──
   const selectSx = {
     width: "100%",
     "& .MuiOutlinedInput-root": {
-      height: "26px",
-      minHeight: "26px",
-      borderRadius: "5px",
+      height: 38,
+      borderRadius: "8px",
       backgroundColor: "#FFFFFF",
-
       "& .MuiOutlinedInput-notchedOutline": {
         borderColor: "#DFE4ED",
-        borderWidth: "1px",
       },
-
       "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#C9CFDA",
+        borderColor: "#B8C0CE",
       },
-
       "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
         borderColor: "#006FFD",
-        borderWidth: "1px",
+        borderWidth: "1.5px",
       },
     },
-
     "& .MuiSelect-select": {
-      fontSize: "10px",
+      fontSize: 13.5,
       fontWeight: 400,
       color: "#6F7887",
-      padding: "5px 25px 5px 9px !important",
+      padding: "8px 32px 8px 12px !important",
       minHeight: "auto !important",
       display: "flex",
       alignItems: "center",
     },
-
-    // Arrow
     "& .MuiSelect-icon": {
       color: "#006FFD",
-      fontSize: "18px",
-      right: "5px",
-      top: "calc(50% - 9px)",
+      fontSize: 22,
+      right: 6,
+      top: "calc(50% - 11px)",
     },
-  };
-
-  // =========================
-  // SMALL LABEL
-  // =========================
-  const smallLabelSx = {
-    fontSize: "9px",
-    fontWeight: 500,
-    color: "#5C5878",
-    mb: "4px",
-    lineHeight: 1.2,
-    display: "block",
   };
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: "372px",
-          maxWidth: "calc(100% - 32px)",
-          borderRadius: "15px",
-          overflow: "hidden",
-          boxShadow: "0 10px 35px rgba(0,0,0,0.18)",
-          margin: "16px",
+      maxWidth={false}
+      sx={{
+        "& .MuiDialog-paper": {
+          width: "520px",
+          maxWidth: "calc(100vw - 32px)",
+          borderRadius: "16px",
+          overflow: "visible",
+          boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+          m: 2,
         },
-      }}
-      BackdropProps={{
-        sx: {
-          backgroundColor: "rgba(0, 0, 0, 0.58)",
+        "& .MuiBackdrop-root": {
+          backgroundColor: "rgba(0,0,0,0.45)",
         },
       }}
     >
-      <Box
-        sx={{
-          px: "12px",
-          pt: "12px",
-          pb: "12px",
-        }}
-      >
-        {/* ================= HEADER ================= */}
+      <Box sx={{ px: 3, pt: 2.5, pb: 3 }}>
+        {/* ── HEADER ── */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            height: "20px",
-            mb: "12px",
+            mb: 2.5,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "#111827",
-              lineHeight: 1,
-            }}
-          >
+          <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
             Patient Alert
           </Typography>
-
           <IconButton
             size="small"
             onClick={onClose}
             sx={{
-              width: "22px",
-              height: "22px",
-              p: 0,
-              color: "#2F3742",
-
-              "&:hover": {
-                backgroundColor: "transparent",
-                color: "#111827",
-              },
+              color: "#374151",
+              "&:hover": { bgcolor: "#F3F4F6" },
             }}
           >
-            <CloseIcon sx={{ fontSize: "17px" }} />
+            <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </Box>
 
-        {/* ================= 3 SELECTS ================= */}
+        {/* ── TWO SELECTS ── */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "10px",
-            mb: "10px",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 2,
+            mb: 2,
           }}
         >
-          {/* Practice */}
+          {/* Select Patient */}
           <Box>
-            <Typography sx={smallLabelSx}>
-              Select Practice
-            </Typography>
-
-            <TextField
-              fullWidth
-              size="small"
-              select
-              value={practice}
-              onChange={(e) => setPractice(e.target.value)}
-              SelectProps={{
-                IconComponent: ArrowDropDownIcon,
-              }}
-              sx={selectSx}
-            >
-              <MenuItem
-                value=""
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                Select
-              </MenuItem>
-
-              <MenuItem
-                value="practice1"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                Practice 1
-              </MenuItem>
-
-              <MenuItem
-                value="practice2"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                Practice 2
-              </MenuItem>
-            </TextField>
-          </Box>
-
-          {/* Patient */}
-          <Box>
-            <Typography sx={smallLabelSx}>
-              Select Patient
-            </Typography>
-
+            <Typography sx={fieldLabelSx}>Select Patient</Typography>
             <TextField
               fullWidth
               size="small"
@@ -2663,210 +2816,203 @@ function PatientAlertDialog({ open, onClose }) {
               value={patient}
               onChange={(e) => setPatient(e.target.value)}
               SelectProps={{
+                displayEmpty: true,
                 IconComponent: ArrowDropDownIcon,
               }}
               sx={selectSx}
             >
-              <MenuItem
-                value=""
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
+              <MenuItem value="" sx={{ fontSize: 13.5 }}>
                 Select
               </MenuItem>
 
-              <MenuItem
-                value="wayne"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
+              <MenuItem value="wayne" sx={{ fontSize: 13.5 }}>
                 Wayne, Jimmy
               </MenuItem>
 
-              <MenuItem
-                value="cook"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
+              <MenuItem value="cook" sx={{ fontSize: 13.5 }}>
                 Cook, Lisha
               </MenuItem>
             </TextField>
           </Box>
 
-          {/* Show Alert */}
+          {/* Show Alert when — custom multi-checkbox dropdown */}
           <Box>
-            <Typography sx={smallLabelSx}>
-              Show Alert when
-            </Typography>
-
-            <TextField
-              fullWidth
-              size="small"
-              select
-              value={showWhen}
-              onChange={(e) => setShowWhen(e.target.value)}
-              SelectProps={{
-                IconComponent: ArrowDropDownIcon,
+            <Typography sx={fieldLabelSx}>Show Alert when</Typography>
+            <Box
+              onClick={(e) => setShowWhenAnchor(e.currentTarget)}
+              sx={{
+                height: 38,
+                border: `1px solid ${showWhenOpen ? "#006FFD" : "#DFE4ED"}`,
+                borderWidth: showWhenOpen ? "1.5px" : "1px",
+                borderRadius: "8px",
+                bgcolor: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: 1.5,
+                cursor: "pointer",
+                "&:hover": { borderColor: "#B8C0CE" },
               }}
-              sx={selectSx}
             >
-              <MenuItem
-                value=""
+              <Typography
                 sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
+                  fontSize: 13.5,
+                  color: selectedWhen.length === 0 ? "#6F7887" : "#2B2842",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  flex: 1,
+                  mr: 1,
                 }}
               >
-                Select
-              </MenuItem>
+                {showWhenDisplay}
+              </Typography>
+              <ArrowDropDownIcon
+                sx={{ color: "#006FFD", fontSize: 22, flexShrink: 0 }}
+              />
+            </Box>
 
-              <MenuItem
-                value="encounter"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                On Encounter
-              </MenuItem>
-
-              <MenuItem
-                value="claim"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                On Claim
-              </MenuItem>
-
-              <MenuItem
-                value="payment"
-                sx={{
-                  fontSize: "10px",
-                  minHeight: "26px",
-                }}
-              >
-                On Payment
-              </MenuItem>
-            </TextField>
+            {/* Dropdown popover */}
+            <Popover
+              open={showWhenOpen}
+              anchorEl={showWhenAnchor}
+              onClose={() => setShowWhenAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
+              disablePortal={false}
+              PaperProps={{
+                sx: {
+                  mt: 0.5,
+                  borderRadius: "10px",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  border: "1px solid #E5E7EB",
+                  minWidth: 240,
+                  py: 0.5,
+                },
+              }}
+            >
+              {SHOW_WHEN_OPTIONS.map((opt) => {
+                const checked =
+                  opt === "Select all"
+                    ? allSelected
+                    : selectedWhen.includes(opt);
+                return (
+                  <Box
+                    key={opt}
+                    onClick={() => toggleWhen(opt)}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      px: 2,
+                      py: 0.9,
+                      cursor: "pointer",
+                      "&:hover": { bgcolor: "#F9FAFB" },
+                    }}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={checked}
+                      readOnly
+                      sx={{
+                        p: 0,
+                        color: "#D1D5DB",
+                        "&.Mui-checked": { color: "#006FFD" },
+                        "& svg": { fontSize: 18 },
+                      }}
+                    />
+                    <Typography sx={{ fontSize: 13.5, color: "#1F2937" }}>
+                      {opt}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Popover>
           </Box>
         </Box>
 
-        {/* ================= MESSAGE BOX ================= */}
+        {/* ── MESSAGE BOX ── */}
         <Box
           sx={{
-            height: "132px",
-            borderRadius: "7px",
+            borderRadius: "10px",
             border: "1px solid #E0E4EE",
-            backgroundColor: "#F1F4F9",
-            px: "10px",
-            pt: "10px",
-            pb: "8px",
-            boxSizing: "border-box",
-            mb: "14px",
+            backgroundColor: "#F8F9FB",
+            px: 2,
+            pt: 1.5,
+            pb: 1,
+            mb: 3,
+            minHeight: 190,
           }}
         >
           <Typography
             sx={{
-              fontSize: "9px",
+              fontSize: 13,
               fontWeight: 600,
-              color: "#555C69",
-              mb: "5px",
-              lineHeight: 1.2,
+              color: "#374151",
+              mb: 1,
             }}
           >
             Enter patient alert message
           </Typography>
-
-          <TextField
+          {/* <TextField
             fullWidth
             multiline
+            rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             variant="standard"
-            InputProps={{
-              disableUnderline: true,
-            }}
+            InputProps={{ disableUnderline: true }}
             sx={{
               "& .MuiInputBase-root": {
-                padding: 0,
-                margin: 0,
-                fontSize: "10px",
+                p: 0,
+                fontSize: 13.5,
                 color: "#273142",
                 alignItems: "flex-start",
               },
-
               "& textarea": {
-                padding: 0,
-                margin: 0,
-                fontSize: "10px",
+                p: 0,
+                fontSize: 13.5,
                 color: "#273142",
-                lineHeight: 1.45,
+                lineHeight: 1.55,
                 resize: "none",
               },
             }}
-          />
+          /> */}
         </Box>
 
-        {/* ================= FOOTER BUTTONS ================= */}
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          spacing="6px"
-        >
-          {/* Cancel */}
+        {/* ── FOOTER BUTTONS ── */}
+        <Stack direction="row" justifyContent="flex-end" spacing={1.2}>
           <Button
             variant="outlined"
             onClick={onClose}
             sx={{
               textTransform: "none",
-              height: "22px",
-              minWidth: "42px",
-              borderRadius: "5px",
-              fontSize: "9px",
+              borderRadius: "8px",
+              fontSize: 14,
               fontWeight: 500,
-              color: "#4F5865",
-              borderColor: "#DDE2EA",
-              backgroundColor: "#FFFFFF",
-              px: "10px",
-              py: 0,
-
-              "&:hover": {
-                borderColor: "#C9CFDA",
-                backgroundColor: "#FAFBFD",
-              },
+              color: "#374151",
+              borderColor: "#D1D5DB",
+              px: 2.5,
+              py: 0.75,
+              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
             }}
           >
             Cancel
           </Button>
-
-          {/* Save Alert */}
           <Button
             variant="contained"
             disableElevation
             onClick={onClose}
             sx={{
               textTransform: "none",
-              height: "22px",
-              minWidth: "58px",
-              borderRadius: "5px",
-              fontSize: "9px",
+              borderRadius: "8px",
+              fontSize: 14,
               fontWeight: 600,
-              color: "#FFFFFF",
-              backgroundColor: "#006FFD",
-              px: "10px",
-              py: 0,
-
-              "&:hover": {
-                backgroundColor: "#0065E6",
-              },
+              color: "#fff",
+              bgcolor: "#006FFD",
+              px: 2.5,
+              py: 0.75,
+              "&:hover": { bgcolor: "#0060E0" },
             }}
           >
             Save Alert

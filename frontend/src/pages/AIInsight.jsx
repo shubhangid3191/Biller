@@ -1,17 +1,7 @@
 import React from "react";
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Stack,
-  Divider,
-} from "@mui/material";
+import { Box, Paper, Typography, Button, Stack, Divider } from "@mui/material";
 
-import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
-import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
-import BoltIcon from "@mui/icons-material/Bolt";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { TiaChatIcon, RightIcon, FlashIcon, IdeaIcon} from "../assets/Assets.jsx";
 
 import {
   ResponsiveContainer,
@@ -58,6 +48,9 @@ const FORECAST = [
   { week: "W7", low: 1.24, mid: 1.32, high: 1.4 },
 ];
 
+// confidence band ke liye [low, high] range
+const FORECAST_DATA = FORECAST.map((d) => ({ ...d, band: [d.low, d.high] }));
+
 const FINDINGS = [
   {
     title: "Medical-necessity denials trending +18% (BCBSM)",
@@ -89,6 +82,41 @@ const FINDINGS = [
 ];
 
 // -----------------------------------------------------------------------------
+// LABEL + VALUE ROW (value hamesha right mein)
+// -----------------------------------------------------------------------------
+
+const ForecastRow = ({ label, value, valueColor = "#1F2937" }) => (
+  <Box
+    sx={{
+      display: "grid !important",
+      gridTemplateColumns: "1fr auto",
+      alignItems: "center",
+      columnGap: 2,
+      width: "100%",
+    }}
+  >
+    <Typography
+      sx={{ fontSize: "13.5px", color: "#6B7280", textAlign: "left" }}
+    >
+      {label}
+    </Typography>
+
+    <Typography
+      sx={{
+        fontSize: "13.5px",
+        fontWeight: 700,
+        color: valueColor,
+        textAlign: "right",
+        justifySelf: "end",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
+
+// -----------------------------------------------------------------------------
 // SUMMARY CARD
 // -----------------------------------------------------------------------------
 
@@ -99,7 +127,7 @@ const SummaryCard = ({ card }) => {
       sx={{
         flex: 1,
         minWidth: 0,
-        height: 118,
+        minHeight: 140,
         px: 2,
         py: 1.7,
         borderRadius: "6px",
@@ -110,9 +138,9 @@ const SummaryCard = ({ card }) => {
     >
       <Typography
         sx={{
-          fontSize: "7px",
+          fontSize: "10px",
           lineHeight: 1,
-          color: "#9ca3af",
+          color: "#6B7280",
           fontWeight: 700,
           letterSpacing: "0.45px",
           mb: 1,
@@ -123,7 +151,7 @@ const SummaryCard = ({ card }) => {
 
       <Typography
         sx={{
-          fontSize: "16px",
+          fontSize: "26px",
           lineHeight: 1.2,
           fontWeight: 700,
           color: card.color,
@@ -135,10 +163,9 @@ const SummaryCard = ({ card }) => {
 
       <Typography
         sx={{
-          fontSize: "8px",
+          fontSize: "14px",
           lineHeight: 1.35,
           color: "#6b7280",
-          whiteSpace: "nowrap",
         }}
       >
         {card.note}
@@ -147,7 +174,7 @@ const SummaryCard = ({ card }) => {
       <Stack
         direction="row"
         alignItems="center"
-        spacing={0.25}
+        spacing={0.5}
         sx={{
           mt: 1.2,
           cursor: "pointer",
@@ -156,7 +183,7 @@ const SummaryCard = ({ card }) => {
       >
         <Typography
           sx={{
-            fontSize: "8px",
+            fontSize: "13.5px",
             color: "#0878ff",
             fontWeight: 600,
           }}
@@ -164,12 +191,15 @@ const SummaryCard = ({ card }) => {
           Investigate
         </Typography>
 
-        <ArrowForwardIcon
+        <Box
           sx={{
-            fontSize: 10,
-            color: "#0878ff",
+            display: "flex",
+            alignItems: "center",
+            transform: "translateY(2px)",
           }}
-        />
+        >
+          <RightIcon width={14} height={14} />
+        </Box>
       </Stack>
     </Paper>
   );
@@ -186,15 +216,15 @@ const FindingRow = ({ item, isLast }) => {
         direction="row"
         alignItems="center"
         sx={{
-          minHeight: 43,
-          py: 0.8,
-          gap: 1,
+          minHeight: 60,
+          py: 1,
+          gap: 1.5,
         }}
       >
         {/* Blue lightning icon */}
-        <BoltIcon
+        <FlashIcon
           sx={{
-            fontSize: 13,
+            fontSize: 18,
             color: "#0878ff",
             flexShrink: 0,
           }}
@@ -209,10 +239,10 @@ const FindingRow = ({ item, isLast }) => {
         >
           <Typography
             sx={{
-              fontSize: "8px",
-              lineHeight: 1.25,
+              fontSize: "14px",
+              lineHeight: 1.3,
               fontWeight: 700,
-              color: "#111827",
+              color: "#1F2937",
               mb: 0.3,
             }}
           >
@@ -221,9 +251,9 @@ const FindingRow = ({ item, isLast }) => {
 
           <Typography
             sx={{
-              fontSize: "6.8px",
+              fontSize: "12px",
               lineHeight: 1.3,
-              color: "#9ca3af",
+              color: "#6B7280",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -236,11 +266,11 @@ const FindingRow = ({ item, isLast }) => {
         {/* Amount */}
         <Typography
           sx={{
-            fontSize: "8px",
+            fontSize: "15.5px",
             fontWeight: 700,
-            color: "#111827",
+            color: "#1F2937",
             flexShrink: 0,
-            minWidth: 40,
+            minWidth: 60,
             textAlign: "right",
           }}
         >
@@ -252,12 +282,12 @@ const FindingRow = ({ item, isLast }) => {
           variant="contained"
           size="small"
           sx={{
-            height: 19,
+            height: 30,
             minWidth: 0,
-            px: 1,
-            borderRadius: "3px",
+            px: 1.5,
+            borderRadius: "4px",
             textTransform: "none",
-            fontSize: "6px",
+            fontSize: "12px",
             fontWeight: 600,
             lineHeight: 1,
             backgroundColor: "#0878ff",
@@ -296,16 +326,8 @@ export default function AIInsight() {
         minHeight: "100vh",
         boxSizing: "border-box",
         backgroundColor: "#f5f5f5",
-        px: {
-          xs: 1.5,
-          sm: 2.5,
-          md: 3,
-        },
-        py: {
-          xs: 2,
-          sm: 2.5,
-          md: 3,
-        },
+        px: { xs: 1.5, sm: 2.5, md: 3 },
+        py: { xs: 2, sm: 2.5, md: 3 },
       }}
     >
       <Box
@@ -322,9 +344,9 @@ export default function AIInsight() {
         <Box sx={{ mb: 2 }}>
           <Typography
             sx={{
-              fontSize: "7px",
+              fontSize: "12px",
               lineHeight: 1,
-              color: "#9ca3af",
+              color: "#6B7280",
               fontWeight: 700,
               letterSpacing: "0.6px",
               mb: 0.8,
@@ -342,10 +364,7 @@ export default function AIInsight() {
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 sx={{
-                  fontSize: {
-                    xs: "20px",
-                    sm: "22px",
-                  },
+                  fontSize: { xs: "20px", sm: "30px" },
                   lineHeight: 1.15,
                   fontWeight: 700,
                   color: "#111827",
@@ -357,34 +376,29 @@ export default function AIInsight() {
 
               <Typography
                 sx={{
-                  fontSize: "8px",
+                  fontSize: "13.5px",
                   lineHeight: 1.5,
-                  color: "#7b8491",
-                  maxWidth: 700,
+                  color: "#6B7280",
+                  maxWidth: 900,
                 }}
               >
-                Proactive intelligence: revenue leakage, underpayment
-                detection, denial root-cause, and predictive forecasting —
-                surfaced before you ask.
+                Proactive intelligence: revenue leakage, underpayment detection,
+                denial root-cause, and predictive forecasting — surfaced before
+                you ask.
               </Typography>
             </Box>
 
             <Button
               variant="contained"
-              startIcon={
-                <ForumOutlinedIcon
-                  sx={{
-                    fontSize: "12px !important",
-                  }}
-                />
-              }
+              startIcon={<TiaChatIcon color="#fff" width={18} height={18} />}
               sx={{
+                ml: "auto",
                 flexShrink: 0,
-                height: 28,
+                height: 38,
                 px: 1.5,
                 borderRadius: "3px",
                 textTransform: "none",
-                fontSize: "8px",
+                fontSize: "14px",
                 fontWeight: 600,
                 backgroundColor: "#0878ff",
                 boxShadow: "none",
@@ -415,10 +429,7 @@ export default function AIInsight() {
           }}
         >
           {SUMMARY_CARDS.map((card) => (
-            <SummaryCard
-              key={card.label}
-              card={card}
-            />
+            <SummaryCard key={card.label} card={card} />
           ))}
         </Box>
 
@@ -437,7 +448,7 @@ export default function AIInsight() {
             mb: 2,
           }}
         >
-          {/* Forecast */}
+          {/* ------------------------ Forecast ------------------------ */}
           <Paper
             elevation={0}
             sx={{
@@ -452,45 +463,26 @@ export default function AIInsight() {
           >
             <Typography
               sx={{
-                fontSize: "10px",
+                fontSize: "18px",
                 lineHeight: 1.2,
                 fontWeight: 700,
-                color: "#111827",
+                color: "#1F2937",
                 mb: 0.55,
               }}
             >
               Predictive Cash Forecast
             </Typography>
 
-            <Typography
-              sx={{
-                fontSize: "7px",
-                color: "#9ca3af",
-              }}
-            >
-              Next 6 weeks · 90% confidence band
+            <Typography sx={{ fontSize: "14px", color: "#6B7280" }}>
+              Next 7 weeks · 90% confidence band
             </Typography>
 
             {/* Chart */}
-            <Box
-              sx={{
-                width: "100%",
-                height: 132,
-                mt: 1,
-              }}
-            >
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
+            <Box sx={{ width: "100%", height: 150, mt: 1 }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
-                  data={FORECAST}
-                  margin={{
-                    top: 8,
-                    right: 5,
-                    left: 5,
-                    bottom: 0,
-                  }}
+                  data={FORECAST_DATA}
+                  margin={{ top: 8, right: 5, left: 5, bottom: 0 }}
                 >
                   <CartesianGrid
                     horizontal
@@ -503,33 +495,21 @@ export default function AIInsight() {
                     dataKey="week"
                     axisLine={false}
                     tickLine={false}
-                    tick={{
-                      fontSize: 6,
-                      fill: "#a1a7b0",
-                    }}
+                    interval={0}
+                    padding={{ left: 20, right: 20 }}
+                    tick={{ fontSize: 12, fill: "#6B7280" }}
                     dy={5}
                   />
 
-                  <YAxis
-                    hide
-                    domain={["dataMin - 0.04", "dataMax + 0.04"]}
-                  />
+                  <YAxis hide domain={[0.95, 1.45]} />
 
-                  {/* Confidence area */}
+                  {/* Confidence band */}
                   <Area
                     type="monotone"
-                    dataKey="high"
+                    dataKey="band"
                     stroke="none"
                     fill="#eaf2ff"
-                    fillOpacity={0.85}
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="low"
-                    stroke="none"
-                    fill="#ffffff"
-                    fillOpacity={1}
+                    fillOpacity={0.9}
                   />
 
                   {/* Main line */}
@@ -537,107 +517,39 @@ export default function AIInsight() {
                     type="monotone"
                     dataKey="mid"
                     stroke="#0878ff"
-                    strokeWidth={1.6}
-                    dot={{
-                      r: 2.3,
-                      fill: "#0878ff",
-                      strokeWidth: 0,
-                    }}
-                    activeDot={{
-                      r: 3,
-                    }}
+                    strokeWidth={1.8}
+                    dot={{ r: 2.5, fill: "#0878ff", strokeWidth: 0 }}
+                    activeDot={{ r: 3.5 }}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
             </Box>
 
-            <Divider
+            <Divider sx={{ mt: 1, mb: 1.5, borderColor: "#edf0f3" }} />
+
+            {/* Values right side */}
+            <Box
               sx={{
-                mt: 0.8,
-                mb: 1.2,
-                borderColor: "#edf0f3",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.25,
               }}
-            />
-
-            <Stack spacing={1}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    color: "#7b8491",
-                  }}
-                >
-                  Projected 30-day collections
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  $1.34M
-                </Typography>
-              </Stack>
-
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    color: "#7b8491",
-                  }}
-                >
-                  Confidence interval
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  ±$48K
-                </Typography>
-              </Stack>
-
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    color: "#7b8491",
-                  }}
-                >
-                  Cash velocity trend
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "7px",
-                    fontWeight: 700,
-                    color: "#16a34a",
-                  }}
-                >
-                  +6%
-                </Typography>
-              </Stack>
-            </Stack>
+            >
+              <ForecastRow
+                label="Projected 30-day collections"
+                value="$1.34M"
+              />
+              <ForecastRow label="Confidence interval" value="±$48K" />
+              <ForecastRow
+                label="Cash velocity trend"
+                value="+6%"
+                valueColor="#16a34a"
+              />
+            </Box>
           </Paper>
 
-          {/* Underpayment detector */}
+          {/* -------------------- Underpayment detector -------------------- */}
           <Paper
             elevation={0}
             sx={{
@@ -652,12 +564,12 @@ export default function AIInsight() {
           >
             <Typography
               sx={{
-                fontSize: "6.5px",
+                fontSize: "12px",
                 lineHeight: 1,
-                color: "#0878ff",
+                color: "#006DFD",
                 fontWeight: 700,
-                letterSpacing: "0.4px",
-                mb: 1.4,
+                letterSpacing: "0.5px",
+                mb: 1.5,
               }}
             >
               UNDERPAYMENT DETECTOR
@@ -665,114 +577,52 @@ export default function AIInsight() {
 
             <Typography
               sx={{
-                fontSize: "7.5px",
+                fontSize: "14px",
                 lineHeight: 1.55,
-                color: "#374151",
+                fontWeight: 600,
+                color: "#1F2937",
               }}
             >
-              BCBSM is paying 33% below contract on G0439 across 6 claims.
-              Revenue: $124.74. This matches a fee-schedule update the payer
+              BCBSM is paying 13% below contract on G0439 across 6 claims.
+              Recoverable: $124.74. This matches a fee-schedule update the payer
               applied incorrectly.
             </Typography>
 
-            <Divider
+            <Divider sx={{ my: 1.75, borderColor: "#edf0f3" }} />
+
+            <Box
               sx={{
-                my: 1.4,
-                borderColor: "#edf0f3",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2.25,
               }}
-            />
-
-            <Stack spacing={1.25}>
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: "6px",
-                    color: "#9ca3af",
-                    mb: 0.3,
-                  }}
-                >
-                  Contracted rate
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  $156.20
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: "6px",
-                    color: "#9ca3af",
-                    mb: 0.3,
-                  }}
-                >
-                  Average paid
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#ef4444",
-                  }}
-                >
-                  $136.41
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: "6px",
-                    color: "#9ca3af",
-                    mb: 0.3,
-                  }}
-                >
-                  Recoverable
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  $124.74
-                </Typography>
-              </Box>
-            </Stack>
+            >
+              <ForecastRow label="Contracted rate" value="$156.20" />
+              <ForecastRow
+                label="Average paid"
+                value="$136.41"
+                valueColor="#ef4444"
+              />
+              <ForecastRow label="Recoverable" value="$124.74" />
+            </Box>
 
             <Button
               fullWidth
               variant="contained"
               startIcon={
-                <LightbulbOutlinedIcon
-                  sx={{
-                    fontSize: "11px !important",
-                  }}
-                />
+                <IdeaIcon sx={{ fontSize: "16px !important" }} />
               }
               sx={{
-                height: 25,
-                mt: 2,
-                borderRadius: "3px",
+                height: 36,
+                mt: 2.5,
+                borderRadius: "4px",
                 textTransform: "none",
-                fontSize: "7px",
+                fontSize: "13px",
                 fontWeight: 600,
                 backgroundColor: "#0878ff",
                 boxShadow: "none",
-                "&:hover": {
-                  backgroundColor: "#0067e8",
-                  boxShadow: "none",
-                },
+                "&:hover": { backgroundColor: "#0067e8", boxShadow: "none" },
               }}
             >
               Dispute underpayment
@@ -799,16 +649,14 @@ export default function AIInsight() {
           <Stack
             direction="row"
             alignItems="center"
-            spacing={1}
-            sx={{
-              mb: 0.25,
-            }}
+            spacing={1.25}
+            sx={{ mb: 0.5 }}
           >
             <Box
               sx={{
-                width: 17,
-                height: 17,
-                borderRadius: "3px",
+                width: 34,
+                height: 34,
+                borderRadius: "4px",
                 backgroundColor: "#0878ff",
                 display: "flex",
                 alignItems: "center",
@@ -816,18 +664,13 @@ export default function AIInsight() {
                 flexShrink: 0,
               }}
             >
-              <LightbulbOutlinedIcon
-                sx={{
-                  fontSize: 10,
-                  color: "#ffffff",
-                }}
-              />
+              <IdeaIcon sx={{ fontSize: 15, color: "#ffffff" }} />
             </Box>
 
             <Typography
               sx={{
-                fontSize: "9px",
-                lineHeight: 1,
+                fontSize: "16px",
+                lineHeight: 1.2,
                 fontWeight: 700,
                 color: "#111827",
               }}
@@ -838,17 +681,17 @@ export default function AIInsight() {
 
           <Typography
             sx={{
-              fontSize: "6px",
+              fontSize: "12px",
               lineHeight: 1.4,
-              color: "#9ca3af",
-              ml: 3,
+              color: "#6B7280",
+              ml: 4.5,
             }}
           >
             Ranked, explainable insights with one-click actions
           </Typography>
 
           {/* Finding rows */}
-          <Box sx={{ mt: 0.8 }}>
+          <Box sx={{ mt: 1.5 }}>
             {FINDINGS.map((item, index) => (
               <FindingRow
                 key={item.title}

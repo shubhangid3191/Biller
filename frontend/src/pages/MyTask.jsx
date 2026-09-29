@@ -22,6 +22,7 @@ import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 // -----------------------------------------------------------------------------
 // DATA
@@ -33,7 +34,7 @@ const STATUS_CARDS = [
     value: 3,
     note: "Critical denials, cash & auth",
     icon: WarningAmberOutlinedIcon,
-    iconColor: "#ef4444",
+    iconColor: "#C0322F",
     iconBg: "#fff1f2",
   },
   {
@@ -41,7 +42,7 @@ const STATUS_CARDS = [
     value: 2,
     note: "Past deadline",
     icon: ScheduleOutlinedIcon,
-    iconColor: "#ef4444",
+    iconColor: "#C0322F",
     iconBg: "#fff1f2",
   },
   {
@@ -49,7 +50,7 @@ const STATUS_CARDS = [
     value: 4,
     note: "Clear when free",
     icon: AssignmentOutlinedIcon,
-    iconColor: "#2563eb",
+    iconColor: "#0F7A45",
     iconBg: "#eff6ff",
   },
 ];
@@ -66,16 +67,16 @@ const FILTERS = [
 
 const PRIORITY_STYLES = {
   Critical: {
-    bg: "#fee2e2",
-    color: "#dc2626",
+    bg: "#FDE9E9",
+    color: "#C0322F",
   },
   High: {
-    bg: "#fef3c7",
-    color: "#b45309",
+    bg: "#FEF3D6",
+    color: "#A26708",
   },
   Routine: {
-    bg: "#dcfce7",
-    color: "#16a34a",
+    bg: "#DCF5E6",
+    color: "#0C8F7E",
   },
 };
 
@@ -209,9 +210,9 @@ const StatusCard = ({ card }) => {
       <Box sx={{ minWidth: 0 }}>
         <Typography
           sx={{
-            fontSize: "8.5px",
+            fontSize: "13px",
             lineHeight: 1.2,
-            color: "#8993a4",
+            color: "#8A97AB",
             fontWeight: 500,
             mb: 0.2,
             whiteSpace: "nowrap",
@@ -230,7 +231,7 @@ const StatusCard = ({ card }) => {
         >
           <Typography
             sx={{
-              fontSize: "17px",
+              fontSize: "28px",
               lineHeight: 1,
               fontWeight: 700,
               color: card.iconColor,
@@ -241,8 +242,8 @@ const StatusCard = ({ card }) => {
 
           <Typography
             sx={{
-              fontSize: "8px",
-              color: "#8b95a5",
+              fontSize: "12px",
+              color: "#8A97AB",
               whiteSpace: "nowrap",
             }}
           >
@@ -287,12 +288,12 @@ const TaskRow = ({ item }) => {
       sx={{
         display: "grid",
         gridTemplateColumns:
-          "22px minmax(120px, 1.1fr) minmax(170px, 2fr) 50px 62px 122px",
+          "22px minmax(120px, 1.1fr) minmax(170px, 2fr) 96px 80px 122px",
         alignItems: "center",
-        minHeight: item.reasonTag ? 37 : 29,
-        px: 0.75,
+        minHeight: item.reasonTag ? 52 : 42,
+        py: 0.75,
         borderBottom: "1px solid #edf0f3",
-        columnGap: 0.75,
+        columnGap: 1.5,
         "&:last-child": {
           borderBottom: "none",
         },
@@ -323,10 +324,10 @@ const TaskRow = ({ item }) => {
       >
         <Typography
           sx={{
-            fontSize: "8.5px",
+            fontSize: "12.5px",
             lineHeight: 1.2,
-            fontWeight: 600,
-            color: "#526071",
+            fontWeight: 500,
+            color: "#475569",
             overflow: "hidden",
             textOverflow: "ellipsis",
           }}
@@ -337,13 +338,13 @@ const TaskRow = ({ item }) => {
         {item.ref && (
           <Typography
             sx={{
-              fontSize: "7.5px",
-              color: "#9ba5b3",
+              fontSize: "12.5px",
+              color: "#475569",
               flexShrink: 0,
               whiteSpace: "nowrap",
             }}
           >
-            {item.ref}
+            • {item.ref}
           </Typography>
         )}
       </Box>
@@ -357,9 +358,9 @@ const TaskRow = ({ item }) => {
       >
         <Typography
           sx={{
-            fontSize: "8.5px",
+            fontSize: "14px",
             lineHeight: 1.2,
-            color: "#263241",
+            color: "#0F172A",
             fontWeight: 600,
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -375,11 +376,11 @@ const TaskRow = ({ item }) => {
             size="small"
             sx={{
               mt: 0.15,
-              height: 14,
+              height: 20,
               borderRadius: "4px",
-              fontSize: "6.5px",
+              fontSize: "14px",
               backgroundColor: "#fee2e2",
-              color: "#dc2626",
+              color: "#C0322F",
               "& .MuiChip-label": {
                 px: 0.6,
               },
@@ -393,14 +394,14 @@ const TaskRow = ({ item }) => {
         label={item.priority}
         size="small"
         sx={{
-          width: 47,
-          height: 16,
+          width: 60,
+          height: 26,
           borderRadius: "4px",
           backgroundColor: priority.bg,
           color: priority.color,
-          fontSize: "6.5px",
+          fontSize: "12.5px",
           fontWeight: 600,
-          justifySelf: "center",
+          justifySelf: "start",
           "& .MuiChip-label": {
             px: 0.5,
           },
@@ -417,9 +418,9 @@ const TaskRow = ({ item }) => {
         {item.overdue && (
           <Typography
             sx={{
-              fontSize: "6.5px",
+              fontSize: "13px",
               lineHeight: 1,
-              color: "#ef4444",
+              color: "#C0322F",
               fontWeight: 600,
             }}
           >
@@ -429,9 +430,9 @@ const TaskRow = ({ item }) => {
 
         <Typography
           sx={{
-            fontSize: "7px",
+            fontSize: "13px",
             lineHeight: 1.2,
-            color: item.overdue ? "#ef4444" : "#697586",
+            color: item.overdue ? "#C0322F" : "#475569",
             whiteSpace: "nowrap",
           }}
         >
@@ -509,10 +510,10 @@ export default function MyTask() {
         <Box sx={{ minWidth: 0 }}>
           <Typography
             sx={{
-              fontSize: "14px",
+              fontSize: "22px",
               lineHeight: 1.2,
               fontWeight: 700,
-              color: "#18212f",
+              color: "#0F172A",
               mb: 0.35,
             }}
           >
@@ -521,14 +522,23 @@ export default function MyTask() {
 
           <Typography
             sx={{
-              fontSize: "8px",
+              fontSize: "13.5px",
               lineHeight: 1.4,
-              color: "#7d8795",
+              color: "#475569",
               whiteSpace: "nowrap",
             }}
           >
-            Good morning, Ashok. You have 12 open tasks today, Tuesday, Aug 25
-            — prioritized by revenue impact and deadline.
+            Good morning, Ashok. You have{" "}
+            <Box
+              component="span"
+              sx={{
+                color: "#475569",
+                fontWeight: 600,
+              }}
+            >
+              12 open tasks
+            </Box>{" "}
+            today, Tuesday, Aug 25 — prioritized by revenue impact and deadline.
           </Typography>
         </Box>
 
@@ -688,11 +698,11 @@ export default function MyTask() {
         >
           <Typography
             sx={{
-              fontSize: "8px",
+              fontSize: "12px",
               lineHeight: 1.2,
               fontWeight: 700,
               letterSpacing: "0.4px",
-              color: "#283342",
+              color: "#0F172A",
             }}
           >
             MY TASKS (12 OPEN)
@@ -726,6 +736,7 @@ export default function MyTask() {
                   <Box
                     component="span"
                     sx={{
+                      fontSize: "13px",
                       display: "flex",
                       alignItems: "center",
                       gap: 0.45,
@@ -736,7 +747,7 @@ export default function MyTask() {
                     <Box
                       component="span"
                       sx={{
-                        fontSize: "6.5px",
+                        fontSize: "11.5px",
                         fontWeight: 600,
                         opacity: active ? 0.9 : 0.75,
                       }}
@@ -751,7 +762,7 @@ export default function MyTask() {
                   backgroundColor: active ? "#edf4ff" : "#fff",
                   border: "1px solid",
                   borderColor: active ? "#c8dcff" : "#e2e7ed",
-                  color: active ? "#1769e8" : "#5d6877",
+                  color: active ? "#1D4ED8" : "#475569",
                   fontSize: "6.5px",
                   fontWeight: 500,
                   "& .MuiChip-label": {
@@ -778,10 +789,7 @@ export default function MyTask() {
 
         <Box sx={{ px: 0.75 }}>
           {TASKS.map((task) => (
-            <TaskRow
-              key={`${task.who}-${task.task}`}
-              item={task}
-            />
+            <TaskRow key={`${task.who}-${task.task}`} item={task} />
           ))}
         </Box>
 
@@ -797,21 +805,25 @@ export default function MyTask() {
         >
           <Typography
             sx={{
-              fontSize: "7.5px",
-              color: "#526071",
-              fontWeight: 500,
+              fontSize: "13px",
+              color: "#475569",
+              fontWeight: 600,
               cursor: "pointer",
               "&:hover": {
                 color: "#1769e8",
               },
             }}
           >
-            › Completed today (4)
+            <ChevronRightIcon
+              sx={{
+                fontSize: 24,
+                color: "#94A3B8",
+              }}
+            />{" "}
+            Completed today (4)
           </Typography>
         </Box>
       </Paper>
-
-    
     </Box>
   );
 }
