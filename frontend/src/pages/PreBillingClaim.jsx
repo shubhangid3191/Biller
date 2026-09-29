@@ -358,6 +358,7 @@ function ChargeCaptureBanner() {
 
 function PreBillingClaim() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
@@ -451,23 +452,44 @@ function PreBillingClaim() {
   };
 
   const handleResetFilters = () => {
-    setFilterPractice("");
-    setFilterServiceLocation("");
-    setFilterPatientName("");
-    setFilterFinId("");
-    setFilterMrn("");
-    setFilterBatchNumber("");
-    setFilterClaimNumber("");
-    setFilterDosFrom("");
-    setFilterDosTill("");
-    setFilterStatus("");
-    setFilterInsurance("");
-    setFilterSubmissionMethod("");
-  };
+  setFilterPractice("");
+  setFilterServiceLocation("");
+  setFilterPatientName("");
+  setFilterFinId("");
+  setFilterMrn("");
+  setFilterBatchNumber("");
+  setFilterClaimNumber("");
+  setFilterDosFrom("");
+  setFilterDosTill("");
+  setFilterStatus("");
+  setFilterInsurance("");
+  setFilterSubmissionMethod("");
+  setAppliedFilters(null);
+};
+
+const handleApplyFilters = () => {
+  setAppliedFilters({
+    practice: filterPractice,
+    serviceLocation: filterServiceLocation,
+    patientName: filterPatientName,
+    finId: filterFinId,
+    mrn: filterMrn,
+    batchNumber: filterBatchNumber,
+    claimNumber: filterClaimNumber,
+    dosFrom: filterDosFrom,
+    dosTill: filterDosTill,
+    status: filterStatus,
+    insurance: filterInsurance,
+    submissionMethod: filterSubmissionMethod,
+  });
+};
 
   const handleTabChange = (event, newValue) => {
-    setCurrentTab(newValue);
-  };
+  setCurrentTab(newValue);
+  setSearchQuery("");
+  handleResetFilters();
+  setSelectedRows([]);
+};
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -1612,21 +1634,12 @@ function PreBillingClaim() {
     statementWithErrors: 0,
   }));
 
-  const statementNewSelectedCount = statementSelectedRows.length;
-  const statementNewSelectedBalance = newStatementData
-    .filter((row) => statementSelectedRows.includes(row.id))
-    .reduce((sum, row) => {
-      const numeric = parseFloat(row.balance.replace(/[$,]/g, ""));
-      return sum + (isNaN(numeric) ? 0 : numeric);
-    }, 0);
 
-  const handleStatementSelectAll = (event) => {
-    if (event.target.checked) {
-      setStatementSelectedRows(newStatementData.map((r) => r.id));
-    } else {
-      setStatementSelectedRows([]);
-    }
-  };
+ const handleStatementSelectAll = (event) => {
+  setStatementSelectedRows(
+    event.target.checked ? newStatementFiltered.map((r) => r.id) : []
+  );
+};
 
   const handleStatementRowSelect = (id) => {
     setStatementSelectedRows((prev) =>
@@ -1634,13 +1647,11 @@ function PreBillingClaim() {
     );
   };
 
-  const handleHistorySelectAll = (event) => {
-    if (event.target.checked) {
-      setHistorySelectedRows(historyStatementData.map((r) => r.id));
-    } else {
-      setHistorySelectedRows([]);
-    }
-  };
+ const handleHistorySelectAll = (event) => {
+  setHistorySelectedRows(
+    event.target.checked ? historyFiltered.map((r) => r.id) : []
+  );
+};
 
   const handleHistoryRowSelect = (id) => {
     setHistorySelectedRows((prev) =>
@@ -1665,33 +1676,188 @@ function PreBillingClaim() {
   ];
 
   // Filter data based on selected status - only for pre-billing tab
- const matchesSearch = (claim) => {
-  if (!searchQuery.trim()) return true;
-  const q = searchQuery.toLowerCase();
-  return [
-    claim.patientName,
-    claim.mrn,
-    claim.fin,
-    claim.claimId,
-    claim.encounterId,
-  ]
-    .filter(Boolean)
-    .some((field) => String(field).toLowerCase().includes(q));
-};
+  // ================= SEARCH + ADVANCED FILTER ENGINE =================
+  const f = appliedFilters || {};
+  const norm = (v) => String(v ?? "").toLowerCase().trim();
+  const hasVal = (v) => v !== undefined && v !== null && String(v).trim() !== "";
 
-const filteredData =
-  currentTab === 0
-    ? preBillingClaimsData.filter((claim) => {
-        if (!matchesSearch(claim)) return false;
-        if (statusFilter === "all") return true;
-        if (statusFilter === "unbilled") return claim.status === "Unbilled";
-        if (statusFilter === "ready") return claim.status === "Ready";
-        if (statusFilter === "need") return claim.status === "Need Info";
-        if (statusFilter === "processed") return claim.status === "Processed";
-        if (statusFilter === "archived") return claim.status === "Archived";
-        return true;
-      })
-    : postBillingClaimsData.filter(matchesSearch);
+  // Handles MM/DD/YYYY and MM/DD/YY
+  const parseDate = (str) => {
+    const m = String(str ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return null;
+    const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+    return new Date(year, Number(m[1]) - 1, Number(m[2])).getTime();
+  };
+
+  // <input type="date"> gives YYYY-MM-DD
+  const parseInputDate = (s) => {
+    if (!s) return null;
+    const [y, mo, d] = s.split("-").map(Number);
+    return new Date(y, mo - 1, d).getTime();
+  };
+
+  const matchesDateRange = (dateStr) => {
+    const from = parseInputDate(f.dosFrom);
+    const till = parseInputDate(f.dosTill);
+    if (from === null && till === null) return true;
+    const t = parseDate(dateStr);
+    if (t === null) return false;
+    if (from !== null && t < from) return false;
+    if (till !== null && t > till) return false;
+    return true;
+  };
+
+ const applyAll = (
+  rows,
+  { searchFields, textMap = {}, selectMap = {}, statusField, dateField }
+) =>
+  rows.filter((row) => {
+    // search bar
+    const q = norm(searchQuery);
+    if (q && !searchFields.some((k) => norm(row[k]).includes(q))) return false;
+
+    // typed filters (contains)
+    for (const [filterKey, rowField] of Object.entries(textMap)) {
+      if (hasVal(f[filterKey]) && !norm(row[rowField]).includes(norm(f[filterKey])))
+        return false;
+    }
+
+    // dropdown filters (exact)
+    for (const [filterKey, rowField] of Object.entries(selectMap)) {
+      if (hasVal(f[filterKey]) && norm(row[rowField]) !== norm(f[filterKey]))
+        return false;
+    }
+
+    // status
+    if (hasVal(f.status) && statusField && norm(row[statusField]) !== norm(f.status))
+      return false;
+
+    // date range
+    if (dateField && !matchesDateRange(row[dateField])) return false;
+
+    return true;
+  });
+
+
+
+  const withMeta = (rows) =>
+  rows.map((r, i) => ({
+    ...r,
+    practice: r.practice ?? "Fresh Original",
+    serviceLocation: r.serviceLocation ?? "The University RL",
+    submissionMethod: r.submissionMethod ?? (i % 2 === 0 ? "Electronic" : "Paper"),
+  }));
+
+  // ---------- Pre-billing ----------
+ const preBillingFiltered = applyAll(withMeta(preBillingClaimsData), {
+  searchFields: ["patientName","mrn","fin","claimId","encounterId","referenceId","primaryInsurance"],
+  textMap: { patientName:"patientName", finId:"fin", mrn:"mrn", claimNumber:"claimId" },
+  selectMap: {
+    insurance:"primaryInsurance",
+    practice:"practice",
+    serviceLocation:"serviceLocation",
+    submissionMethod:"submissionMethod",
+  },
+  statusField: "status",
+  dateField: "dos",
+  }).filter((claim) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "unbilled") return claim.status === "Unbilled";
+    if (statusFilter === "ready") return claim.status === "Ready";
+    if (statusFilter === "need") return claim.status === "Need Info";
+    if (statusFilter === "processed") return claim.status === "Processed";
+    if (statusFilter === "archived") return claim.status === "Archived";
+    return true;
+  });
+
+  // ---------- Post-billing ----------
+  const postBillingFiltered = applyAll(withMeta(postBillingClaimsData), {
+  searchFields: ["patientName","claimId","encounterId","billedTo","status","cpt","clearingHouse"],
+  textMap: { patientName:"patientName", claimNumber:"claimId" },
+  selectMap: {
+    insurance:"billedTo",
+    practice:"practice",
+    serviceLocation:"serviceLocation",
+    submissionMethod:"submissionMethod",
+  },
+  statusField: "status",
+  dateField: "dos",
+});
+
+  // ---------- Remittance ERA/EOB ----------
+ const remittanceFiltered = applyAll(remittanceData, {
+searchFields: ["remittanceId","location","provider","payer","paymentMethod","chequeNumber","status"],
+
+  textMap: { claimNumber:"remittanceId" },
+  selectMap: { insurance:"payer", serviceLocation:"location", submissionMethod:"paymentMethod" },
+  statusField: "status",
+  dateField: "checkDate",
+  }).filter((row) => {
+    if (remittanceFilter === "all") return true;
+    if (remittanceFilter === "notPosted") return row.status === "Not Posted";
+    if (remittanceFilter === "partiallyPosted") return row.status === "Partially posted";
+    if (remittanceFilter === "fullyPosted") return row.status === "Fully posted";
+    if (remittanceFilter === "markReview") return row.status === "Mark as review";
+    return true;
+  });
+
+  // ---------- Patient Statement: New ----------
+  const newStatementFiltered = applyAll(newStatementData, {
+    searchFields: ["name", "pid", "dob", "category", "balance", "alert", "lastStatement"],
+    textMap: {
+      patientName: "name",
+      finId: "pid",
+      mrn: "pid",
+    },
+    statusField: "category",
+  });
+
+  // ---------- Patient Statement: History ----------
+ const historyFiltered = applyAll(historyStatementData, {
+searchFields: ["practice","batchId","batchName","batchStatus","batchDescription"],
+  textMap: { batchNumber:"batchId", patientName:"batchName" },
+  selectMap: { practice:"practice" },
+  statusField: "batchStatus",
+});
+
+  const filteredData = currentTab === 0 ? preBillingFiltered : postBillingFiltered;
+
+  // Footer totals should only count rows that are visible
+  const statementNewSelectedCount = newStatementFiltered.filter((r) =>
+    statementSelectedRows.includes(r.id)
+  ).length;
+
+  const statementNewSelectedBalance = newStatementFiltered
+    .filter((r) => statementSelectedRows.includes(r.id))
+    .reduce((sum, r) => {
+      const n = parseFloat(r.balance.replace(/[$,]/g, ""));
+      return sum + (isNaN(n) ? 0 : n);
+    }, 0);
+
+  const advStatusOptions =
+    currentTab === 0
+      ? ["Unbilled", "Ready", "Need Info", "Processed", "Archived"]
+      : currentTab === 1
+      ? ["Submitted", "Ready for statement", "Settled", "ERA Received", "Posted"]
+      : currentTab === 2
+      ? ["Posted", "Partially posted", "Not Posted", "Fully posted", "Mark as review"]
+      : statementSubTab === "new"
+      ? ["Self pay", "Medicare", "Payment plan", "Commercial", "Credit bal."]
+      : ["Draft", "Email sent", "Partially sent", "Failure", "Queued for email"];
+
+      const practiceOptions = ["Fresh Original"];
+const locationOptions = currentTab === 2 ? ["GCH-IH", "GCH-OH"] : ["The University RL"];
+const submissionOptions = currentTab === 2 ? ["Cheque", "EFT"] : ["Electronic", "Paper"];
+const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
+
+  const searchPlaceholder =
+    currentTab === 2
+      ? "Search ID, Payer, Provider, Cheque #..."
+      : currentTab === 3
+      ? statementSubTab === "new"
+        ? "Search patient, ID, DOB, category..."
+        : "Search batch ID, name, practice, status..."
+      : "Search Patient, MRN, FIN, Claim ID...";
   if (showClaimDetails && selectedClaim) {
     return (
       <PostBillingEditPage claim={selectedClaim} onBack={handleBackToTable} />
@@ -2003,8 +2169,7 @@ const filteredData =
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                    <MenuItem value="practice1">Practice 1</MenuItem>
-                    <MenuItem value="practice2">Practice 2</MenuItem>
+                    {practiceOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -2043,8 +2208,7 @@ const filteredData =
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                    <MenuItem value="location1">Location 1</MenuItem>
-                    <MenuItem value="location2">Location 2</MenuItem>
+                   {locationOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -2391,11 +2555,7 @@ const filteredData =
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                    <MenuItem value="submitted">Submitted</MenuItem>
-                    <MenuItem value="ready">Ready for statement</MenuItem>
-                    <MenuItem value="settled">Settled</MenuItem>
-                    <MenuItem value="era">ERA Received</MenuItem>
-                    <MenuItem value="posted">Posted</MenuItem>
+                     {advStatusOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -2434,9 +2594,7 @@ const filteredData =
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                    <MenuItem value="aetna">Aetna</MenuItem>
-                    <MenuItem value="bcbs">BCBS</MenuItem>
-                    <MenuItem value="cigna">Cigna</MenuItem>
+                   {insuranceOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -2473,8 +2631,7 @@ const filteredData =
                     <MenuItem value="" disabled>
                       Select location
                     </MenuItem>
-                    <MenuItem value="electronic">Electronic</MenuItem>
-                    <MenuItem value="paper">Paper</MenuItem>
+                  {submissionOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
@@ -2489,6 +2646,7 @@ const filteredData =
             >
               <Button
                 variant="contained"
+                onClick={handleApplyFilters}
                 sx={{
                   textTransform: "none",
                   backgroundColor: "#0066FF",
@@ -4449,7 +4607,7 @@ const filteredData =
                               alignItems: "center",
                             }}
                           >
-                            <Tooltip title="Editt" placement="top">
+                            <Tooltip title="Edit" placement="top">
                               <IconButton
                                 size="small"
                                 sx={{ padding: "4px" }}
@@ -5350,182 +5508,185 @@ const filteredData =
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {remittanceData
-                    .filter((row) => {
-                      if (remittanceFilter === "all") return true;
-                      if (remittanceFilter === "notPosted")
-                        return row.status === "Not Posted";
-                      if (remittanceFilter === "partiallyPosted")
-                        return row.status === "Partially posted";
-                      if (remittanceFilter === "fullyPosted")
-                        return row.status === "Fully posted";
-                      if (remittanceFilter === "markReview")
-                        return row.status === "Mark as review";
-                      return true;
-                    })
-                    .map((row, index) => {
-                      const bgColor = getListColor(index);
-                      return (
-                        <TableRow
-                          key={row.id}
-                          sx={{
-                            backgroundColor: bgColor,
-                            borderBottom: "none",
-                          }}
-                        >
-                          <TableCell padding="checkbox" sx={{ py: 1.2 }}>
-                            <Checkbox size="small" />
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.remittanceId}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.location}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.provider}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.payer}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.paymentMethod}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.chequeNumber}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.amount}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.checkDate}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.receivedDate}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.claimNumbers}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontSize: 12,
-                              py: 1.2,
-                              color: "rgba(0, 0, 0, 0.87)",
-                            }}
-                          >
-                            {row.unpostedAmount}
-                          </TableCell>
-                          <TableCell sx={{ py: 1.2 }}>
-                            <Chip
-                              label={row.status}
-                              size="small"
-                              sx={{
-                                backgroundColor: row.statusColor,
-                                color: row.statusTextColor,
-                                fontWeight: 600,
-                                fontSize: 10,
-                                height: 20,
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ py: 1.2 }}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 0.5,
-                                alignItems: "center",
-                              }}
-                            >
-                              <Tooltip title="Refresh/Sync" placement="top">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleShowEobDetails(row)}
-                                  sx={{ padding: "2px" }}
-                                >
-                                  <RefreshIcon />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="View" placement="top">
-                                <IconButton
-                                  size="small"
-                                  sx={{ padding: "4px" }}
-                                >
-                                  <ViewIconRemittance />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Download" placement="top">
-                                <IconButton
-                                  size="small"
-                                  sx={{ padding: "4px" }}
-                                >
-                                  <DownloadIconRemittance />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                {remittanceFiltered.map((row, index) => {
+  const bgColor = getListColor(index);
+
+  return (
+    <TableRow
+      key={row.id}
+      sx={{
+        backgroundColor: bgColor,
+        borderBottom: "none",
+      }}
+    >
+      <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+        <Checkbox size="small" />
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.remittanceId}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.location}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.provider}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.payer}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.paymentMethod}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.chequeNumber}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.amount}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.checkDate}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.receivedDate}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.claimNumbers}
+      </TableCell>
+
+      <TableCell
+        sx={{
+          fontSize: 12,
+          py: 1.2,
+          color: "rgba(0, 0, 0, 0.87)",
+        }}
+      >
+        {row.unpostedAmount}
+      </TableCell>
+
+      <TableCell sx={{ py: 1.2 }}>
+        <Chip
+          label={row.status}
+          size="small"
+          sx={{
+            backgroundColor: row.statusColor,
+            color: row.statusTextColor,
+            fontWeight: 600,
+            fontSize: 10,
+            height: 20,
+          }}
+        />
+      </TableCell>
+
+      <TableCell sx={{ py: 1.2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 0.5,
+            alignItems: "center",
+          }}
+        >
+          <Tooltip title="Refresh/Sync" placement="top">
+            <IconButton
+              size="small"
+              onClick={() => handleShowEobDetails(row)}
+              sx={{ padding: "2px" }}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="View" placement="top">
+            <IconButton
+              size="small"
+              sx={{ padding: "4px" }}
+            >
+              <ViewIconRemittance />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Download" placement="top">
+            <IconButton
+              size="small"
+              sx={{ padding: "4px" }}
+            >
+              <DownloadIconRemittance />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+})}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -6958,12 +7119,12 @@ const filteredData =
                       indeterminate={
                         statementSelectedRows.length > 0 &&
                         statementSelectedRows.length <
-                          newStatementData.length
+                          newStatementFiltered.length
                       }
                       checked={
-                        newStatementData.length > 0 &&
+                        newStatementFiltered.length > 0 &&
                         statementSelectedRows.length ===
-                          newStatementData.length
+                          newStatementFiltered.length
                       }
                       onChange={handleStatementSelectAll}
                     />
@@ -7065,7 +7226,7 @@ const filteredData =
               </TableHead>
 
               <TableBody>
-                {newStatementData.map((row) => {
+                {newStatementFiltered.map((row) => {
                   const isItemSelected =
                     statementSelectedRows.includes(row.id);
 
@@ -7389,12 +7550,12 @@ const filteredData =
                       indeterminate={
                         historySelectedRows.length > 0 &&
                         historySelectedRows.length <
-                          historyStatementData.length
+                          historyFiltered.length
                       }
                       checked={
-                        historyStatementData.length > 0 &&
+                        historyFiltered.length > 0 &&
                         historySelectedRows.length ===
-                          historyStatementData.length
+                          historyFiltered.length
                       }
                       onChange={handleHistorySelectAll}
                     />
@@ -7428,7 +7589,7 @@ const filteredData =
               </TableHead>
 
               <TableBody>
-                {historyStatementData.map((row) => {
+                {historyFiltered.map((row) => {
                   const isItemSelected =
                     historySelectedRows.includes(row.id);
 
@@ -7819,7 +7980,7 @@ const filteredData =
       borderRadius: "22px",
       overflow: "hidden",
       boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-      m: 2,
+      m: 20,
     },
   }}
 >
@@ -7861,7 +8022,7 @@ const filteredData =
     <Typography
       sx={{
         fontSize: 11.5,
-        color: "#6B7280",
+        color: "#171923",
         mb: 1.5,
         lineHeight: 1.4,
       }}
@@ -7874,7 +8035,7 @@ const filteredData =
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        mb: 1.2,
+        mb: 0,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -7900,7 +8061,6 @@ const filteredData =
             fontWeight: 600,
             color: "#0066FF",
             cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
           }}
         >
           Select all
@@ -7928,120 +8088,129 @@ const filteredData =
             fontWeight: 600,
             color: "#0066FF",
             cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
           }}
         >
           Clear All
         </Typography>
       </Box>
 
-      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+      <Typography sx={{ fontSize: 11, color: "#171923" }}>
         {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
       </Typography>
     </Box>
   </Box>
 
   {/* COLUMN LIST */}
-  <Box
-    sx={{
-      px: 2.5,
-      pb: 1.5,
-      flex: 1,
-      maxHeight: 390,
-      overflowY: "auto",
-      "&::-webkit-scrollbar": { width: "4px" },
-      "&::-webkit-scrollbar-track": { background: "transparent" },
-      "&::-webkit-scrollbar-thumb": {
-        backgroundColor: "#D1D5DB",
-        borderRadius: "4px",
-      },
-      "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9CA3AF" },
-    }}
-  >
-    {[
-      { key: "dos", label: "DOS" },
-      { key: "cpt", label: "CPT" },
-      { key: "modifier", label: "Modifier" },
-      { key: "icd", label: "ICD" },
-      { key: "primaryInsurance", label: "Primary Insurance" },
-      { key: "billedAmount", label: "Billed Amount" },
-      { key: "patientCopay", label: "Patient Copay" },
-      { key: "status", label: "Status" },
-      { key: "remarks", label: "Remarks" },
-      { key: "encounterId", label: "Encounter ID #" },
-      { key: "claimId", label: "Claim ID" },
-    ].map((col) => (
+ <Box
+  sx={{
+    px: 2.5,
+    pb: 1,
+    flex: 1,
+    overflow: "hidden",
+  }}
+>
+  {[
+    { key: "dos", label: "DOS" },
+    { key: "cpt", label: "CPT" },
+    { key: "modifier", label: "Modifier" },
+    { key: "icd", label: "ICD" },
+    { key: "primaryInsurance", label: "Primary Insurance" },
+    { key: "billedAmount", label: "Billed Amount" },
+    { key: "patientCopay", label: "Patient Copay" },
+    { key: "status", label: "Status" },
+    { key: "remarks", label: "Remarks" },
+    { key: "encounterId", label: "Encounter ID #" },
+    { key: "claimId", label: "Claim ID" },
+  ].map((col) => (
+    <Box
+      key={col.key}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+
+        gap: 1,
+
+        height: 28,
+        minHeight: 28,
+
+        px: 1,
+        py: 0,
+
+        mb: 0.45,
+
+        backgroundColor: "#F5F5F5",
+        borderRadius: "8px",
+
+        "&:hover": {
+          backgroundColor: "#F1F2F4",
+        },
+      }}
+    >
+      {/* DRAG DOTS */}
       <Box
-        key={col.key}
         sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.2,
-          py: 0.72,
-          px: 0.8,
-          minHeight: 32,
-          mb: 0.5,
-          backgroundColor: "#F5F5F5",
-          borderRadius: "8px",
-          "&:hover": { backgroundColor: "#F1F2F4" },
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "2px",
+          cursor: "grab",
+          mr: 0.4,
+          flexShrink: 0,
+          width: 10,
         }}
       >
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "2px",
-            cursor: "grab",
-            mr: 0.4,
-            flexShrink: 0,
-            width: 10,
-          }}
-        >
-          {[...Array(6)].map((_, i) => (
-            <Box
-              key={i}
-              sx={{
-                width: 3,
-                height: 3,
-                borderRadius: "50%",
-                backgroundColor: "#0066FF",
-              }}
-            />
-          ))}
-        </Box>
-
-        <Checkbox
-          size="small"
-          checked={visibleColumns[col.key]}
-          onChange={(e) =>
-            setVisibleColumns((prev) => ({
-              ...prev,
-              [col.key]: e.target.checked,
-            }))
-          }
-          sx={{
-            p: 0.3,
-            color: "#C8CDD8",
-            flexShrink: 0,
-            "&.Mui-checked": { color: "#0066FF" },
-            "& svg": { fontSize: 17 },
-          }}
-        />
-
-        <Typography
-          sx={{
-            fontSize: 12.5,
-            fontWeight: 500,
-            color: "#374151",
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {col.label}
-        </Typography>
+        {[...Array(6)].map((_, i) => (
+          <Box
+            key={i}
+            sx={{
+              width: 3,
+              height: 3,
+              borderRadius: "50%",
+              backgroundColor: "#0066FF",
+            }}
+          />
+        ))}
       </Box>
-    ))}
-  </Box>
+
+      {/* CHECKBOX */}
+      <Checkbox
+        size="small"
+        checked={visibleColumns[col.key]}
+        onChange={(e) =>
+          setVisibleColumns((prev) => ({
+            ...prev,
+            [col.key]: e.target.checked,
+          }))
+        }
+        sx={{
+          p: 0,
+          color: "#C8CDD8",
+          flexShrink: 0,
+
+          "&.Mui-checked": {
+            color: "#0066FF",
+          },
+
+          "& svg": {
+            fontSize: 16,
+          },
+        }}
+      />
+
+      {/* LABEL */}
+      <Typography
+        sx={{
+          fontSize: 12,
+          fontWeight: 500,
+          color: "#374151",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {col.label}
+      </Typography>
+    </Box>
+  ))}
+</Box>
 
   {/* FOOTER */}
   <Box
@@ -8051,37 +8220,61 @@ const filteredData =
       justifyContent: "space-between",
       px: 2.5,
       py: 1.5,
-      borderTop: "1px solid #F3F4F6",
       flexShrink: 0,
     }}
   >
-    <Typography
-      onClick={() =>
-        setVisibleColumns({
-          dos: true,
-          patientName: true,
-          cpt: true,
-          modifier: true,
-          icd: true,
-          primaryInsurance: true,
-          billedAmount: true,
-          patientCopay: true,
-          status: true,
-          remarks: true,
-          encounterId: true,
-          claimId: true,
-        })
-      }
-      sx={{
-        fontSize: 11.5,
-        fontWeight: 600,
-        color: "#0066FF",
-        cursor: "pointer",
-        "&:hover": { textDecoration: "underline" },
-      }}
-    >
-      Reset to default
-    </Typography>
+   <Button
+  variant="outlined"
+  onClick={() =>
+    setVisibleColumns({
+      dos: true,
+      patientName: true,
+      cpt: true,
+      modifier: true,
+      icd: true,
+      primaryInsurance: true,
+      billedAmount: true,
+      patientCopay: true,
+      status: true,
+      remarks: true,
+      encounterId: true,
+      claimId: true,
+    })
+  }
+  sx={{
+    textTransform: "none",
+
+    fontSize: "11px",
+    fontWeight: 600,
+    lineHeight: 1,
+
+    color: "#374151",
+    backgroundColor: "#FFFFFF",
+
+    border: "1px solid #E5E7EB",
+    borderRadius: "8px",
+
+    minWidth: "114px",
+    height: "32px",
+
+    px: 1.5,
+    py: 0,
+
+    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+
+    "&:hover": {
+      backgroundColor: "#F9FAFB",
+      borderColor: "#D1D5DB",
+      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
+    },
+
+    "&:active": {
+      backgroundColor: "#F3F4F6",
+    },
+  }}
+>
+  Reset to default
+</Button>
 
     <Box sx={{ display: "flex", gap: 1 }}>
       <Button
