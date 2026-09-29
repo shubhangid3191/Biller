@@ -338,13 +338,24 @@ function Sidebar() {
                       pl: 2,
                       pr: 0.5,
                       py: 1.2,
-                      "&.Mui-selected": {
-                        backgroundColor: "rgba(0, 212, 255, 0.15)",
-                        borderLeft: "3px solid #00d4ff",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 212, 255, 0.2)",
-                        },
-                      },
+                     "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.08)",
                       },
@@ -416,13 +427,24 @@ function Sidebar() {
               sx={{
                 py: 1.5,
                 px: 2,
-                "&.Mui-selected": {
-                  backgroundColor: "rgba(0, 212, 255, 0.15)",
-                  borderLeft: "3px solid #00d4ff",
-                  "&:hover": {
-                    backgroundColor: "rgba(0, 212, 255, 0.2)",
-                  },
-                },
+               "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                 "&:hover": {
                   backgroundColor: "rgba(255, 255, 255, 0.05)",
                 },
@@ -498,13 +520,24 @@ function Sidebar() {
                       pl: 2,
                       pr: 0.5,
                       py: 1.2,
-                      "&.Mui-selected": {
-                        backgroundColor: "rgba(0, 212, 255, 0.15)",
-                        borderLeft: "3px solid #00d4ff",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 212, 255, 0.2)",
-                        },
-                      },
+                     "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.08)",
                       },
@@ -592,13 +625,24 @@ function Sidebar() {
                       pl: 2,
                       pr: 0.5,
                       py: 1.2,
-                      "&.Mui-selected": {
-                        backgroundColor: "rgba(0, 212, 255, 0.15)",
-                        borderLeft: "3px solid #00d4ff",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 212, 255, 0.2)",
-                        },
-                      },
+                     "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.08)",
                       },
@@ -710,13 +754,24 @@ function Sidebar() {
                       pl: 2,
                       pr: 0.5,
                       py: 1.2,
-                      "&.Mui-selected": {
-                        backgroundColor: "rgba(0, 212, 255, 0.15)",
-                        borderLeft: "3px solid #00d4ff",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 212, 255, 0.2)",
-                        },
-                      },
+                     "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                       "&:hover": {
                         backgroundColor: "rgba(255, 255, 255, 0.08)",
                       },
@@ -789,13 +844,24 @@ function Sidebar() {
                 sx={{
                   px: 2,
                   py: 1.5,
-                  "&.Mui-selected": {
-                    backgroundColor: "rgba(0, 212, 255, 0.15)",
-                    borderLeft: "3px solid #00d4ff",
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 212, 255, 0.2)",
-                    },
-                  },
+                 "&.Mui-selected": {
+  backgroundColor: "rgba(0, 212, 255, 0.15)",
+  position: "relative",
+
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: "3px",
+    backgroundColor: "#00d4ff",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 212, 255, 0.2)",
+  },
+},
                   "&:hover": {
                     backgroundColor: "rgba(255, 255, 255, 0.08)",
                   },

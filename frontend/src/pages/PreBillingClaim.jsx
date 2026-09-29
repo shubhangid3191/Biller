@@ -357,6 +357,7 @@ function ChargeCaptureBanner() {
 }
 
 function PreBillingClaim() {
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
@@ -1664,18 +1665,33 @@ function PreBillingClaim() {
   ];
 
   // Filter data based on selected status - only for pre-billing tab
-  const filteredData =
-    currentTab === 0
-      ? preBillingClaimsData.filter((claim) => {
-          if (statusFilter === "all") return true;
-          if (statusFilter === "unbilled") return claim.status === "Unbilled";
-          if (statusFilter === "ready") return claim.status === "Ready";
-          if (statusFilter === "need") return claim.status === "Need Info";
-          if (statusFilter === "processed") return claim.status === "Processed";
-          if (statusFilter === "archived") return claim.status === "Archived";
-          return true;
-        })
-      : postBillingClaimsData;
+ const matchesSearch = (claim) => {
+  if (!searchQuery.trim()) return true;
+  const q = searchQuery.toLowerCase();
+  return [
+    claim.patientName,
+    claim.mrn,
+    claim.fin,
+    claim.claimId,
+    claim.encounterId,
+  ]
+    .filter(Boolean)
+    .some((field) => String(field).toLowerCase().includes(q));
+};
+
+const filteredData =
+  currentTab === 0
+    ? preBillingClaimsData.filter((claim) => {
+        if (!matchesSearch(claim)) return false;
+        if (statusFilter === "all") return true;
+        if (statusFilter === "unbilled") return claim.status === "Unbilled";
+        if (statusFilter === "ready") return claim.status === "Ready";
+        if (statusFilter === "need") return claim.status === "Need Info";
+        if (statusFilter === "processed") return claim.status === "Processed";
+        if (statusFilter === "archived") return claim.status === "Archived";
+        return true;
+      })
+    : postBillingClaimsData.filter(matchesSearch);
   if (showClaimDetails && selectedClaim) {
     return (
       <PostBillingEditPage claim={selectedClaim} onBack={handleBackToTable} />
@@ -1753,8 +1769,10 @@ function PreBillingClaim() {
         >
           {/* Search */}
           <TextField
-            placeholder="Search Patient, MRN, FIN, Rendering provider..."
-            size="small"
+          placeholder="Search Patient, MRN, FIN, Rendering provider..."
+  size="small"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
             sx={{
               width: 290,
 
@@ -1789,54 +1807,83 @@ function PreBillingClaim() {
               },
             }}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
-                    <Search />
-                  </Box>
-                </InputAdornment>
-              ),
-            }}
-          />
+    startAdornment: (
+      <InputAdornment position="start">
+        <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
+          <Search />
+        </Box>
+      </InputAdornment>
+    ),
+    endAdornment: searchQuery && (
+      <InputAdornment position="end">
+        <IconButton size="small" onClick={() => setSearchQuery("")}>
+          <Close sx={{ fontSize: 14 }} />
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
 
           {/* Advanced Filters */}
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            sx={{
-              height: 32,
-              borderRadius: "18px",
-              textTransform: "none",
-              color: showAdvancedFilters ? "#0066FF" : "#374151",
-              borderColor: showAdvancedFilters ? "#0066FF" : "#E5E7EB",
-              backgroundColor: showAdvancedFilters ? "#EFF6FF" : "#FFFFFF",
-              fontWeight: 500,
-              fontSize: 11.5,
-              px: 1.5,
-              whiteSpace: "nowrap",
-              minWidth: "auto",
+         <Button
+  variant="outlined"
+  size="small"
+  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+  sx={{
+    height: 32,
+    minHeight: 32,
+    width: 126,              // fixed width
+    minWidth: 126,
+    maxWidth: 126,
+    borderRadius: "18px",
+    textTransform: "none",
+    color: showAdvancedFilters ? "#0066FF" : "#374151",
+    borderColor: showAdvancedFilters ? "#0066FF" : "#E5E7EB",
+    backgroundColor: showAdvancedFilters ? "#EFF6FF" : "#FFFFFF",
+    fontWeight: 500,
+    fontSize: 11.5,
+    px: 1.5,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
 
-              "&:hover": {
-                borderColor: showAdvancedFilters ? "#0052CC" : "#D1D5DB",
-                backgroundColor: showAdvancedFilters ? "#DBEAFE" : "#F9FAFB",
-              },
-            }}
-          >
-            {showAdvancedFilters ? (
-              <>
-                <Close sx={{ fontSize: 16, mr: 0.5 }} />
-                Advanced filters
-              </>
-            ) : (
-              <>
-                <Box sx={{ display: "flex", alignItems: "center", mr: 0.5 }}>
-                  <FilterIcon1 />
-                </Box>
-                Advanced filters
-              </>
-            )}
-          </Button>
+    "&:hover": {
+      borderColor: showAdvancedFilters ? "#0052CC" : "#D1D5DB",
+      backgroundColor: showAdvancedFilters ? "#DBEAFE" : "#F9FAFB",
+    },
+
+    // Prevent MUI button content from changing position
+    "& .MuiButton-startIcon": {
+      margin: 0,
+    },
+  }}
+>
+  <Box
+    sx={{
+      width: 16,              // fixed icon space
+      height: 16,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      mr: 0.5,
+    }}
+  >
+    {showAdvancedFilters ? (
+      <Close sx={{ fontSize: 16 }} />
+    ) : (
+      <FilterIcon1 width={16} height={16} />
+    )}
+  </Box>
+
+  <Box
+    sx={{
+      lineHeight: 1,
+      whiteSpace: "nowrap",
+    }}
+  >
+    Advanced filters
+  </Box>
+</Button>
 
           {/* List / Grid - Single Merged Toggle - Only for Pre-billing tab */}
           {currentTab === 0 && (
@@ -1896,7 +1943,7 @@ function PreBillingClaim() {
       </Box>
 
       {/* Advanced Filters Panel - For Post-billing tab */}
-      {currentTab === 1 && showAdvancedFilters && (
+      {showAdvancedFilters  &&(
         <Box
           sx={{
             backgroundColor: "#F5F7FA",
@@ -3509,6 +3556,7 @@ function PreBillingClaim() {
             >
               <IconButton
                 size="small"
+                 onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -5045,6 +5093,7 @@ function PreBillingClaim() {
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconButton
                 size="small"
+                 onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -6806,6 +6855,7 @@ function PreBillingClaim() {
       >
         <IconButton
                 size="small"
+                 onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -7758,291 +7808,332 @@ function PreBillingClaim() {
   </Box>
 )}
       {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
-      <Dialog
-        open={showColumnSettings}
-        onClose={() => setShowColumnSettings(false)}
-        PaperProps={{
-          sx: {
-            width: "100%",
-            maxWidth: 420,
-            borderRadius: "12px",
-            overflow: "hidden",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-          },
+<Dialog
+  open={showColumnSettings}
+  onClose={() => setShowColumnSettings(false)}
+  PaperProps={{
+    sx: {
+      width: "100%",
+      maxWidth: 500,
+      minHeight: 570,
+      borderRadius: "22px",
+      overflow: "hidden",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+      m: 2,
+    },
+  }}
+>
+  {/* HEADER */}
+  <Box sx={{ px: 2.5, pt: 2.2, pb: 1.2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        mb: 0.5,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#1F2937",
+          lineHeight: 1.25,
         }}
       >
-        <Box sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              mb: 0.6,
-            }}
-          >
-            <Typography
-              sx={{ fontSize: 16, fontWeight: 700, color: "#1F2937" }}
-            >
-              Customise columns
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setShowColumnSettings(false)}
-              sx={{ p: 0.3, color: "#6B7280" }}
-            >
-              <Close sx={{ fontSize: 17 }} />
-            </IconButton>
-          </Box>
+        Customise columns
+      </Typography>
+      <IconButton
+        size="small"
+        onClick={() => setShowColumnSettings(false)}
+        sx={{
+          p: 0.3,
+          color: "#111827",
+          mt: -0.3,
+          mr: -0.3,
+          "&:hover": { backgroundColor: "#F3F4F6" },
+        }}
+      >
+        <Close sx={{ fontSize: 18 }} />
+      </IconButton>
+    </Box>
 
-          {/* Subtitle */}
-          <Typography
-            sx={{ fontSize: 11.5, color: "#6B7280", mb: 1.5, lineHeight: 1.4 }}
-          >
-            Choose which columns to show and drag to reorder them.
-          </Typography>
+    <Typography
+      sx={{
+        fontSize: 11.5,
+        color: "#6B7280",
+        mb: 1.5,
+        lineHeight: 1.4,
+      }}
+    >
+      Choose which columns to show and drag to reorder them.
+    </Typography>
 
-          {/* Select all / Clear all + count */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 1.2,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-              <Typography
-                onClick={() =>
-                  setVisibleColumns({
-                    dos: true,
-                    patientName: true,
-                    cpt: true,
-                    modifier: true,
-                    icd: true,
-                    primaryInsurance: true,
-                    billedAmount: true,
-                    patientCopay: true,
-                    status: true,
-                    remarks: true,
-                    encounterId: true,
-                    claimId: true,
-                  })
-                }
-                sx={{
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: "#0066FF",
-                  cursor: "pointer",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                Select all
-              </Typography>
-              <Typography
-                onClick={() =>
-                  setVisibleColumns({
-                    dos: false,
-                    patientName: false,
-                    cpt: false,
-                    modifier: false,
-                    icd: false,
-                    primaryInsurance: false,
-                    billedAmount: false,
-                    patientCopay: false,
-                    status: false,
-                    remarks: false,
-                    encounterId: false,
-                    claimId: false,
-                  })
-                }
-                sx={{
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: "#0066FF",
-                  cursor: "pointer",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                Clear All
-              </Typography>
-            </Box>
-
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-              {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Column list */}
-        <Box
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        mb: 1.2,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Typography
+          onClick={() =>
+            setVisibleColumns({
+              dos: true,
+              patientName: true,
+              cpt: true,
+              modifier: true,
+              icd: true,
+              primaryInsurance: true,
+              billedAmount: true,
+              patientCopay: true,
+              status: true,
+              remarks: true,
+              encounterId: true,
+              claimId: true,
+            })
+          }
           sx={{
-            px: 2.5,
-            pb: 1.5,
-            maxHeight: 400,
-            overflowY: "auto",
-            "&::-webkit-scrollbar": { width: "4px" },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "#D1D5DB",
-              borderRadius: "4px",
-            },
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: "#0066FF",
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
           }}
         >
-          {[
-            { key: "dos", label: "DOS" },
-            { key: "cpt", label: "CPT" },
-            { key: "modifier", label: "Modifier" },
-            { key: "icd", label: "ICD" },
-            { key: "primaryInsurance", label: "Primary Insurance" },
-            { key: "billedAmount", label: "Billed Amount" },
-            { key: "patientCopay", label: "Patient Copay" },
-            { key: "status", label: "Status" },
-            { key: "remarks", label: "Remarks" },
-            { key: "encounterId", label: "Encounter ID #" },
-            { key: "claimId", label: "Claim ID" },
-          ].map((col) => (
+          Select all
+        </Typography>
+
+        <Typography
+          onClick={() =>
+            setVisibleColumns({
+              dos: false,
+              patientName: false,
+              cpt: false,
+              modifier: false,
+              icd: false,
+              primaryInsurance: false,
+              billedAmount: false,
+              patientCopay: false,
+              status: false,
+              remarks: false,
+              encounterId: false,
+              claimId: false,
+            })
+          }
+          sx={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: "#0066FF",
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          Clear All
+        </Typography>
+      </Box>
+
+      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+        {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
+      </Typography>
+    </Box>
+  </Box>
+
+  {/* COLUMN LIST */}
+  <Box
+    sx={{
+      px: 2.5,
+      pb: 1.5,
+      flex: 1,
+      maxHeight: 390,
+      overflowY: "auto",
+      "&::-webkit-scrollbar": { width: "4px" },
+      "&::-webkit-scrollbar-track": { background: "transparent" },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#D1D5DB",
+        borderRadius: "4px",
+      },
+      "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9CA3AF" },
+    }}
+  >
+    {[
+      { key: "dos", label: "DOS" },
+      { key: "cpt", label: "CPT" },
+      { key: "modifier", label: "Modifier" },
+      { key: "icd", label: "ICD" },
+      { key: "primaryInsurance", label: "Primary Insurance" },
+      { key: "billedAmount", label: "Billed Amount" },
+      { key: "patientCopay", label: "Patient Copay" },
+      { key: "status", label: "Status" },
+      { key: "remarks", label: "Remarks" },
+      { key: "encounterId", label: "Encounter ID #" },
+      { key: "claimId", label: "Claim ID" },
+    ].map((col) => (
+      <Box
+        key={col.key}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.2,
+          py: 0.72,
+          px: 0.8,
+          minHeight: 32,
+          mb: 0.5,
+          backgroundColor: "#F5F5F5",
+          borderRadius: "8px",
+          "&:hover": { backgroundColor: "#F1F2F4" },
+        }}
+      >
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "2px",
+            cursor: "grab",
+            mr: 0.4,
+            flexShrink: 0,
+            width: 10,
+          }}
+        >
+          {[...Array(6)].map((_, i) => (
             <Box
-              key={col.key}
+              key={i}
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.2,
-                py: 1,
-                px: 0.5,
-                borderBottom: "1px solid #F3F4F6",
-                "&:last-child": { borderBottom: "none" },
+                width: 3,
+                height: 3,
+                borderRadius: "50%",
+                backgroundColor: "#0066FF",
               }}
-            >
-              {/* Drag handle */}
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "2px",
-                  cursor: "grab",
-                  mr: 0.4,
-                }}
-              >
-                {[...Array(6)].map((_, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      width: 3,
-                      height: 3,
-                      borderRadius: "50%",
-                      backgroundColor: "#C4C9D4",
-                    }}
-                  />
-                ))}
-              </Box>
-
-              {/* Checkbox */}
-              <Checkbox
-                size="small"
-                checked={visibleColumns[col.key]}
-                onChange={(e) =>
-                  setVisibleColumns((prev) => ({
-                    ...prev,
-                    [col.key]: e.target.checked,
-                  }))
-                }
-                sx={{
-                  p: 0.4,
-                  color: "#C8CDD8",
-                  "&.Mui-checked": { color: "#0066FF" },
-                  "& svg": { fontSize: 17 },
-                }}
-              />
-
-              {/* Label */}
-              <Typography sx={{ fontSize: 12.5, color: "#374151" }}>
-                {col.label}
-              </Typography>
-            </Box>
+            />
           ))}
         </Box>
 
-        {/* Footer */}
-        <Box
+        <Checkbox
+          size="small"
+          checked={visibleColumns[col.key]}
+          onChange={(e) =>
+            setVisibleColumns((prev) => ({
+              ...prev,
+              [col.key]: e.target.checked,
+            }))
+          }
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: 2.5,
-            py: 1.6,
-            borderTop: "1px solid #F3F4F6",
+            p: 0.3,
+            color: "#C8CDD8",
+            flexShrink: 0,
+            "&.Mui-checked": { color: "#0066FF" },
+            "& svg": { fontSize: 17 },
+          }}
+        />
+
+        <Typography
+          sx={{
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "#374151",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
           }}
         >
-          <Typography
-            onClick={() =>
-              setVisibleColumns({
-                dos: true,
-                patientName: true,
-                cpt: true,
-                modifier: true,
-                icd: true,
-                primaryInsurance: true,
-                billedAmount: true,
-                patientCopay: true,
-                status: true,
-                remarks: true,
-                encounterId: true,
-                claimId: true,
-              })
-            }
-            sx={{
-              fontSize: 11.5,
-              fontWeight: 600,
-              color: "#0066FF",
-              cursor: "pointer",
-              "&:hover": { textDecoration: "underline" },
-            }}
-          >
-            Reset to default
-          </Typography>
+          {col.label}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
 
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              onClick={() => setShowColumnSettings(false)}
-              sx={{
-                textTransform: "none",
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#374151",
-                borderColor: "#E5E7EB",
-                borderRadius: "8px",
-                px: 2,
-                py: 0.55,
-                minWidth: 70,
-                "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              disableElevation
-              onClick={() => setShowColumnSettings(false)}
-              sx={{
-                textTransform: "none",
-                fontSize: 12,
-                fontWeight: 600,
-                bgcolor: "#0066FF",
-                color: "#fff",
-                borderRadius: "8px",
-                px: 2,
-                py: 0.55,
-                minWidth: 90,
-                boxShadow: "none",
-                "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
-              }}
-            >
-              Save View
-            </Button>
-          </Box>
-        </Box>
-      </Dialog>
+  {/* FOOTER */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      px: 2.5,
+      py: 1.5,
+      borderTop: "1px solid #F3F4F6",
+      flexShrink: 0,
+    }}
+  >
+    <Typography
+      onClick={() =>
+        setVisibleColumns({
+          dos: true,
+          patientName: true,
+          cpt: true,
+          modifier: true,
+          icd: true,
+          primaryInsurance: true,
+          billedAmount: true,
+          patientCopay: true,
+          status: true,
+          remarks: true,
+          encounterId: true,
+          claimId: true,
+        })
+      }
+      sx={{
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: "#0066FF",
+        cursor: "pointer",
+        "&:hover": { textDecoration: "underline" },
+      }}
+    >
+      Reset to default
+    </Typography>
+
+    <Box sx={{ display: "flex", gap: 1 }}>
+      <Button
+        variant="outlined"
+        onClick={() => setShowColumnSettings(false)}
+        sx={{
+          textTransform: "none",
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#374151",
+          borderColor: "#E5E7EB",
+          borderRadius: "8px",
+          px: 2,
+          py: 0.5,
+          minWidth: 70,
+          minHeight: 32,
+          "&:hover": {
+            borderColor: "#D1D5DB",
+            bgcolor: "#F9FAFB",
+          },
+        }}
+      >
+        Cancel
+      </Button>
+
+      <Button
+        variant="contained"
+        disableElevation
+        onClick={() => setShowColumnSettings(false)}
+        sx={{
+          textTransform: "none",
+          fontSize: 12,
+          fontWeight: 600,
+          bgcolor: "#0066FF",
+          color: "#fff",
+          borderRadius: "8px",
+          px: 2,
+          py: 0.5,
+          minWidth: 90,
+          minHeight: 32,
+          boxShadow: "none",
+          "&:hover": {
+            bgcolor: "#0052CC",
+            boxShadow: "none",
+          },
+        }}
+      >
+        Save View
+      </Button>
+    </Box>
+  </Box>
+</Dialog>
     </Box>
   );
 }
