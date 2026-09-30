@@ -84,7 +84,7 @@ export default function Program() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -200,7 +200,7 @@ export default function Program() {
                     {col.label}
                     {col.arrow && (
                       <KeyboardArrowDownIcon
-                        sx={{ fontSize: 16, color: "#9CA3AF" }}
+                        sx={{ fontSize: 20, color: "#52525B", ml: "auto" }}
                       />
                     )}
                   </Box>

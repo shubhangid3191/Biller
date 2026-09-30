@@ -356,7 +356,7 @@ export default function PracticeEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -397,7 +397,7 @@ export default function PracticeEdit() {
               mb: 2.5,
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0 }}>
               <Label>EIN</Label>
               <Box
                 sx={{
@@ -406,20 +406,23 @@ export default function PracticeEdit() {
                   justifyContent: "space-between",
                   border: `1px solid ${T.border}`,
                   borderRadius: "8px",
-                  px: 1.5,
-                  py: "5px",
+                  px: "14px",
+                  height: 38,
+                  width: "100%",
                   bgcolor: "#fff",
-                  height: "42px",
                   boxSizing: "border-box",
+                  "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
                 <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
                   Active
                 </Typography>
                 <Switch
+                  size="small"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
                   sx={{
+                    mr: -0.5,
                     "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                       bgcolor: "#22C55E",
@@ -657,37 +660,37 @@ export default function PracticeEdit() {
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
         >
-        <Button
-                    variant="outlined"
-                    onClick={() => navigate(-1)}
-                    sx={{
-                      textTransform: "none",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      borderRadius: "8px",
-                      color: "#015DFF",
-                      border: "1.5px solid #015DFF",
-                      px: 3,
-                      "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="contained"
-                    disableElevation
-                    sx={{
-                      textTransform: "none",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      borderRadius: "8px",
-                      bgcolor: T.blue,
-                      px: 4,
-                      "&:hover": { bgcolor: "#1D4ED8" },
-                    }}
-                  >
-                    Save
-                  </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: "#015DFF",
+              border: "1.5px solid #015DFF",
+              px: 3,
+              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              bgcolor: T.blue,
+              px: 4,
+              "&:hover": { bgcolor: "#1D4ED8" },
+            }}
+          >
+            Save
+          </Button>
         </Box>
       </Box>
     </Box>

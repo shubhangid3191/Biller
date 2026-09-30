@@ -4,16 +4,18 @@ import {
   Box,
   Typography,
   Button,
-  IconButton,
   TextField,
   MenuItem,
   Select,
   FormControl,
   Switch,
-  InputAdornment,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { CalendarIcon, SearchIcon2 } from "../assets/Assets";
+import SearchIcon from "@mui/icons-material/Search";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                        */
@@ -25,7 +27,7 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Input / Select styles                                                */
+/* Base input style (no adornment padding override)                    */
 /* ------------------------------------------------------------------ */
 const inputSx = {
   "& .MuiOutlinedInput-root": {
@@ -33,6 +35,30 @@ const inputSx = {
     fontSize: 12,
     bgcolor: "#fff",
     "& input": { py: "10px", px: "14px", fontSize: 12, color: "#1F2937" },
+    "& input::placeholder": { color: "#8F9098", opacity: 1 },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: T.blue,
+      borderWidth: "1.5px",
+    },
+  },
+  "& .MuiFormHelperText-root": { display: "none" },
+};
+
+/* Same but input has right padding to avoid text going under the icon */
+const inputWithIconSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "8px",
+    fontSize: 12,
+    bgcolor: "#fff",
+    "& input": {
+      py: "10px",
+      pl: "14px",
+      pr: "36px" /* reserve space for icon */,
+      fontSize: 12,
+      color: "#1F2937",
+    },
     "& input::placeholder": { color: "#8F9098", opacity: 1 },
     "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
@@ -80,9 +106,9 @@ function Label({ children, required }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Field components                                                     */
+/* Plain input field                                                    */
 /* ------------------------------------------------------------------ */
-function InputField({ label, placeholder = "Type here", required, endIcon }) {
+function InputField({ label, placeholder = "Type here", required }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
@@ -91,26 +117,125 @@ function InputField({ label, placeholder = "Type here", required, endIcon }) {
         size="small"
         placeholder={placeholder}
         sx={inputSx}
-        InputProps={
-          endIcon
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">{endIcon}</InputAdornment>
-                ),
-              }
-            : undefined
-        }
       />
     </Box>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Input field with icon absolutely positioned inside                  */
+/* ------------------------------------------------------------------ */
+function InputFieldWithIcon({
+  label,
+  placeholder = "Type here",
+  required,
+  icon,
+}) {
+  return (
+    <Box>
+      <Label required={required}>{label}</Label>
+      <Box sx={{ position: "relative" }}>
+        <TextField
+          fullWidth
+          size="small"
+          placeholder={placeholder}
+          sx={inputWithIconSx}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            right: "10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            display: "flex",
+            alignItems: "center",
+            pointerEvents: "none",
+          }}
+        >
+          {icon}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Date field: click on the icon (or the input) opens the calendar     */
+/* ------------------------------------------------------------------ */
+function DateField({ label, placeholder = "Select", required }) {
+  return (
+    <Box sx={{ minWidth: 0, width: "100%" }}>
+      <Label required={required}>{label}</Label>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          format="MM/DD/YYYY"
+          sx={{ width: "100%" }}
+          slots={{
+            openPickerIcon: () => (
+              <CalendarTodayIcon sx={{ fontSize: 16, color: "#1E1E1E" }} />
+            ),
+          }}
+          slotProps={{
+            textField: {
+              fullWidth: true,
+              size: "small",
+              placeholder,
+              sx: {
+                "& .MuiPickersOutlinedInput-root, & .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  bgcolor: "#fff",
+                  fontSize: 12,
+                  height: 38,
+                  pr: "8px",
+                },
+                /* text area inside the picker */
+                "& .MuiPickersInputBase-sectionsContainer": {
+                  py: "10px",
+                  pl: "14px",
+                  pr: 0,
+                  fontSize: 12,
+                  color: "#1F2937",
+                },
+                "& .MuiPickersSectionList-root": {
+                  py: "10px",
+                  pl: "14px",
+                  fontSize: 12,
+                  color: "#1F2937",
+                },
+                /* older versions use a real <input> */
+                "& input": {
+                  py: "10px",
+                  pl: "14px",
+                  pr: 0,
+                  fontSize: 12,
+                  color: "#1F2937",
+                },
+                "& input::placeholder": { color: "#8F9098", opacity: 1 },
+                "& .MuiPickersOutlinedInput-notchedOutline, & .MuiOutlinedInput-notchedOutline":
+                  { borderColor: T.border },
+                "&:hover .MuiPickersOutlinedInput-notchedOutline, &:hover .MuiOutlinedInput-notchedOutline":
+                  { borderColor: "#9CA3AF" },
+                "& .Mui-focused .MuiPickersOutlinedInput-notchedOutline, & .Mui-focused .MuiOutlinedInput-notchedOutline":
+                  { borderColor: T.blue, borderWidth: "1.5px" },
+                "& .MuiFormHelperText-root": { display: "none" },
+              },
+            },
+            openPickerButton: { sx: { p: 0.5, mr: 0 } },
+          }}
+        />
+      </LocalizationProvider>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Select field                                                         */
+/* ------------------------------------------------------------------ */
 function SelectField({
   label,
   placeholder = "Select",
   options = [],
   required,
-  endIcon,
 }) {
   return (
     <Box>
@@ -120,7 +245,7 @@ function SelectField({
           displayEmpty
           defaultValue=""
           sx={selectSx}
-          IconComponent={endIcon ? () => endIcon : KeyboardArrowDownIcon}
+          IconComponent={KeyboardArrowDownIcon}
         >
           <MenuItem value="" sx={{ fontSize: 12, color: "#8F9098" }}>
             {placeholder}
@@ -136,6 +261,9 @@ function SelectField({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Form grid                                                            */
+/* ------------------------------------------------------------------ */
 function FormGrid({ children }) {
   return (
     <Box
@@ -175,7 +303,7 @@ export default function FeeConfiguration() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -205,9 +333,10 @@ export default function FeeConfiguration() {
         >
           {/* Row 1 */}
           <FormGrid>
-            <InputField
+            {/* Procedure Code — with search icon */}
+            <InputFieldWithIcon
               label="Procedure Code"
-              endIcon={<SearchIcon2 sx={{ fontSize: 16, color: "#8F9098" }} />}
+              icon={<SearchIcon sx={{ fontSize: 18, color: "#1E1E1E" }} />}
             />
             <InputField label="HCPCS Code" />
             <InputField label="Description" />
@@ -218,40 +347,11 @@ export default function FeeConfiguration() {
           </FormGrid>
 
           {/* Row 2 */}
+          {/* Row 2 */}
           <FormGrid>
             <SelectField label="Select POS Code" />
-            <Box>
-              <Label>Effective date</Label>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Select"
-                sx={inputSx}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <CalendarIcon sx={{ fontSize: 14, color: "#1E1E1E" }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-            <Box>
-              <Label>Expiry date</Label>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Select"
-                sx={inputSx}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <CalendarIcon sx={{ fontSize: 14, color: "#1E1E1E" }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
+            <DateField label="Effective date" />
+            <DateField label="Expiry date" />
             <SelectField
               label="Select Practice"
               options={["Fresh Original", "Practice 2"]}
@@ -290,7 +390,7 @@ export default function FeeConfiguration() {
             <SelectField label="Program" options={["PDCM", "Program 2"]} />
 
             {/* Non covered service toggle */}
-            <Box>
+            <Box sx={{ minWidth: 0 }}>
               <Label>&nbsp;</Label>
               <Box
                 sx={{
@@ -299,20 +399,33 @@ export default function FeeConfiguration() {
                   justifyContent: "space-between",
                   border: `1px solid ${T.border}`,
                   borderRadius: "8px",
-                  px: 1.5,
-                  py: "5px",
+                  px: "14px",
+                  height: 38,
+                  width: "100%",
                   bgcolor: "#fff",
-                  height: "42px",
                   boxSizing: "border-box",
+                  "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
-                <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "#8F9098",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    mr: 1,
+                  }}
+                >
                   Non covered service
                 </Typography>
                 <Switch
+                  size="small"
                   checked={nonCovered}
                   onChange={(e) => setNonCovered(e.target.checked)}
                   sx={{
+                    mr: -0.5,
+                    flexShrink: 0,
                     "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                       bgcolor: "#22C55E",
@@ -323,7 +436,6 @@ export default function FeeConfiguration() {
                 />
               </Box>
             </Box>
-
             <Box />
             <Box />
           </Box>
@@ -346,36 +458,36 @@ export default function FeeConfiguration() {
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
         >
-      <Button
-                  variant="outlined"
-                  onClick={() => navigate(-1)}
-                  sx={{
-                    textTransform: "none",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    borderRadius: "8px",
-                    color: "#015DFF",
-                    border: "1.5px solid #015DFF",
-                    px: 3,
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  disableElevation
-                  sx={{
-                    textTransform: "none",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    borderRadius: "8px",
-                    bgcolor: T.blue,
-                    px: 4,
-                    "&:hover": { bgcolor: "#1D4ED8" },
-                  }}
-                >
-                  Save
-                </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: "#015DFF",
+              border: "1.5px solid #015DFF",
+              px: 3,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              bgcolor: T.blue,
+              px: 4,
+              "&:hover": { bgcolor: "#1D4ED8" },
+            }}
+          >
+            Save
+          </Button>
         </Box>
       </Box>
     </Box>

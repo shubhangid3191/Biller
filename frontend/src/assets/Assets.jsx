@@ -1233,7 +1233,7 @@ export const Downlaod = ({ width = 14, height = 14, color = "#D1D5DB" }) => (
 /* ReferringProvider — Edit Icon                                       */
 /* ------------------------------------------------------------------ */
 
-export const RPEditIcon = ({ width = 24, height = 24, color = "#0052E1" }) => (
+export const RPEditIcon = ({ width = 22, height = 22, color = "#0052E1" }) => (
   <svg
     width={width}
     height={height}
@@ -1661,10 +1661,31 @@ export const OpenNewIcon = ({ width = 24, height = 24 }) => (
   </svg>
 );
 export const DeleteIcon = ({ width = 24, height = 24 }) => (
- <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M3 18C2.45 18 1.97917 17.8042 1.5875 17.4125C1.19583 17.0208 1 16.55 1 16V3H0V1H5V0H11V1H16V3H15V16C15 16.55 14.8042 17.0208 14.4125 17.4125C14.0208 17.8042 13.55 18 13 18H3ZM13 3H3V16H13V3ZM5 14H7V5H5V14ZM9 14H11V5H9V14Z" fill="#0052E1"/>
-</svg>
+  <svg
+    width="16"
+    height="18"
+    viewBox="0 0 16 18"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M3 18C2.45 18 1.97917 17.8042 1.5875 17.4125C1.19583 17.0208 1 16.55 1 16V3H0V1H5V0H11V1H16V3H15V16C15 16.55 14.8042 17.0208 14.4125 17.4125C14.0208 17.8042 13.55 18 13 18H3ZM13 3H3V16H13V3ZM5 14H7V5H5V14ZM9 14H11V5H9V14Z"
+      fill="#0052E1"
+    />
+  </svg>
 );
 
-
-
+export const CalendarBlueIcon = ({ width = 24, height = 24 }) => (
+  <svg
+    width="18"
+    height="20"
+    viewBox="0 0 18 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V4C0 3.45 0.195833 2.97917 0.5875 2.5875C0.979167 2.19583 1.45 2 2 2H3V0H5V2H13V0H15V2H16C16.55 2 17.0208 2.19583 17.4125 2.5875C17.8042 2.97917 18 3.45 18 4V18C18 18.55 17.8042 19.0208 17.4125 19.4125C17.0208 19.8042 16.55 20 16 20H2ZM2 18H16V8H2V18ZM2 6H16V4H2V6ZM4 12V10H14V12H4ZM4 16V14H11V16H4Z"
+      fill="#0052E1"
+    />
+  </svg>
+);

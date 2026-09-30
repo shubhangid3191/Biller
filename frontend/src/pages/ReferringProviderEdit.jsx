@@ -194,7 +194,7 @@ export default function ReferringProviderEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -238,38 +238,47 @@ export default function ReferringProviderEdit() {
           </FormGrid>
 
           {/* PCP Toggle */}
-          {/* PCP Toggle */}
           <Box
             sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              border: `1px solid ${T.border}`,
-              borderRadius: "8px",
-              px: 1.5,
-              py: "5px",
-              width: { xs: "100%", sm: "50%", md: "25%" },
-              bgcolor: "#fff",
-              boxSizing: "border-box",
+              width: {
+                xs: "100%",
+                sm: "calc((100% - 16px) / 2)",
+                md: "calc((100% - 48px) / 4)",
+              },
             }}
           >
-            <Typography
-              sx={{ fontSize: 14, fontWeight: 500, color: "#374151" }}
-            >
-              PCP
-            </Typography>
-            <Switch
-              checked={pcp}
-              onChange={(e) => setPcp(e.target.checked)}
+            <Box
               sx={{
-                "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
-                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                  bgcolor: "#22C55E",
-                  opacity: 1,
-                },
-                "& .MuiSwitch-track": { borderRadius: 20 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                border: `1px solid ${T.border}`,
+                borderRadius: "8px",
+                px: "14px",
+                height: 38,
+                bgcolor: "#fff",
+                boxSizing: "border-box",
+                "&:hover": { borderColor: "#9CA3AF" },
               }}
-            />
+            >
+              <Typography sx={{ fontSize: 12, color: "#1F2937" }}>
+                PCP
+              </Typography>
+              <Switch
+                size="small"
+                checked={pcp}
+                onChange={(e) => setPcp(e.target.checked)}
+                sx={{
+                  mr: -0.5,
+                  "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    bgcolor: "#22C55E",
+                    opacity: 1,
+                  },
+                  "& .MuiSwitch-track": { borderRadius: 20 },
+                }}
+              />
+            </Box>
           </Box>
         </SectionBox>
 
@@ -311,7 +320,15 @@ export default function ReferringProviderEdit() {
           </FormGrid>
 
           {/* E-mail */}
-          <Box sx={{ maxWidth: { xs: "100%", sm: "50%", md: "25%" } }}>
+          <Box
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "calc((100% - 16px) / 2)",
+                md: "calc((100% - 48px) / 4)",
+              },
+            }}
+          >
             <SelectField label="E-mail" />
           </Box>
         </SectionBox>
@@ -334,7 +351,7 @@ export default function ReferringProviderEdit() {
                 "&:hover": { bgcolor: "transparent" },
               }}
             >
-              <RPAddIcon width={20} height={20} color={T.blue} />
+              <RPAddIcon width={16} height={16} color={T.blue} />
             </IconButton>
           </Box>
 

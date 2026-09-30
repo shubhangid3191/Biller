@@ -185,7 +185,7 @@ export default function LocationsEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -233,9 +233,19 @@ export default function LocationsEdit() {
             <SelectField label="Select POS Code" required />
             <InputField label="CLIA Number" required />
 
-            {/* Active toggle — looks like input box */}
+            {/* Active toggle — same row alignment as other inputs */}
             <Box>
-              <Label>Active</Label>
+              <Typography
+                aria-hidden="true"
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  mb: 0.6,
+                  visibility: "hidden",
+                }}
+              >
+                &nbsp;
+              </Typography>
               <Box
                 sx={{
                   display: "flex",
@@ -243,20 +253,22 @@ export default function LocationsEdit() {
                   justifyContent: "space-between",
                   border: `1px solid ${T.border}`,
                   borderRadius: "8px",
-                  px: 1.5,
-                  py: "5px",
+                  px: "14px",
+                  height: 38,
                   bgcolor: "#fff",
-                  height: "42px",
                   boxSizing: "border-box",
+                  "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
                 <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
                   Active
                 </Typography>
                 <Switch
+                  size="small"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
                   sx={{
+                    mr: -0.5,
                     "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                       bgcolor: "#22C55E",

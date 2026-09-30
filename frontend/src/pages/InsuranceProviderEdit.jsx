@@ -162,7 +162,7 @@ export default function InsuranceProviderEdit() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -230,7 +230,11 @@ export default function InsuranceProviderEdit() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 3fr" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "repeat(4, 1fr)",
+              },
               gap: 2,
               mb: 1,
             }}
@@ -241,7 +245,13 @@ export default function InsuranceProviderEdit() {
               options={["Electronic", "Paper", "Fax"]}
             />
 
-            <Box>
+            {/* Spans 2 columns on md+ = Country + State width */}
+            <Box
+              sx={{
+                minWidth: 0,
+                gridColumn: { xs: "auto", sm: "auto", md: "span 2" },
+              }}
+            >
               <Label>&nbsp;</Label>
               <Box
                 sx={{
@@ -250,20 +260,33 @@ export default function InsuranceProviderEdit() {
                   justifyContent: "space-between",
                   border: `1px solid ${T.border}`,
                   borderRadius: "8px",
-                  px: 1.5,
-                  py: "5px",
+                  px: "14px",
+                  height: 38,
+                  width: "100%",
                   bgcolor: "#fff",
-                  height: "42px",
                   boxSizing: "border-box",
+                  "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
-                <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "#8F9098",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    mr: 1,
+                  }}
+                >
                   Set mandatory insurance type code
                 </Typography>
                 <Switch
+                  size="small"
                   checked={mandatoryCode}
                   onChange={(e) => setMandatoryCode(e.target.checked)}
                   sx={{
+                    mr: -0.5,
+                    flexShrink: 0,
                     "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                       bgcolor: "#22C55E",
@@ -281,36 +304,36 @@ export default function InsuranceProviderEdit() {
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
         >
-            <Button
-                           variant="outlined"
-                           onClick={() => navigate(-1)}
-                           sx={{
-                             textTransform: "none",
-                             fontSize: 14,
-                             fontWeight: 500,
-                             borderRadius: "8px",
-                             color: "#015DFF",
-                             border: "1.5px solid #015DFF",
-                             px: 3,
-                           }}
-                         >
-                           Cancel
-                         </Button>
-                         <Button
-                           variant="contained"
-                           disableElevation
-                           sx={{
-                             textTransform: "none",
-                             fontSize: 14,
-                             fontWeight: 500,
-                             borderRadius: "8px",
-                             bgcolor: T.blue,
-                             px: 4,
-                             "&:hover": { bgcolor: "#1D4ED8" },
-                           }}
-                         >
-                           Save
-                         </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: "#015DFF",
+              border: "1.5px solid #015DFF",
+              px: 3,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              borderRadius: "8px",
+              bgcolor: T.blue,
+              px: 4,
+              "&:hover": { bgcolor: "#1D4ED8" },
+            }}
+          >
+            Save
+          </Button>
         </Box>
       </Box>
     </Box>
