@@ -98,7 +98,7 @@ const checkboxSx = {
 const pillBtnSx = (active) => ({
   textTransform: "none",
   fontSize: 12,
-  fontWeight: 600,
+  fontWeight: 500,
   height: 28,
   minWidth: 0,
   px: 1.75,
@@ -318,11 +318,11 @@ function ChargeCaptureBanner() {
             whiteSpace: "normal",
           }}
         >
-          TiaStat auto-coded <strong>11 encounters</strong> from clinical
-          notes. <strong>3 are clean and ready to bill</strong>; the rest have
-          flagged edits (gender conflicts, missing etiology dx,
-          cosmetic-vs-functional). Toggle Grid to see full problem/procedure
-          detail without opening each record.
+          TiaStat auto-coded <strong>11 encounters</strong> from clinical notes.{" "}
+          <strong>3 are clean and ready to bill</strong>; the rest have flagged
+          edits (gender conflicts, missing etiology dx, cosmetic-vs-functional).
+          Toggle Grid to see full problem/procedure detail without opening each
+          record.
         </Typography>
       </Box>
 
@@ -452,44 +452,44 @@ function PreBillingClaim() {
   };
 
   const handleResetFilters = () => {
-  setFilterPractice("");
-  setFilterServiceLocation("");
-  setFilterPatientName("");
-  setFilterFinId("");
-  setFilterMrn("");
-  setFilterBatchNumber("");
-  setFilterClaimNumber("");
-  setFilterDosFrom("");
-  setFilterDosTill("");
-  setFilterStatus("");
-  setFilterInsurance("");
-  setFilterSubmissionMethod("");
-  setAppliedFilters(null);
-};
+    setFilterPractice("");
+    setFilterServiceLocation("");
+    setFilterPatientName("");
+    setFilterFinId("");
+    setFilterMrn("");
+    setFilterBatchNumber("");
+    setFilterClaimNumber("");
+    setFilterDosFrom("");
+    setFilterDosTill("");
+    setFilterStatus("");
+    setFilterInsurance("");
+    setFilterSubmissionMethod("");
+    setAppliedFilters(null);
+  };
 
-const handleApplyFilters = () => {
-  setAppliedFilters({
-    practice: filterPractice,
-    serviceLocation: filterServiceLocation,
-    patientName: filterPatientName,
-    finId: filterFinId,
-    mrn: filterMrn,
-    batchNumber: filterBatchNumber,
-    claimNumber: filterClaimNumber,
-    dosFrom: filterDosFrom,
-    dosTill: filterDosTill,
-    status: filterStatus,
-    insurance: filterInsurance,
-    submissionMethod: filterSubmissionMethod,
-  });
-};
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      practice: filterPractice,
+      serviceLocation: filterServiceLocation,
+      patientName: filterPatientName,
+      finId: filterFinId,
+      mrn: filterMrn,
+      batchNumber: filterBatchNumber,
+      claimNumber: filterClaimNumber,
+      dosFrom: filterDosFrom,
+      dosTill: filterDosTill,
+      status: filterStatus,
+      insurance: filterInsurance,
+      submissionMethod: filterSubmissionMethod,
+    });
+  };
 
   const handleTabChange = (event, newValue) => {
-  setCurrentTab(newValue);
-  setSearchQuery("");
-  handleResetFilters();
-  setSelectedRows([]);
-};
+    setCurrentTab(newValue);
+    setSearchQuery("");
+    handleResetFilters();
+    setSelectedRows([]);
+  };
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -1634,12 +1634,11 @@ const handleApplyFilters = () => {
     statementWithErrors: 0,
   }));
 
-
- const handleStatementSelectAll = (event) => {
-  setStatementSelectedRows(
-    event.target.checked ? newStatementFiltered.map((r) => r.id) : []
-  );
-};
+  const handleStatementSelectAll = (event) => {
+    setStatementSelectedRows(
+      event.target.checked ? newStatementFiltered.map((r) => r.id) : [],
+    );
+  };
 
   const handleStatementRowSelect = (id) => {
     setStatementSelectedRows((prev) =>
@@ -1647,11 +1646,11 @@ const handleApplyFilters = () => {
     );
   };
 
- const handleHistorySelectAll = (event) => {
-  setHistorySelectedRows(
-    event.target.checked ? historyFiltered.map((r) => r.id) : []
-  );
-};
+  const handleHistorySelectAll = (event) => {
+    setHistorySelectedRows(
+      event.target.checked ? historyFiltered.map((r) => r.id) : [],
+    );
+  };
 
   const handleHistoryRowSelect = (id) => {
     setHistorySelectedRows((prev) =>
@@ -1678,8 +1677,12 @@ const handleApplyFilters = () => {
   // Filter data based on selected status - only for pre-billing tab
   // ================= SEARCH + ADVANCED FILTER ENGINE =================
   const f = appliedFilters || {};
-  const norm = (v) => String(v ?? "").toLowerCase().trim();
-  const hasVal = (v) => v !== undefined && v !== null && String(v).trim() !== "";
+  const norm = (v) =>
+    String(v ?? "")
+      .toLowerCase()
+      .trim();
+  const hasVal = (v) =>
+    v !== undefined && v !== null && String(v).trim() !== "";
 
   // Handles MM/DD/YYYY and MM/DD/YY
   const parseDate = (str) => {
@@ -1707,59 +1710,79 @@ const handleApplyFilters = () => {
     return true;
   };
 
- const applyAll = (
-  rows,
-  { searchFields, textMap = {}, selectMap = {}, statusField, dateField }
-) =>
-  rows.filter((row) => {
-    // search bar
-    const q = norm(searchQuery);
-    if (q && !searchFields.some((k) => norm(row[k]).includes(q))) return false;
-
-    // typed filters (contains)
-    for (const [filterKey, rowField] of Object.entries(textMap)) {
-      if (hasVal(f[filterKey]) && !norm(row[rowField]).includes(norm(f[filterKey])))
+  const applyAll = (
+    rows,
+    { searchFields, textMap = {}, selectMap = {}, statusField, dateField },
+  ) =>
+    rows.filter((row) => {
+      // search bar
+      const q = norm(searchQuery);
+      if (q && !searchFields.some((k) => norm(row[k]).includes(q)))
         return false;
-    }
 
-    // dropdown filters (exact)
-    for (const [filterKey, rowField] of Object.entries(selectMap)) {
-      if (hasVal(f[filterKey]) && norm(row[rowField]) !== norm(f[filterKey]))
+      // typed filters (contains)
+      for (const [filterKey, rowField] of Object.entries(textMap)) {
+        if (
+          hasVal(f[filterKey]) &&
+          !norm(row[rowField]).includes(norm(f[filterKey]))
+        )
+          return false;
+      }
+
+      // dropdown filters (exact)
+      for (const [filterKey, rowField] of Object.entries(selectMap)) {
+        if (hasVal(f[filterKey]) && norm(row[rowField]) !== norm(f[filterKey]))
+          return false;
+      }
+
+      // status
+      if (
+        hasVal(f.status) &&
+        statusField &&
+        norm(row[statusField]) !== norm(f.status)
+      )
         return false;
-    }
 
-    // status
-    if (hasVal(f.status) && statusField && norm(row[statusField]) !== norm(f.status))
-      return false;
+      // date range
+      if (dateField && !matchesDateRange(row[dateField])) return false;
 
-    // date range
-    if (dateField && !matchesDateRange(row[dateField])) return false;
-
-    return true;
-  });
-
-
+      return true;
+    });
 
   const withMeta = (rows) =>
-  rows.map((r, i) => ({
-    ...r,
-    practice: r.practice ?? "Fresh Original",
-    serviceLocation: r.serviceLocation ?? "The University RL",
-    submissionMethod: r.submissionMethod ?? (i % 2 === 0 ? "Electronic" : "Paper"),
-  }));
+    rows.map((r, i) => ({
+      ...r,
+      practice: r.practice ?? "Fresh Original",
+      serviceLocation: r.serviceLocation ?? "The University RL",
+      submissionMethod:
+        r.submissionMethod ?? (i % 2 === 0 ? "Electronic" : "Paper"),
+    }));
 
   // ---------- Pre-billing ----------
- const preBillingFiltered = applyAll(withMeta(preBillingClaimsData), {
-  searchFields: ["patientName","mrn","fin","claimId","encounterId","referenceId","primaryInsurance"],
-  textMap: { patientName:"patientName", finId:"fin", mrn:"mrn", claimNumber:"claimId" },
-  selectMap: {
-    insurance:"primaryInsurance",
-    practice:"practice",
-    serviceLocation:"serviceLocation",
-    submissionMethod:"submissionMethod",
-  },
-  statusField: "status",
-  dateField: "dos",
+  const preBillingFiltered = applyAll(withMeta(preBillingClaimsData), {
+    searchFields: [
+      "patientName",
+      "mrn",
+      "fin",
+      "claimId",
+      "encounterId",
+      "referenceId",
+      "primaryInsurance",
+    ],
+    textMap: {
+      patientName: "patientName",
+      finId: "fin",
+      mrn: "mrn",
+      claimNumber: "claimId",
+    },
+    selectMap: {
+      insurance: "primaryInsurance",
+      practice: "practice",
+      serviceLocation: "serviceLocation",
+      submissionMethod: "submissionMethod",
+    },
+    statusField: "status",
+    dateField: "dos",
   }).filter((claim) => {
     if (statusFilter === "all") return true;
     if (statusFilter === "unbilled") return claim.status === "Unbilled";
@@ -1772,38 +1795,69 @@ const handleApplyFilters = () => {
 
   // ---------- Post-billing ----------
   const postBillingFiltered = applyAll(withMeta(postBillingClaimsData), {
-  searchFields: ["patientName","claimId","encounterId","billedTo","status","cpt","clearingHouse"],
-  textMap: { patientName:"patientName", claimNumber:"claimId" },
-  selectMap: {
-    insurance:"billedTo",
-    practice:"practice",
-    serviceLocation:"serviceLocation",
-    submissionMethod:"submissionMethod",
-  },
-  statusField: "status",
-  dateField: "dos",
-});
+    searchFields: [
+      "patientName",
+      "claimId",
+      "encounterId",
+      "billedTo",
+      "status",
+      "cpt",
+      "clearingHouse",
+    ],
+    textMap: { patientName: "patientName", claimNumber: "claimId" },
+    selectMap: {
+      insurance: "billedTo",
+      practice: "practice",
+      serviceLocation: "serviceLocation",
+      submissionMethod: "submissionMethod",
+    },
+    statusField: "status",
+    dateField: "dos",
+  });
 
   // ---------- Remittance ERA/EOB ----------
- const remittanceFiltered = applyAll(remittanceData, {
-searchFields: ["remittanceId","location","provider","payer","paymentMethod","chequeNumber","status"],
+  const remittanceFiltered = applyAll(remittanceData, {
+    searchFields: [
+      "remittanceId",
+      "location",
+      "provider",
+      "payer",
+      "paymentMethod",
+      "chequeNumber",
+      "status",
+    ],
 
-  textMap: { claimNumber:"remittanceId" },
-  selectMap: { insurance:"payer", serviceLocation:"location", submissionMethod:"paymentMethod" },
-  statusField: "status",
-  dateField: "checkDate",
+    textMap: { claimNumber: "remittanceId" },
+    selectMap: {
+      insurance: "payer",
+      serviceLocation: "location",
+      submissionMethod: "paymentMethod",
+    },
+    statusField: "status",
+    dateField: "checkDate",
   }).filter((row) => {
     if (remittanceFilter === "all") return true;
     if (remittanceFilter === "notPosted") return row.status === "Not Posted";
-    if (remittanceFilter === "partiallyPosted") return row.status === "Partially posted";
-    if (remittanceFilter === "fullyPosted") return row.status === "Fully posted";
-    if (remittanceFilter === "markReview") return row.status === "Mark as review";
+    if (remittanceFilter === "partiallyPosted")
+      return row.status === "Partially posted";
+    if (remittanceFilter === "fullyPosted")
+      return row.status === "Fully posted";
+    if (remittanceFilter === "markReview")
+      return row.status === "Mark as review";
     return true;
   });
 
   // ---------- Patient Statement: New ----------
   const newStatementFiltered = applyAll(newStatementData, {
-    searchFields: ["name", "pid", "dob", "category", "balance", "alert", "lastStatement"],
+    searchFields: [
+      "name",
+      "pid",
+      "dob",
+      "category",
+      "balance",
+      "alert",
+      "lastStatement",
+    ],
     textMap: {
       patientName: "name",
       finId: "pid",
@@ -1813,18 +1867,25 @@ searchFields: ["remittanceId","location","provider","payer","paymentMethod","che
   });
 
   // ---------- Patient Statement: History ----------
- const historyFiltered = applyAll(historyStatementData, {
-searchFields: ["practice","batchId","batchName","batchStatus","batchDescription"],
-  textMap: { batchNumber:"batchId", patientName:"batchName" },
-  selectMap: { practice:"practice" },
-  statusField: "batchStatus",
-});
+  const historyFiltered = applyAll(historyStatementData, {
+    searchFields: [
+      "practice",
+      "batchId",
+      "batchName",
+      "batchStatus",
+      "batchDescription",
+    ],
+    textMap: { batchNumber: "batchId", patientName: "batchName" },
+    selectMap: { practice: "practice" },
+    statusField: "batchStatus",
+  });
 
-  const filteredData = currentTab === 0 ? preBillingFiltered : postBillingFiltered;
+  const filteredData =
+    currentTab === 0 ? preBillingFiltered : postBillingFiltered;
 
   // Footer totals should only count rows that are visible
   const statementNewSelectedCount = newStatementFiltered.filter((r) =>
-    statementSelectedRows.includes(r.id)
+    statementSelectedRows.includes(r.id),
   ).length;
 
   const statementNewSelectedBalance = newStatementFiltered
@@ -1838,26 +1899,58 @@ searchFields: ["practice","batchId","batchName","batchStatus","batchDescription"
     currentTab === 0
       ? ["Unbilled", "Ready", "Need Info", "Processed", "Archived"]
       : currentTab === 1
-      ? ["Submitted", "Ready for statement", "Settled", "ERA Received", "Posted"]
-      : currentTab === 2
-      ? ["Posted", "Partially posted", "Not Posted", "Fully posted", "Mark as review"]
-      : statementSubTab === "new"
-      ? ["Self pay", "Medicare", "Payment plan", "Commercial", "Credit bal."]
-      : ["Draft", "Email sent", "Partially sent", "Failure", "Queued for email"];
+        ? [
+            "Submitted",
+            "Ready for statement",
+            "Settled",
+            "ERA Received",
+            "Posted",
+          ]
+        : currentTab === 2
+          ? [
+              "Posted",
+              "Partially posted",
+              "Not Posted",
+              "Fully posted",
+              "Mark as review",
+            ]
+          : statementSubTab === "new"
+            ? [
+                "Self pay",
+                "Medicare",
+                "Payment plan",
+                "Commercial",
+                "Credit bal.",
+              ]
+            : [
+                "Draft",
+                "Email sent",
+                "Partially sent",
+                "Failure",
+                "Queued for email",
+              ];
 
-      const practiceOptions = ["Fresh Original"];
-const locationOptions = currentTab === 2 ? ["GCH-IH", "GCH-OH"] : ["The University RL"];
-const submissionOptions = currentTab === 2 ? ["Cheque", "EFT"] : ["Electronic", "Paper"];
-const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
+  const practiceOptions = ["Fresh Original"];
+  const locationOptions =
+    currentTab === 2 ? ["GCH-IH", "GCH-OH"] : ["The University RL"];
+  const submissionOptions =
+    currentTab === 2 ? ["Cheque", "EFT"] : ["Electronic", "Paper"];
+  const insuranceOptions = [
+    "Aetna",
+    "BCBS",
+    "Cigna",
+    "UnitedHealth",
+    "Medicare",
+  ];
 
   const searchPlaceholder =
     currentTab === 2
       ? "Search ID, Payer, Provider, Cheque #..."
       : currentTab === 3
-      ? statementSubTab === "new"
-        ? "Search patient, ID, DOB, category..."
-        : "Search batch ID, name, practice, status..."
-      : "Search Patient, MRN, FIN, Claim ID...";
+        ? statementSubTab === "new"
+          ? "Search patient, ID, DOB, category..."
+          : "Search batch ID, name, practice, status..."
+        : "Search Patient, MRN, FIN, Claim ID...";
   if (showClaimDetails && selectedClaim) {
     return (
       <PostBillingEditPage claim={selectedClaim} onBack={handleBackToTable} />
@@ -1935,10 +2028,10 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
         >
           {/* Search */}
           <TextField
-          placeholder="Search Patient, MRN, FIN, Rendering provider..."
-  size="small"
-  value={searchQuery}
-  onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Patient, MRN, FIN, Rendering provider..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             sx={{
               width: 290,
 
@@ -1973,83 +2066,83 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
               },
             }}
             InputProps={{
-    startAdornment: (
-      <InputAdornment position="start">
-        <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
-          <Search />
-        </Box>
-      </InputAdornment>
-    ),
-    endAdornment: searchQuery && (
-      <InputAdornment position="end">
-        <IconButton size="small" onClick={() => setSearchQuery("")}>
-          <Close sx={{ fontSize: 14 }} />
-        </IconButton>
-      </InputAdornment>
-    ),
-  }}
-/>
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Box sx={{ display: "flex", alignItems: "center", mt: 0.3 }}>
+                    <Search />
+                  </Box>
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setSearchQuery("")}>
+                    <Close sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
 
           {/* Advanced Filters */}
-         <Button
-  variant="outlined"
-  size="small"
-  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-  sx={{
-    height: 32,
-    minHeight: 32,
-    width: 126,              // fixed width
-    minWidth: 126,
-    maxWidth: 126,
-    borderRadius: "18px",
-    textTransform: "none",
-    color: showAdvancedFilters ? "#0066FF" : "#374151",
-    borderColor: showAdvancedFilters ? "#0066FF" : "#E5E7EB",
-    backgroundColor: showAdvancedFilters ? "#EFF6FF" : "#FFFFFF",
-    fontWeight: 500,
-    fontSize: 11.5,
-    px: 1.5,
-    whiteSpace: "nowrap",
-    flexShrink: 0,
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            sx={{
+              height: 32,
+              minHeight: 32,
+              width: 126, // fixed width
+              minWidth: 126,
+              maxWidth: 126,
+              borderRadius: "18px",
+              textTransform: "none",
+              color: showAdvancedFilters ? "#0066FF" : "#374151",
+              borderColor: showAdvancedFilters ? "#0066FF" : "#E5E7EB",
+              backgroundColor: showAdvancedFilters ? "#EFF6FF" : "#FFFFFF",
+              fontWeight: 500,
+              fontSize: 11.5,
+              px: 1.5,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
 
-    "&:hover": {
-      borderColor: showAdvancedFilters ? "#0052CC" : "#D1D5DB",
-      backgroundColor: showAdvancedFilters ? "#DBEAFE" : "#F9FAFB",
-    },
+              "&:hover": {
+                borderColor: showAdvancedFilters ? "#0052CC" : "#D1D5DB",
+                backgroundColor: showAdvancedFilters ? "#DBEAFE" : "#F9FAFB",
+              },
 
-    // Prevent MUI button content from changing position
-    "& .MuiButton-startIcon": {
-      margin: 0,
-    },
-  }}
->
-  <Box
-    sx={{
-      width: 16,              // fixed icon space
-      height: 16,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      mr: 0.5,
-    }}
-  >
-    {showAdvancedFilters ? (
-      <Close sx={{ fontSize: 16 }} />
-    ) : (
-      <FilterIcon1 width={16} height={16} />
-    )}
-  </Box>
+              // Prevent MUI button content from changing position
+              "& .MuiButton-startIcon": {
+                margin: 0,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: 16, // fixed icon space
+                height: 16,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                mr: 0.5,
+              }}
+            >
+              {showAdvancedFilters ? (
+                <Close sx={{ fontSize: 16 }} />
+              ) : (
+                <FilterIcon1 width={16} height={16} />
+              )}
+            </Box>
 
-  <Box
-    sx={{
-      lineHeight: 1,
-      whiteSpace: "nowrap",
-    }}
-  >
-    Advanced filters
-  </Box>
-</Button>
+            <Box
+              sx={{
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Advanced filters
+            </Box>
+          </Button>
 
           {/* List / Grid - Single Merged Toggle - Only for Pre-billing tab */}
           {currentTab === 0 && (
@@ -2109,7 +2202,7 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
       </Box>
 
       {/* Advanced Filters Panel - For Post-billing tab */}
-      {showAdvancedFilters  &&(
+      {showAdvancedFilters && (
         <Box
           sx={{
             backgroundColor: "#F5F7FA",
@@ -2169,7 +2262,11 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                    {practiceOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    {practiceOptions.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -2208,7 +2305,11 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                   {locationOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    {locationOptions.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -2555,7 +2656,11 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                     {advStatusOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    {advStatusOptions.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -2594,7 +2699,11 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                     <MenuItem value="" disabled>
                       Select
                     </MenuItem>
-                   {insuranceOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    {insuranceOptions.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -2631,7 +2740,11 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                     <MenuItem value="" disabled>
                       Select location
                     </MenuItem>
-                  {submissionOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    {submissionOptions.map((s) => (
+                      <MenuItem key={s} value={s}>
+                        {s}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -3690,7 +3803,7 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
           }}
         >
           {/* Info Banner for Post-billing */}
-         <ChargeCaptureBanner />
+          <ChargeCaptureBanner />
 
           {/* Action Buttons Row */}
           <Box
@@ -3714,7 +3827,7 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
             >
               <IconButton
                 size="small"
-                 onClick={() => setShowColumnSettings(true)}
+                onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -5251,7 +5364,7 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconButton
                 size="small"
-                 onClick={() => setShowColumnSettings(true)}
+                onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -5508,185 +5621,179 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                {remittanceFiltered.map((row, index) => {
-  const bgColor = getListColor(index);
+                  {remittanceFiltered.map((row, index) => {
+                    const bgColor = getListColor(index);
 
-  return (
-    <TableRow
-      key={row.id}
-      sx={{
-        backgroundColor: bgColor,
-        borderBottom: "none",
-      }}
-    >
-      <TableCell padding="checkbox" sx={{ py: 1.2 }}>
-        <Checkbox size="small" />
-      </TableCell>
+                    return (
+                      <TableRow
+                        key={row.id}
+                        sx={{
+                          backgroundColor: bgColor,
+                          borderBottom: "none",
+                        }}
+                      >
+                        <TableCell padding="checkbox" sx={{ py: 1.2 }}>
+                          <Checkbox size="small" />
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.remittanceId}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.remittanceId}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.location}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.location}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.provider}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.provider}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.payer}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.payer}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.paymentMethod}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.paymentMethod}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.chequeNumber}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.chequeNumber}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.amount}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.amount}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.checkDate}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.checkDate}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.receivedDate}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.receivedDate}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.claimNumbers}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.claimNumbers}
+                        </TableCell>
 
-      <TableCell
-        sx={{
-          fontSize: 12,
-          py: 1.2,
-          color: "rgba(0, 0, 0, 0.87)",
-        }}
-      >
-        {row.unpostedAmount}
-      </TableCell>
+                        <TableCell
+                          sx={{
+                            fontSize: 12,
+                            py: 1.2,
+                            color: "rgba(0, 0, 0, 0.87)",
+                          }}
+                        >
+                          {row.unpostedAmount}
+                        </TableCell>
 
-      <TableCell sx={{ py: 1.2 }}>
-        <Chip
-          label={row.status}
-          size="small"
-          sx={{
-            backgroundColor: row.statusColor,
-            color: row.statusTextColor,
-            fontWeight: 600,
-            fontSize: 10,
-            height: 20,
-          }}
-        />
-      </TableCell>
+                        <TableCell sx={{ py: 1.2 }}>
+                          <Chip
+                            label={row.status}
+                            size="small"
+                            sx={{
+                              backgroundColor: row.statusColor,
+                              color: row.statusTextColor,
+                              fontWeight: 600,
+                              fontSize: 10,
+                              height: 20,
+                            }}
+                          />
+                        </TableCell>
 
-      <TableCell sx={{ py: 1.2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 0.5,
-            alignItems: "center",
-          }}
-        >
-          <Tooltip title="Refresh/Sync" placement="top">
-            <IconButton
-              size="small"
-              onClick={() => handleShowEobDetails(row)}
-              sx={{ padding: "2px" }}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
+                        <TableCell sx={{ py: 1.2 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Tooltip title="Refresh/Sync" placement="top">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleShowEobDetails(row)}
+                                sx={{ padding: "2px" }}
+                              >
+                                <RefreshIcon />
+                              </IconButton>
+                            </Tooltip>
 
-          <Tooltip title="View" placement="top">
-            <IconButton
-              size="small"
-              sx={{ padding: "4px" }}
-            >
-              <ViewIconRemittance />
-            </IconButton>
-          </Tooltip>
+                            <Tooltip title="View" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <ViewIconRemittance />
+                              </IconButton>
+                            </Tooltip>
 
-          <Tooltip title="Download" placement="top">
-            <IconButton
-              size="small"
-              sx={{ padding: "4px" }}
-            >
-              <DownloadIconRemittance />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </TableCell>
-    </TableRow>
-  );
-})}
+                            <Tooltip title="Download" placement="top">
+                              <IconButton size="small" sx={{ padding: "4px" }}>
+                                <DownloadIconRemittance />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -6938,85 +7045,79 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
       )}
 
       {/* Patient Statement Tab Content */}
-   {currentTab === 3 && (
-  <Box
-    sx={{
-      height: "calc(100vh - 155px)",
-      display: "flex",
-      flexDirection: "column",
-      overflow: "hidden",
-      boxSizing: "border-box",
-    }}
-  >
-      
-    {/* ============ INFO BANNER (same as other tabs) ============ */}
-   <ChargeCaptureBanner />
+      {currentTab === 3 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* ============ INFO BANNER (same as other tabs) ============ */}
+          <ChargeCaptureBanner />
 
-    {/* =========================================================
+          {/* =========================================================
         TOOLBAR
     ========================================================= */}
-    <Box
-      sx={{
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 2,
-        py: 1.5,
-        flexWrap: "wrap",
-        gap: 1,
-      }}
-    >
-      {/* LEFT */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          onClick={() => setStatementSubTab("new")}
-          sx={pillBtnSx(statementSubTab === "new")}
-        >
-          New
           <Box
-            component="span"
             sx={{
-              fontWeight: 400,
-              opacity: 0.85,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2,
+              py: 1.5,
+              flexWrap: "wrap",
+              gap: 1,
             }}
           >
-            15
-          </Box>
-        </Button>
+            {/* LEFT */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Button
+                onClick={() => setStatementSubTab("new")}
+                sx={pillBtnSx(statementSubTab === "new")}
+              >
+                New
+                <Box
+                  component="span"
+                  sx={{
+                    fontWeight: 400,
+                    opacity: 0.85,
+                  }}
+                >
+                  15
+                </Box>
+              </Button>
 
-        <Button
-          onClick={() => setStatementSubTab("history")}
-          sx={pillBtnSx(statementSubTab === "history")}
-        >
-          History
-          <Box
-            component="span"
-            sx={{
-              fontWeight: 400,
-              color:
-                statementSubTab === "history"
-                  ? "#fff"
-                  : "#9CA3AF",
-            }}
-          >
-            15
-          </Box>
-        </Button>
-      </Box>
+              <Button
+                onClick={() => setStatementSubTab("history")}
+                sx={pillBtnSx(statementSubTab === "history")}
+              >
+                History
+                <Box
+                  component="span"
+                  sx={{
+                    fontWeight: 400,
+                    color: statementSubTab === "history" ? "#fff" : "#9CA3AF",
+                  }}
+                >
+                  15
+                </Box>
+              </Button>
+            </Box>
 
-      {/* RIGHT */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexWrap: "wrap",
-        }}
-      >
-        <IconButton
+            {/* RIGHT */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                flexWrap: "wrap",
+              }}
+            >
+              <IconButton
                 size="small"
-                 onClick={() => setShowColumnSettings(true)}
+                onClick={() => setShowColumnSettings(true)}
                 sx={{
                   width: 40,
                   height: 30,
@@ -7032,7 +7133,7 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                 <SettingsIcon />
               </IconButton>
 
-     <IconButton
+              <IconButton
                 size="small"
                 sx={{
                   width: 40,
@@ -7049,1284 +7150,1241 @@ const insuranceOptions = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
                 <DownloadIcon />
               </IconButton>
 
-        <Button variant="outlined" sx={filterChipSx}>
-          Balance greater than $
-        </Button>
+              <Button variant="outlined" sx={filterChipSx}>
+                Balance greater than $
+              </Button>
 
-        <Button variant="outlined" sx={filterChipSx}>
-          No statement for last days
-        </Button>
+              <Button variant="outlined" sx={filterChipSx}>
+                No statement for last days
+              </Button>
 
-        <Button variant="outlined" sx={filterChipSx}>
-          Fewer [#] statements since last payment
-        </Button>
-      </Box>
-    </Box>
+              <Button variant="outlined" sx={filterChipSx}>
+                Fewer [#] statements since last payment
+              </Button>
+            </Box>
+          </Box>
 
-    {/* =========================================================
+          {/* =========================================================
         TABLE AREA
     ========================================================= */}
-    <Box
-      sx={{
-        flex: 1,
-        minHeight: 0,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* =======================================================
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* =======================================================
           NEW TABLE
       ======================================================= */}
-      {statementSubTab === "new" && (
-        <Box
-          sx={{
-            px: 2,
-            flex: 1,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...tableContainerSx,
-              flex: 1,
-              minHeight: 0,
-              height: "100%",
-              overflow: "auto",
-            }}
-          >
-            <Table
-              size="small"
-              stickyHeader
-              sx={{
-                minWidth: 1250,
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    padding="checkbox"
+            {statementSubTab === "new" && (
+              <Box
+                sx={{
+                  px: 2,
+                }}
+              >
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    ...tableContainerSx,
+                    flex: 1,
+                    minHeight: 0,
+                    height: "100%",
+                    overflow: "auto",
+                    maxHeight: "calc(100vh - 280px)",
+                    overflow: "auto",
+                  }}
+                >
+                  <Table
+                    size="small"
+                    stickyHeader
                     sx={{
-                      ...thSx,
-                      width: 40,
-                      pl: 1.5,
+                      minWidth: 1250,
                     }}
                   >
-                    <Checkbox
-                      sx={checkboxSx}
-                      indeterminate={
-                        statementSelectedRows.length > 0 &&
-                        statementSelectedRows.length <
-                          newStatementFiltered.length
-                      }
-                      checked={
-                        newStatementFiltered.length > 0 &&
-                        statementSelectedRows.length ===
-                          newStatementFiltered.length
-                      }
-                      onChange={handleStatementSelectAll}
-                    />
-                  </TableCell>
-
-                  {[
-                    "Patient name",
-                    "ID",
-                    "DOB",
-                    "Category",
-                  ].map((h) => (
-                    <TableCell key={h} sx={thSx}>
-                      <HeadLabel>{h}</HeadLabel>
-                    </TableCell>
-                  ))}
-
-                  <TableCell
-                    sx={{
-                      ...thSx,
-                      lineHeight: 1.2,
-                      whiteSpace: "normal",
-                    }}
-                  >
-                    <HeadLabel>
-                      <span>
-                        Last
-                        <br />
-                        statement
-                      </span>
-                    </HeadLabel>
-                  </TableCell>
-
-                  <TableCell sx={thSx}>
-                    <HeadLabel>Sent</HeadLabel>
-                  </TableCell>
-
-                  {[
-                    ["Calls", SmsIcon],
-                    ["Emails", AtRateIcon],
-                    ["Prints", PrinterIcon],
-                    ["Documents", ListIcon],
-                  ].map(([title, Icon]) => (
-                    <TableCell
-                      key={title}
-                      align="center"
-                      sx={{
-                        ...thSx,
-                        width: 34,
-                        px: 0.5,
-                      }}
-                    >
-                      <Tooltip title={title}>
-                        <Box
+                    <TableHead>
+                      <TableRow>
+                        <TableCell
+                          padding="checkbox"
                           sx={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            ...thSx,
+                            width: 40,
+                            pl: 1.5,
                           }}
                         >
-                          <Icon />
-                        </Box>
-                      </Tooltip>
-                    </TableCell>
-                  ))}
-
-                  <TableCell sx={thSx}>
-                    <HeadLabel>Enc</HeadLabel>
-                  </TableCell>
-
-                  <TableCell sx={thSx}>
-                    <HeadLabel>Balance</HeadLabel>
-                  </TableCell>
-
-                  <TableCell sx={thSx}>
-                    <HeadLabel>Reason</HeadLabel>
-                  </TableCell>
-
-                  <TableCell
-                    sx={{
-                      ...thSx,
-                      backgroundColor: selHeadBg,
-                      minWidth: 90,
-                    }}
-                  >
-                    Selected
-                  </TableCell>
-
-                  <TableCell sx={thSx}>
-                    <HeadLabel>Alert</HeadLabel>
-                  </TableCell>
-
-                  <TableCell
-                    sx={{
-                      ...thSx,
-                      width: 40,
-                    }}
-                  />
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {newStatementFiltered.map((row) => {
-                  const isItemSelected =
-                    statementSelectedRows.includes(row.id);
-
-                  const neg = row.negative;
-
-                  const amountColor = neg
-                    ? "#DC2626"
-                    : "#1F2937";
-
-                  return (
-                    <TableRow
-                      key={row.id}
-                      sx={{
-                        backgroundColor: "#FFFFFF",
-                      }}
-                    >
-                      {/* CHECKBOX */}
-                      <TableCell
-                        padding="checkbox"
-                        sx={{
-                          ...tdSx,
-                          pl: 1.5,
-                        }}
-                      >
-                        <Checkbox
-                          sx={checkboxSx}
-                          checked={isItemSelected}
-                          onChange={() =>
-                            handleStatementRowSelect(row.id)
-                          }
-                        />
-                      </TableCell>
-
-                      {/* PATIENT */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {row.name}
-                      </TableCell>
-
-                      {/* ID */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                        }}
-                      >
-                        {row.pid}
-                      </TableCell>
-
-                      {/* DOB */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                        }}
-                      >
-                        {row.dob}
-                      </TableCell>
-
-                      {/* CATEGORY */}
-                      <TableCell sx={tdSx}>
-                        <Chip
-                          label={row.category}
-                          size="small"
-                          sx={{
-                            ...chipBase,
-                            ...(categoryStyles[row.category] ||
-                              categoryStyles["Self pay"]),
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* LAST STATEMENT */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color:
-                            row.lastStatement === "Never sent"
-                              ? "#B45309"
-                              : "#4B5563",
-                        }}
-                      >
-                        {row.lastStatement}
-                      </TableCell>
-
-                      {/* SENT */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#6B7280",
-                        }}
-                      >
-                        {row.sent}
-                      </TableCell>
-
-                      {/* CALLS */}
-                      <TableCell
-                        align="center"
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                          px: 0.5,
-                        }}
-                      >
-                        {row.calls}
-                      </TableCell>
-
-                      {/* EMAILS */}
-                      <TableCell
-                        align="center"
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                          px: 0.5,
-                        }}
-                      >
-                        {row.flagged ? (
-                          <Box
-                            sx={{
-                              width: 9,
-                              height: 9,
-                              borderRadius: "50%",
-                              backgroundColor: "#EF4444",
-                              display: "inline-block",
-                            }}
+                          <Checkbox
+                            sx={checkboxSx}
+                            indeterminate={
+                              statementSelectedRows.length > 0 &&
+                              statementSelectedRows.length <
+                                newStatementFiltered.length
+                            }
+                            checked={
+                              newStatementFiltered.length > 0 &&
+                              statementSelectedRows.length ===
+                                newStatementFiltered.length
+                            }
+                            onChange={handleStatementSelectAll}
                           />
-                        ) : (
-                          row.emails
-                        )}
-                      </TableCell>
+                        </TableCell>
 
-                      {/* PRINTS */}
-                      <TableCell
-                        align="center"
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                          px: 0.5,
-                        }}
-                      >
-                        {row.prints ?? 0}
-                      </TableCell>
+                        {["Patient name", "ID", "DOB", "Category"].map((h) => (
+                          <TableCell key={h} sx={thSx}>
+                            <HeadLabel>{h}</HeadLabel>
+                          </TableCell>
+                        ))}
 
-                      {/* DOCUMENTS */}
-                      <TableCell
-                        align="center"
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                          px: 0.5,
-                        }}
-                      >
-                        {row.docs}
-                      </TableCell>
-
-                      {/* ENC */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                        }}
-                      >
-                        {row.enc}
-                      </TableCell>
-
-                      {/* BALANCE */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          fontWeight: 600,
-                          color: amountColor,
-                        }}
-                      >
-                        {row.balance}
-                      </TableCell>
-
-                      {/* REASON */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#374151",
-                        }}
-                      >
-                        {row.reason || "Reason here"}
-                      </TableCell>
-
-                      {/* SELECTED */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          fontWeight: 700,
-                          color: amountColor,
-                          backgroundColor: selBodyBg,
-                        }}
-                      >
-                        {isItemSelected
-                          ? row.selectedBalance ?? row.balance
-                          : "—"}
-                      </TableCell>
-
-                      {/* ALERT */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          fontSize: 10.5,
-                          color: "#A16207",
-                          maxWidth: 130,
-                        }}
-                      >
-                        {row.alert ? (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              gap: 0.6,
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: 5,
-                                height: 5,
-                                borderRadius: "50%",
-                                backgroundColor: "#F59E0B",
-                                mt: "5px",
-                                flexShrink: 0,
-                              }}
-                            />
-
-                            <span>{row.alert}</span>
-                          </Box>
-                        ) : (
-                          <span
-                            style={{
-                              color: "#9CA3AF",
-                            }}
-                          >
-                            —
-                          </span>
-                        )}
-                      </TableCell>
-
-                      {/* VIEW */}
-                      <TableCell
-                        align="center"
-                        sx={tdSx}
-                      >
-                        <Tooltip
-                          title="View"
-                          placement="top"
+                        <TableCell
+                          sx={{
+                            ...thSx,
+                            lineHeight: 1.2,
+                            whiteSpace: "normal",
+                          }}
                         >
-                          <IconButton
-                            size="small"
+                          <HeadLabel>
+                            <span>
+                              Last
+                              <br />
+                              statement
+                            </span>
+                          </HeadLabel>
+                        </TableCell>
+
+                        <TableCell sx={thSx}>
+                          <HeadLabel>Sent</HeadLabel>
+                        </TableCell>
+
+                        {[
+                          ["Calls", SmsIcon],
+                          ["Emails", AtRateIcon],
+                          ["Prints", PrinterIcon],
+                          ["Documents", ListIcon],
+                        ].map(([title, Icon]) => (
+                          <TableCell
+                            key={title}
+                            align="center"
                             sx={{
-                              p: "3px",
+                              ...thSx,
+                              width: 34,
+                              px: 0.5,
                             }}
                           >
-                            <VisibilityOutlined
-                              sx={{
-                                fontSize: 16,
-                                color: "#9CA3AF",
-                              }}
-                            />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
+                            <Tooltip title={title}>
+                              <Box
+                                sx={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Icon />
+                              </Box>
+                            </Tooltip>
+                          </TableCell>
+                        ))}
 
-      {/* =======================================================
+                        <TableCell sx={thSx}>
+                          <HeadLabel>Enc</HeadLabel>
+                        </TableCell>
+
+                        <TableCell sx={thSx}>
+                          <HeadLabel>Balance</HeadLabel>
+                        </TableCell>
+
+                        <TableCell sx={thSx}>
+                          <HeadLabel>Reason</HeadLabel>
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            ...thSx,
+                            backgroundColor: selHeadBg,
+                            minWidth: 90,
+                          }}
+                        >
+                          Selected
+                        </TableCell>
+
+                        <TableCell sx={thSx}>
+                          <HeadLabel>Alert</HeadLabel>
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            ...thSx,
+                            width: 40,
+                          }}
+                        />
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      {newStatementFiltered.map((row) => {
+                        const isItemSelected = statementSelectedRows.includes(
+                          row.id,
+                        );
+
+                        const neg = row.negative;
+
+                        const amountColor = neg ? "#DC2626" : "#1F2937";
+
+                        return (
+                          <TableRow
+                            key={row.id}
+                            sx={{
+                              backgroundColor: "#FFFFFF",
+                            }}
+                          >
+                            {/* CHECKBOX */}
+                            <TableCell
+                              padding="checkbox"
+                              sx={{
+                                ...tdSx,
+                                pl: 1.5,
+                              }}
+                            >
+                              <Checkbox
+                                sx={checkboxSx}
+                                checked={isItemSelected}
+                                onChange={() =>
+                                  handleStatementRowSelect(row.id)
+                                }
+                              />
+                            </TableCell>
+
+                            {/* PATIENT */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {row.name}
+                            </TableCell>
+
+                            {/* ID */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                              }}
+                            >
+                              {row.pid}
+                            </TableCell>
+
+                            {/* DOB */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                              }}
+                            >
+                              {row.dob}
+                            </TableCell>
+
+                            {/* CATEGORY */}
+                            <TableCell sx={tdSx}>
+                              <Chip
+                                label={row.category}
+                                size="small"
+                                sx={{
+                                  ...chipBase,
+                                  ...(categoryStyles[row.category] ||
+                                    categoryStyles["Self pay"]),
+                                }}
+                              />
+                            </TableCell>
+
+                            {/* LAST STATEMENT */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color:
+                                  row.lastStatement === "Never sent"
+                                    ? "#B45309"
+                                    : "#4B5563",
+                              }}
+                            >
+                              {row.lastStatement}
+                            </TableCell>
+
+                            {/* SENT */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#6B7280",
+                              }}
+                            >
+                              {row.sent}
+                            </TableCell>
+
+                            {/* CALLS */}
+                            <TableCell
+                              align="center"
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                                px: 0.5,
+                              }}
+                            >
+                              {row.calls}
+                            </TableCell>
+
+                            {/* EMAILS */}
+                            <TableCell
+                              align="center"
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                                px: 0.5,
+                              }}
+                            >
+                              {row.flagged ? (
+                                <Box
+                                  sx={{
+                                    width: 9,
+                                    height: 9,
+                                    borderRadius: "50%",
+                                    backgroundColor: "#EF4444",
+                                    display: "inline-block",
+                                  }}
+                                />
+                              ) : (
+                                row.emails
+                              )}
+                            </TableCell>
+
+                            {/* PRINTS */}
+                            <TableCell
+                              align="center"
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                                px: 0.5,
+                              }}
+                            >
+                              {row.prints ?? 0}
+                            </TableCell>
+
+                            {/* DOCUMENTS */}
+                            <TableCell
+                              align="center"
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                                px: 0.5,
+                              }}
+                            >
+                              {row.docs}
+                            </TableCell>
+
+                            {/* ENC */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                              }}
+                            >
+                              {row.enc}
+                            </TableCell>
+
+                            {/* BALANCE */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                fontWeight: 600,
+                                color: amountColor,
+                              }}
+                            >
+                              {row.balance}
+                            </TableCell>
+
+                            {/* REASON */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#374151",
+                              }}
+                            >
+                              {row.reason || "Reason here"}
+                            </TableCell>
+
+                            {/* SELECTED */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                fontWeight: 700,
+                                color: amountColor,
+                                backgroundColor: selBodyBg,
+                              }}
+                            >
+                              {isItemSelected
+                                ? (row.selectedBalance ?? row.balance)
+                                : "—"}
+                            </TableCell>
+
+                            {/* ALERT */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                fontSize: 10.5,
+                                color: "#A16207",
+                                maxWidth: 130,
+                              }}
+                            >
+                              {row.alert ? (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: 0.6,
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      width: 5,
+                                      height: 5,
+                                      borderRadius: "50%",
+                                      backgroundColor: "#F59E0B",
+                                      mt: "5px",
+                                      flexShrink: 0,
+                                    }}
+                                  />
+
+                                  <span>{row.alert}</span>
+                                </Box>
+                              ) : (
+                                <span
+                                  style={{
+                                    color: "#9CA3AF",
+                                  }}
+                                >
+                                  —
+                                </span>
+                              )}
+                            </TableCell>
+
+                            {/* VIEW */}
+                            <TableCell align="center" sx={tdSx}>
+                              <Tooltip title="View" placement="top">
+                                <IconButton
+                                  size="small"
+                                  sx={{
+                                    p: "3px",
+                                  }}
+                                >
+                                  <VisibilityOutlined
+                                    sx={{
+                                      fontSize: 16,
+                                      color: "#9CA3AF",
+                                    }}
+                                  />
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            {/* =======================================================
           HISTORY TABLE
       ======================================================= */}
-      {statementSubTab === "history" && (
-        <Box
-          sx={{
-            px: 2,
-            flex: 1,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...tableContainerSx,
-              flex: 1,
-              minHeight: 0,
-              height: "100%",
-              overflow: "auto",
-            }}
-          >
-            <Table
-              size="small"
-              stickyHeader
-              sx={{
-                minWidth: 1150,
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    padding="checkbox"
+            {statementSubTab === "history" && (
+              <Box
+                sx={{
+                  px: 2,
+                }}
+              >
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    ...tableContainerSx,
+                    flex: 1,
+                    minHeight: 0,
+                    height: "100%",
+                    overflow: "auto",
+                    maxHeight: "calc(100vh - 280px)",
+                    overflow: "auto",
+                  }}
+                >
+                  <Table
+                    size="small"
+                    stickyHeader
                     sx={{
-                      ...thSx,
-                      width: 40,
-                      pl: 1.5,
+                      minWidth: 1150,
                     }}
                   >
-                    <Checkbox
-                      sx={checkboxSx}
-                      indeterminate={
-                        historySelectedRows.length > 0 &&
-                        historySelectedRows.length <
-                          historyFiltered.length
-                      }
-                      checked={
-                        historyFiltered.length > 0 &&
-                        historySelectedRows.length ===
-                          historyFiltered.length
-                      }
-                      onChange={handleHistorySelectAll}
-                    />
-                  </TableCell>
-
-                  {[
-                    "Practice",
-                    "Batch ID",
-                    "Batch name",
-                    "Batch description",
-                    "No. of statement",
-                    "Total balance",
-                    "Batch status",
-                    "Statement with errors",
-                  ].map((h) => (
-                    <TableCell
-                      key={h}
-                      sx={thSx}
-                    >
-                      <HeadLabel>{h}</HeadLabel>
-                    </TableCell>
-                  ))}
-
-                  <TableCell
-                    sx={{
-                      ...thSx,
-                      width: 80,
-                    }}
-                  />
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {historyFiltered.map((row) => {
-                  const isItemSelected =
-                    historySelectedRows.includes(row.id);
-
-                  const chipStyle =
-                    statusChipStyles[row.batchStatus] ||
-                    statusChipStyles.Draft;
-
-                  return (
-                    <TableRow
-                      key={row.id}
-                      sx={{
-                        backgroundColor: "#FFFFFF",
-                      }}
-                    >
-                      {/* CHECKBOX */}
-                      <TableCell
-                        padding="checkbox"
-                        sx={{
-                          ...tdSx,
-                          pl: 1.5,
-                        }}
-                      >
-                        <Checkbox
-                          sx={checkboxSx}
-                          checked={isItemSelected}
-                          onChange={() =>
-                            handleHistoryRowSelect(row.id)
-                          }
-                        />
-                      </TableCell>
-
-                      {/* PRACTICE */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {row.practice}
-                      </TableCell>
-
-                      {/* BATCH ID */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#4B5563",
-                        }}
-                      >
-                        {row.batchId}
-                      </TableCell>
-
-                      {/* BATCH NAME */}
-                      <TableCell sx={tdSx}>
-                        {row.batchName}
-                      </TableCell>
-
-                      {/* DESCRIPTION */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color: "#9CA3AF",
-                        }}
-                      >
-                        {row.batchDescription}
-                      </TableCell>
-
-                      {/* NO OF STATEMENT */}
-                      <TableCell sx={tdSx}>
-                        {row.noOfStatement}
-                      </TableCell>
-
-                      {/* TOTAL BALANCE */}
-                      <TableCell
-                        sx={{
-                          ...tdSx,
-                          color:
-                            row.totalBalance === "Never sent"
-                              ? "#B45309"
-                              : "#1F2937",
-                        }}
-                      >
-                        {row.totalBalance}
-                      </TableCell>
-
-                      {/* STATUS */}
-                      <TableCell sx={tdSx}>
-                        <Chip
-                          label={row.batchStatus}
-                          size="small"
+                    <TableHead>
+                      <TableRow>
+                        <TableCell
+                          padding="checkbox"
                           sx={{
-                            ...chipBase,
-                            maxWidth: "none",
-                            ...chipStyle,
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* ERRORS */}
-                      <TableCell sx={tdSx}>
-                        {row.statementWithErrors}
-                      </TableCell>
-
-                      {/* ACTIONS */}
-                      <TableCell
-                        align="center"
-                        sx={tdSx}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 1,
-                            alignItems: "center",
-                            justifyContent: "flex-end",
+                            ...thSx,
+                            width: 40,
+                            pl: 1.5,
                           }}
                         >
-                          <Tooltip
-                            title="Info"
-                            placement="top"
+                          <Checkbox
+                            sx={checkboxSx}
+                            indeterminate={
+                              historySelectedRows.length > 0 &&
+                              historySelectedRows.length <
+                                historyFiltered.length
+                            }
+                            checked={
+                              historyFiltered.length > 0 &&
+                              historySelectedRows.length ===
+                                historyFiltered.length
+                            }
+                            onChange={handleHistorySelectAll}
+                          />
+                        </TableCell>
+
+                        {[
+                          "Practice",
+                          "Batch ID",
+                          "Batch name",
+                          "Batch description",
+                          "No. of statement",
+                          "Total balance",
+                          "Batch status",
+                          "Statement with errors",
+                        ].map((h) => (
+                          <TableCell key={h} sx={thSx}>
+                            <HeadLabel>{h}</HeadLabel>
+                          </TableCell>
+                        ))}
+
+                        <TableCell
+                          sx={{
+                            ...thSx,
+                            width: 80,
+                          }}
+                        />
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      {historyFiltered.map((row) => {
+                        const isItemSelected = historySelectedRows.includes(
+                          row.id,
+                        );
+
+                        const chipStyle =
+                          statusChipStyles[row.batchStatus] ||
+                          statusChipStyles.Draft;
+
+                        return (
+                          <TableRow
+                            key={row.id}
+                            sx={{
+                              backgroundColor: "#FFFFFF",
+                            }}
                           >
-                            <IconButton
-                              size="small"
+                            {/* CHECKBOX */}
+                            <TableCell
+                              padding="checkbox"
                               sx={{
-                                p: "2px",
+                                ...tdSx,
+                                pl: 1.5,
                               }}
                             >
-                              <InfoOutlined
-                                sx={{
-                                  fontSize: 19,
-                                  color: BLUE,
-                                }}
+                              <Checkbox
+                                sx={checkboxSx}
+                                checked={isItemSelected}
+                                onChange={() => handleHistoryRowSelect(row.id)}
                               />
-                            </IconButton>
-                          </Tooltip>
+                            </TableCell>
 
-                          <Tooltip
-                            title="Delete"
-                            placement="top"
-                          >
-                            <IconButton
-                              size="small"
+                            {/* PRACTICE */}
+                            <TableCell
                               sx={{
-                                p: "2px",
+                                ...tdSx,
+                                fontWeight: 700,
                               }}
                             >
-                              <DeleteOutlineOutlined
+                              {row.practice}
+                            </TableCell>
+
+                            {/* BATCH ID */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#4B5563",
+                              }}
+                            >
+                              {row.batchId}
+                            </TableCell>
+
+                            {/* BATCH NAME */}
+                            <TableCell sx={tdSx}>{row.batchName}</TableCell>
+
+                            {/* DESCRIPTION */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color: "#9CA3AF",
+                              }}
+                            >
+                              {row.batchDescription}
+                            </TableCell>
+
+                            {/* NO OF STATEMENT */}
+                            <TableCell sx={tdSx}>{row.noOfStatement}</TableCell>
+
+                            {/* TOTAL BALANCE */}
+                            <TableCell
+                              sx={{
+                                ...tdSx,
+                                color:
+                                  row.totalBalance === "Never sent"
+                                    ? "#B45309"
+                                    : "#1F2937",
+                              }}
+                            >
+                              {row.totalBalance}
+                            </TableCell>
+
+                            {/* STATUS */}
+                            <TableCell sx={tdSx}>
+                              <Chip
+                                label={row.batchStatus}
+                                size="small"
                                 sx={{
-                                  fontSize: 19,
-                                  color: "#1E3A8A",
+                                  ...chipBase,
+                                  maxWidth: "none",
+                                  ...chipStyle,
                                 }}
                               />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
-    </Box>
+                            </TableCell>
 
-    {/* =========================================================
+                            {/* ERRORS */}
+                            <TableCell sx={tdSx}>
+                              {row.statementWithErrors}
+                            </TableCell>
+
+                            {/* ACTIONS */}
+                            <TableCell align="center" sx={tdSx}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 1,
+                                  alignItems: "center",
+                                  justifyContent: "flex-end",
+                                }}
+                              >
+                                <Tooltip title="Info" placement="top">
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      p: "2px",
+                                    }}
+                                  >
+                                    <InfoOutlined
+                                      sx={{
+                                        fontSize: 19,
+                                        color: BLUE,
+                                      }}
+                                    />
+                                  </IconButton>
+                                </Tooltip>
+
+                                <Tooltip title="Delete" placement="top">
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      p: "2px",
+                                    }}
+                                  >
+                                    <DeleteOutlineOutlined
+                                      sx={{
+                                        fontSize: 19,
+                                        color: "#1E3A8A",
+                                      }}
+                                    />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+          </Box>
+
+          {/* =========================================================
         GAP BETWEEN TABLE AND FOOTER
         Increase/decrease ONLY this value.
     ========================================================= */}
-    <Box
-      sx={{
-        height: 42,
-        flexShrink: 0,
-      }}
-    />
-
-    {/* =========================================================
-        FOOTER
-    ========================================================= */}
-    <Box
-      sx={{
-        mx: 2,
-        mb: 1.5,
-        px: 2,
-        py: 1.25,
-        minHeight: 64,
-
-        flexShrink: 0,
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: "14px",
-
-        boxSizing: "border-box",
-        width: "calc(100% - 32px)",
-
-        flexWrap: "wrap",
-        gap: 1,
-      }}
-    >
-      {/* =======================================================
-          FOOTER LEFT
-      ======================================================= */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          minWidth: 0,
-        }}
-      >
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Patients selected
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: "#1F2937",
-              lineHeight: 1.2,
-            }}
-          >
-            {statementSubTab === "new"
-              ? statementNewSelectedCount
-              : historySelectedRows.length}
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            width: "1px",
-            height: 38,
-            backgroundColor: "#E5E7EB",
-          }}
-        />
-
-        <Box>
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "#6B7280",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Selected balance
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: "#1E40AF",
-              lineHeight: 1.2,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {statementSubTab === "new"
-              ? `$${statementNewSelectedBalance.toLocaleString(
-                  undefined,
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }
-                )}`
-              : "$0.00"}
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* =======================================================
-          FOOTER RIGHT
-      ======================================================= */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexShrink: 0,
-        }}
-      >
-        <Button
-          variant="outlined"
-          endIcon={
-            <KeyboardArrowDown
-              sx={{
-                fontSize: 18,
-              }}
-            />
-          }
-          onClick={(e) =>
-            setAnchorEl(e.currentTarget)
-          }
-          sx={{
-            ...footerBtnSx,
-            height: 36,
-            minWidth: 0,
-            px: 1.75,
-            whiteSpace: "nowrap",
-          }}
-        >
-          Select action
-        </Button>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem
-            onClick={() => setAnchorEl(null)}
-          >
-            Send statement
-          </MenuItem>
-
-          <MenuItem
-            onClick={() => setAnchorEl(null)}
-          >
-            Export selected
-          </MenuItem>
-
-          <MenuItem
-            onClick={() => setAnchorEl(null)}
-          >
-            Mark as reviewed
-          </MenuItem>
-        </Menu>
-
-        <Button
-          variant="outlined"
-          sx={{
-            ...footerBtnSx,
-            height: 36,
-            minWidth: 70,
-            px: 1.75,
-          }}
-        >
-          Cancel
-        </Button>
-
-        <Button
-          variant="contained"
-          sx={{
-            textTransform: "none",
-            backgroundColor: BLUE,
-            color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: 12,
-            height: 36,
-            minWidth: 70,
-            px: 2,
-            borderRadius: "6px",
-            boxShadow: "none",
-
-            "&:hover": {
-              backgroundColor: "#0952CC",
-              boxShadow: "none",
-            },
-          }}
-        >
-          Save
-        </Button>
-      </Box>
-    </Box>
-  </Box>
-)}
-      {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
-<Dialog
-  open={showColumnSettings}
-  onClose={() => setShowColumnSettings(false)}
-  PaperProps={{
-    sx: {
-      width: "100%",
-      maxWidth: 500,
-      minHeight: 570,
-      borderRadius: "22px",
-      overflow: "hidden",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-      m: 20,
-    },
-  }}
->
-  {/* HEADER */}
-  <Box sx={{ px: 2.5, pt: 2.2, pb: 1.2 }}>
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        mb: 0.5,
-      }}
-    >
-      <Typography
-        sx={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#1F2937",
-          lineHeight: 1.25,
-        }}
-      >
-        Customise columns
-      </Typography>
-      <IconButton
-        size="small"
-        onClick={() => setShowColumnSettings(false)}
-        sx={{
-          p: 0.3,
-          color: "#111827",
-          mt: -0.3,
-          mr: -0.3,
-          "&:hover": { backgroundColor: "#F3F4F6" },
-        }}
-      >
-        <Close sx={{ fontSize: 18 }} />
-      </IconButton>
-    </Box>
-
-    <Typography
-      sx={{
-        fontSize: 11.5,
-        color: "#171923",
-        mb: 1.5,
-        lineHeight: 1.4,
-      }}
-    >
-      Choose which columns to show and drag to reorder them.
-    </Typography>
-
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        mb: 0,
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        <Typography
-          onClick={() =>
-            setVisibleColumns({
-              dos: true,
-              patientName: true,
-              cpt: true,
-              modifier: true,
-              icd: true,
-              primaryInsurance: true,
-              billedAmount: true,
-              patientCopay: true,
-              status: true,
-              remarks: true,
-              encounterId: true,
-              claimId: true,
-            })
-          }
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: "#0066FF",
-            cursor: "pointer",
-          }}
-        >
-          Select all
-        </Typography>
-
-        <Typography
-          onClick={() =>
-            setVisibleColumns({
-              dos: false,
-              patientName: false,
-              cpt: false,
-              modifier: false,
-              icd: false,
-              primaryInsurance: false,
-              billedAmount: false,
-              patientCopay: false,
-              status: false,
-              remarks: false,
-              encounterId: false,
-              claimId: false,
-            })
-          }
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: "#0066FF",
-            cursor: "pointer",
-          }}
-        >
-          Clear All
-        </Typography>
-      </Box>
-
-      <Typography sx={{ fontSize: 11, color: "#171923" }}>
-        {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
-      </Typography>
-    </Box>
-  </Box>
-
-  {/* COLUMN LIST */}
- <Box
-  sx={{
-    px: 2.5,
-    pb: 1,
-    flex: 1,
-    overflow: "hidden",
-  }}
->
-  {[
-    { key: "dos", label: "DOS" },
-    { key: "cpt", label: "CPT" },
-    { key: "modifier", label: "Modifier" },
-    { key: "icd", label: "ICD" },
-    { key: "primaryInsurance", label: "Primary Insurance" },
-    { key: "billedAmount", label: "Billed Amount" },
-    { key: "patientCopay", label: "Patient Copay" },
-    { key: "status", label: "Status" },
-    { key: "remarks", label: "Remarks" },
-    { key: "encounterId", label: "Encounter ID #" },
-    { key: "claimId", label: "Claim ID" },
-  ].map((col) => (
-    <Box
-      key={col.key}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-
-        gap: 1,
-
-        height: 28,
-        minHeight: 28,
-
-        px: 1,
-        py: 0,
-
-        mb: 0.45,
-
-        backgroundColor: "#F5F5F5",
-        borderRadius: "8px",
-
-        "&:hover": {
-          backgroundColor: "#F1F2F4",
-        },
-      }}
-    >
-      {/* DRAG DOTS */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "2px",
-          cursor: "grab",
-          mr: 0.4,
-          flexShrink: 0,
-          width: 10,
-        }}
-      >
-        {[...Array(6)].map((_, i) => (
           <Box
-            key={i}
             sx={{
-              width: 3,
-              height: 3,
-              borderRadius: "50%",
-              backgroundColor: "#0066FF",
+              height: 42,
+              flexShrink: 0,
             }}
           />
-        ))}
-      </Box>
 
-      {/* CHECKBOX */}
-      <Checkbox
-        size="small"
-        checked={visibleColumns[col.key]}
-        onChange={(e) =>
-          setVisibleColumns((prev) => ({
-            ...prev,
-            [col.key]: e.target.checked,
-          }))
-        }
-        sx={{
-          p: 0,
-          color: "#C8CDD8",
-          flexShrink: 0,
+          {/* =========================================================
+        FOOTER
+    ========================================================= */}
+          <Box
+            sx={{
+              mx: 2,
+              mb: 1.5,
+              px: 2,
+              py: 1.25,
+              minHeight: 64,
 
-          "&.Mui-checked": {
-            color: "#0066FF",
+              flexShrink: 0,
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E5E7EB",
+              borderRadius: "14px",
+
+              boxSizing: "border-box",
+              width: "calc(100% - 32px)",
+
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            {/* =======================================================
+          FOOTER LEFT
+      ======================================================= */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                minWidth: 0,
+              }}
+            >
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Patients selected
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "#1F2937",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {statementSubTab === "new"
+                    ? statementNewSelectedCount
+                    : historySelectedRows.length}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  width: "1px",
+                  height: 38,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#6B7280",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Selected balance
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "#1E40AF",
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {statementSubTab === "new"
+                    ? `$${statementNewSelectedBalance.toLocaleString(
+                        undefined,
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        },
+                      )}`
+                    : "$0.00"}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* =======================================================
+          FOOTER RIGHT
+      ======================================================= */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                flexShrink: 0,
+              }}
+            >
+              <Button
+                variant="outlined"
+                endIcon={
+                  <KeyboardArrowDown
+                    sx={{
+                      fontSize: 18,
+                    }}
+                  />
+                }
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                sx={{
+                  ...footerBtnSx,
+                  height: 36,
+                  minWidth: 0,
+                  px: 1.75,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Select action
+              </Button>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+              >
+                <MenuItem onClick={() => setAnchorEl(null)}>
+                  Send statement
+                </MenuItem>
+
+                <MenuItem onClick={() => setAnchorEl(null)}>
+                  Export selected
+                </MenuItem>
+
+                <MenuItem onClick={() => setAnchorEl(null)}>
+                  Mark as reviewed
+                </MenuItem>
+              </Menu>
+
+              <Button
+                variant="outlined"
+                sx={{
+                  ...footerBtnSx,
+                  height: 36,
+                  minWidth: 70,
+                  px: 1.75,
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: BLUE,
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  height: 36,
+                  minWidth: 70,
+                  px: 2,
+                  borderRadius: "6px",
+                  boxShadow: "none",
+
+                  "&:hover": {
+                    backgroundColor: "#0952CC",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                Save
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+      {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
+      <Dialog
+        open={showColumnSettings}
+        onClose={() => setShowColumnSettings(false)}
+        PaperProps={{
+          sx: {
+            width: "100%",
+            maxWidth: 500,
+            minHeight: 570,
+            borderRadius: "22px",
+            overflow: "hidden",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            m: 20,
           },
-
-          "& svg": {
-            fontSize: 16,
-          },
-        }}
-      />
-
-      {/* LABEL */}
-      <Typography
-        sx={{
-          fontSize: 12,
-          fontWeight: 500,
-          color: "#374151",
-          lineHeight: 1,
-          whiteSpace: "nowrap",
         }}
       >
-        {col.label}
-      </Typography>
-    </Box>
-  ))}
-</Box>
+        {/* HEADER */}
+        <Box sx={{ px: 2.5, pt: 2.2, pb: 1.2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              mb: 0.5,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#1F2937",
+                lineHeight: 1.25,
+              }}
+            >
+              Customise columns
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setShowColumnSettings(false)}
+              sx={{
+                p: 0.3,
+                color: "#111827",
+                mt: -0.3,
+                mr: -0.3,
+                "&:hover": { backgroundColor: "#F3F4F6" },
+              }}
+            >
+              <Close sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Box>
 
-  {/* FOOTER */}
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      px: 2.5,
-      py: 1.5,
-      flexShrink: 0,
-    }}
-  >
-   <Button
-  variant="outlined"
-  onClick={() =>
-    setVisibleColumns({
-      dos: true,
-      patientName: true,
-      cpt: true,
-      modifier: true,
-      icd: true,
-      primaryInsurance: true,
-      billedAmount: true,
-      patientCopay: true,
-      status: true,
-      remarks: true,
-      encounterId: true,
-      claimId: true,
-    })
-  }
-  sx={{
-    textTransform: "none",
+          <Typography
+            sx={{
+              fontSize: 11.5,
+              color: "#171923",
+              mb: 1.5,
+              lineHeight: 1.4,
+            }}
+          >
+            Choose which columns to show and drag to reorder them.
+          </Typography>
 
-    fontSize: "11px",
-    fontWeight: 600,
-    lineHeight: 1,
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 0,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Typography
+                onClick={() =>
+                  setVisibleColumns({
+                    dos: true,
+                    patientName: true,
+                    cpt: true,
+                    modifier: true,
+                    icd: true,
+                    primaryInsurance: true,
+                    billedAmount: true,
+                    patientCopay: true,
+                    status: true,
+                    remarks: true,
+                    encounterId: true,
+                    claimId: true,
+                  })
+                }
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#0066FF",
+                  cursor: "pointer",
+                }}
+              >
+                Select all
+              </Typography>
 
-    color: "#374151",
-    backgroundColor: "#FFFFFF",
+              <Typography
+                onClick={() =>
+                  setVisibleColumns({
+                    dos: false,
+                    patientName: false,
+                    cpt: false,
+                    modifier: false,
+                    icd: false,
+                    primaryInsurance: false,
+                    billedAmount: false,
+                    patientCopay: false,
+                    status: false,
+                    remarks: false,
+                    encounterId: false,
+                    claimId: false,
+                  })
+                }
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#0066FF",
+                  cursor: "pointer",
+                }}
+              >
+                Clear All
+              </Typography>
+            </Box>
 
-    border: "1px solid #E5E7EB",
-    borderRadius: "8px",
+            <Typography sx={{ fontSize: 11, color: "#171923" }}>
+              {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
+            </Typography>
+          </Box>
+        </Box>
 
-    minWidth: "114px",
-    height: "32px",
+        {/* COLUMN LIST */}
+        <Box
+          sx={{
+            px: 2.5,
+            pb: 1,
+            flex: 1,
+            overflow: "hidden",
+          }}
+        >
+          {[
+            { key: "dos", label: "DOS" },
+            { key: "cpt", label: "CPT" },
+            { key: "modifier", label: "Modifier" },
+            { key: "icd", label: "ICD" },
+            { key: "primaryInsurance", label: "Primary Insurance" },
+            { key: "billedAmount", label: "Billed Amount" },
+            { key: "patientCopay", label: "Patient Copay" },
+            { key: "status", label: "Status" },
+            { key: "remarks", label: "Remarks" },
+            { key: "encounterId", label: "Encounter ID #" },
+            { key: "claimId", label: "Claim ID" },
+          ].map((col) => (
+            <Box
+              key={col.key}
+              sx={{
+                display: "flex",
+                alignItems: "center",
 
-    px: 1.5,
-    py: 0,
+                gap: 1,
 
-    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+                height: 28,
+                minHeight: 28,
 
-    "&:hover": {
-      backgroundColor: "#F9FAFB",
-      borderColor: "#D1D5DB",
-      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
-    },
+                px: 1,
+                py: 0,
 
-    "&:active": {
-      backgroundColor: "#F3F4F6",
-    },
-  }}
->
-  Reset to default
-</Button>
+                mb: 0.45,
 
-    <Box sx={{ display: "flex", gap: 1 }}>
-      <Button
-        variant="outlined"
-        onClick={() => setShowColumnSettings(false)}
-        sx={{
-          textTransform: "none",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "#374151",
-          borderColor: "#E5E7EB",
-          borderRadius: "8px",
-          px: 2,
-          py: 0.5,
-          minWidth: 70,
-          minHeight: 32,
-          "&:hover": {
-            borderColor: "#D1D5DB",
-            bgcolor: "#F9FAFB",
-          },
-        }}
-      >
-        Cancel
-      </Button>
+                backgroundColor: "#F5F5F5",
+                borderRadius: "8px",
 
-      <Button
-        variant="contained"
-        disableElevation
-        onClick={() => setShowColumnSettings(false)}
-        sx={{
-          textTransform: "none",
-          fontSize: 12,
-          fontWeight: 600,
-          bgcolor: "#0066FF",
-          color: "#fff",
-          borderRadius: "8px",
-          px: 2,
-          py: 0.5,
-          minWidth: 90,
-          minHeight: 32,
-          boxShadow: "none",
-          "&:hover": {
-            bgcolor: "#0052CC",
-            boxShadow: "none",
-          },
-        }}
-      >
-        Save View
-      </Button>
-    </Box>
-  </Box>
-</Dialog>
+                "&:hover": {
+                  backgroundColor: "#F1F2F4",
+                },
+              }}
+            >
+              {/* DRAG DOTS */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "2px",
+                  cursor: "grab",
+                  mr: 0.4,
+                  flexShrink: 0,
+                  width: 10,
+                }}
+              >
+                {[...Array(6)].map((_, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      width: 3,
+                      height: 3,
+                      borderRadius: "50%",
+                      backgroundColor: "#0066FF",
+                    }}
+                  />
+                ))}
+              </Box>
+
+              {/* CHECKBOX */}
+              <Checkbox
+                size="small"
+                checked={visibleColumns[col.key]}
+                onChange={(e) =>
+                  setVisibleColumns((prev) => ({
+                    ...prev,
+                    [col.key]: e.target.checked,
+                  }))
+                }
+                sx={{
+                  p: 0,
+                  color: "#C8CDD8",
+                  flexShrink: 0,
+
+                  "&.Mui-checked": {
+                    color: "#0066FF",
+                  },
+
+                  "& svg": {
+                    fontSize: 16,
+                  },
+                }}
+              />
+
+              {/* LABEL */}
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "#374151",
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {col.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* FOOTER */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2.5,
+            py: 1.5,
+            flexShrink: 0,
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={() =>
+              setVisibleColumns({
+                dos: true,
+                patientName: true,
+                cpt: true,
+                modifier: true,
+                icd: true,
+                primaryInsurance: true,
+                billedAmount: true,
+                patientCopay: true,
+                status: true,
+                remarks: true,
+                encounterId: true,
+                claimId: true,
+              })
+            }
+            sx={{
+              textTransform: "none",
+
+              fontSize: "11px",
+              fontWeight: 600,
+              lineHeight: 1,
+
+              color: "#374151",
+              backgroundColor: "#FFFFFF",
+
+              border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+
+              minWidth: "114px",
+              height: "32px",
+
+              px: 1.5,
+              py: 0,
+
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+                borderColor: "#D1D5DB",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
+              },
+
+              "&:active": {
+                backgroundColor: "#F3F4F6",
+              },
+            }}
+          >
+            Reset to default
+          </Button>
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowColumnSettings(false)}
+              sx={{
+                textTransform: "none",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#374151",
+                borderColor: "#E5E7EB",
+                borderRadius: "8px",
+                px: 2,
+                py: 0.5,
+                minWidth: 70,
+                minHeight: 32,
+                "&:hover": {
+                  borderColor: "#D1D5DB",
+                  bgcolor: "#F9FAFB",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => setShowColumnSettings(false)}
+              sx={{
+                textTransform: "none",
+                fontSize: 12,
+                fontWeight: 600,
+                bgcolor: "#0066FF",
+                color: "#fff",
+                borderRadius: "8px",
+                px: 2,
+                py: 0.5,
+                minWidth: 90,
+                minHeight: 32,
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: "#0052CC",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Save View
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
