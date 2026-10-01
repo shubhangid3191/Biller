@@ -32,8 +32,7 @@ import {
   Close,
   CalendarToday,
   InfoOutlined,
-  VisibilityOutlined,
-  DeleteOutlineOutlined,
+   Add, 
 } from "@mui/icons-material";
 import {
   Search,
@@ -54,6 +53,9 @@ import {
   AtRateIcon,
   PrinterIcon,
   ListIcon,
+  EyeVisible,
+  Share,
+  DeleteIcon
 } from "../assets/Assets";
 
 /* ================================================================== */
@@ -254,11 +256,7 @@ const getGridColor = (index) => {
   return ["#F2F6FF", "#FFFBF6", "#F1FFFD", "#F2F6FF"][groupIndex];
 };
 
-/* ================================================================== */
-/* Sorting (same logic as Fee / Referring Provider pages)               */
-/* asc <-> desc only, no reset to original order                        */
-/* sort: "alpha" = A-Z / Z-A, "number" = low-high, "date" = MM/DD/YYYY  */
-/* ================================================================== */
+
 const toAmount = (s) =>
   parseFloat(String(s ?? "").replace(/[^0-9.-]/g, "")) || 0;
 
@@ -317,6 +315,7 @@ function useSortedRows(rows, columns) {
   return { sort, sortedRows, handleSort };
 }
 
+
 /* Header cell with the sort arrow (shared by all 4 tabs) */
 function SortHeadCell({ column, sortDir, onSort, sx }) {
   const active = !!sortDir;
@@ -333,7 +332,7 @@ function SortHeadCell({ column, sortDir, onSort, sx }) {
           display: "flex",
           alignItems: "center",
           justifyContent: column.center ? "center" : "flex-start",
-          gap: 0.5,
+          gap: 0,
         }}
       >
         {column.label}
@@ -367,6 +366,7 @@ function SortHeadCell({ column, sortDir, onSort, sx }) {
     </TableCell>
   );
 }
+
 
 /* Generic sortable table used by every tab */
 function ListTable({
@@ -1250,8 +1250,11 @@ const REMIT_COLUMNS = [
   },
 ];
 
-const iconColSx = { width: 56, minWidth: 56, px: 0.5 };
-const iconCellSx = { color: "#4B5563", px: 0.5 };
+// const iconColSx = { width: 56, minWidth: 56, px: 0.5 };
+// const iconCellSx = { color: "#4B5563", px: 0.5 };
+
+const iconColSx = { width: 30, minWidth: 30, px: 0, maxWidth: 30 };
+const iconCellSx = { color: "#4B5563", px: 0 };
 
 const NEW_STMT_COLUMNS = [
   { id: "name", label: "Patient name", sort: "alpha", cellSx: { fontWeight: 600 } },
@@ -1281,22 +1284,21 @@ const NEW_STMT_COLUMNS = [
     }),
   },
   { id: "sent", label: "Sent", sort: "number", cellSx: { color: "#6B7280" } },
-  {
+ 
+    {
     id: "calls",
     title: "Calls",
     label: <IconHead Icon={SmsIcon} title="Calls" />,
-    sort: "number",
     center: true,
-    headSx: iconColSx,
+    headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
   },
   {
     id: "emails",
     title: "Emails",
     label: <IconHead Icon={AtRateIcon} title="Emails" />,
-    sort: "number",
     center: true,
-    headSx: iconColSx,
+    headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
     render: (r) =>
       r.flagged ? (
@@ -1317,18 +1319,16 @@ const NEW_STMT_COLUMNS = [
     id: "prints",
     title: "Prints",
     label: <IconHead Icon={PrinterIcon} title="Prints" />,
-    sort: "number",
     center: true,
-    headSx: iconColSx,
+    headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
   },
   {
     id: "docs",
     title: "Documents",
     label: <IconHead Icon={ListIcon} title="Documents" />,
-    sort: "number",
     center: true,
-    headSx: iconColSx,
+    headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
   },
   { id: "enc", label: "Enc", sort: "alpha", cellSx: { color: "#4B5563" } },
@@ -1388,19 +1388,56 @@ const NEW_STMT_COLUMNS = [
         <span style={{ color: "#9CA3AF" }}>—</span>
       ),
   },
-  {
-    id: "view",
-    label: "",
-    center: true,
-    headSx: { width: 40 },
-    render: () => (
+ {
+  id: "action",
+  label: "Action",
+  center: true,
+  headSx: { width: 75 },
+  render: (r) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 1,
+      }}
+    >
       <Tooltip title="View" placement="top">
-        <IconButton size="small" sx={{ p: "3px" }}>
-          <VisibilityOutlined sx={{ fontSize: 16, color: "#9CA3AF" }} />
+        <IconButton
+          size="small"
+          sx={{
+            p: "3px",
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
+          }}
+        >
+          <EyeVisible
+            width={17}
+            height={17}
+          />
         </IconButton>
       </Tooltip>
-    ),
-  },
+
+      <Tooltip title="Share" placement="top">
+        <IconButton
+          size="small"
+          sx={{
+            p: "3px",
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
+          }}
+        >
+          <Share
+            width={17}
+            height={17}
+          />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  ),
+},
 ];
 
 const HISTORY_COLUMNS = [
@@ -1444,25 +1481,26 @@ const HISTORY_COLUMNS = [
     label: "",
     headSx: { width: 80 },
     render: () => (
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Tooltip title="Info" placement="top">
-          <IconButton size="small" sx={{ p: "2px" }}>
-            <InfoOutlined sx={{ fontSize: 19, color: BLUE }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete" placement="top">
-          <IconButton size="small" sx={{ p: "2px" }}>
-            <DeleteOutlineOutlined sx={{ fontSize: 19, color: "#1E3A8A" }} />
-          </IconButton>
-        </Tooltip>
-      </Box>
+    <Box
+  sx={{
+    display: "flex",
+    gap: 0.75,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  }}
+>
+  <Tooltip title="Info" placement="top">
+    <IconButton size="small" sx={{ p: "2px" }}>
+      <InfoOutlined sx={{ fontSize: 16, color: BLUE }} />
+    </IconButton>
+  </Tooltip>
+
+  <Tooltip title="Delete" placement="top">
+    <IconButton size="small" sx={{ p: "2px" }}>
+      <DeleteIcon sx={{ fontSize: 16, color: "#1E3A8A" }} />
+    </IconButton>
+  </Tooltip>
+</Box>
     ),
   },
 ];
@@ -2219,32 +2257,56 @@ function PreBillingClaim() {
               ))}
             </Box>
 
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
-              <Button
-                variant="outlined"
-                endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
-                sx={selectActionBtnSx}
-                onClick={(e) => setAnchorEl(e.currentTarget)}
-              >
-                Select Action
-              </Button>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl) && currentTab === 0}
-                onClose={() => setAnchorEl(null)}
-              >
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Submit Claims
-                </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Export Selected
-                </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Mark as Processed
-                </MenuItem>
-              </Menu>
-            </Box>
+           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+             {/* ✅ NEW: + New Claim button */}
+  <Button
+    variant="contained"
+    startIcon={<Add sx={{ fontSize: 18 }} />}
+    onClick={() => navigate("/new-claim")}
+    sx={{
+      textTransform: "none",
+      backgroundColor: "#0066FF",
+      color: "#FFFFFF",
+      fontWeight: 600,
+      fontSize: 12,
+      height: 30,
+      px: 1.75,
+      borderRadius: "8px",
+      whiteSpace: "nowrap",
+      boxShadow: "none",
+      "& .MuiButton-startIcon": { mr: 0.5 },
+      "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+    }}
+  >
+    New Claim
+  </Button>
+  <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
+  <Button
+    variant="outlined"
+    endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
+    sx={selectActionBtnSx}
+    onClick={(e) => setAnchorEl(e.currentTarget)}
+  >
+    Select Action
+  </Button>
+  <Menu
+    anchorEl={anchorEl}
+    open={Boolean(anchorEl) && currentTab === 0}
+    onClose={() => setAnchorEl(null)}
+  >
+    <MenuItem onClick={() => setAnchorEl(null)}>
+      Submit Claims
+    </MenuItem>
+    <MenuItem onClick={() => setAnchorEl(null)}>
+      Export Selected
+    </MenuItem>
+    <MenuItem onClick={() => setAnchorEl(null)}>
+      Mark as Processed
+    </MenuItem>
+  </Menu>
+
+ 
+</Box>
           </Box>
 
           {viewMode === "list" ? (
