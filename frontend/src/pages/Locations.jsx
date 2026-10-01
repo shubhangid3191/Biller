@@ -23,6 +23,7 @@ import { FilterIcon, ExportIcon, RPEditIcon } from "../assets/Assets";
 /* ------------------------------------------------------------------ */
 const T = {
   headBg: "#EBF1FE",
+  headSymbol: "#52525B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
@@ -30,21 +31,77 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows                                                           */
+/* Dummy rows (varied so sorting can be seen working)                   */
 /* ------------------------------------------------------------------ */
-const createRows = (count = 11) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i,
-    location: "Location 1",
-    address: "WashingtonUSe, Aleuti...",
-    contact: "8475875747",
-    fax: "8475875747",
-    npi: "8475875747",
-    practice: "Fresh Original",
-    active: true,
-  }));
+const SAMPLE = [
+  ["Location 1", "WashingtonUSe, Aleuti...", "8475875747", "8475875747", "8475875747", "Fresh Original", true],
+  ["Location 2", "Boston, Suffolk Coun...", "9123456780", "9123456781", "9123456782", "Hitex", true],
+  ["Location 3", "Denver, Denver Coun...", "7345678123", "7345678124", "7345678125", "Balance Report", false],
+  ["Annex Clinic", "Austin, Travis Count...", "6456781234", "6456781235", "6456781236", "Fresh Original", true],
+  ["Central Hospital", "Chicago, Cook County...", "9567812345", "9567812346", "9567812347", "Hitex", true],
+  ["East Wing", "Seattle, King County...", "5678123456", "5678123457", "5678123458", "Balance Report", true],
+  ["Lakeside Center", "Miami, Miami-Dade...", "8781234567", "8781234568", "8781234569", "Fresh", false],
+  ["Northgate Care", "Phoenix, Maricopa...", "4892345678", "4892345679", "4892345670", "Hitex", true],
+  ["Riverside Unit", "Portland, Multnomah...", "9903456781", "9903456782", "9903456783", "Fresh Original", true],
+  ["South Campus", "Dallas, Dallas County...", "3014567812", "3014567813", "3014567814", "Balance Report", true],
+  ["West Point", "Atlanta, Fulton Coun...", "7125678123", "7125678124", "7125678125", "Fresh", true],
+];
 
-const ROWS = createRows(11);
+const ROWS = SAMPLE.map(
+  ([location, address, contact, fax, npi, practice, active], id) => ({
+    id, location, address, contact, fax, npi, practice, active,
+  })
+);
+
+/* ------------------------------------------------------------------ */
+/* Table columns                                                        */
+/* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
+/* ------------------------------------------------------------------ */
+const COLUMNS = [
+  { id: "location", label: "Service Location", sort: "alpha" },
+  { id: "address", label: "Address", sort: "alpha" },
+  { id: "contact", label: "Contact number", sort: "number" },
+  { id: "fax", label: "Fax", sort: "number" },
+  { id: "npi", label: "NPI", sort: "number" },
+  { id: "practice", label: "Practice", sort: "alpha" },
+  { id: "active", label: "Active", center: true },
+  { id: "actions", label: "Action", last: true },
+];
+
+/* ------------------------------------------------------------------ */
+/* Sort helpers                                                         */
+/* ------------------------------------------------------------------ */
+const COMPARERS = {
+  alpha: (a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
+  number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+};
+
+const SORT_TITLES = {
+  alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
+  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+};
+
+/* asc <-> desc only, no reset to original order */
+function useSortedRows(rows, columns) {
+  const [sort, setSort] = React.useState({ columnId: null, dir: null });
+
+  const sortedRows = React.useMemo(() => {
+    if (!sort.columnId || !sort.dir) return rows;
+    const column = columns.find((c) => c.id === sort.columnId);
+    if (!column?.sort) return rows;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    const compare = COMPARERS[column.sort];
+    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+  }, [rows, columns, sort]);
+
+  const handleSort = (columnId) =>
+    setSort((prev) => {
+      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
+    });
+
+  return { sort, sortedRows, handleSort };
+}
 
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
@@ -70,10 +127,59 @@ const headCellSx = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Header cell (arrow toggles sort)                                     */
+/* ------------------------------------------------------------------ */
+function HeaderCell({ column, sortDir, onSort }) {
+  const active = !!sortDir;
+  const titles = column.sort ? SORT_TITLES[column.sort] : null;
+
+  return (
+    <TableCell
+      sx={{
+        ...headCellSx,
+        borderRight: column.last ? "none" : `1px solid ${T.border}`,
+        textAlign: column.center ? "center" : "left",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        {column.label}
+        {column.sort && (
+          <Tooltip title={titles[sortDir || "none"]} arrow>
+            <IconButton
+              size="small"
+              aria-label={`Sort ${column.label}`}
+              onClick={() => onSort(column.id)}
+              sx={{
+                p: 0.2,
+                ml: "auto",
+                flexShrink: 0,
+                borderRadius: "6px",
+                color: active ? T.blue : T.headSymbol,
+                bgcolor: active ? "#DCE7FD" : "transparent",
+                "&:hover": { bgcolor: "#DCE7FD" },
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  transform: sortDir === "desc" ? "rotate(180deg)" : "none",
+                  transition: "transform .15s ease",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+    </TableCell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
 export default function Locations() {
   const navigate = useNavigate();
+  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
 
   return (
     <Box
@@ -82,77 +188,77 @@ export default function Locations() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
       {/* ── HEADER ── */}
       <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <Typography sx={{ fontSize: 26, fontWeight: 700, color: "#111827" }}>
-          Service Location Management
-        </Typography>
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 2,
+    mb: 3,
+  }}
+>
+  <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+    Service Location Management
+  </Typography>
 
-        <Stack direction="row" spacing={1.5} flexWrap="wrap">
-          <Button
-            variant="outlined"
-            startIcon={<FilterIcon color="#2563EB" />}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              color: T.blue,
-              border: "1.5px solid #015DFF",
-              px: 2,
-              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
-            }}
-          >
-            Filter
-          </Button>
+  <Stack direction="row" spacing={1.5} flexWrap="wrap">
+    <Button
+      variant="outlined"
+      startIcon={<FilterIcon color="#2563EB" />}
+      sx={{
+        textTransform: "none",
+        fontSize: 13,
+        fontWeight: 500,
+        borderRadius: "8px",
+        color: T.blue,
+        border: "1.5px solid #015DFF",
+        px: 2,
+        "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+      }}
+    >
+      Filter
+    </Button>
 
-          <Button
-            variant="outlined"
-            startIcon={<ExportIcon color="#2563EB" />}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              color: T.blue,
-              border: "1.5px solid #015DFF",
-              px: 2,
-              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
-            }}
-          >
-            Export
-          </Button>
+    <Button
+      variant="outlined"
+      startIcon={<ExportIcon color="#2563EB" />}
+      sx={{
+        textTransform: "none",
+        fontSize: 13,
+        fontWeight: 500,
+        borderRadius: "8px",
+        color: T.blue,
+        border: "1.5px solid #015DFF",
+        px: 2,
+        "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+      }}
+    >
+      Export
+    </Button>
 
-          <Button
-            variant="contained"
-            disableElevation
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              bgcolor: T.blue,
-              px: 2.5,
-              "&:hover": { bgcolor: "#1D4ED8" },
-            }}
-          >
-            Add New
-          </Button>
-        </Stack>
-      </Box>
+    <Button
+      variant="contained"
+      disableElevation
+      sx={{
+        textTransform: "none",
+        fontSize: 13,
+        fontWeight: 500,
+        borderRadius: "8px",
+        bgcolor: T.blue,
+        px: 2.5,
+        "&:hover": { bgcolor: "#1D4ED8" },
+      }}
+    >
+      Add New
+    </Button>
+  </Stack>
+</Box>
 
       {/* ── TABLE ── */}
       <TableContainer
@@ -169,39 +275,19 @@ export default function Locations() {
         >
           <TableHead>
             <TableRow>
-              {[
-                { label: "Service Location", arrow: true },
-                { label: "Address", arrow: true },
-                { label: "Contact number", arrow: true },
-                { label: "Fax", arrow: true },
-                { label: "NPI", arrow: true },
-                { label: "Practice", arrow: true },
-                { label: "Active" },
-                { label: "Action", last: true },
-              ].map((col) => (
-                <TableCell
-                  key={col.label}
-                  sx={{
-                    ...headCellSx,
-                    borderRight: col.last ? "none" : `1px solid ${T.border}`,
-                    textAlign: col.label === "Active" ? "center" : "left",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    {col.label}
-                    {col.arrow && (
-                      <KeyboardArrowDownIcon
-                        sx={{ fontSize: 16, color: "#52525B", ml: "auto" }}
-                      />
-                    )}
-                  </Box>
-                </TableCell>
+              {COLUMNS.map((col) => (
+                <HeaderCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                />
               ))}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {ROWS.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow
                 key={row.id}
                 hover

@@ -10,6 +10,7 @@ import {
   Select,
   FormControl,
   Switch,
+  InputAdornment,
   Table,
   TableBody,
   TableCell,
@@ -22,12 +23,12 @@ import AddIcon from "@mui/icons-material/Add";
 import {
   RPDeleteIcon,
   FileUploadOutlinedIcon,
-  PlusBlueIcon,
 } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
-/* Design tokens                                                        */
+/* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
+
 const T = {
   blue: "#2563EB",
   page: "#F7F9FC",
@@ -37,43 +38,96 @@ const T = {
   rowLine: "#EEF1F7",
 };
 
+const ICON_SIZE = {
+  delete: 20,
+  add: 16,
+};
+
 /* ------------------------------------------------------------------ */
-/* Input / Select styles                                                */
+/* Validation                                                          */
 /* ------------------------------------------------------------------ */
+
+const PHONE_ERROR = "Enter a valid 10-digit number";
+
+const validatePhone = (value) =>
+  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+
+/* ------------------------------------------------------------------ */
+/* Input / Select styles                                               */
+/* ------------------------------------------------------------------ */
+
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
     fontSize: 12,
     bgcolor: "#fff",
-    "& input": { py: "10px", px: "14px", fontSize: 12, color: "#1F2937" },
-    "& input::placeholder": { color: "#8F9098", opacity: 1 },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+    "& input": {
+      py: "10px",
+      px: "14px",
+      fontSize: 12,
+      color: "#1F2937",
+    },
+
+    "& input::placeholder": {
+      color: "#8F9098",
+      opacity: 1,
+    },
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: T.border,
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#9CA3AF",
+    },
+
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
+
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#EF4444",
+    },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = {
   borderRadius: "8px",
   fontSize: 12,
   bgcolor: "#fff",
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: T.border,
+  },
+
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#9CA3AF",
+  },
+
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: T.blue,
     borderWidth: "1.5px",
   },
+
   "& .MuiSelect-select": {
     py: "10px",
     px: "14px",
     fontSize: 12,
     color: "#8F9098",
   },
-  "& .MuiSvgIcon-root": { color: "#8F9098" },
+
+  "& .MuiSvgIcon-root": {
+    color: "#8F9098",
+  },
 };
 
 const tblInputSx = {
@@ -81,45 +135,88 @@ const tblInputSx = {
     borderRadius: "6px",
     fontSize: 11,
     bgcolor: "#fff",
-    "& input": { py: "5px", px: "8px", fontSize: 11, color: "#1F2937" },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+    "& input": {
+      py: "5px",
+      px: "8px",
+      fontSize: 11,
+      color: "#1F2937",
+    },
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: T.border,
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#9CA3AF",
+    },
+
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+
+  "& .MuiFormHelperText-root": {
+    display: "none",
+  },
 };
 
 const tblSelectSx = {
   borderRadius: "6px",
   fontSize: 11,
   bgcolor: "#fff",
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: T.border,
+  },
+
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#9CA3AF",
+  },
+
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: T.blue,
     borderWidth: "1.5px",
   },
+
   "& .MuiSelect-select": {
     py: "5px",
     px: "8px",
     fontSize: 11,
     color: "#1F2937",
   },
-  "& .MuiSvgIcon-root": { color: "#8F9098", fontSize: 16 },
+
+  "& .MuiSvgIcon-root": {
+    color: "#8F9098",
+    fontSize: 16,
+  },
 };
 
 /* ------------------------------------------------------------------ */
-/* Shared components                                                    */
+/* Shared components                                                   */
 /* ------------------------------------------------------------------ */
+
 function Label({ children, required }) {
   return (
-    <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
+    <Typography
+      sx={{
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#000",
+        mb: 0.6,
+      }}
+    >
       {children}
+
       {required && (
-        <Box component="span" sx={{ color: "red", ml: 0.3 }}>
+        <Box
+          component="span"
+          sx={{
+            color: "red",
+            ml: 0.3,
+          }}
+        >
           *
         </Box>
       )}
@@ -127,14 +224,46 @@ function Label({ children, required }) {
   );
 }
 
-function InputField({ label, placeholder = "Type here", required }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+}) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
+
       <TextField
         fullWidth
         size="small"
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
+        inputProps={{
+          inputMode,
+          maxLength,
+        }}
+        InputProps={
+          endIcon
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {endIcon}
+                  </InputAdornment>
+                ),
+              }
+            : undefined
+        }
         sx={inputSx}
       />
     </Box>
@@ -150,6 +279,7 @@ function SelectField({
   return (
     <Box>
       <Label required={required}>{label}</Label>
+
       <FormControl fullWidth size="small">
         <Select
           displayEmpty
@@ -157,11 +287,24 @@ function SelectField({
           sx={selectSx}
           IconComponent={KeyboardArrowDownIcon}
         >
-          <MenuItem value="" sx={{ fontSize: 12, color: "#8F9098" }}>
+          <MenuItem
+            value=""
+            sx={{
+              fontSize: 12,
+              color: "#8F9098",
+            }}
+          >
             {placeholder}
           </MenuItem>
+
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            <MenuItem
+              key={o}
+              value={o}
+              sx={{
+                fontSize: 12,
+              }}
+            >
               {o}
             </MenuItem>
           ))}
@@ -197,8 +340,15 @@ function SectionBox({ children }) {
         bgcolor: "#fff",
         borderRadius: "12px",
         border: "1px solid #E5E7EB",
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 2, sm: 3 },
+        px: {
+          xs: 2,
+          sm: 3,
+          md: 4,
+        },
+        py: {
+          xs: 2,
+          sm: 3,
+        },
       }}
     >
       {children}
@@ -208,15 +358,23 @@ function SectionBox({ children }) {
 
 function SectionTitle({ children }) {
   return (
-    <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827", mb: 2 }}>
+    <Typography
+      sx={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: "#111827",
+        mb: 2,
+      }}
+    >
       {children}
     </Typography>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Upload Box                                                           */
+/* Upload Box                                                          */
 /* ------------------------------------------------------------------ */
+
 function UploadBox({ label, hint }) {
   return (
     <Box
@@ -230,10 +388,12 @@ function UploadBox({ label, hint }) {
         alignItems: "center",
         gap: 1.5,
         cursor: "pointer",
-        "&:hover": { bgcolor: "#F4F8FF" },
+
+        "&:hover": {
+          bgcolor: "#F4F8FF",
+        },
       }}
     >
-      {/* Icon circle */}
       <Box
         sx={{
           width: 40,
@@ -246,13 +406,32 @@ function UploadBox({ label, hint }) {
           flexShrink: 0,
         }}
       >
-        <FileUploadOutlinedIcon sx={{ color: T.blue, fontSize: 20 }} />
+        <FileUploadOutlinedIcon
+          sx={{
+            color: T.blue,
+            fontSize: 20,
+          }}
+        />
       </Box>
+
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#111827",
+          }}
+        >
           {label}
         </Typography>
-        <Typography sx={{ fontSize: 11, color: "#8F9098", lineHeight: 1.4 }}>
+
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: "#8F9098",
+            lineHeight: 1.4,
+          }}
+        >
           {hint}
         </Typography>
       </Box>
@@ -261,8 +440,9 @@ function UploadBox({ label, hint }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Address table rows                                                   */
+/* Address table rows                                                  */
 /* ------------------------------------------------------------------ */
+
 const addrRows = [
   {
     type: "Billing",
@@ -343,11 +523,34 @@ const bodyCellSx = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Main Page                                                            */
+/* Main Page                                                           */
 /* ------------------------------------------------------------------ */
+
 export default function PracticeEdit() {
   const navigate = useNavigate();
+
   const [active, setActive] = React.useState(true);
+
+  const [phone, setPhoneValue] = React.useState("");
+  const [phoneError, setPhoneError] = React.useState("");
+
+  const handlePhoneChange = (e) => {
+    setPhoneValue(
+      e.target.value.replace(/\D/g, "").slice(0, 10)
+    );
+
+    setPhoneError("");
+  };
+
+  const handleSave = () => {
+    const err = validatePhone(phone);
+
+    setPhoneError(err);
+
+    if (err) return;
+
+    // valid — submit here
+  };
 
   return (
     <Box
@@ -355,8 +558,16 @@ export default function PracticeEdit() {
         bgcolor: T.page,
         minHeight: "100vh",
         width: "100%",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: {
+          xs: 2,
+          md: 3,
+        },
+        px: {
+          xs: 1.5,
+          sm: 2,
+          md: 2.5,
+          lg: 2.5,
+        },
         boxSizing: "border-box",
       }}
     >
@@ -370,13 +581,24 @@ export default function PracticeEdit() {
         }}
       >
         {/* Title */}
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+
+        <Typography
+          sx={{
+            fontSize: 28,
+            fontWeight: 700,
+            color: "#111827",
+          }}
+        >
           Edit Practice
         </Typography>
 
-        {/* ══ SINGLE BOX ══ */}
+        {/* =========================================================
+            SINGLE BOX
+        ========================================================= */}
+
         <SectionBox>
           {/* Row 1 */}
+
           <FormGrid>
             <InputField label="Practice Name" />
             <InputField label="Practice Short Code" />
@@ -385,6 +607,7 @@ export default function PracticeEdit() {
           </FormGrid>
 
           {/* Row 2 */}
+
           <Box
             sx={{
               display: "grid",
@@ -397,8 +620,11 @@ export default function PracticeEdit() {
               mb: 2.5,
             }}
           >
+            {/* Active */}
+
             <Box sx={{ minWidth: 0 }}>
-              <Label>EIN</Label>
+              <Label>Active</Label>
+
               <Box
                 sx={{
                   display: "flex",
@@ -411,34 +637,55 @@ export default function PracticeEdit() {
                   width: "100%",
                   bgcolor: "#fff",
                   boxSizing: "border-box",
-                  "&:hover": { borderColor: "#9CA3AF" },
+
+                  "&:hover": {
+                    borderColor: "#9CA3AF",
+                  },
                 }}
               >
-                <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    color: "#8F9098",
+                  }}
+                >
                   Active
                 </Typography>
+
                 <Switch
                   size="small"
                   checked={active}
-                  onChange={(e) => setActive(e.target.checked)}
+                  onChange={(e) =>
+                    setActive(e.target.checked)
+                  }
                   sx={{
                     mr: -0.5,
-                    "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      bgcolor: "#22C55E",
-                      opacity: 1,
+
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: "#fff",
                     },
-                    "& .MuiSwitch-track": { borderRadius: 20 },
+
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
+                      {
+                        bgcolor: "#22C55E",
+                        opacity: 1,
+                      },
+
+                    "& .MuiSwitch-track": {
+                      borderRadius: 20,
+                    },
                   }}
                 />
               </Box>
             </Box>
+
             <InputField label="SFTP Host" />
             <InputField label="SFTP Username" />
             <InputField label="SFTP Password" />
           </Box>
 
           {/* Row 3 */}
+
           <FormGrid cols={4}>
             <InputField label="SFTP Port" />
             <InputField label="Practice Code" />
@@ -447,19 +694,40 @@ export default function PracticeEdit() {
           </FormGrid>
 
           {/* Patient Statement */}
-          <SectionTitle>Patient Statement</SectionTitle>
+
+          <SectionTitle>
+            Patient Statement
+          </SectionTitle>
 
           <FormGrid cols={4}>
             <InputField label="Patient Statement Message" />
-            <InputField label="Billing Question Phone" />
+
+            <InputField
+              label="Billing Question Phone"
+              value={phone}
+              onChange={handlePhoneChange}
+              onBlur={() =>
+                setPhoneError(validatePhone(phone))
+              }
+              error={phoneError}
+              inputMode="numeric"
+              maxLength={10}
+            />
+
             <InputField label="Extension" />
+
             <Box />
           </FormGrid>
+
+          {/* Uploads */}
 
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+              },
               gap: 2,
             }}
           >
@@ -467,6 +735,7 @@ export default function PracticeEdit() {
               label="Upload Practice Logo"
               hint="SVG, PNG, JPG or GIF (max. 800×400px)"
             />
+
             <UploadBox
               label="Upload Practice QR"
               hint="SVG, PNG, JPG or GIF (max. 800×400px)"
@@ -474,6 +743,7 @@ export default function PracticeEdit() {
           </Box>
 
           {/* Address Details */}
+
           <Box
             sx={{
               display: "flex",
@@ -483,23 +753,39 @@ export default function PracticeEdit() {
               mt: 4,
             }}
           >
-            <SectionTitle>Address Details</SectionTitle>
+            <SectionTitle>
+              Address Details
+            </SectionTitle>
+
             <IconButton
               size="small"
               sx={{
                 bgcolor: "#E6F1FE",
-                width: 36,
-                height: 36,
+                width: 28,
+                height: 28,
                 borderRadius: "50%",
-                "&:hover": { bgcolor: "#D0E4FC" },
+
+                "&:hover": {
+                  bgcolor: "#D0E4FC",
+                },
               }}
             >
-              <AddIcon sx={{ fontSize: 20, color: T.blue }} />
+              <AddIcon
+                sx={{
+                  fontSize: ICON_SIZE.add,
+                  color: T.blue,
+                }}
+              />
             </IconButton>
           </Box>
 
+          {/* =======================================================
+              ADDRESS TABLE
+          ======================================================= */}
+
           <TableContainer
             sx={{
+              width: "100%",
               border: `1px solid ${T.headBorder}`,
               borderRadius: "8px",
               overflowX: "auto",
@@ -508,9 +794,10 @@ export default function PracticeEdit() {
             <Table
               size="small"
               sx={{
-                tableLayout: "auto",
+                width: "100%",
+                minWidth: 1100,
+                tableLayout: "fixed",
                 borderCollapse: "collapse",
-                minWidth: 900,
               }}
             >
               <TableHead>
@@ -520,6 +807,12 @@ export default function PracticeEdit() {
                       key={col}
                       sx={{
                         ...headCellSx,
+                        fontSize: "9px",
+                        fontWeight: 600,
+                        padding: "6px 4px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                         borderRight:
                           i === addrCols.length - 1
                             ? "none"
@@ -537,116 +830,349 @@ export default function PracticeEdit() {
                   <TableRow
                     key={i}
                     hover
-                    sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                    sx={{
+                      "&:hover": {
+                        bgcolor: "#FAFBFE",
+                      },
+
+                      "&:last-child td": {
+                        borderBottom: "none",
+                      },
+                    }}
                   >
-                    {/* TYPE — select */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
-                      <FormControl fullWidth size="small">
+                    {/* TYPE */}
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
+                      <FormControl
+                        fullWidth
+                        size="small"
+                      >
                         <Select
                           defaultValue={row.type}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
+                          sx={{
+                            ...tblSelectSx,
+                            fontSize: "9px",
+
+                            "& .MuiSelect-select": {
+                              padding: "5px 4px",
+                              fontSize: "9px",
+                            },
+                          }}
+                          IconComponent={
+                            KeyboardArrowDownIcon
+                          }
                         >
-                          {["Billing", "Mailing"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
-                              {o}
-                            </MenuItem>
-                          ))}
+                          {["Billing", "Mailing"].map(
+                            (o) => (
+                              <MenuItem
+                                key={o}
+                                value={o}
+                                sx={{
+                                  fontSize: "9px",
+                                }}
+                              >
+                                {o}
+                              </MenuItem>
+                            )
+                          )}
                         </Select>
                       </FormControl>
                     </TableCell>
+
                     {/* ADDRESS 1 */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
                       <TextField
                         size="small"
+                        fullWidth
                         defaultValue={row.addr1}
-                        sx={tblInputSx}
+                        sx={{
+                          ...tblInputSx,
+
+                          "& .MuiInputBase-input": {
+                            fontSize: "9px",
+                            padding: "5px 4px",
+                          },
+                        }}
                       />
                     </TableCell>
+
                     {/* ADDRESS 2 */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
                       <TextField
                         size="small"
+                        fullWidth
                         defaultValue={row.addr2}
-                        sx={tblInputSx}
+                        sx={{
+                          ...tblInputSx,
+
+                          "& .MuiInputBase-input": {
+                            fontSize: "9px",
+                            padding: "5px 4px",
+                          },
+                        }}
                       />
                     </TableCell>
+
                     {/* ZIP */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
                       <TextField
                         size="small"
+                        fullWidth
                         defaultValue={row.zip}
-                        sx={tblInputSx}
+                        sx={{
+                          ...tblInputSx,
+
+                          "& .MuiInputBase-input": {
+                            fontSize: "9px",
+                            padding: "5px 4px",
+                          },
+                        }}
                       />
                     </TableCell>
+
                     {/* CITY */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
                       <TextField
                         size="small"
+                        fullWidth
                         defaultValue={row.city}
-                        sx={tblInputSx}
+                        sx={{
+                          ...tblInputSx,
+
+                          "& .MuiInputBase-input": {
+                            fontSize: "9px",
+                            padding: "5px 4px",
+                          },
+                        }}
                       />
                     </TableCell>
+
                     {/* COUNTRY */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 60 }}>
-                      <Typography sx={{ fontSize: 11, color: "#2E2E2E" }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "5px 4px",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          color: "#2E2E2E",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {row.country}
                       </Typography>
                     </TableCell>
-                    {/* STATE — select */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
-                      <FormControl fullWidth size="small">
+
+                    {/* STATE */}
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
+                      <FormControl
+                        fullWidth
+                        size="small"
+                      >
                         <Select
                           defaultValue={row.state}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
+                          sx={{
+                            ...tblSelectSx,
+                            fontSize: "9px",
+
+                            "& .MuiSelect-select": {
+                              padding: "5px 4px",
+                              fontSize: "9px",
+                            },
+                          }}
+                          IconComponent={
+                            KeyboardArrowDownIcon
+                          }
                         >
-                          {["Arizona", "California", "Texas"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
+                          {[
+                            "Arizona",
+                            "California",
+                            "Texas",
+                          ].map((o) => (
+                            <MenuItem
+                              key={o}
+                              value={o}
+                              sx={{
+                                fontSize: "9px",
+                              }}
+                            >
                               {o}
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </TableCell>
-                    {/* COUNTY — select */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 90 }}>
-                      <FormControl fullWidth size="small">
+
+                    {/* COUNTY */}
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                      }}
+                    >
+                      <FormControl
+                        fullWidth
+                        size="small"
+                      >
                         <Select
                           defaultValue={row.county}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
+                          sx={{
+                            ...tblSelectSx,
+                            fontSize: "9px",
+
+                            "& .MuiSelect-select": {
+                              padding: "5px 4px",
+                              fontSize: "9px",
+                            },
+                          }}
+                          IconComponent={
+                            KeyboardArrowDownIcon
+                          }
                         >
-                          {["Alpine", "Barry", "Clark"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
+                          {[
+                            "Alpine",
+                            "Barry",
+                            "Clark",
+                          ].map((o) => (
+                            <MenuItem
+                              key={o}
+                              value={o}
+                              sx={{
+                                fontSize: "9px",
+                              }}
+                            >
                               {o}
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </TableCell>
+
                     {/* PHONE */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 100 }}>
-                      <Typography sx={{ fontSize: 11, color: "#2E2E2E" }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "5px 4px",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          color: "#2E2E2E",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {row.phone}
                       </Typography>
                     </TableCell>
+
                     {/* FAX */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 100 }}>
-                      <Typography sx={{ fontSize: 11, color: "#2E2E2E" }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "5px 4px",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          color: "#2E2E2E",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {row.fax}
                       </Typography>
                     </TableCell>
+
                     {/* E-MAIL */}
-                    <TableCell sx={{ ...bodyCellSx, minWidth: 110 }}>
-                      <Typography sx={{ fontSize: 11, color: "#2E2E2E" }}>
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "5px 4px",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "9px",
+                          color: "#2E2E2E",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {row.email}
                       </Typography>
                     </TableCell>
+
                     {/* ACTION */}
-                    <TableCell sx={{ ...bodyCellSx, borderRight: "none" }}>
-                      <IconButton size="small">
-                        <RPDeleteIcon width={20} height={20} color="#2563EB" />
+
+                    <TableCell
+                      sx={{
+                        ...bodyCellSx,
+                        padding: "4px",
+                        borderRight: "none",
+                        textAlign: "center",
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        sx={{
+                          p: 0.25,
+                        }}
+                      >
+                        <RPDeleteIcon
+                          width={ICON_SIZE.delete}
+                          height={ICON_SIZE.delete}
+                          color={T.blue}
+                        />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -656,9 +1182,17 @@ export default function PracticeEdit() {
           </TableContainer>
         </SectionBox>
 
-        {/* ══ FOOTER BUTTONS ══ */}
+        {/* =========================================================
+            FOOTER BUTTONS
+        ========================================================= */}
+
         <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 1.5,
+            pb: 3,
+          }}
         >
           <Button
             variant="outlined"
@@ -671,14 +1205,20 @@ export default function PracticeEdit() {
               color: "#015DFF",
               border: "1.5px solid #015DFF",
               px: 3,
-              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
+
+              "&:hover": {
+                borderColor: "#9CA3AF",
+                bgcolor: "#F9FAFB",
+              },
             }}
           >
             Cancel
           </Button>
+
           <Button
             variant="contained"
             disableElevation
+            onClick={handleSave}
             sx={{
               textTransform: "none",
               fontSize: 14,
@@ -686,7 +1226,10 @@ export default function PracticeEdit() {
               borderRadius: "8px",
               bgcolor: T.blue,
               px: 4,
-              "&:hover": { bgcolor: "#1D4ED8" },
+
+              "&:hover": {
+                bgcolor: "#1D4ED8",
+              },
             }}
           >
             Save

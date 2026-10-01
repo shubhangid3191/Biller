@@ -4,18 +4,23 @@ import {
   Box,
   Typography,
   Button,
+  IconButton,
   TextField,
   MenuItem,
   Select,
   FormControl,
   Switch,
+  InputAdornment,
+  InputBase,
+  Popover,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SearchIcon from "@mui/icons-material/Search";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import dayjs from "dayjs";
+import { CalendarIcon, StarIcon } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                        */
@@ -27,7 +32,7 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Base input style (no adornment padding override)                    */
+/* Input styles                                                         */
 /* ------------------------------------------------------------------ */
 const inputSx = {
   "& .MuiOutlinedInput-root": {
@@ -42,8 +47,14 @@ const inputSx = {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 /* Same but input has right padding to avoid text going under the icon */
@@ -55,7 +66,7 @@ const inputWithIconSx = {
     "& input": {
       py: "10px",
       pl: "14px",
-      pr: "36px" /* reserve space for icon */,
+      pr: "36px",
       fontSize: 12,
       color: "#1F2937",
     },
@@ -108,7 +119,18 @@ function Label({ children, required }) {
 /* ------------------------------------------------------------------ */
 /* Plain input field                                                    */
 /* ------------------------------------------------------------------ */
-function InputField({ label, placeholder = "Type here", required }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+}) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
@@ -116,6 +138,21 @@ function InputField({ label, placeholder = "Type here", required }) {
         fullWidth
         size="small"
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
+        inputProps={{ inputMode, maxLength }}
+        InputProps={
+          endIcon
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                ),
+              }
+            : undefined
+        }
         sx={inputSx}
       />
     </Box>
@@ -160,75 +197,6 @@ function InputFieldWithIcon({
 }
 
 /* ------------------------------------------------------------------ */
-/* Date field: click on the icon (or the input) opens the calendar     */
-/* ------------------------------------------------------------------ */
-function DateField({ label, placeholder = "Select", required }) {
-  return (
-    <Box sx={{ minWidth: 0, width: "100%" }}>
-      <Label required={required}>{label}</Label>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePicker
-          format="MM/DD/YYYY"
-          sx={{ width: "100%" }}
-          slots={{
-            openPickerIcon: () => (
-              <CalendarTodayIcon sx={{ fontSize: 16, color: "#1E1E1E" }} />
-            ),
-          }}
-          slotProps={{
-            textField: {
-              fullWidth: true,
-              size: "small",
-              placeholder,
-              sx: {
-                "& .MuiPickersOutlinedInput-root, & .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  bgcolor: "#fff",
-                  fontSize: 12,
-                  height: 38,
-                  pr: "8px",
-                },
-                /* text area inside the picker */
-                "& .MuiPickersInputBase-sectionsContainer": {
-                  py: "10px",
-                  pl: "14px",
-                  pr: 0,
-                  fontSize: 12,
-                  color: "#1F2937",
-                },
-                "& .MuiPickersSectionList-root": {
-                  py: "10px",
-                  pl: "14px",
-                  fontSize: 12,
-                  color: "#1F2937",
-                },
-                /* older versions use a real <input> */
-                "& input": {
-                  py: "10px",
-                  pl: "14px",
-                  pr: 0,
-                  fontSize: 12,
-                  color: "#1F2937",
-                },
-                "& input::placeholder": { color: "#8F9098", opacity: 1 },
-                "& .MuiPickersOutlinedInput-notchedOutline, & .MuiOutlinedInput-notchedOutline":
-                  { borderColor: T.border },
-                "&:hover .MuiPickersOutlinedInput-notchedOutline, &:hover .MuiOutlinedInput-notchedOutline":
-                  { borderColor: "#9CA3AF" },
-                "& .Mui-focused .MuiPickersOutlinedInput-notchedOutline, & .Mui-focused .MuiOutlinedInput-notchedOutline":
-                  { borderColor: T.blue, borderWidth: "1.5px" },
-                "& .MuiFormHelperText-root": { display: "none" },
-              },
-            },
-            openPickerButton: { sx: { p: 0.5, mr: 0 } },
-          }}
-        />
-      </LocalizationProvider>
-    </Box>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Select field                                                         */
 /* ------------------------------------------------------------------ */
 function SelectField({
@@ -262,8 +230,89 @@ function SelectField({
 }
 
 /* ------------------------------------------------------------------ */
-/* Form grid                                                            */
+/* Date field with MUI calendar popover                                 */
 /* ------------------------------------------------------------------ */
+function DateField({
+  label,
+  value,
+  onChange,
+  required,
+  minDate,
+  placeholder = "DD-MM-YYYY",
+}) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const handleClose = () => setAnchorEl(null);
+
+  const handleDateChange = (newVal) => {
+    if (newVal) onChange({ target: { value: newVal.format("DD-MM-YYYY") } });
+    handleClose();
+  };
+
+  const parsed = value ? dayjs(value, "DD-MM-YYYY") : null;
+  const parsedValue = parsed && parsed.isValid() ? parsed : null;
+
+  return (
+    <Box>
+      <Label required={required}>{label}</Label>
+      <TextField
+        fullWidth
+        size="small"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end" sx={{ mr: "-4px" }}>
+                <IconButton
+                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                  aria-label="Open calendar"
+                  sx={{ p: "4px", "&:hover": { background: "transparent" } }}
+                  disableRipple
+                >
+                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={inputSx}
+      />
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: {
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+            mt: 0.5,
+          },
+        }}
+      >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateCalendar
+            value={parsedValue}
+            onChange={handleDateChange}
+            minDate={minDate}
+            sx={{
+              width: { xs: "280px", sm: "320px" },
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#015DFF",
+              },
+              "& .MuiPickersDay-root:hover": {
+                backgroundColor: "#EEF4FF",
+              },
+            }}
+          />
+        </LocalizationProvider>
+      </Popover>
+    </Box>
+  );
+}
+
 function FormGrid({ children }) {
   return (
     <Box
@@ -296,6 +345,16 @@ export default function FeeConfiguration() {
   const navigate = useNavigate();
   const [nonCovered, setNonCovered] = React.useState(true);
 
+  const [dates, setDates] = React.useState({ effective: "", expiry: "" });
+  const setDate = (field) => (e) =>
+    setDates((prev) => ({ ...prev, [field]: e.target.value }));
+
+  /* expiry can't be before the effective date */
+  const effParsed = dates.effective
+    ? dayjs(dates.effective, "DD-MM-YYYY")
+    : null;
+  const expiryMin = effParsed && effParsed.isValid() ? effParsed : undefined;
+
   return (
     <Box
       sx={{
@@ -316,10 +375,75 @@ export default function FeeConfiguration() {
           gap: 3,
         }}
       >
-        {/* Title */}
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
-          Fee Configuration
-        </Typography>
+        {/* Title + Ask Anything Search */}
+        <Box>
+          <Typography
+            sx={{ fontSize: 28, fontWeight: 700, color: "#111827", mb: 2 }}
+          >
+            Fee Configuration
+          </Typography>
+
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 600,
+              height: 42,
+              borderRadius: "8px",
+              backgroundColor: "#F1F3F6",
+              border: "1px solid #E5E7EB",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                ml: 1.5,
+                mr: 1,
+              }}
+            >
+              <StarIcon width={16} height={16} color="#6B7280" />
+            </Box>
+
+            <InputBase
+              placeholder='Ask anything — "show denied claims over $500 from BCBSM"'
+              sx={{
+                flex: 1,
+                fontSize: 12,
+                color: "#374151",
+                "& input": { padding: 0 },
+                "& input::placeholder": { color: "#7B8494", opacity: 1 },
+              }}
+            />
+
+            <Box
+              sx={{
+                mr: 1,
+                px: 0.8,
+                py: 0.25,
+                borderRadius: "4px",
+                backgroundColor: "#E5E7EB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 10,
+                  color: "#6B7280",
+                  fontWeight: 500,
+                  lineHeight: 1,
+                }}
+              >
+                ⌘K
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
 
         {/* ══ SINGLE BOX ══ */}
         <Box
@@ -333,7 +457,6 @@ export default function FeeConfiguration() {
         >
           {/* Row 1 */}
           <FormGrid>
-            {/* Procedure Code — with search icon */}
             <InputFieldWithIcon
               label="Procedure Code"
               icon={<SearchIcon sx={{ fontSize: 18, color: "#1E1E1E" }} />}
@@ -347,11 +470,19 @@ export default function FeeConfiguration() {
           </FormGrid>
 
           {/* Row 2 */}
-          {/* Row 2 */}
           <FormGrid>
             <SelectField label="Select POS Code" />
-            <DateField label="Effective date" />
-            <DateField label="Expiry date" />
+            <DateField
+              label="Effective date"
+              value={dates.effective}
+              onChange={setDate("effective")}
+            />
+            <DateField
+              label="Expiry date"
+              value={dates.expiry}
+              onChange={setDate("expiry")}
+              minDate={expiryMin}
+            />
             <SelectField
               label="Select Practice"
               options={["Fresh Original", "Practice 2"]}
@@ -439,9 +570,6 @@ export default function FeeConfiguration() {
             <Box />
             <Box />
           </Box>
-
-          {/* Divider */}
-          <Box sx={{ borderTop: "1px solid #E5E7EB", my: 3 }} />
 
           {/* NDC Configuration */}
           <SectionTitle>NDC Configuration</SectionTitle>

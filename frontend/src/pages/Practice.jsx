@@ -28,6 +28,7 @@ import {
 /* ------------------------------------------------------------------ */
 const T = {
   headBg: "#EBF1FE",
+  headSymbol: "#52525B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
@@ -35,21 +36,77 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows                                                           */
+/* Dummy rows (varied so sorting can be seen working)                   */
 /* ------------------------------------------------------------------ */
-const createRows = (count = 11) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i,
-    practice: "Clare Jane",
-    address: "WashingtonUSe, Aleuti...",
-    contact: "8475875747",
-    workPhone: "8475875747",
-    fax: "8475875747",
-    npi: "8475875747",
-    active: true,
-  }));
+const SAMPLE = [
+  ["Clare Jane", "WashingtonUSe, Aleuti...", "8475875747", "8475875747", "8475875747", "8475875747", true],
+  ["Adam Ross", "Boston, Suffolk Coun...", "9123456780", "9123456781", "9123456782", "9123456783", true],
+  ["Zoe Martin", "Denver, Denver Coun...", "7345678123", "7345678124", "7345678125", "7345678126", false],
+  ["Brian Cox", "Austin, Travis Count...", "6456781234", "6456781235", "6456781236", "6456781237", true],
+  ["Maya Singh", "Chicago, Cook County...", "9567812345", "9567812346", "9567812347", "9567812348", true],
+  ["Liam Turner", "Seattle, King County...", "5678123456", "5678123457", "5678123458", "5678123459", true],
+  ["Nora Blake", "Miami, Miami-Dade...", "8781234567", "8781234568", "8781234569", "8781234560", false],
+  ["Ethan Hall", "Phoenix, Maricopa...", "4892345678", "4892345679", "4892345670", "4892345671", true],
+  ["Ivy Morgan", "Portland, Multnomah...", "9903456781", "9903456782", "9903456783", "9903456784", true],
+  ["Owen Reed", "Dallas, Dallas County...", "3014567812", "3014567813", "3014567814", "3014567815", true],
+  ["Ruby Fox", "Atlanta, Fulton Coun...", "7125678123", "7125678124", "7125678125", "7125678126", true],
+];
 
-const ROWS = createRows(11);
+const ROWS = SAMPLE.map(
+  ([practice, address, contact, workPhone, fax, npi, active], id) => ({
+    id, practice, address, contact, workPhone, fax, npi, active,
+  })
+);
+
+/* ------------------------------------------------------------------ */
+/* Table columns                                                        */
+/* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
+/* ------------------------------------------------------------------ */
+const COLUMNS = [
+  { id: "practice", label: "Practice", sort: "alpha" },
+  { id: "address", label: "Address", sort: "alpha" },
+  { id: "contact", label: "Contact number", sort: "number" },
+  { id: "workPhone", label: "Work Phone", sort: "number" },
+  { id: "fax", label: "Fax", sort: "number" },
+  { id: "npi", label: "NPI", sort: "number" },
+  { id: "active", label: "Active", center: true },
+  { id: "actions", label: "Action", last: true },
+];
+
+/* ------------------------------------------------------------------ */
+/* Sort helpers                                                         */
+/* ------------------------------------------------------------------ */
+const COMPARERS = {
+  alpha: (a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
+  number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+};
+
+const SORT_TITLES = {
+  alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
+  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+};
+
+/* asc <-> desc only, no reset to original order */
+function useSortedRows(rows, columns) {
+  const [sort, setSort] = React.useState({ columnId: null, dir: null });
+
+  const sortedRows = React.useMemo(() => {
+    if (!sort.columnId || !sort.dir) return rows;
+    const column = columns.find((c) => c.id === sort.columnId);
+    if (!column?.sort) return rows;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    const compare = COMPARERS[column.sort];
+    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+  }, [rows, columns, sort]);
+
+  const handleSort = (columnId) =>
+    setSort((prev) => {
+      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
+    });
+
+  return { sort, sortedRows, handleSort };
+}
 
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
@@ -75,10 +132,59 @@ const headCellSx = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Header cell (arrow toggles sort)                                     */
+/* ------------------------------------------------------------------ */
+function HeaderCell({ column, sortDir, onSort }) {
+  const active = !!sortDir;
+  const titles = column.sort ? SORT_TITLES[column.sort] : null;
+
+  return (
+    <TableCell
+      sx={{
+        ...headCellSx,
+        borderRight: column.last ? "none" : `1px solid ${T.border}`,
+        textAlign: column.center ? "center" : "left",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        {column.label}
+        {column.sort && (
+          <Tooltip title={titles[sortDir || "none"]} arrow>
+            <IconButton
+              size="small"
+              aria-label={`Sort ${column.label}`}
+              onClick={() => onSort(column.id)}
+              sx={{
+                p: 0.2,
+                ml: "auto",
+                flexShrink: 0,
+                borderRadius: "6px",
+                color: active ? T.blue : T.headSymbol,
+                bgcolor: active ? "#DCE7FD" : "transparent",
+                "&:hover": { bgcolor: "#DCE7FD" },
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  transform: sortDir === "desc" ? "rotate(180deg)" : "none",
+                  transition: "transform .15s ease",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+    </TableCell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
 export default function Practice() {
   const navigate = useNavigate();
+  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
 
   return (
     <Box
@@ -87,7 +193,7 @@ export default function Practice() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -174,39 +280,19 @@ export default function Practice() {
         >
           <TableHead>
             <TableRow>
-              {[
-                { label: "Practice", arrow: true },
-                { label: "Address", arrow: true },
-                { label: "Contact number", arrow: true },
-                { label: "Work Phone", arrow: true },
-                { label: "Fax", arrow: true },
-                { label: "NPI", arrow: true },
-                { label: "Active" },
-                { label: "Action", last: true },
-              ].map((col) => (
-                <TableCell
-                  key={col.label}
-                  sx={{
-                    ...headCellSx,
-                    borderRight: col.last ? "none" : `1px solid ${T.border}`,
-                    textAlign: col.label === "Active" ? "center" : "left",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    {col.label}
-                    {col.arrow && (
-                      <KeyboardArrowDownIcon
-                        sx={{ fontSize: 16, color: "#52525B", ml: "auto" }}
-                      />
-                    )}
-                  </Box>
-                </TableCell>
+              {COLUMNS.map((col) => (
+                <HeaderCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                />
               ))}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {ROWS.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow
                 key={row.id}
                 hover

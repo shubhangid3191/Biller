@@ -5,18 +5,29 @@ import {
   Typography,
   Button,
   IconButton,
+  InputAdornment,
   TextField,
   MenuItem,
   Select,
   FormControl,
   Switch,
+  Popover,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { RPAddIcon, RPDeleteIcon } from "../assets/Assets";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import dayjs from "dayjs";
+import {
+  RPAddIcon,
+  RPDeleteIcon,
+  CalendarIcon,
+} from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
-/* Design tokens                                                        */
+/* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
+
 const T = {
   blue: "#2563EB",
   page: "#F7F9FC",
@@ -24,56 +35,144 @@ const T = {
   labelColor: "#000",
 };
 
+const ICON_SIZE = {
+  delete: 20,
+  add: 14,
+};
+
 /* ------------------------------------------------------------------ */
-/* Input styles                                                         */
+/* Dropdown options                                                    */
 /* ------------------------------------------------------------------ */
+
+const OPTIONS = {
+  sex: ["Male", "Female", "Other"],
+  suffix: ["Jr.", "Sr.", "III"],
+  prefix: ["Dr.", "Mr.", "Ms."],
+  practice: ["Fresh Original", "Hitex", "Balance Report"],
+  address2: ["Suite 100", "Apt 2B", "Floor 3"],
+  country: ["United States", "Canada", "India"],
+  state: ["California", "Texas", "New York"],
+  fax: ["8475875747", "8475875748", "8475875749"],
+  email: [
+    "lipsum@gmail.com",
+    "provider@gmail.com",
+    "info@gmail.com",
+  ],
+  specialty: ["Cardiology", "Neurology", "Orthopedics"],
+};
+
+/* ------------------------------------------------------------------ */
+/* Validation                                                          */
+/* ------------------------------------------------------------------ */
+
+const PHONE_FIELDS = ["mobilePhone", "workContact", "phone"];
+const PHONE_ERROR = "Enter a valid 10-digit number";
+
+const validatePhone = (value) =>
+  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+
+/* ------------------------------------------------------------------ */
+/* Input styles                                                        */
+/* ------------------------------------------------------------------ */
+
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
     fontSize: 12,
     bgcolor: "#fff",
-    "& input": { py: "10px", px: "14px", fontSize: 12, color: "#1F2937" },
-    "& input::placeholder": { color: "#8F9098", opacity: 1 },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+    "& input": {
+      py: "10px",
+      px: "14px",
+      fontSize: 12,
+      color: "#1F2937",
+    },
+
+    "& input::placeholder": {
+      color: "#8F9098",
+      opacity: 1,
+    },
+
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: T.border,
+    },
+
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#9CA3AF",
+    },
+
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
+
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#EF4444",
+    },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = {
   borderRadius: "8px",
   fontSize: 12,
   bgcolor: "#fff",
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: T.border,
+  },
+
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#9CA3AF",
+  },
+
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: T.blue,
     borderWidth: "1.5px",
   },
+
   "& .MuiSelect-select": {
     py: "10px",
     px: "14px",
     fontSize: 12,
+    color: "#1F2937",
+  },
+
+  "& .MuiSvgIcon-root": {
     color: "#8F9098",
   },
-  "& .MuiSvgIcon-root": { color: "#8F9098" },
 };
 
 /* ------------------------------------------------------------------ */
-/* Shared components                                                    */
+/* Shared components                                                   */
 /* ------------------------------------------------------------------ */
+
 function Label({ children, required }) {
   return (
     <Typography
-      sx={{ fontSize: 12, fontWeight: 600, color: T.labelColor, mb: 0.5 }}
+      sx={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: T.labelColor,
+        mb: 0.5,
+      }}
     >
       {children}
+
       {required && (
-        <Box component="span" sx={{ color: "red", ml: 0.3 }}>
+        <Box
+          component="span"
+          sx={{
+            color: "red",
+            ml: 0.3,
+          }}
+        >
           *
         </Box>
       )}
@@ -81,14 +180,34 @@ function Label({ children, required }) {
   );
 }
 
-function InputField({ label, placeholder = "Type here", required }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+}) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
+
       <TextField
         fullWidth
         size="small"
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
+        inputProps={{
+          inputMode,
+          maxLength,
+        }}
         sx={inputSx}
       />
     </Box>
@@ -100,22 +219,60 @@ function SelectField({
   placeholder = "Select",
   options = [],
   required,
+  value,
+  onChange,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
+
       <FormControl fullWidth size="small">
         <Select
           displayEmpty
-          defaultValue=""
+          value={value}
+          onChange={onChange}
           sx={selectSx}
           IconComponent={KeyboardArrowDownIcon}
+          renderValue={(val) =>
+            val ? (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "#1F2937",
+                }}
+              >
+                {val}
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "#8F9098",
+                }}
+              >
+                {placeholder}
+              </span>
+            )
+          }
         >
-          <MenuItem value="" sx={{ fontSize: 12, color: "#8F9098" }}>
+          <MenuItem
+            value=""
+            sx={{
+              fontSize: 12,
+              color: "#8F9098",
+            }}
+          >
             {placeholder}
           </MenuItem>
+
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            <MenuItem
+              key={o}
+              value={o}
+              sx={{
+                fontSize: 12,
+              }}
+            >
               {o}
             </MenuItem>
           ))}
@@ -125,16 +282,143 @@ function SelectField({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Date field                                                          */
+/* ------------------------------------------------------------------ */
+
+function DateField({
+  label,
+  value,
+  onChange,
+  required,
+  placeholder = "DD-MM-YYYY",
+}) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDateChange = (newVal) => {
+    if (newVal) {
+      onChange({
+        target: {
+          value: newVal.format("DD-MM-YYYY"),
+        },
+      });
+    }
+
+    handleClose();
+  };
+
+  const parsed = value ? dayjs(value, "DD-MM-YYYY") : null;
+  const parsedValue = parsed && parsed.isValid() ? parsed : null;
+
+  return (
+    <Box>
+      <Label required={required}>{label}</Label>
+
+      <TextField
+        fullWidth
+        size="small"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment
+                position="end"
+                sx={{
+                  mr: "-4px",
+                }}
+              >
+                <IconButton
+                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                  aria-label="Open calendar"
+                  sx={{
+                    p: "4px",
+                    "&:hover": {
+                      background: "transparent",
+                    },
+                  }}
+                  disableRipple
+                >
+                  <CalendarIcon
+                    width={14}
+                    height={16}
+                    color="#1E1E1E"
+                  />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={inputSx}
+      />
+
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+            mt: 0.5,
+          },
+        }}
+      >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateCalendar
+            value={parsedValue}
+            onChange={handleDateChange}
+            disableFuture
+            sx={{
+              width: {
+                xs: "280px",
+                sm: "320px",
+              },
+
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#015DFF",
+              },
+
+              "& .MuiPickersDay-root:hover": {
+                backgroundColor: "#EEF4FF",
+              },
+            }}
+          />
+        </LocalizationProvider>
+      </Popover>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Form Grid                                                           */
+/* ------------------------------------------------------------------ */
+
 function FormGrid({ children, cols = 4 }) {
   return (
     <Box
       sx={{
         display: "grid",
+
         gridTemplateColumns: {
           xs: "1fr",
           sm: "1fr 1fr",
           md: `repeat(${cols}, 1fr)`,
         },
+
         gap: 2,
         mb: 2.5,
       }}
@@ -143,6 +427,10 @@ function FormGrid({ children, cols = 4 }) {
     </Box>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Section Title                                                       */
+/* ------------------------------------------------------------------ */
 
 function SectionTitle({ children }) {
   return (
@@ -162,8 +450,9 @@ function SectionTitle({ children }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Section Box wrapper                                                  */
+/* Section Box                                                         */
 /* ------------------------------------------------------------------ */
+
 function SectionBox({ children }) {
   return (
     <Box
@@ -171,8 +460,15 @@ function SectionBox({ children }) {
         bgcolor: "#fff",
         borderRadius: "12px",
         border: "1px solid #E5E7EB",
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 2, sm: 3 },
+        px: {
+          xs: 2,
+          sm: 3,
+          md: 4,
+        },
+        py: {
+          xs: 2,
+          sm: 3,
+        },
       }}
     >
       {children}
@@ -181,11 +477,93 @@ function SectionBox({ children }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Main Page                                                            */
+/* Main Page                                                           */
 /* ------------------------------------------------------------------ */
+
 export default function ReferringProviderEdit() {
   const navigate = useNavigate();
+
   const [pcp, setPcp] = React.useState(true);
+
+  const [form, setForm] = React.useState({
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    sex: "",
+    suffix: "",
+    prefix: "",
+    npi: "",
+    groupNpi: "",
+    stateLicense: "",
+    controlledSubstance: "",
+    dea: "",
+    practice: "",
+
+    addressType: "",
+    address1: "",
+    address2: "",
+    zipCode: "",
+    city: "",
+    country: "",
+    state: "",
+
+    mobilePhone: "",
+    workContact: "",
+    phone: "",
+    fax: "",
+    email: "",
+
+    specialty: "",
+    taxonomy: "",
+  });
+
+  const [errors, setErrors] = React.useState({});
+
+  const set = (field) => (e) =>
+    setForm((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
+
+  /* Phone fields */
+
+  const setPhone = (field) => (e) => {
+    const digits = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, 10);
+
+    setForm((prev) => ({
+      ...prev,
+      [field]: digits,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: "",
+    }));
+  };
+
+  const blurPhone = (field) => () =>
+    setErrors((prev) => ({
+      ...prev,
+      [field]: validatePhone(form[field]),
+    }));
+
+  const handleSave = () => {
+    const nextErrors = {};
+
+    PHONE_FIELDS.forEach((field) => {
+      nextErrors[field] = validatePhone(form[field]);
+    });
+
+    setErrors(nextErrors);
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      return;
+    }
+
+    // valid — submit form to API here
+  };
 
   return (
     <Box
@@ -193,8 +571,16 @@ export default function ReferringProviderEdit() {
         bgcolor: T.page,
         minHeight: "100vh",
         width: "100%",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: {
+          xs: 2,
+          md: 3,
+        },
+        px: {
+          xs: 1.5,
+          sm: 2,
+          md: 2.5,
+          lg: 2.5,
+        },
         boxSizing: "border-box",
       }}
     >
@@ -207,37 +593,113 @@ export default function ReferringProviderEdit() {
           gap: 3,
         }}
       >
-        {/* Title */}
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+        {/* =========================================================
+            TITLE
+        ========================================================= */}
+
+        <Typography
+          sx={{
+            fontSize: 28,
+            fontWeight: 700,
+            color: "#111827",
+          }}
+        >
           Edit referring provider
         </Typography>
 
-        {/* ══ BASIC DETAILS BOX ══ */}
+        {/* =========================================================
+            BASIC DETAILS
+        ========================================================= */}
+
         <SectionBox>
           <SectionTitle>Basic Details</SectionTitle>
 
           <FormGrid>
-            <InputField label="First Name" />
-            <InputField label="Last Name" />
-            <SelectField label="Date of Birth" placeholder="Select location" />
-            <SelectField label="Sex" options={["Male", "Female", "Other"]} />
+            <InputField
+              label="First Name"
+              value={form.firstName}
+              onChange={set("firstName")}
+            />
+
+            <InputField
+              label="Last Name"
+              value={form.lastName}
+              onChange={set("lastName")}
+            />
+
+            <DateField
+              label="Date of Birth"
+              value={form.dateOfBirth}
+              onChange={set("dateOfBirth")}
+            />
+
+            <SelectField
+              label="Sex"
+              options={OPTIONS.sex}
+              value={form.sex}
+              onChange={set("sex")}
+            />
           </FormGrid>
 
           <FormGrid>
-            <SelectField label="Select suffix" />
-            <SelectField label="Select prefix" />
-            <InputField label="National Provider Identifier" />
-            <InputField label="Group NPI" />
+            <SelectField
+              label="Select suffix"
+              options={OPTIONS.suffix}
+              value={form.suffix}
+              onChange={set("suffix")}
+            />
+
+            <SelectField
+              label="Select prefix"
+              options={OPTIONS.prefix}
+              value={form.prefix}
+              onChange={set("prefix")}
+            />
+
+            <InputField
+              label="National Provider Identifier"
+              value={form.npi}
+              onChange={set("npi")}
+            />
+
+            <InputField
+              label="Group NPI"
+              value={form.groupNpi}
+              onChange={set("groupNpi")}
+            />
           </FormGrid>
 
           <FormGrid>
-            <InputField label="State License Number" />
-            <InputField label="State Controlled Substance Number" />
-            <InputField label="DEA Number" placeholder="Typer here" />
-            <SelectField label="Practice" required />
+            <InputField
+              label="State License Number"
+              value={form.stateLicense}
+              onChange={set("stateLicense")}
+            />
+
+            <InputField
+              label="State Controlled Substance Number"
+              value={form.controlledSubstance}
+              onChange={set("controlledSubstance")}
+            />
+
+            <InputField
+              label="DEA Number"
+              placeholder="Typer here"
+              value={form.dea}
+              onChange={set("dea")}
+            />
+
+            <SelectField
+              label="Practice"
+              required
+              options={OPTIONS.practice}
+              value={form.practice}
+              onChange={set("practice")}
+            />
           </FormGrid>
 
           {/* PCP Toggle */}
+
           <Box
             sx={{
               width: {
@@ -258,31 +720,51 @@ export default function ReferringProviderEdit() {
                 height: 38,
                 bgcolor: "#fff",
                 boxSizing: "border-box",
-                "&:hover": { borderColor: "#9CA3AF" },
+
+                "&:hover": {
+                  borderColor: "#9CA3AF",
+                },
               }}
             >
-              <Typography sx={{ fontSize: 12, color: "#1F2937" }}>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: "#1F2937",
+                }}
+              >
                 PCP
               </Typography>
+
               <Switch
                 size="small"
                 checked={pcp}
                 onChange={(e) => setPcp(e.target.checked)}
                 sx={{
                   mr: -0.5,
-                  "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    bgcolor: "#22C55E",
-                    opacity: 1,
+
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: "#fff",
                   },
-                  "& .MuiSwitch-track": { borderRadius: 20 },
+
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
+                    {
+                      bgcolor: "#22C55E",
+                      opacity: 1,
+                    },
+
+                  "& .MuiSwitch-track": {
+                    borderRadius: 20,
+                  },
                 }}
               />
             </Box>
           </Box>
         </SectionBox>
 
-        {/* ══ ADDRESS BOX ══ */}
+        {/* =========================================================
+            ADDRESS
+        ========================================================= */}
+
         <SectionBox>
           <Box
             sx={{
@@ -293,47 +775,133 @@ export default function ReferringProviderEdit() {
             }}
           >
             <SectionTitle>Address</SectionTitle>
-            <IconButton size="small">
-              <RPDeleteIcon width={20} height={20} color="#2563EB" />
+
+            <IconButton
+              size="small"
+              sx={{
+                p: 0.5,
+                "&:hover": {
+                  bgcolor: "transparent",
+                },
+              }}
+            >
+              <RPDeleteIcon
+                width={ICON_SIZE.delete}
+                height={ICON_SIZE.delete}
+                color="#2563EB"
+              />
             </IconButton>
           </Box>
 
-          <FormGrid>
-            <InputField label="Address Type" placeholder="Basic" />
-            <InputField label="Address 1" placeholder="Address 1" />
-            <SelectField label="Address 2" placeholder="Address 2" />
-            <InputField label="Zip Code" />
-          </FormGrid>
+          {/* Row 1 */}
 
           <FormGrid>
-            <InputField label="City" />
-            <SelectField label="Country" />
-            <SelectField label="State" />
-            <SelectField label="Country" />
+            <InputField
+              label="Address Type"
+              placeholder="Basic"
+              value={form.addressType}
+              onChange={set("addressType")}
+            />
+
+            <InputField
+              label="Address 1"
+              placeholder="Address 1"
+              value={form.address1}
+              onChange={set("address1")}
+            />
+
+            <SelectField
+              label="Address 2"
+              placeholder="Address 2"
+              options={OPTIONS.address2}
+              value={form.address2}
+              onChange={set("address2")}
+            />
+
+            <InputField
+              label="Zip Code"
+              value={form.zipCode}
+              onChange={set("zipCode")}
+            />
           </FormGrid>
+
+          {/* Row 2 */}
 
           <FormGrid>
-            <InputField label="Mobile Phone" />
-            <InputField label="Work Contact No." />
-            <InputField label="Phone" />
-            <SelectField label="Fax" />
+            <InputField
+              label="City"
+              value={form.city}
+              onChange={set("city")}
+            />
+
+            <SelectField
+              label="State"
+              options={OPTIONS.state}
+              value={form.state}
+              onChange={set("state")}
+            />
+
+            <SelectField
+              label="Country"
+              options={OPTIONS.country}
+              value={form.country}
+              onChange={set("country")}
+            />
+
+            <InputField
+              label="Mobile Phone"
+              value={form.mobilePhone}
+              onChange={setPhone("mobilePhone")}
+              onBlur={blurPhone("mobilePhone")}
+              error={errors.mobilePhone}
+              inputMode="numeric"
+              maxLength={10}
+            />
           </FormGrid>
 
-          {/* E-mail */}
-          <Box
-            sx={{
-              width: {
-                xs: "100%",
-                sm: "calc((100% - 16px) / 2)",
-                md: "calc((100% - 48px) / 4)",
-              },
-            }}
-          >
-            <SelectField label="E-mail" />
-          </Box>
+          {/* Row 3 */}
+
+          <FormGrid>
+            <InputField
+              label="Work Contact No."
+              value={form.workContact}
+              onChange={setPhone("workContact")}
+              onBlur={blurPhone("workContact")}
+              error={errors.workContact}
+              inputMode="numeric"
+              maxLength={10}
+            />
+
+            <InputField
+              label="Phone"
+              value={form.phone}
+              onChange={setPhone("phone")}
+              onBlur={blurPhone("phone")}
+              error={errors.phone}
+              inputMode="numeric"
+              maxLength={10}
+            />
+
+            <SelectField
+              label="Fax"
+              options={OPTIONS.fax}
+              value={form.fax}
+              onChange={set("fax")}
+            />
+
+            <SelectField
+              label="E-mail"
+              options={OPTIONS.email}
+              value={form.email}
+              onChange={set("email")}
+            />
+          </FormGrid>
         </SectionBox>
 
-        {/* ══ SPECIALTY & TAXONOMY BOX ══ */}
+        {/* =========================================================
+            SPECIALTY & TAXONOMY
+        ========================================================= */}
+
         <SectionBox>
           <Box
             sx={{
@@ -344,40 +912,85 @@ export default function ReferringProviderEdit() {
             }}
           >
             <SectionTitle>Specialty & Taxonomy</SectionTitle>
+
             <IconButton
               size="small"
               sx={{
-                p: 0,
-                "&:hover": { bgcolor: "transparent" },
+                p: 0.5,
+                "&:hover": {
+                  bgcolor: "transparent",
+                },
               }}
             >
-              <RPAddIcon width={16} height={16} color={T.blue} />
+              <RPAddIcon
+                width={ICON_SIZE.add}
+                height={ICON_SIZE.add}
+                color={T.blue}
+              />
             </IconButton>
           </Box>
 
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+              },
               gap: 2,
               alignItems: "end",
             }}
           >
-            <SelectField label="Specialty" />
-            <Box sx={{ display: "flex", alignItems: "end", gap: 1 }}>
+            <SelectField
+              label="Specialty"
+              options={OPTIONS.specialty}
+              value={form.specialty}
+              onChange={set("specialty")}
+            />
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "end",
+                gap: 1,
+              }}
+            >
               <Box sx={{ flex: 1 }}>
-                <InputField label="Taxonomy" placeholder="Address 1" />
+                <InputField
+                  label="Taxonomy"
+                  placeholder="Address 1"
+                  value={form.taxonomy}
+                  onChange={set("taxonomy")}
+                />
               </Box>
-              <IconButton size="small" sx={{ mb: 0.2 }}>
-                <RPDeleteIcon width={24} height={24} color="#2563EB" />
+
+              <IconButton
+                size="small"
+                sx={{
+                  p: 0.5,
+                }}
+              >
+                <RPDeleteIcon
+                  width={ICON_SIZE.delete}
+                  height={ICON_SIZE.delete}
+                  color="#2563EB"
+                />
               </IconButton>
             </Box>
           </Box>
         </SectionBox>
 
-        {/* ══ FOOTER BUTTONS ══ */}
+        {/* =========================================================
+            FOOTER BUTTONS
+        ========================================================= */}
+
         <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 1.5,
+            pb: 3,
+          }}
         >
           <Button
             variant="outlined"
@@ -390,14 +1003,20 @@ export default function ReferringProviderEdit() {
               color: "#0052E1",
               borderColor: "#0052E1",
               px: 3,
-              "&:hover": { borderColor: "#0052E1", bgcolor: "#F9FAFB" },
+
+              "&:hover": {
+                borderColor: "#0052E1",
+                bgcolor: "#F9FAFB",
+              },
             }}
           >
             Cancel
           </Button>
+
           <Button
             variant="contained"
             disableElevation
+            onClick={handleSave}
             sx={{
               textTransform: "none",
               fontSize: 14,
@@ -405,7 +1024,10 @@ export default function ReferringProviderEdit() {
               borderRadius: "8px",
               bgcolor: T.blue,
               px: 4,
-              "&:hover": { bgcolor: "#1D4ED8" },
+
+              "&:hover": {
+                bgcolor: "#1D4ED8",
+              },
             }}
           >
             Save

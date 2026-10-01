@@ -204,7 +204,6 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           fontWeight: 600,
           fontSize: "18px",
           fontFamily: FONT,
-          borderBottom: "1px dashed #A7C7E7",
           px: { xs: 2, sm: 2.5 },
           pt: { xs: 1.5, sm: 2 },
           pb: 1.5,
@@ -261,14 +260,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           >
             {cfg.hint}
           </Typography>
-          {cfg.ext && (
-            <Typography
-              variant="body2"
-              sx={{ color: "#9CA3AF", mt: 0.3, fontSize: 12 }}
-            >
-              {cfg.ext}
-            </Typography>
-          )}
+         
         </Box>
 
         {/* Upload from computer zone */}
@@ -300,20 +292,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           </Typography>
         </Box>
 
-        {/* Selected file name */}
-        {file && (
-          <Typography
-            sx={{
-              mt: 2,
-              textAlign: "center",
-              color: "#2563EB",
-              fontWeight: 500,
-              fontSize: 13,
-            }}
-          >
-            Selected: {file.name}
-          </Typography>
-        )}
+      
       </Box>
 
       {/* Footer */}
@@ -324,8 +303,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           alignItems: "center",
           gap: 1,
           p: { xs: 1.5, sm: 2 },
-          borderTop: "1px solid #E5E7EB",
-          bgcolor: "#F9FAFB",
+         
         }}
       >
         <Button
@@ -856,8 +834,7 @@ function AddNewPatient() {
           <SectionHeader title="VISIT DETAILS" />
           <FieldRow>
             <FormField label="Admit Date" required>
-              <TextInput
-                placeholder="(555) 123-4567"
+              <DateInput
                 value={form.admitDate}
                 onChange={set("admitDate")}
               />

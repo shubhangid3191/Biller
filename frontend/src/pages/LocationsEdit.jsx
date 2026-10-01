@@ -10,6 +10,7 @@ import {
   Select,
   FormControl,
   Switch,
+  InputAdornment,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RPDeleteIcon } from "../assets/Assets";
@@ -23,6 +24,16 @@ const T = {
   border: "#D5DCE8",
   labelColor: "#000",
 };
+
+const ICON_SIZE = { delete: 20, add: 16 };
+
+/* ------------------------------------------------------------------ */
+/* Validation                                                           */
+/* ------------------------------------------------------------------ */
+const PHONE_FIELDS = ["mobile", "workContact"];
+const PHONE_ERROR = "Enter a valid 10-digit number";
+const validatePhone = (value) =>
+  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
 
 /* ------------------------------------------------------------------ */
 /* Input / Select styles                                                */
@@ -40,8 +51,14 @@ const inputSx = {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = {
@@ -79,7 +96,18 @@ function Label({ children, required }) {
   );
 }
 
-function InputField({ label, placeholder = "Type here", required }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+}) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
@@ -87,6 +115,21 @@ function InputField({ label, placeholder = "Type here", required }) {
         fullWidth
         size="small"
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
+        inputProps={{ inputMode, maxLength }}
+        InputProps={
+          endIcon
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                ),
+              }
+            : undefined
+        }
         sx={inputSx}
       />
     </Box>
@@ -177,6 +220,29 @@ function SectionBox({ children }) {
 export default function LocationsEdit() {
   const navigate = useNavigate();
   const [active, setActive] = React.useState(true);
+
+  const [form, setForm] = React.useState({ mobile: "", workContact: "" });
+  const [errors, setErrors] = React.useState({});
+
+  /* phone fields: digits only, max 10, error cleared while typing */
+  const setPhone = (field) => (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm((prev) => ({ ...prev, [field]: digits }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const blurPhone = (field) => () =>
+    setErrors((prev) => ({ ...prev, [field]: validatePhone(form[field]) }));
+
+  const handleSave = () => {
+    const nextErrors = {};
+    PHONE_FIELDS.forEach((f) => {
+      nextErrors[f] = validatePhone(form[f]);
+    });
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
+    // valid — submit `form` to the API here
+  };
 
   return (
     <Box
@@ -293,8 +359,12 @@ export default function LocationsEdit() {
             }}
           >
             <SectionTitle>Address</SectionTitle>
-            <IconButton size="small">
-              <RPDeleteIcon width={20} height={20} color="#2563EB" />
+            <IconButton size="small" sx={{ p: 0.5 }}>
+              <RPDeleteIcon
+                width={ICON_SIZE.delete}
+                height={ICON_SIZE.delete}
+                color="#2563EB"
+              />
             </IconButton>
           </Box>
 
@@ -306,18 +376,35 @@ export default function LocationsEdit() {
             <InputField label="Zip Code" required />
           </FormGrid>
 
-          {/* Row 2 */}
+          {/* Row 2 — City → State → Country → County */}
           <FormGrid>
             <InputField label="City" required />
-            <SelectField label="Country" required />
             <SelectField label="State" required />
+            <SelectField label="Country" required />
             <SelectField label="County" required />
           </FormGrid>
 
           {/* Row 3 */}
           <FormGrid>
-            <InputField label="Mobile no." required />
-            <InputField label="Work Contact no." />
+            <InputField
+              label="Mobile no."
+              required
+              value={form.mobile}
+              onChange={setPhone("mobile")}
+              onBlur={blurPhone("mobile")}
+              error={errors.mobile}
+              inputMode="numeric"
+              maxLength={10}
+            />
+            <InputField
+              label="Work Contact no."
+              value={form.workContact}
+              onChange={setPhone("workContact")}
+              onBlur={blurPhone("workContact")}
+              error={errors.workContact}
+              inputMode="numeric"
+              maxLength={10}
+            />
             <SelectField label="Fax" required />
             <SelectField label="E-mail" required />
           </FormGrid>
@@ -346,6 +433,7 @@ export default function LocationsEdit() {
           <Button
             variant="contained"
             disableElevation
+            onClick={handleSave}
             sx={{
               textTransform: "none",
               fontSize: 14,

@@ -23,6 +23,14 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Validation                                                           */
+/* ------------------------------------------------------------------ */
+const PHONE_FIELDS = ["payorPhone", "payorFax"];
+const PHONE_ERROR = "Enter a valid 10-digit number";
+const validatePhone = (value) =>
+  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+
+/* ------------------------------------------------------------------ */
 /* Input / Select styles                                                */
 /* ------------------------------------------------------------------ */
 const inputSx = {
@@ -38,8 +46,14 @@ const inputSx = {
       borderColor: T.blue,
       borderWidth: "1.5px",
     },
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
-  "& .MuiFormHelperText-root": { display: "none" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = {
@@ -80,7 +94,18 @@ function Label({ children, required }) {
 /* ------------------------------------------------------------------ */
 /* Field components                                                     */
 /* ------------------------------------------------------------------ */
-function InputField({ label, placeholder = "Type here", required, endIcon }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+}) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
@@ -88,7 +113,12 @@ function InputField({ label, placeholder = "Type here", required, endIcon }) {
         fullWidth
         size="small"
         placeholder={placeholder}
-        sx={inputSx}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
+        inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
             ? {
@@ -98,6 +128,7 @@ function InputField({ label, placeholder = "Type here", required, endIcon }) {
               }
             : undefined
         }
+        sx={inputSx}
       />
     </Box>
   );
@@ -155,6 +186,29 @@ export default function InsuranceProviderEdit() {
   const navigate = useNavigate();
   const [mandatoryCode, setMandatoryCode] = React.useState(true);
 
+  const [form, setForm] = React.useState({ payorPhone: "", payorFax: "" });
+  const [errors, setErrors] = React.useState({});
+
+  /* phone fields: digits only, max 10, error cleared while typing */
+  const setPhone = (field) => (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm((prev) => ({ ...prev, [field]: digits }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const blurPhone = (field) => () =>
+    setErrors((prev) => ({ ...prev, [field]: validatePhone(form[field]) }));
+
+  const handleSave = () => {
+    const nextErrors = {};
+    PHONE_FIELDS.forEach((f) => {
+      nextErrors[f] = validatePhone(form[f]);
+    });
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
+    // valid — submit `form` to the API here
+  };
+
   return (
     <Box
       sx={{
@@ -199,29 +253,47 @@ export default function InsuranceProviderEdit() {
               placeholder="Select location"
               required
             />
-            <InputField label="Payor Phone" placeholder="Select" required />
+            <InputField
+              label="Payor Phone"
+              required
+              value={form.payorPhone}
+              onChange={setPhone("payorPhone")}
+              onBlur={blurPhone("payorPhone")}
+              error={errors.payorPhone}
+              inputMode="numeric"
+              maxLength={10}
+            />
           </FormGrid>
 
           {/* Row 2 */}
           <FormGrid>
-            <InputField label="Payor Fax" required />
+            <InputField
+              label="Payor Fax"
+              required
+              value={form.payorFax}
+              onChange={setPhone("payorFax")}
+              onBlur={blurPhone("payorFax")}
+              error={errors.payorFax}
+              inputMode="numeric"
+              maxLength={10}
+            />
             <InputField label="Payor Address" required />
             <InputField label="Payor Street" required />
             <InputField label="Payor Street 2" required />
           </FormGrid>
 
-          {/* Row 3 */}
+          {/* Row 3 — City → State → Country → Zip */}
           <FormGrid>
             <InputField label="Payor City" required />
-            <SelectField
-              label="Country"
-              required
-              options={["USA", "Canada", "India"]}
-            />
             <SelectField
               label="State"
               required
               options={["California", "Texas", "New York"]}
+            />
+            <SelectField
+              label="Country"
+              required
+              options={["USA", "Canada", "India"]}
             />
             <InputField label="Zip Code" required />
           </FormGrid>
@@ -322,6 +394,7 @@ export default function InsuranceProviderEdit() {
           <Button
             variant="contained"
             disableElevation
+            onClick={handleSave}
             sx={{
               textTransform: "none",
               fontSize: 14,

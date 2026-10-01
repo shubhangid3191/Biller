@@ -27,6 +27,7 @@ import {
 /* ------------------------------------------------------------------ */
 const T = {
   headBg: "#EBF1FE",
+  headSymbol: "#52525B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
@@ -34,23 +35,87 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows                                                           */
+/* Dummy rows (varied so sorting can be seen working)                   */
 /* ------------------------------------------------------------------ */
-const createRows = (count = 11) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i,
-    practice: "Fresh Original",
-    cpt: "589065",
-    description: "8475875747",
-    specialty: "-",
-    typeOfService: "Whole Blood",
-    modifiers: "-",
-    program: "PDCM",
-    effectiveDate: "2024-08-06 - 2024-06-16",
-    charge: "$1,110",
-  }));
+const SAMPLE = [
+  ["Fresh Original", "589065", "8475875747", "-", "Whole Blood", "-", "PDCM", "2024-08-06 - 2024-06-16", "$1,110"],
+  ["Hitex", "412873", "9123456780", "Cardiology", "Urine Test", "25", "CCM", "2023-03-14 - 2024-03-13", "$320"],
+  ["Balance Report", "731920", "7345678123", "Neurology", "Imaging", "59", "RPM", "2025-01-02 - 2025-12-31", "$2,450"],
+  ["Fresh", "218456", "6456781234", "Orthopedics", "Whole Blood", "-", "PDCM", "2022-11-20 - 2023-11-19", "$780"],
+  ["Hitex", "905312", "9567812345", "-", "Consultation", "26", "CCM", "2024-05-09 - 2025-05-08", "$150"],
+  ["Balance Report", "347201", "5678123456", "Cardiology", "Imaging", "-", "RPM", "2023-07-30 - 2024-07-29", "$1,980"],
+  ["Fresh Original", "660148", "8781234567", "Neurology", "Urine Test", "TC", "PDCM", "2025-02-17 - 2026-02-16", "$95"],
+  ["Fresh", "129884", "4892345678", "-", "Whole Blood", "-", "CCM", "2021-09-01 - 2022-08-31", "$610"],
+  ["Hitex", "854730", "9903456781", "Orthopedics", "Consultation", "59", "RPM", "2024-12-12 - 2025-12-11", "$430"],
+  ["Balance Report", "503917", "3014567812", "Cardiology", "Imaging", "25", "PDCM", "2022-04-25 - 2023-04-24", "$3,200"],
+  ["Fresh Original", "776205", "7125678123", "-", "Urine Test", "-", "CCM", "2023-10-08 - 2024-10-07", "$275"],
+];
 
-const ROWS = createRows(11);
+const ROWS = SAMPLE.map(
+  ([practice, cpt, description, specialty, typeOfService, modifiers, program, effectiveDate, charge], id) => ({
+    id, practice, cpt, description, specialty, typeOfService, modifiers, program, effectiveDate, charge,
+  })
+);
+
+/* ------------------------------------------------------------------ */
+/* Table columns                                                        */
+/* sort: "alpha" = A-Z / Z-A, "number" = low-high, "date" = start date  */
+/* ------------------------------------------------------------------ */
+const COLUMNS = [
+  { id: "practice", label: "Practice", sort: "alpha" },
+  { id: "cpt", label: "CPT/HCPCS", sort: "number" },
+  { id: "description", label: "Description", sort: "number" },
+  { id: "specialty", label: "Specialty", sort: "alpha" },
+  { id: "typeOfService", label: "Type of\nService", sort: "alpha" },
+  { id: "modifiers", label: "Modifiers", sort: "alpha" },
+  { id: "program", label: "Program", sort: "alpha" },
+  { id: "effectiveDate", label: "Effective\nDate", sort: "date" },
+  { id: "charge", label: "Charge" },
+  { id: "actions", label: "Action", last: true },
+];
+
+/* ------------------------------------------------------------------ */
+/* Sort helpers                                                         */
+/* ------------------------------------------------------------------ */
+const toStartTime = (s) => {
+  const t = new Date(String(s).slice(0, 10)).getTime();
+  return Number.isNaN(t) ? 0 : t;
+};
+
+const COMPARERS = {
+  alpha: (a, b) =>
+    String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true }),
+  number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+  date: (a, b) => toStartTime(a) - toStartTime(b),
+};
+
+const SORT_TITLES = {
+  alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
+  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+  date: { asc: "Sorted oldest first", desc: "Sorted newest first", none: "Sort oldest first" },
+};
+
+/* asc <-> desc only, no reset to original order */
+function useSortedRows(rows, columns) {
+  const [sort, setSort] = React.useState({ columnId: null, dir: null });
+
+  const sortedRows = React.useMemo(() => {
+    if (!sort.columnId || !sort.dir) return rows;
+    const column = columns.find((c) => c.id === sort.columnId);
+    if (!column?.sort) return rows;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    const compare = COMPARERS[column.sort];
+    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+  }, [rows, columns, sort]);
+
+  const handleSort = (columnId) =>
+    setSort((prev) => {
+      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
+    });
+
+  return { sort, sortedRows, handleSort };
+}
 
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
@@ -78,10 +143,58 @@ const headCellSx = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Header cell (arrow toggles sort)                                     */
+/* ------------------------------------------------------------------ */
+function HeaderCell({ column, sortDir, onSort }) {
+  const active = !!sortDir;
+  const titles = column.sort ? SORT_TITLES[column.sort] : null;
+
+  return (
+    <TableCell
+      sx={{
+        ...headCellSx,
+        borderRight: column.last ? "none" : `1px solid ${T.border}`,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        {column.label}
+        {column.sort && (
+          <Tooltip title={titles[sortDir || "none"]} arrow>
+            <IconButton
+              size="small"
+              aria-label={`Sort ${column.label.replace("\n", " ")}`}
+              onClick={() => onSort(column.id)}
+              sx={{
+                p: 0.2,
+                ml: "auto",
+                flexShrink: 0,
+                borderRadius: "6px",
+                color: active ? T.blue : T.headSymbol,
+                bgcolor: active ? "#DCE7FD" : "transparent",
+                "&:hover": { bgcolor: "#DCE7FD" },
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  transform: sortDir === "desc" ? "rotate(180deg)" : "none",
+                  transition: "transform .15s ease",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+    </TableCell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
 export default function Fee() {
   const navigate = useNavigate();
+  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
 
   return (
     <Box
@@ -90,7 +203,7 @@ export default function Fee() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -178,45 +291,19 @@ export default function Fee() {
         >
           <TableHead>
             <TableRow>
-              {[
-                { label: "Practice", arrow: true },
-                { label: "CPT/HCPCS", arrow: true },
-                { label: "Description", arrow: true },
-                { label: "Specialty", arrow: true },
-                { label: "Type of\nService", arrow: true },
-                { label: "Modifiers", arrow: true },
-                { label: "Program", arrow: true },
-                { label: "Effective\nDate", arrow: true },
-                { label: "Charge" },
-                { label: "Action", last: true },
-              ].map((col) => (
-                <TableCell
-                  key={col.label}
-                  sx={{
-                    ...headCellSx,
-                    borderRight: col.last ? "none" : `1px solid ${T.border}`,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    {col.label}
-                    {col.arrow && (
-                      <KeyboardArrowDownIcon
-                        sx={{
-                          fontSize: 16,
-                          color: "#52525B",
-                          ml: "auto",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                  </Box>
-                </TableCell>
+              {COLUMNS.map((col) => (
+                <HeaderCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                />
               ))}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {ROWS.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow
                 key={row.id}
                 hover

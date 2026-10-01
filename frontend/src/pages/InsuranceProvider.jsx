@@ -28,6 +28,7 @@ import {
 /* ------------------------------------------------------------------ */
 const T = {
   headBg: "#EBF1FE",
+  headSymbol: "#52525B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
@@ -35,19 +36,74 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows                                                           */
+/* Dummy rows (varied so sorting can be seen working)                   */
 /* ------------------------------------------------------------------ */
-const createRows = (count = 11) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i,
-    payorName: "Clare Jane",
-    payorCode: "8475875747",
-    address: "WashingtonUSe, Aleutians East, Ala...",
-    fax: "8475875747",
-    active: true,
-  }));
+const SAMPLE = [
+  ["Clare Jane", "8475875747", "WashingtonUSe, Aleutians East, Ala...", "8475875747", true],
+  ["Aetna", "1123456780", "Hartford, Hartford County, Conn...", "1123456781", true],
+  ["Blue Cross", "7345678123", "Chicago, Cook County, Illinois...", "7345678124", false],
+  ["Cigna", "6456781234", "Bloomfield, Hartford County, C...", "6456781235", true],
+  ["Humana", "9567812345", "Louisville, Jefferson County, K...", "9567812346", true],
+  ["Kaiser", "5678123456", "Oakland, Alameda County, Cali...", "5678123457", true],
+  ["Medicare", "8781234567", "Baltimore, Baltimore County, ...", "8781234568", false],
+  ["Molina", "4892345678", "Long Beach, Los Angeles Coun...", "4892345679", true],
+  ["Oscar Health", "9903456781", "New York, New York County, ...", "9903456782", true],
+  ["Tricare", "3014567812", "Falls Church, Fairfax County, ...", "3014567813", true],
+  ["United Health", "7125678123", "Minnetonka, Hennepin County...", "7125678124", true],
+];
 
-const ROWS = createRows(11);
+const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
+  id, payorName, payorCode, address, fax, active,
+}));
+
+/* ------------------------------------------------------------------ */
+/* Table columns                                                        */
+/* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
+/* ------------------------------------------------------------------ */
+const COLUMNS = [
+  { id: "payorName", label: "Payor Name", sort: "alpha" },
+  { id: "payorCode", label: "Payor Code", sort: "number" },
+  { id: "address", label: "Address", sort: "alpha" },
+  { id: "fax", label: "Fax", sort: "number" },
+  { id: "active", label: "Active", center: true },
+  { id: "actions", label: "Action", center: true, last: true },
+];
+
+/* ------------------------------------------------------------------ */
+/* Sort helpers                                                         */
+/* ------------------------------------------------------------------ */
+const COMPARERS = {
+  alpha: (a, b) =>
+    String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true }),
+  number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
+};
+
+const SORT_TITLES = {
+  alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
+  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+};
+
+/* asc <-> desc only, no reset to original order */
+function useSortedRows(rows, columns) {
+  const [sort, setSort] = React.useState({ columnId: null, dir: null });
+
+  const sortedRows = React.useMemo(() => {
+    if (!sort.columnId || !sort.dir) return rows;
+    const column = columns.find((c) => c.id === sort.columnId);
+    if (!column?.sort) return rows;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    const compare = COMPARERS[column.sort];
+    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+  }, [rows, columns, sort]);
+
+  const handleSort = (columnId) =>
+    setSort((prev) => {
+      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
+    });
+
+  return { sort, sortedRows, handleSort };
+}
 
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
@@ -75,11 +131,67 @@ const headCellSx = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Header cell (arrow toggles sort)                                     */
+/* ------------------------------------------------------------------ */
+function HeaderCell({ column, sortDir, onSort }) {
+  const active = !!sortDir;
+  const titles = column.sort ? SORT_TITLES[column.sort] : null;
+
+  return (
+    <TableCell
+      align={column.center ? "center" : "left"}
+      sx={{
+        ...headCellSx,
+        borderRight: column.last ? "none" : `1px solid ${T.border}`,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: column.center ? "center" : "flex-start",
+          gap: 0.5,
+        }}
+      >
+        {column.label}
+        {column.sort && (
+          <Tooltip title={titles[sortDir || "none"]} arrow>
+            <IconButton
+              size="small"
+              aria-label={`Sort ${column.label}`}
+              onClick={() => onSort(column.id)}
+              sx={{
+                p: 0.2,
+                ml: "auto",
+                flexShrink: 0,
+                borderRadius: "6px",
+                color: active ? T.blue : T.headSymbol,
+                bgcolor: active ? "#DCE7FD" : "transparent",
+                "&:hover": { bgcolor: "#DCE7FD" },
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  transform: sortDir === "desc" ? "rotate(180deg)" : "none",
+                  transition: "transform .15s ease",
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+    </TableCell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
 export default function InsuranceProvider() {
   const navigate = useNavigate();
   const [data, setData] = React.useState(ROWS);
+  const { sort, sortedRows, handleSort } = useSortedRows(data, COLUMNS);
 
   const toggleActive = (id) => {
     setData((prev) =>
@@ -94,7 +206,7 @@ export default function InsuranceProvider() {
         minHeight: "100vh",
         width: "100%",
         py: { xs: 2, md: 3 },
-         px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
         boxSizing: "border-box",
       }}
     >
@@ -185,56 +297,19 @@ export default function InsuranceProvider() {
         >
           <TableHead>
             <TableRow>
-              {[
-                { label: "Payor Name", arrow: true },
-                { label: "Payor Code", arrow: true },
-                { label: "Address", arrow: true },
-                { label: "Fax", arrow: true },
-                { label: "Active" },
-                { label: "Action", last: true },
-              ].map((col) => (
-                <TableCell
-                  key={col.label}
-                  align={
-                    col.label === "Active" || col.label === "Action"
-                      ? "center"
-                      : "left"
-                  }
-                  sx={{
-                    ...headCellSx,
-                    borderRight: col.last ? "none" : `1px solid ${T.border}`,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent:
-                        col.label === "Active" || col.label === "Action"
-                          ? "center"
-                          : "flex-start",
-                      gap: 0.5,
-                    }}
-                  >
-                    {col.label}
-                    {col.arrow && (
-                      <KeyboardArrowDownIcon
-                        sx={{
-                          fontSize: 16,
-                          color: "#52525B",
-                          ml: "auto",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                  </Box>
-                </TableCell>
+              {COLUMNS.map((col) => (
+                <HeaderCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                />
               ))}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {data.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow
                 key={row.id}
                 hover
