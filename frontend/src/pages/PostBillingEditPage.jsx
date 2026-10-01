@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -164,7 +165,12 @@ function ClaimSelect({ label, value, options, onChange }) {
 /* =========================================================
    Main Page
 ========================================================= */
-export default function PostBillingEditPage({ claim, onBack, onSave, onDelete }) {
+export default function PostBillingEditPage({ claim: claimProp, onBack: onBackProp, onSave, onDelete}) {
+   const navigate = useNavigate();
+  const { state } = useLocation();
+  const claim = claimProp ?? state?.claim;
+  const onBack =
+    onBackProp ?? (() => navigate("/encounters", { state: { activeTab: 1 } }));
   const [actionAnchorEl, setActionAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [logSort, setLogSort] = useState({ key: null, dir: "asc" });

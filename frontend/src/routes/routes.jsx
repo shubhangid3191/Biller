@@ -12,7 +12,7 @@ import PreBilling from "../pages/PreBilling";
 import PreBillingClaim from "../pages/PreBillingClaim";
 import PostBillingClaimPage from "../pages/PostBillingClaimPage";
 
-import NewPayment from '../pages/NewPayment';
+import NewPayment from "../pages/NewPayment";
 
 import Summary from "../pages/Summary";
 import AIInsight from "../pages/AIInsight";
@@ -32,6 +32,9 @@ import InsuranceProvider from "../pages/InsuranceProvider";
 import InsuranceProviderEdit from "../pages/InsuranceProviderEdit";
 import Program from "../pages/Program";
 
+import PostBillingEditPage from "../pages/PostBillingEditPage";
+import RemittanceERAEdit from "../pages/RemittanceERAEdit";
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -40,7 +43,7 @@ const AppRoutes = () => {
 
       {/* Protected Routes */}
 
-        <Route
+      <Route
         path="/"
         element={
           <ProtectedRoute>
@@ -88,7 +91,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/referring-provider/edit"
         element={
@@ -97,7 +99,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/rendering-provider"
         element={
@@ -106,7 +107,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/locations"
         element={
@@ -115,7 +115,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/locations/edit"
         element={
@@ -124,7 +123,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/practice"
         element={
@@ -133,7 +131,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/practice/edit"
         element={
@@ -142,7 +139,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/fee"
         element={
@@ -151,7 +147,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/fee/configuration"
         element={
@@ -160,7 +155,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/insurance-provider"
         element={
@@ -169,7 +163,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/insurance-provider/edit"
         element={
@@ -178,7 +171,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/program"
         element={
@@ -323,10 +315,19 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-    
 
-      <Route
+      {/* ---------- Edit pages ---------- */}
+
+            <Route
         path="/new-encounter"
+        element={
+          <ProtectedRoute>
+            <NewEncounter />
+          </ProtectedRoute>
+        }
+      />
+           <Route
+        path="/pre-billing-edit/:id"
         element={
           <ProtectedRoute>
             <NewEncounter />
@@ -341,8 +342,22 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
-    
+      <Route
+        path="/post-billing-edit/:id"
+        element={
+          <ProtectedRoute>
+            <PostBillingEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/remittance-era-edit/:id"
+        element={
+          <ProtectedRoute>
+            <RemittanceERAEdit />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };
