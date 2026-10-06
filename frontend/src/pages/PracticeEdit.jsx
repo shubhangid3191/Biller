@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -528,10 +528,25 @@ const bodyCellSx = {
 
 export default function PracticeEdit() {
   const navigate = useNavigate();
+  const { state: routeState } = useLocation();
+  const row = routeState?.row ?? null;
+  const isEdit = row !== null;
 
-  const [active, setActive] = React.useState(true);
+  const [active, setActive] = React.useState(row?.active ?? true);
 
-  const [phone, setPhoneValue] = React.useState("");
+  const [form, setForm] = React.useState({
+    practiceName:  row?.practice   ?? "",
+    npi:           row?.npi        ?? "",
+    address:       row?.address    ?? "",
+    contact:       row?.contact    ?? "",
+    workPhone:     row?.workPhone  ?? "",
+    fax:           row?.fax        ?? "",
+  });
+
+  const set = (field) => (e) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const [phone, setPhoneValue] = React.useState(row?.contact ?? "");
   const [phoneError, setPhoneError] = React.useState("");
 
   const handlePhoneChange = (e) => {
@@ -589,7 +604,7 @@ export default function PracticeEdit() {
             color: "#111827",
           }}
         >
-          Edit Practice
+          {isEdit ? "Edit Practice" : "Add New Practice"}
         </Typography>
 
         {/* =========================================================
@@ -600,9 +615,9 @@ export default function PracticeEdit() {
           {/* Row 1 */}
 
           <FormGrid>
-            <InputField label="Practice Name" />
+            <InputField label="Practice Name" value={form.practiceName} onChange={set("practiceName")} />
             <InputField label="Practice Short Code" />
-            <InputField label="NPI" />
+            <InputField label="NPI" value={form.npi} onChange={set("npi")} />
             <InputField label="EIN" />
           </FormGrid>
 

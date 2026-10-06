@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Box,
@@ -18,228 +17,1196 @@ import {
   IconButton,
   InputAdornment,
   Chip,
+  Tab,
+  Tabs,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
-import { CalendarToday, Add, Download, Delete } from "@mui/icons-material";
+import {
+  CalendarToday,
+  Search as SearchIcon,
+  Add,
+  Close,
+  KeyboardArrowDown,
+} from "@mui/icons-material";
+import { RPDeleteIcon, DownloadIcon2 } from "../assets/Assets";
 import { useNavigate } from "react-router-dom";
 
-// Shared field styling so every input matches the design reference exactly
-const fieldLabelSx = {
+/* ─────────────────────────────────────────────
+   Shared style helpers
+───────────────────────────────────────────── */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: 4, height: 4 },
+  "&::-webkit-scrollbar-track": { background: "transparent" },
+  "&::-webkit-scrollbar-thumb": { background: "#D1D5DB", borderRadius: 2 },
+};
+
+const labelSx = {
   fontSize: 12,
   fontWeight: 500,
   color: "#6B7280",
-  mb: 0.75,
+  mb: 0.6,
+  display: "block",
 };
 
-const requiredMarkSx = {
-  color: "#EF4444",
-  ml: 0.25,
-};
-
-const inputRootSx = {
+const inputSx = {
+  width: "100%",
   "& .MuiOutlinedInput-root": {
-    fontSize: 13,
+    width: "100%",
+    height: 40,
+    minHeight: 40,
+    boxSizing: "border-box",
+    fontSize: 12,
     borderRadius: "8px",
     backgroundColor: "#F9FAFC",
+    color: "#1F2937",
     "& fieldset": {
       borderColor: "#E5E7EB",
     },
     "&:hover fieldset": {
       borderColor: "#D1D5DB",
     },
+    "&.Mui-focused fieldset": {
+      borderColor: "#0066FF",
+    },
+    "& input": {
+      height: "100%",
+      boxSizing: "border-box",
+      padding: "0 12px",
+      fontSize: 12,
+    },
+    "& .MuiInputAdornment-root": {
+      marginRight: 8,
+    },
+  },
+  "& .MuiSelect-select": {
+    minHeight: "40px !important",
+    height: "40px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    padding: "0 36px 0 12px !important",
+    fontSize: 12,
   },
   "& .MuiSelect-icon": {
-    color: "#0066FF",
+    color: "#6B7280",
+    right: 8,
+    fontSize: 20,
   },
 };
 
-function FieldLabel({ children, required }) {
+const cardSx = {
+  backgroundColor: "#FFFFFF",
+  borderRadius: "10px",
+  border: "1px solid #E5E7EB",
+  p: 1.75,
+  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+};
+
+const cardTitleSx = {
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#1F2937",
+  mb: 1.4,
+};
+
+/* ─────────────────────────────────────────────
+   Small helpers
+───────────────────────────────────────────── */
+function FL({ children, required }) {
   return (
-    <Typography sx={fieldLabelSx}>
+    <Typography sx={labelSx}>
       {children}
-      {required && <Box component="span" sx={requiredMarkSx}>*</Box>}
+      {required && (
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
+          *
+        </Box>
+      )}
     </Typography>
   );
 }
 
-function NewPayment() {
+function FInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  calendar,
+  required,
+  endIcon,
+}) {
+  return (
+    <Box>
+      <FL required={required}>{label}</FL>
+      <TextField
+        fullWidth
+        size="small"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        sx={inputSx}
+        InputProps={{
+          endAdornment: calendar ? (
+            <InputAdornment position="end">
+              <CalendarToday sx={{ fontSize: 15, color: "#0066FF" }} />
+            </InputAdornment>
+          ) : endIcon ? (
+            <InputAdornment position="end">{endIcon}</InputAdornment>
+          ) : undefined,
+        }}
+      />
+    </Box>
+  );
+}
+
+function FSelect({ label, value, onChange, options, required }) {
+  return (
+    <Box>
+      <FL required={required}>{label}</FL>
+      <FormControl fullWidth size="small" sx={inputSx}>
+        <Select
+          value={value}
+          onChange={onChange}
+          IconComponent={KeyboardArrowDown}
+        >
+          {options.map((o) => (
+            <MenuItem
+              key={o.value ?? o}
+              value={o.value ?? o}
+              sx={{ fontSize: 12 }}
+            >
+              {o.label ?? o}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Static data
+───────────────────────────────────────────── */
+const CHARGES = Array.from({ length: 4 }, (_, i) => ({
+  id: i + 1,
+  svcDate: "04/14/2025",
+  description: "22551 - Fusion of upper spine bone",
+  mod: "62",
+  charges: "$5,573.52",
+  balance: "$660.72",
+  patResp: "$660.72",
+  thisPayment: "$0.00",
+}));
+
+const ATTACHMENTS = [
+  {
+    id: 1,
+    fileName: "EOB_150219802000.pdf",
+    tag: "EOB",
+    referenceNumber: "150219802000",
+    comments: "Primary payer EOB — BCBS of Michigan",
+    uploadedOn: "09/13/2026",
+  },
+];
+
+const EOB_TRANSACTIONS = [
+  {
+    date: "26 Aug 26",
+    transaction: "Claim created and added to Queue",
+    amount: "$550.14",
+    patResp: "$550.14",
+    balance: "$550.14",
+  },
+  {
+    date: "26 Aug 26",
+    transaction: "Claim submitted to Payer - ICIC, $150",
+    amount: "–",
+    patResp: "$0.00",
+    balance: "$550.14",
+  },
+  {
+    date: "26 Aug 26",
+    transaction: "Payer Settlement EFT/Check #: 150219802000/0906",
+    amount: "$0.00",
+    patResp: "$0.00",
+    balance: "$550.14",
+  },
+  {
+    date: "26 Aug 26",
+    transaction:
+      "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+    amount: "$0.00",
+    patResp: "$0.00",
+    balance: "$550.14",
+  },
+  {
+    date: "26 Aug 26",
+    transaction:
+      "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+    amount: "$0.00",
+    patResp: "$0.00",
+    balance: "$550.14",
+  },
+];
+
+/* ─────────────────────────────────────────────
+   Main component
+───────────────────────────────────────────── */
+export default function NewPayment() {
   const navigate = useNavigate();
-  const [payerType, setPayerType] = useState("Rivet, Stacie");
-  const [practice, setPractice] = useState("Fresch original");
-  const [patient, setPatient] = useState("Rivet, Stacie");
-  const [patientId, setPatientId] = useState("2522");
-  const [patientDob, setPatientDob] = useState("MM/DD/YYYY");
-  const [applyCharges, setApplyCharges] = useState("Selected");
-  const [paymentAmount, setPaymentAmount] = useState("$200");
-  const [collectionDate, setCollectionDate] = useState("Select");
-  const [paymentMethod, setPaymentMethod] = useState("Select");
-  const [paymentType, setPaymentType] = useState("Select");
-  const [bilStatementId, setBilStatementId] = useState("$26.4");
-  const [bilStatementDate, setBilStatementDate] = useState("Select");
-  const [bilStatementBalance, setBilStatementBalance] = useState("$20");
-  const [referenceNumber, setReferenceNumber] = useState("185109368-1367");
-  const [batch, setBatch] = useState("1863026");
-  const [notes, setNotes] = useState("NA");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // < 600
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg")); // < 1200
 
-  // Matches the reference screenshot: one clean row per open charge
-  const charges = [
+  /* ── form state ── */
+  const [batch, setBatch] = useState("");
+  const [postDate, setPostDate] = useState("09/26/2026");
+  const [type, setType] = useState("Patient");
+  const [patient, setPatient] = useState("Rivet, Stacie  ID 2522");
+  const [appointment, setAppointment] = useState("");
+  const [category, setCategory] = useState("None");
+  const [method, setMethod] = useState("3 - Credit Card");
+  const [reference, setReference] = useState("");
+  const [amount, setAmount] = useState("$50.00");
+  const [notes, setNotes] = useState("");
+
+  /* ── line posting state ── */
+  const [copayDue, setCopayDue] = useState("$0.00");
+  const [paid, setPaid] = useState("$0.00");
+  const [status, setStatus] = useState("Default");
+  const [statusReason, setStatusReason] = useState("0 - None");
+  const [lineNote, setLineNote] = useState("");
+
+  /* ── other state ── */
+  const [showOnly, setShowOnly] = useState("Selected");
+  const [lineTab, setLineTab] = useState(0);
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  const toggleRow = (id) =>
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
+  /* ─────────────────────────────────────────────
+     SUMMARY block values (derived)
+  ───────────────────────────────────────────── */
+  const summaryItems = [
+    { label: "Total Amount", value: "$50.00", color: "#1F2937", bg: null },
+    { label: "Applied to Charges", value: "$0.00", color: "#1F2937", bg: null },
     {
-      id: 1,
-      svcDate: "04/14/2025",
-      description: "22551 - Fusion of upper spine bone",
-      mod: "62",
-      charges: "$5,573.52",
-      balance: "$660.72",
-      patResp: "$660.72",
-      thisPayment: "$0.00",
-      selected: false,
+      label: "Applied to Capitated",
+      value: "$0.00",
+      color: "#1F2937",
+      bg: null,
     },
-    {
-      id: 2,
-      svcDate: "04/14/2025",
-      description: "22551 - Fusion of upper spine bone",
-      mod: "62",
-      charges: "$5,573.52",
-      balance: "$660.72",
-      patResp: "$660.72",
-      thisPayment: "$0.00",
-      selected: false,
-    },
-    {
-      id: 3,
-      svcDate: "04/14/2025",
-      description: "22551 - Fusion of upper spine bone",
-      mod: "62",
-      charges: "$5,573.52",
-      balance: "$660.72",
-      patResp: "$660.72",
-      thisPayment: "$0.00",
-      selected: false,
-    },
-    {
-      id: 4,
-      svcDate: "04/14/2025",
-      description: "22551 - Fusion of upper spine bone",
-      mod: "62",
-      charges: "$5,573.52",
-      balance: "$660.72",
-      patResp: "$660.72",
-      thisPayment: "$0.00",
-      selected: false,
-    },
+    { label: "Adjustments", value: "$0.00", color: "#1F2937", bg: null },
+    { label: "Refunds", value: "$0.00", color: "#1F2937", bg: null },
+    { label: "Unapplied", value: "$50.00", color: "#D97706", bg: "#FEF3C7" },
   ];
 
-  const attachments = [
-    {
-      id: 1,
-      fileName: "EOB_150219802000.pdf",
-      tag: "EOB",
-      referenceNumber: "150219802000",
-      comments: "Primary payer EOB — BCBS of Michigan",
-      uploadedOn: "09/13/2026",
-    },
-  ];
+  /* ─────────────────────────────────────────────
+     HEADER buttons
+  ───────────────────────────────────────────── */
+  const headerBtnSx = {
+    textTransform: "none",
+    borderColor: "#E5E7EB",
+    color: "#374151",
+    fontSize: 12,
+    borderRadius: "8px",
+    backgroundColor: "#FFFFFF",
+    fontWeight: 500,
+    height: 34,
+    px: 1.6,
+    whiteSpace: "nowrap",
+    "&:hover": { borderColor: "#D1D5DB", backgroundColor: "#F9FAFB" },
+  };
 
-  const eobTransactions = [
-    {
-      date: "26 Aug 26",
-      transaction: "Claim created and added to Queue",
-      amount: "$550.14",
-      patResp: "$550.14",
-      totalBalance: "$550.14",
-    },
-    {
-      date: "26 Aug 26",
-      transaction: "Claim submitted to Payer - ICIC, $150",
-      amount: "-",
-      patResp: "$0.00",
-      totalBalance: "$550.14",
-    },
-    {
-      date: "26 Aug 26",
-      transaction: "Payer Settlement EFT/Check #: 150219802000/0906",
-      amount: "$0.00",
-      patResp: "$0.00",
-      totalBalance: "$550.14",
-    },
-    {
-      date: "26 Aug 26",
-      transaction: "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
-      amount: "$0.00",
-      patResp: "$0.00",
-      totalBalance: "$550.14",
-    },
-    {
-      date: "26 Aug 26",
-      transaction: "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
-      amount: "$0.00",
-      patResp: "$0.00",
-      totalBalance: "$550.14",
-    },
-  ];
+  /* ─────────────────────────────────────────────
+     LEFT PANEL
+  ───────────────────────────────────────────── */
+  const leftPanel = (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+      {/* ── Payment Details card ── */}
+      <Box sx={cardSx}>
+        <Typography sx={cardTitleSx}>Payment Details</Typography>
 
+        {/* Row 1: Batch #  |  Post Date  |  Type  — 3 equal cols */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography sx={labelSx}>Batch #</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={batch}
+              onChange={(e) => setBatch(e.target.value)}
+              placeholder="Enter batch"
+              sx={inputSx}
+            />
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Post Date</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={postDate}
+              onChange={(e) => setPostDate(e.target.value)}
+              sx={inputSx}
+            />
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Type</Typography>
+            <FormControl fullWidth size="small" sx={inputSx}>
+              <Select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                IconComponent={KeyboardArrowDown}
+              >
+                <MenuItem value="Patient" sx={{ fontSize: 12 }}>
+                  Patient
+                </MenuItem>
+                <MenuItem value="Insurance" sx={{ fontSize: 12 }}>
+                  Insurance
+                </MenuItem>
+                <MenuItem value="Employer" sx={{ fontSize: 12 }}>
+                  Employer
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        {/* Row 2: Patient (wider) | Appointment — 3:2 ratio */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "3fr 2fr" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography sx={labelSx}>Patient</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={patient}
+              onChange={(e) => setPatient(e.target.value)}
+              sx={inputSx}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    sx={{ mr: 0.5, cursor: "pointer" }}
+                  >
+                    <SearchIcon sx={{ fontSize: 18, color: "#6B7280" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Appointment</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={appointment}
+              onChange={(e) => setAppointment(e.target.value)}
+              placeholder="Select"
+              sx={inputSx}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end" sx={{ mr: 0.5 }}>
+                    <Close
+                      sx={{ fontSize: 16, color: "#9CA3AF", cursor: "pointer" }}
+                    />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Row 3: Category | Method | Reference # — 3 equal cols */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography sx={labelSx}>Category</Typography>
+            <FormControl fullWidth size="small" sx={inputSx}>
+              <Select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                IconComponent={KeyboardArrowDown}
+              >
+                {["None", "Copay", "Deductible", "Coinsurance"].map((o) => (
+                  <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+                    {o}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Method</Typography>
+            <FormControl fullWidth size="small" sx={inputSx}>
+              <Select
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                IconComponent={KeyboardArrowDown}
+              >
+                {["3 - Credit Card", "1 - Cash", "2 - Check", "4 - EFT"].map(
+                  (o) => (
+                    <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+                      {o}
+                    </MenuItem>
+                  ),
+                )}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Reference #</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="Type here"
+              sx={inputSx}
+            />
+          </Box>
+        </Box>
+
+        {/* Row 4: Amount (narrower) | Notes (wider, multiline) */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "2fr 3fr" },
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography sx={labelSx}>Amount</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              sx={{
+                ...inputSx,
+                "& .MuiOutlinedInput-root": {
+                  ...inputSx["& .MuiOutlinedInput-root"],
+                  "& input": { fontWeight: 700, color: "#1F2937" },
+                },
+              }}
+            />
+          </Box>
+          <Box>
+            <Typography sx={labelSx}>Notes</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add a note (1000 characters max)"
+              sx={inputSx}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      {/* ── Summary card ── */}
+      <Box sx={cardSx}>
+        <Typography sx={cardTitleSx}>Summary</Typography>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
+            gap: 1,
+          }}
+        >
+          {summaryItems.map((item) => (
+            <Box
+              key={item.label}
+              sx={{
+                border: "1px solid #E5E7EB",
+                borderRadius: "8px",
+                p: 1.2,
+                backgroundColor: item.bg || "#FAFAFA",
+              }}
+            >
+              <Typography sx={{ fontSize: 11, color: "#6B7280", mb: 0.4 }}>
+                {item.label}
+              </Typography>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 700, color: item.color }}
+              >
+                {item.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* ── Line Posting / More Details tabs ── */}
+      <Box sx={cardSx}>
+        <Tabs
+          value={lineTab}
+          onChange={(_, v) => setLineTab(v)}
+          sx={{
+            minHeight: 34,
+            mb: 1.5,
+            borderBottom: "2px solid #E5E7EB",
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontSize: 12,
+              fontWeight: 600,
+              minHeight: 34,
+              color: "#6B7280",
+              px: 1.5,
+              py: 0,
+            },
+            "& .Mui-selected": { color: "#0066FF" },
+            "& .MuiTabs-indicator": { backgroundColor: "#0066FF", height: 2 },
+          }}
+        >
+          <Tab label="Line Posting" />
+          <Tab label="More Details" />
+        </Tabs>
+
+        {lineTab === 0 && (
+          <Box>
+            {/* Row 1: Copay Due, Paid, Status */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+                gap: 1.5,
+                mb: 1.5,
+              }}
+            >
+              <Box>
+                <FL>Copay Due</FL>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={copayDue}
+                  onChange={(e) => setCopayDue(e.target.value)}
+                  sx={{
+                    ...inputSx,
+                    "& .MuiOutlinedInput-root": {
+                      ...inputSx["& .MuiOutlinedInput-root"],
+                      backgroundColor: "#F3F4F6",
+                    },
+                  }}
+                />
+              </Box>
+              <FInput
+                label="Paid"
+                value={paid}
+                onChange={(e) => setPaid(e.target.value)}
+              />
+              <FSelect
+                label="Status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                options={["Default", "Posted", "Pending", "Rejected"]}
+              />
+            </Box>
+            {/* Row 2: Status Reason, Line Note */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 1.5,
+              }}
+            >
+              <FSelect
+                label="Status Reason"
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+                options={["0 - None", "1 - Write-off", "2 - Contractual"]}
+              />
+              <FInput
+                label="Line Note"
+                value={lineNote}
+                onChange={(e) => setLineNote(e.target.value)}
+                placeholder="Type here"
+              />
+            </Box>
+          </Box>
+        )}
+
+        {lineTab === 1 && (
+          <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+            More details content goes here.
+          </Typography>
+        )}
+
+        {/* Footer action buttons */}
+        <Box sx={{ display: "flex", gap: 1, mt: 2, flexWrap: "wrap" }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+            Next Line
+          </Button>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+            + Add Encounter
+          </Button>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+            + Add Patient
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  /* ─────────────────────────────────────────────
+     RIGHT PANEL
+  ───────────────────────────────────────────── */
+  const rightPanel = (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+      {/* ── Apply to charges ── */}
+      <Box sx={cardSx}>
+        {/* Header row */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 0.4,
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography sx={cardTitleSx}>Apply to charges</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography
+              sx={{ fontSize: 11.5, color: "#6B7280", whiteSpace: "nowrap" }}
+            >
+              Show Only
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 110, ...inputSx }}>
+              <Select
+                value={showOnly}
+                onChange={(e) => setShowOnly(e.target.value)}
+                IconComponent={KeyboardArrowDown}
+                sx={{ fontSize: 12 }}
+              >
+                <MenuItem value="All" sx={{ fontSize: 12 }}>
+                  All
+                </MenuItem>
+                <MenuItem value="Selected" sx={{ fontSize: 12 }}>
+                  Selected
+                </MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              size="small"
+              sx={{
+                textTransform: "none",
+                color: "#0066FF",
+                fontSize: 12,
+                fontWeight: 600,
+                p: 0,
+                minWidth: "auto",
+                whiteSpace: "nowrap",
+                "&:hover": { background: "none", textDecoration: "underline" },
+              }}
+            >
+              + Add Patient
+            </Button>
+          </Box>
+        </Box>
+        <Typography sx={{ fontSize: 11.5, color: "#9CA3AF", mb: 1.2 }}>
+          {CHARGES.length} open charges found for River, Stacie
+        </Typography>
+
+        <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
+          <Table
+            size="small"
+            sx={{ minWidth: 520, tableLayout: "fixed", width: "100%" }}
+          >
+            <colgroup>
+              <col style={{ width: 32 }} />
+              <col style={{ width: "13%" }} />
+              <col />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "11%" }} />
+              <col style={{ width: "13%" }} />
+            </colgroup>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox" sx={{ px: 0.5, py: 0.8 }}>
+                  <Checkbox
+                    size="small"
+                    indeterminate={
+                      selectedRows.length > 0 &&
+                      selectedRows.length < CHARGES.length
+                    }
+                    checked={selectedRows.length === CHARGES.length}
+                    onChange={(e) =>
+                      setSelectedRows(
+                        e.target.checked ? CHARGES.map((c) => c.id) : [],
+                      )
+                    }
+                    sx={{ p: 0, "& svg": { fontSize: 16 } }}
+                  />
+                </TableCell>
+                {[
+                  "SVC Date",
+                  "Description",
+                  "Mod",
+                  "Charges",
+                  "Balance",
+                  "Pat Resp",
+                  "This Payment",
+                ].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "#6B7280",
+                      px: 0.5,
+                      py: 0.8,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {CHARGES.map((c, idx) => (
+                <TableRow
+                  key={c.id}
+                  sx={{
+                    backgroundColor: idx % 2 === 0 ? "#F5F5FF" : "#FFFFFF",
+                  }}
+                >
+                  <TableCell padding="checkbox" sx={{ px: 0.5 }}>
+                    <Checkbox
+                      size="small"
+                      checked={selectedRows.includes(c.id)}
+                      onChange={() => toggleRow(c.id)}
+                      sx={{ p: 0, "& svg": { fontSize: 16 } }}
+                    />
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11.5,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {c.svcDate}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11.5,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {c.description}
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5 }}
+                  >
+                    {c.mod}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11.5,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {c.charges}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11.5,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {c.balance}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11.5,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {c.patResp}
+                  </TableCell>
+                  <TableCell sx={{ py: 1, px: 0.5 }}>
+                    <TextField
+                      size="small"
+                      defaultValue={c.thisPayment}
+                      sx={{
+                        width: "100%",
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 11.5,
+                          fontWeight: 600,
+                          height: 32,
+                          minHeight: 32,
+                          borderRadius: "7px",
+                          backgroundColor: "#FFF",
+                          "& input": { textAlign: "center", px: 0.5 },
+                          "& fieldset": { borderColor: "#D1D5DB" },
+                        },
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      {/* ── Attachments ── */}
+      <Box sx={cardSx}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 0.4,
+          }}
+        >
+          <Typography sx={cardTitleSx}>Attachments</Typography>
+          <IconButton
+            size="small"
+            sx={{
+              color: "#FFF",
+              backgroundColor: "#0066FF",
+              borderRadius: "6px",
+              width: 22,
+              height: 22,
+              "&:hover": { backgroundColor: "#0052CC" },
+            }}
+          >
+            <Add sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Box>
+        <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 1.2 }}>
+          EOBs, ERAs and supporting documents for this payment
+        </Typography>
+
+        <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
+          <Table
+            size="small"
+            sx={{ tableLayout: "fixed", width: "100%", minWidth: 480 }}
+          >
+            <colgroup>
+              <col style={{ width: "24%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "29%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "8%" }} />
+            </colgroup>
+            <TableHead>
+              <TableRow>
+                {[
+                  "FILE NAME",
+                  "TAG",
+                  "REFERENCE #",
+                  "COMMENTS",
+                  "UPLOADED ON",
+                  "ACTION",
+                ].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: "#9CA3AF",
+                      py: 0.75,
+                      px: 0.5,
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {ATTACHMENTS.map((f) => (
+                <TableRow key={f.id}>
+                  <TableCell
+                    sx={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "#1F2937",
+                      py: 1,
+                      px: 0.5,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {f.fileName}
+                  </TableCell>
+                  <TableCell sx={{ py: 1, px: 0.5 }}>
+                    <Chip
+                      label={f.tag}
+                      size="small"
+                      sx={{
+                        backgroundColor: "#EFF6FF",
+                        color: "#0066FF",
+                        fontWeight: 600,
+                        fontSize: 10,
+                        height: 18,
+                        borderRadius: "5px",
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11,
+                      color: "#374151",
+                      py: 1,
+                      px: 0.5,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {f.referenceNumber}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11,
+                      color: "#6B7280",
+                      py: 1,
+                      px: 0.5,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {f.comments}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 11,
+                      color: "#6B7280",
+                      py: 1,
+                      px: 0.5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {f.uploadedOn}
+                  </TableCell>
+                  <TableCell sx={{ py: 1, px: 0.5 }}>
+                    <Box sx={{ display: "flex", gap: 0.25 }}>
+                      <IconButton size="small" sx={{ p: 0.4 }}>
+                        <DownloadIcon2
+                          sx={{ fontSize: 15, color: "#374151" }}
+                        />
+                      </IconButton>
+                      <IconButton size="small" sx={{ p: 0.4 }}>
+                        <RPDeleteIcon sx={{ fontSize: 15, color: "#DC2626" }} />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      {/* ── EOB Transactions table ── */}
+      <Box sx={cardSx}>
+        <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
+          <Table
+            size="small"
+            sx={{ tableLayout: "fixed", width: "100%", minWidth: 420 }}
+          >
+            <colgroup>
+              <col style={{ width: "14%" }} />
+              <col />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "14%" }} />
+            </colgroup>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#F1F0FD" }}>
+                {[
+                  "Date",
+                  "Transaction",
+                  "Amount",
+                  "Pat Resp.",
+                  "Total Balance",
+                ].map((h) => (
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#1F2937",
+                      py: 0.9,
+                      px: 1,
+                    }}
+                  >
+                    {h}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {EOB_TRANSACTIONS.map((t, idx) => (
+                <TableRow
+                  key={idx}
+                  sx={{
+                    backgroundColor: idx % 2 === 0 ? "#FFFFFF" : "#F8F7FE",
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      fontSize: 12,
+                      color: "#374151",
+                      py: 1,
+                      px: 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {t.date}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 12,
+                      color: "#374151",
+                      py: 1,
+                      px: 1,
+                      wordBreak: "break-word",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t.transaction}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 12,
+                      color: "#374151",
+                      py: 1,
+                      px: 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {t.amount}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 12,
+                      color: "#374151",
+                      py: 1,
+                      px: 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {t.patResp}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: 12,
+                      color: "#1F2937",
+                      py: 1,
+                      px: 1,
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {t.balance}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
+  );
+
+  /* ─────────────────────────────────────────────
+     RENDER
+  ───────────────────────────────────────────── */
   return (
     <Box
       sx={{
         width: "100%",
         minHeight: "100vh",
         backgroundColor: "#F5F7FA",
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
         boxSizing: "border-box",
         overflowX: "hidden",
         overflowY: "auto",
+        ...thinScroll,
       }}
     >
-      {/* Header */}
+      {/* ── Page header ── */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
           mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 21, fontWeight: 700, color: "#1F2937" }}>
+        <Typography
+          sx={{
+            fontSize: { xs: 18, sm: 20 },
+            fontWeight: 700,
+            color: "#1F2937",
+          }}
+        >
           New Payment
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+
+        <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
+          {/* Process Virtual Card — shown on larger screens */}
+          {!isMobile && (
+            <Button variant="outlined" sx={headerBtnSx}>
+              Process Virtual Card
+            </Button>
+          )}
           <Button
             variant="outlined"
-            onClick={() => navigate('/encounters', { state: { activeTab: 2 } })}
-            sx={{
-              textTransform: "none",
-              borderColor: "#E5E7EB",
-              color: "#374151",
-              fontSize: 12.5,
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-            }}
+            onClick={() => navigate("/encounters", { state: { activeTab: 2 } })}
+            sx={headerBtnSx}
           >
             Cancel
           </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              borderColor: "#E5E7EB",
-              color: "#374151",
-              fontSize: 12.5,
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-            }}
-          >
+          <Button variant="outlined" sx={headerBtnSx}>
             Save & New
           </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              borderColor: "#E5E7EB",
-              color: "#374151",
-              fontSize: 12.5,
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-            }}
-          >
+          <Button variant="outlined" sx={headerBtnSx}>
             Save
           </Button>
           <Button
@@ -247,12 +1214,14 @@ function NewPayment() {
             sx={{
               textTransform: "none",
               backgroundColor: "#0066FF",
-              fontSize: 12.5,
+              fontSize: 12,
+              fontWeight: 600,
               borderRadius: "8px",
               boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "#0052CC",
-              },
+              height: 34,
+              px: 1.6,
+              whiteSpace: "nowrap",
+              "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
             }}
           >
             Save & Print Receipt
@@ -260,675 +1229,31 @@ function NewPayment() {
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
-        {/* Left Section */}
-        <Box sx={{ flex: "1 1 50%", minWidth: 0 }}>
-          {/* Payer Details */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1.5, color: "#1F2937" }}>
-              Payer details
-            </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <Box sx={{ flex: 1 }}>
-                <FieldLabel>Select Payor Type</FieldLabel>
-                <FormControl fullWidth size="small" sx={inputRootSx}>
-                  <Select
-                    value={payerType}
-                    onChange={(e) => setPayerType(e.target.value)}
-                  >
-                    <MenuItem value="Rivet, Stacie">Rivet, Stacie</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <FieldLabel>Select Practice</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={practice}
-                  onChange={(e) => setPractice(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Patient Details */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1.5, color: "#1F2937" }}>
-              Patient details
-            </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2 }}>
-              <Box>
-                <FieldLabel required>Select Patient</FieldLabel>
-                <FormControl fullWidth size="small" sx={inputRootSx}>
-                  <Select
-                    value={patient}
-                    onChange={(e) => setPatient(e.target.value)}
-                  >
-                    <MenuItem value="Rivet, Stacie">Rivet, Stacie</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box>
-                <FieldLabel required>Global Patient Id</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel required>Patient DOB</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={patientDob}
-                  onChange={(e) => setPatientDob(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <CalendarToday sx={{ fontSize: 18, color: "#0066FF" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputRootSx}
-                />
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Apply to Charges */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                mb: 0.25,
-              }}
-            >
-              <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: "#1F2937" }}>
-                Apply to charges
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography sx={{ fontSize: 11.5, color: "#6B7280" }}>
-                  Show Only
-                </Typography>
-                <FormControl size="small" sx={{ minWidth: 110, ...inputRootSx }}>
-                  <Select
-                    value={applyCharges}
-                    onChange={(e) => setApplyCharges(e.target.value)}
-                    sx={{
-                      "& .MuiOutlinedInput-root": { height: 30 },
-                    }}
-                  >
-                    <MenuItem value="Show Only">Show Only</MenuItem>
-                    <MenuItem value="Selected">Selected</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-            <Typography sx={{ fontSize: 11.5, color: "#9CA3AF", mb: 1 }}>
-              {charges.length} open charges found for {patient}
-            </Typography>
-
-            <TableContainer sx={{ overflowX: "hidden" }}>
-              <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell padding="checkbox" sx={{ width: "6%", px: 0.5 }}>
-                      <Checkbox size="small" />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "13%", px: 0.5 }}>
-                      SVC Date
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "22%", px: 0.5 }}>
-                      Description
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "8%", px: 0.5 }}>
-                      Mod
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "13%", px: 0.5 }}>
-                      Charges
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "13%", px: 0.5 }}>
-                      Balance
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "12%", px: 0.5 }}>
-                      Pat Resp.
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#6B7280", width: "13%", px: 0.5 }}>
-                      This Payment
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {charges.map((charge, idx) => (
-                    <TableRow
-                      key={charge.id}
-                      sx={{ backgroundColor: idx % 2 === 0 ? "#F5F5FF" : "#FFFFFF" }}
-                    >
-                      <TableCell padding="checkbox" sx={{ px: 0.5 }}>
-                        <Checkbox size="small" checked={charge.selected} />
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5 }}>
-                        {charge.svcDate}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5, wordBreak: "break-word" }}>
-                        {charge.description}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5 }}>
-                        {charge.mod}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5, wordBreak: "break-word" }}>
-                        {charge.charges}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5, wordBreak: "break-word" }}>
-                        {charge.balance}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5, wordBreak: "break-word" }}>
-                        {charge.patResp}
-                      </TableCell>
-                      <TableCell sx={{ py: 1, px: 0.5 }}>
-                        <TextField
-                          size="small"
-                          value={charge.thisPayment}
-                          sx={{
-                            width: "100%",
-                            "& .MuiOutlinedInput-root": {
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              height: 30,
-                              borderRadius: "8px",
-                              backgroundColor: "#FFFFFF",
-                              "& input": { textAlign: "center", px: 0.5 },
-                              "& fieldset": { borderColor: "#D1D5DB" },
-                            },
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          {/* Payment Details */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1.5, color: "#1F2937" }}>
-              Payment Details
-            </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, mb: 2 }}>
-              <Box>
-                <FieldLabel>Payment amount</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Date of collection</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={collectionDate}
-                  onChange={(e) => setCollectionDate(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <CalendarToday sx={{ fontSize: 18, color: "#0066FF" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Select Payment Method</FieldLabel>
-                <FormControl fullWidth size="small" sx={inputRootSx}>
-                  <Select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  >
-                    <MenuItem value="Select">Select</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, mb: 2 }}>
-              <Box>
-                <FieldLabel>Select Payment Type</FieldLabel>
-                <FormControl fullWidth size="small" sx={inputRootSx}>
-                  <Select
-                    value={paymentType}
-                    onChange={(e) => setPaymentType(e.target.value)}
-                  >
-                    <MenuItem value="Select">Select</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box>
-                <FieldLabel>Bill/Statement ID</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={bilStatementId}
-                  onChange={(e) => setBilStatementId(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Bill/Statement Date</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={bilStatementDate}
-                  onChange={(e) => setBilStatementDate(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <CalendarToday sx={{ fontSize: 18, color: "#0066FF" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputRootSx}
-                />
-              </Box>
-            </Box>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, mb: 2 }}>
-              <Box>
-                <FieldLabel>Bill/Statement Balance</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={bilStatementBalance}
-                  onChange={(e) => setBilStatementBalance(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Reference #</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={referenceNumber}
-                  onChange={(e) => setReferenceNumber(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Batch#</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={batch}
-                  onChange={(e) => setBatch(e.target.value)}
-                  sx={inputRootSx}
-                />
-              </Box>
-            </Box>
-            <Box>
-              <FieldLabel>Notes (Optional)</FieldLabel>
-              <TextField
-                fullWidth
-                size="small"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                multiline
-                rows={2}
-                sx={inputRootSx}
-              />
-            </Box>
-          </Box>
+      {/* ── Split layout ── */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isTablet ? "column" : "row",
+          gap: 2,
+          alignItems: "flex-start",
+        }}
+      >
+        {/* Left */}
+        <Box
+          sx={{
+            flex: "0 0 42%",
+            width: isTablet ? "100%" : "auto",
+            minWidth: isTablet ? 0 : 320,
+          }}
+        >
+          {leftPanel}
         </Box>
 
-        {/* Right Section */}
-        <Box sx={{ flex: "1 1 50%", minWidth: 0 }}>
-          {/* Payment Summary */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1.5, color: "#1F2937" }}>
-              Payment summary
-            </Typography>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
-              <Box>
-                <Typography sx={{ fontSize: 10.5, color: "#6B7280", mb: 0.5, letterSpacing: "0.3px", textTransform: "uppercase" }}>
-                  Amount
-                </Typography>
-                <Typography sx={{ fontSize: 19, fontWeight: 700, color: "#1F2937" }}>
-                  $50.00
-                </Typography>
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: 10.5, color: "#6B7280", mb: 0.5, letterSpacing: "0.3px", textTransform: "uppercase" }}>
-                  Applied
-                </Typography>
-                <Typography sx={{ fontSize: 19, fontWeight: 700, color: "#10B981" }}>
-                  $0.00
-                </Typography>
-              </Box>
-              <Chip
-                label="Unapplied balance"
-                sx={{
-                  backgroundColor: "#FDF3E7",
-                  color: "#B45309",
-                  fontWeight: 600,
-                  fontSize: 10.5,
-                  height: 26,
-                  borderRadius: "6px",
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* EOB/ERA Details */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1.5, color: "#1F2937" }}>
-              EOB/ERA Details
-            </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr auto", gap: 1.25, alignItems: "flex-end" }}>
-              <Box>
-                <FieldLabel>Note</FieldLabel>
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="Type here"
-                  sx={inputRootSx}
-                />
-              </Box>
-              <Box>
-                <FieldLabel>Reference number</FieldLabel>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: "#1F2937", whiteSpace: "nowrap" }}>
-                  150219802000
-                </Typography>
-              </Box>
-              <Box>
-                <FieldLabel>ERA Balance</FieldLabel>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: "#1F2937" }}>
-                  $0
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                sx={{
-                  textTransform: "none",
-                  backgroundColor: "#0066FF",
-                  fontSize: 12.5,
-                  borderRadius: "8px",
-                  boxShadow: "none",
-                  height: 36,
-                  px: 2,
-                  whiteSpace: "nowrap",
-                  "&:hover": { backgroundColor: "#0052CC" },
-                }}
-              >
-                View File
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Attachments */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-              mb: 1.5,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 0.5,
-              }}
-            >
-              <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: "#1F2937" }}>
-                Attachments
-              </Typography>
-              <IconButton
-                size="small"
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#0066FF",
-                  borderRadius: "6px",
-                  width: 22,
-                  height: 22,
-                  "&:hover": { backgroundColor: "#0052CC" },
-                }}
-              >
-                <Add sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Box>
-            <Typography sx={{ fontSize: 10.5, color: "#9CA3AF", mb: 1.5 }}>
-              (EOBs, ERAs and supporting documents for this payment)
-            </Typography>
-
-            <TableContainer sx={{ overflowX: "hidden" }}>
-              <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#F5F5FA" }}>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "26%" }}>
-                      FILE NAME
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "12%" }}>
-                      TAG
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "18%" }}>
-                      REFERENCE #
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "24%" }}>
-                      COMMENTS
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "12%" }}>
-                      UPLOADED ON
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 9.5, fontWeight: 600, color: "#9CA3AF", py: 0.75, px: 0.5, width: "8%" }}>
-                      ACTION
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {attachments.map((file) => (
-                    <TableRow key={file.id}>
-                      <TableCell
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "#1F2937",
-                          py: 1,
-                          px: 0.5,
-                          wordBreak: "break-word",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        {file.fileName}
-                      </TableCell>
-                      <TableCell sx={{ py: 1, px: 0.5 }}>
-                        <Chip
-                          label={file.tag}
-                          size="small"
-                          sx={{
-                            backgroundColor: "#EFF6FF",
-                            color: "#0066FF",
-                            fontWeight: 600,
-                            fontSize: 9.5,
-                            height: 18,
-                            borderRadius: "5px",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: 11,
-                          color: "#374151",
-                          py: 1,
-                          px: 0.5,
-                          wordBreak: "break-word",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        {file.referenceNumber}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: 10.5,
-                          color: "#6B7280",
-                          py: 1,
-                          px: 0.5,
-                          wordBreak: "break-word",
-                          whiteSpace: "normal",
-                        }}
-                      >
-                        {file.comments}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 10.5, color: "#6B7280", py: 1, px: 0.5, whiteSpace: "nowrap" }}>
-                        {file.uploadedOn}
-                      </TableCell>
-                      <TableCell sx={{ py: 1, px: 0.5 }}>
-                        <Box sx={{ display: "flex", gap: 0.25 }}>
-                          <IconButton size="small" sx={{ p: 0.4 }}>
-                            <Download sx={{ fontSize: 15, color: "#374151" }} />
-                          </IconButton>
-                          <IconButton size="small" sx={{ p: 0.4 }}>
-                            <Delete sx={{ fontSize: 15, color: "#DC2626" }} />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          {/* EOB Transactions */}
-          <Box
-            sx={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-              border: "1px solid #E5E7EB",
-              p: 1.75,
-            }}
-          >
-            <TableContainer sx={{ overflowX: "hidden" }}>
-              <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#F1F0FD" }}>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#1F2937", py: 0.85, width: "16%" }}>
-                      Date
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#1F2937", py: 0.85, width: "40%" }}>
-                      Transaction
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#1F2937", py: 0.85, width: "15%" }}>
-                      Amount
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#1F2937", py: 0.85, width: "15%" }}>
-                      Pat Resp.
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 10.5, fontWeight: 600, color: "#1F2937", py: 0.85, width: "14%" }}>
-                      Total Balance
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {eobTransactions.map((transaction, idx) => (
-                    <TableRow
-                      key={idx}
-                      sx={{
-                        backgroundColor: idx % 2 === 0 ? "#FFFFFF" : "#F8F7FE",
-                      }}
-                    >
-                      <TableCell sx={{ fontSize: 10.5, color: "#374151", py: 1, whiteSpace: "nowrap" }}>
-                        {transaction.date}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: 10.5,
-                          color: "#374151",
-                          py: 1,
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          minWidth: 0,
-                        }}
-                      >
-                        {transaction.transaction}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 10.5, color: "#374151", py: 1, whiteSpace: "nowrap" }}>
-                        {transaction.amount}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 10.5, color: "#374151", py: 1, whiteSpace: "nowrap" }}>
-                        {transaction.patResp}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 10.5, color: "#1F2937", py: 1, fontWeight: 600, whiteSpace: "nowrap" }}>
-                        {transaction.totalBalance}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+        {/* Right */}
+        <Box sx={{ flex: 1, minWidth: 0, width: isTablet ? "100%" : "auto" }}>
+          {rightPanel}
         </Box>
       </Box>
     </Box>
   );
 }
-
-export default NewPayment;

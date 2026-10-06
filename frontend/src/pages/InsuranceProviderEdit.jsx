@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -184,9 +184,24 @@ function FormGrid({ children }) {
 /* ------------------------------------------------------------------ */
 export default function InsuranceProviderEdit() {
   const navigate = useNavigate();
+  const { state: routeState } = useLocation();
+  const row = routeState?.row ?? null;
+  const isEdit = row !== null;
+
   const [mandatoryCode, setMandatoryCode] = React.useState(true);
 
-  const [form, setForm] = React.useState({ payorPhone: "", payorFax: "" });
+  const [form, setForm] = React.useState({
+    payorName:    row?.payorName  ?? "",
+    payorCode:    row?.payorCode  ?? "",
+    payorEmail:   "",
+    payorAddress: row?.address    ?? "",
+    payorStreet:  "",
+    payorStreet2: "",
+    payorCity:    "",
+    payorZip:     "",
+    payorPhone:   "",
+    payorFax:     row?.fax        ?? "",
+  });
   const [errors, setErrors] = React.useState({});
 
   /* phone fields: digits only, max 10, error cleared while typing */
@@ -231,7 +246,7 @@ export default function InsuranceProviderEdit() {
       >
         {/* Title */}
         <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
-          Edit Insurance
+          {isEdit ? "Edit Insurance" : "Add New Insurance"}
         </Typography>
 
         {/* ══ SINGLE BOX ══ */}

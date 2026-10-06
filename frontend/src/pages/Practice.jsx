@@ -14,6 +14,7 @@ import {
   Checkbox,
   Stack,
   Tooltip,
+  InputBase,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -21,6 +22,7 @@ import {
   ExportIcon,
   RPEditIcon,
   SettingsIcon2,
+  SearchIcon,
 } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
@@ -64,9 +66,9 @@ const ROWS = SAMPLE.map(
 /* ------------------------------------------------------------------ */
 const COLUMNS = [
   { id: "practice", label: "Practice", sort: "alpha" },
-  { id: "address", label: "Address", sort: "alpha" },
-  { id: "contact", label: "Contact number", sort: "number" },
-  { id: "workPhone", label: "Work Phone", sort: "number" },
+  { id: "address", label: "Address" },
+  { id: "contact", label: "Contact number" },
+  { id: "workPhone", label: "Work Phone" },
   { id: "fax", label: "Fax", sort: "number" },
   { id: "npi", label: "NPI", sort: "number" },
   { id: "active", label: "Active", center: true },
@@ -74,16 +76,36 @@ const COLUMNS = [
 ];
 
 /* ------------------------------------------------------------------ */
+/* ✅ CHANGED: Search helper (Practice, NPI, Contact number, Fax)       */
+/* ------------------------------------------------------------------ */
+const SEARCH_FIELDS = ["practice", "npi", "contact", "fax"];
+
+function filterRows(rows, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    SEARCH_FIELDS.some((field) =>
+      String(row[field] ?? "").toLowerCase().includes(q)
+    )
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Sort helpers                                                         */
 /* ------------------------------------------------------------------ */
 const COMPARERS = {
-  alpha: (a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
+  alpha: (a, b) =>
+    String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
   number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
 };
 
 const SORT_TITLES = {
   alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
-  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+  number: {
+    asc: "Sorted low to high",
+    desc: "Sorted high to low",
+    none: "Sort low to high",
+  },
 };
 
 /* asc <-> desc only, no reset to original order */
@@ -96,12 +118,15 @@ function useSortedRows(rows, columns) {
     if (!column?.sort) return rows;
     const factor = sort.dir === "asc" ? 1 : -1;
     const compare = COMPARERS[column.sort];
-    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+    return [...rows].sort(
+      (a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor
+    );
   }, [rows, columns, sort]);
 
   const handleSort = (columnId) =>
     setSort((prev) => {
-      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      if (prev.columnId !== columnId || !prev.dir)
+        return { columnId, dir: "asc" };
       return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
     });
 
@@ -184,7 +209,13 @@ function HeaderCell({ column, sortDir, onSort }) {
 /* ------------------------------------------------------------------ */
 export default function Practice() {
   const navigate = useNavigate();
-  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
+
+  const [query, setQuery] = React.useState("");
+
+  // filter first, then sort the filtered result
+  const filteredRows = React.useMemo(() => filterRows(ROWS, query), [query]);
+
+  const { sort, sortedRows, handleSort } = useSortedRows(filteredRows, COLUMNS);
 
   return (
     <Box
@@ -197,7 +228,7 @@ export default function Practice() {
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -213,6 +244,37 @@ export default function Practice() {
         </Typography>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
+          {/* ✅ CHANGED: placeholder + aria-label updated */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              border: "1px solid #D1D5DB",
+              borderRadius: "30px",
+              px: 1.2,
+              py: 0.5,
+              bgcolor: "#F4F8FF",
+              width: { xs: "100%", sm: 320 },
+              "&:focus-within": { borderColor: "#DBE3EF" },
+            }}
+          >
+            <SearchIcon width={14} height={14} color="#9CA3AF" />
+            <InputBase
+              placeholder="Search by Practice, NPI, Contact or Fax..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              inputProps={{
+                "aria-label": "Search by practice, NPI, contact number or fax",
+              }}
+              sx={{
+                fontSize: 12.5,
+                flex: 1,
+                "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+              }}
+            />
+          </Box>
+
           <Button
             variant="outlined"
             startIcon={<FilterIcon color="#2563EB" />}
@@ -250,6 +312,7 @@ export default function Practice() {
           <Button
             variant="contained"
             disableElevation
+            onClick={() => navigate("/practice/edit", { state: { row: null } })}
             sx={{
               textTransform: "none",
               fontSize: 13,
@@ -265,7 +328,7 @@ export default function Practice() {
         </Stack>
       </Box>
 
-      {/* ── TABLE ── */}
+      {/* TABLE */}
       <TableContainer
         sx={{
           border: `1px solid ${T.border}`,
@@ -321,7 +384,9 @@ export default function Practice() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() => navigate("/practice/edit")}
+                        onClick={() =>
+                          navigate("/practice/edit", { state: { row } })
+                        }
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
@@ -345,6 +410,19 @@ export default function Practice() {
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* empty state when search has no matches */}
+            {sortedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  align="center"
+                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
+                >
+                  No matching practices found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

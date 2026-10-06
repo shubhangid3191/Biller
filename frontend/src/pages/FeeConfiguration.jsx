@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -230,7 +230,7 @@ function SelectField({
 }
 
 /* ------------------------------------------------------------------ */
-/* Date field with MUI calendar popover                                 */
+/* Date field with MUI calendar popover                               */
 /* ------------------------------------------------------------------ */
 function DateField({
   label,
@@ -343,9 +343,29 @@ function SectionTitle({ children }) {
 /* ------------------------------------------------------------------ */
 export default function FeeConfiguration() {
   const navigate = useNavigate();
-  const [nonCovered, setNonCovered] = React.useState(true);
+  const { state: routeState } = useLocation();
+  const row = routeState?.row ?? null;
+  const isEdit = row !== null;
 
-  const [dates, setDates] = React.useState({ effective: "", expiry: "" });
+  const [nonCovered, setNonCovered] = React.useState(false);
+
+  const [form, setForm] = React.useState({
+    cpt:          row?.cpt           ?? "",
+    description:  row?.description   ?? "",
+    specialty:    row?.specialty      ?? "",
+    typeOfService:row?.typeOfService  ?? "",
+    modifiers:    row?.modifiers      ?? "",
+    program:      row?.program        ?? "",
+    charge:       row?.charge         ?? "",
+    practice:     row?.practice       ?? "",
+    effectiveDate:row?.effectiveDate?.split(" - ")[0] ?? "",
+    expiryDate:   row?.effectiveDate?.split(" - ")[1] ?? "",
+  });
+
+  const [dates, setDates] = React.useState({
+    effective: row?.effectiveDate?.split(" - ")[0] ?? "",
+    expiry:    row?.effectiveDate?.split(" - ")[1] ?? "",
+  });
   const setDate = (field) => (e) =>
     setDates((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -380,7 +400,7 @@ export default function FeeConfiguration() {
           <Typography
             sx={{ fontSize: 28, fontWeight: 700, color: "#111827", mb: 2 }}
           >
-            Fee Configuration
+            {isEdit ? "Fee Configuration" : "Add New Fee"}
           </Typography>
 
           <Box

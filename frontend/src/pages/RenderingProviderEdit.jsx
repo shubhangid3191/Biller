@@ -18,11 +18,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
-import {
-  RPAddIcon,
-  RPDeleteIcon,
-  CalendarIcon,
-} from "../assets/Assets";
+import { RPAddIcon, RPDeleteIcon, CalendarIcon } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -53,11 +49,7 @@ const OPTIONS = {
   country: ["United States", "Canada", "India"],
   state: ["California", "Texas", "New York"],
   fax: ["8475875747", "8475875748", "8475875749"],
-  email: [
-    "lipsum@gmail.com",
-    "provider@gmail.com",
-    "info@gmail.com",
-  ],
+  email: ["lipsum@gmail.com", "provider@gmail.com", "info@gmail.com"],
   specialty: ["Cardiology", "Neurology", "Orthopedics"],
 };
 
@@ -344,11 +336,7 @@ function DateField({
                   }}
                   disableRipple
                 >
-                  <CalendarIcon
-                    width={14}
-                    height={16}
-                    color="#1E1E1E"
-                  />
+                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
                 </IconButton>
               </InputAdornment>
             ),
@@ -489,32 +477,32 @@ export default function ReferringProviderEdit() {
   const [pcp, setPcp] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    firstName:            row?.providerName?.split(" ")[0] ?? "",
-    lastName:             row?.providerName?.split(" ").slice(1).join(" ") ?? "",
-    dateOfBirth:          "",
-    sex:                  "",
-    suffix:               "",
-    prefix:               "",
-    npi:                  row?.npi           ?? "",
-    groupNpi:             "",
-    stateLicense:         "",
-    controlledSubstance:  "",
-    dea:                  "",
-    practice:             row?.practice      ?? "",
-    addressType:          "",
-    address1:             row?.address       ?? "",
-    address2:             "",
-    zipCode:              "",
-    city:                 "",
-    country:              "",
-    state:                "",
-    mobilePhone:          row?.mobile        ?? "",
-    workContact:          "",
-    phone:                "",
-    fax:                  row?.fax           ?? "",
-    email:                row?.email         ?? "",
-    specialty:            "",
-    taxonomy:             "",
+    firstName: row?.providerName?.split(" ")[0] ?? "",
+    lastName: row?.providerName?.split(" ").slice(1).join(" ") ?? "",
+    dateOfBirth: "",
+    sex: "",
+    suffix: "",
+    prefix: "",
+    npi: row?.npi ?? "",
+    groupNpi: "",
+    stateLicense: "",
+    controlledSubstance: "",
+    dea: "",
+    practice: row?.practice ?? "",
+    addressType: "",
+    address1: row?.address ?? "",
+    address2: "",
+    zipCode: "",
+    city: "",
+    country: "",
+    state: "",
+    mobilePhone: row?.mobile ?? "",
+    workContact: "",
+    phone: "",
+    fax: row?.fax ?? "",
+    email: row?.email ?? "",
+    specialty: "",
+    taxonomy: "",
   });
 
   const [errors, setErrors] = React.useState({});
@@ -528,9 +516,7 @@ export default function ReferringProviderEdit() {
   /* Phone fields */
 
   const setPhone = (field) => (e) => {
-    const digits = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 10);
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
 
     setForm((prev) => ({
       ...prev,
@@ -604,7 +590,7 @@ export default function ReferringProviderEdit() {
             color: "#111827",
           }}
         >
-          {isEdit ? "Edit Referring Provider" : "Add New Referring Provider"}
+          {isEdit ? "Edit Rendering Provider" : "Add New Rendering Provider"}
         </Typography>
 
         {/* =========================================================
@@ -746,11 +732,10 @@ export default function ReferringProviderEdit() {
                     color: "#fff",
                   },
 
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                    {
-                      bgcolor: "#22C55E",
-                      opacity: 1,
-                    },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    bgcolor: "#22C55E",
+                    opacity: 1,
+                  },
 
                   "& .MuiSwitch-track": {
                     borderRadius: 20,
@@ -828,11 +813,7 @@ export default function ReferringProviderEdit() {
           {/* Row 2 */}
 
           <FormGrid>
-            <InputField
-              label="City"
-              value={form.city}
-              onChange={set("city")}
-            />
+            <InputField label="City" value={form.city} onChange={set("city")} />
 
             <SelectField
               label="State"

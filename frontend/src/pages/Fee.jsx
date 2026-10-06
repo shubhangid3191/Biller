@@ -13,6 +13,7 @@ import {
   TableRow,
   Stack,
   Tooltip,
+  InputBase, // ✅ NEW
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -20,6 +21,7 @@ import {
   ExportIcon,
   RPEditIcon,
   RPDeleteIcon,
+  SearchIcon, // ✅ NEW
 } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
@@ -73,6 +75,21 @@ const COLUMNS = [
   { id: "charge", label: "Charge" },
   { id: "actions", label: "Action", last: true },
 ];
+
+/* ------------------------------------------------------------------ */
+/* ✅ NEW: Search helper (Practice, Program, CPT only)                  */
+/* ------------------------------------------------------------------ */
+const SEARCH_FIELDS = ["practice", "program", "cpt"];
+
+function filterRows(rows, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    SEARCH_FIELDS.some((field) =>
+      String(row[field] ?? "").toLowerCase().includes(q)
+    )
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Sort helpers                                                         */
@@ -194,7 +211,15 @@ function HeaderCell({ column, sortDir, onSort }) {
 /* ------------------------------------------------------------------ */
 export default function Fee() {
   const navigate = useNavigate();
-  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
+
+  // ✅ NEW: search state
+  const [query, setQuery] = React.useState("");
+
+  // ✅ NEW: filter first, then sort the filtered result
+  const filteredRows = React.useMemo(() => filterRows(ROWS, query), [query]);
+
+  // ✅ CHANGED: sorting now runs on filteredRows instead of ROWS
+  const { sort, sortedRows, handleSort } = useSortedRows(filteredRows, COLUMNS);
 
   return (
     <Box
@@ -207,7 +232,7 @@ export default function Fee() {
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -223,6 +248,35 @@ export default function Fee() {
         </Typography>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
+          {/* ✅ NEW: Search bar */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              border: "1px solid #D1D5DB",
+              borderRadius: "30px",
+              px: 1.2,
+              py: 0.5,
+              bgcolor: "#F4F8FF",
+              width: { xs: "100%", sm: 320 },
+              "&:focus-within": { borderColor: "#DBE3EF" },
+            }}
+          >
+            <SearchIcon width={14} height={14} color="#9CA3AF" />
+            <InputBase
+              placeholder="Search by Practice, Program or CPT..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              inputProps={{ "aria-label": "Search by practice, program or CPT code" }}
+              sx={{
+                fontSize: 12.5,
+                flex: 1,
+                "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+              }}
+            />
+          </Box>
+
           <Button
             variant="outlined"
             startIcon={<FilterIcon color="#2563EB" />}
@@ -260,7 +314,7 @@ export default function Fee() {
           <Button
             variant="contained"
             disableElevation
-            onClick={() => navigate("/fee/configuration")}
+            onClick={() => navigate("/fee/configuration", { state: { row: null } })}
             sx={{
               textTransform: "none",
               fontSize: 13,
@@ -276,7 +330,7 @@ export default function Fee() {
         </Stack>
       </Box>
 
-      {/* ── TABLE ── */}
+      {/* TABLE */}
       <TableContainer
         sx={{
           border: `1px solid ${T.border}`,
@@ -323,7 +377,7 @@ export default function Fee() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() => navigate("/fee/configuration")}
+                        onClick={() => navigate("/fee/configuration", { state: { row } })}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
@@ -347,6 +401,19 @@ export default function Fee() {
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* ✅ NEW: empty state when search has no matches */}
+            {sortedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  align="center"
+                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
+                >
+                  No matching fees found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

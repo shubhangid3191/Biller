@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -219,10 +219,26 @@ function SectionBox({ children }) {
 /* ------------------------------------------------------------------ */
 export default function LocationsEdit() {
   const navigate = useNavigate();
-  const [active, setActive] = React.useState(true);
+  const { state: routeState } = useLocation();
+  const row = routeState?.row ?? null;
+  const isEdit = row !== null;
 
-  const [form, setForm] = React.useState({ mobile: "", workContact: "" });
+  const [active, setActive] = React.useState(row?.active ?? true);
+
+  const [form, setForm] = React.useState({
+    locationName: row?.location    ?? "",
+    npi:          row?.npi         ?? "",
+    contact:      row?.contact     ?? "",
+    fax:          row?.fax         ?? "",
+    practice:     row?.practice    ?? "",
+    address:      row?.address     ?? "",
+    mobile:       row?.contact     ?? "",
+    workContact:  "",
+  });
   const [errors, setErrors] = React.useState({});
+
+  const set = (field) => (e) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   /* phone fields: digits only, max 10, error cleared while typing */
   const setPhone = (field) => (e) => {
@@ -266,15 +282,15 @@ export default function LocationsEdit() {
       >
         {/* Title */}
         <Typography sx={{ fontSize: 26, fontWeight: 700, color: "#111827" }}>
-          Edit Service Location
+          {isEdit ? "Edit Service Location" : "Add New Service Location"}
         </Typography>
 
         {/* ══ BASIC DETAILS BOX ══ */}
         <SectionBox>
           {/* Row 1 */}
           <FormGrid>
-            <InputField label="Service Location Name" required />
-            <InputField label="Organisation NPI" required />
+            <InputField label="Service Location Name" required value={form.locationName} onChange={set("locationName")} />
+            <InputField label="Organisation NPI" required value={form.npi} onChange={set("npi")} />
             <SelectField
               label="Other ID"
               placeholder="Select location"
@@ -297,7 +313,7 @@ export default function LocationsEdit() {
             }}
           >
             <SelectField label="Select POS Code" required />
-            <InputField label="CLIA Number" required />
+            <InputField label="CLIA Number" required value={form.contact} onChange={set("contact")} />
 
             {/* Active toggle — same row alignment as other inputs */}
             <Box>
@@ -371,14 +387,14 @@ export default function LocationsEdit() {
           {/* Row 1 */}
           <FormGrid>
             <InputField label="Address Type" placeholder="Basic" required />
-            <InputField label="Address 1" placeholder="Address 1" required />
+            <InputField label="Address 1" placeholder="Address 1" required value={form.address} onChange={set("address")} />
             <SelectField label="Address 2" placeholder="Address 2" required />
             <InputField label="Zip Code" required />
           </FormGrid>
 
           {/* Row 2 — City → State → Country → County */}
           <FormGrid>
-            <InputField label="City" required />
+            <InputField label="City" required value={form.practice} onChange={set("practice")} />
             <SelectField label="State" required />
             <SelectField label="Country" required />
             <SelectField label="County" required />

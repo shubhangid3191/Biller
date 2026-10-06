@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -33,6 +33,7 @@ import {
   PatientList,
   Statement,
   Refund,
+  RecentsArrowIcon,
 } from "../assets/Assets";
 
 const drawerWidth = 240;
@@ -57,6 +58,72 @@ function Sidebar() {
   };
 
   const isActive = (path) => location.pathname === path;
+
+  /* ── Route → human label map ── */
+  const ROUTE_LABELS = {
+    "/summary":                  "Summary",
+    "/ai-insights":              "AI Insights",
+    "/my-tasks":                 "My Tasks",
+    "/performance-overview":     "Performance Overview",
+    "/encounters":               "Encounters",
+    "/referring-provider":       "Referring Provider",
+    "/rendering-provider":       "Rendering Provider",
+    "/locations":                "Locations",
+    "/practice":                 "Practice",
+    "/fee":                      "Fee",
+    "/insurance-provider":       "Insurance Provider",
+    "/program":                  "Program",
+    "/add-patient":              "Add Patient",
+    "/patient-list":             "Patient List",
+    "/statement":                "Statement",
+    "/refunds":                  "Refunds",
+    "/pre-billing-claim-page":   "Pre Billing Claim",
+    "/post-billing-claim-page":  "Post Billing Claim",
+    "/era":                      "ERA/EOB",
+    "/eob-upload":               "EOB Upload",
+    "/icd-10-search":            "ICD 10 Search",
+    "/excel-access":             "Excel Access",
+    "/reports":                  "Reports",
+    "/documents":                "Documents",
+    "/new-payment":              "New Payment",
+    "/new-encounter":            "New Encounter",
+    "/referring-provider/edit":  "Referring Provider Edit",
+    "/rendering-provider/edit":  "Rendering Provider Edit",
+    "/locations/edit":           "Locations Edit",
+    "/practice/edit":            "Practice Edit",
+    "/fee/configuration":        "Fee Configuration",
+    "/insurance-provider/edit":  "Insurance Provider Edit",
+    "/program/configuration":    "Program Edit",
+  };
+
+  const MAX_RECENTS = 5;
+  const STORAGE_KEY = "sidebar_recents";
+
+  /* Load recents from localStorage */
+  const loadRecents = () => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  };
+
+  const [recents, setRecents] = useState(loadRecents);
+
+  /* Update recents whenever route changes */
+  useEffect(() => {
+    const path  = location.pathname;
+    const label = ROUTE_LABELS[path];
+    if (!label) return;                       // skip unknown / edit sub-pages
+
+    setRecents((prev) => {
+      const filtered = prev.filter((r) => r.path !== path);
+      const next     = [{ path, label }, ...filtered].slice(0, MAX_RECENTS);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -924,12 +991,101 @@ function Sidebar() {
         </List>
       </Box>
 
+      {/* ── MY RECENTS ── */}
+      {recents.length > 0 && (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+          <Box
+            sx={{
+              backgroundColor: "rgba(255,255,255,0.06)",
+              borderRadius: "10px",
+              border: "1px solid rgba(255,255,255,0.09)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: 1.5,
+                pt: 1.2,
+                pb: 0.8,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.09em",
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                MY RECENTS
+              </Typography>
+              {/* arrow icon — click to clear recents */}
+              <Box
+                onClick={() => {
+                  localStorage.removeItem(STORAGE_KEY);
+                  setRecents([]);
+                }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  opacity: 0.45,
+                  "&:hover": { opacity: 1 },
+                  transition: "opacity 0.15s",
+                }}
+                title="Clear recents"
+              >
+                <RecentsArrowIcon width={16} height={16} color="white" />
+              </Box>
+            </Box>
+
+            {/* Items */}
+            {recents.map((r) => (
+              <Box
+                key={r.path}
+                onClick={() => navigate(r.path)}
+                sx={{
+                  px: 1.5,
+                  py: 0.75,
+                  cursor: "pointer",
+                  borderTop: "1px solid rgba(255,255,255,0.05)",
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,0.07)",
+                  },
+                }}
+              >
+                <Typography
+                  noWrap
+                  sx={{
+                    fontSize: 12.5,
+                    fontWeight: location.pathname === r.path ? 600 : 400,
+                    color:
+                      location.pathname === r.path
+                        ? "#00d4ff"
+                        : "rgba(255,255,255,0.75)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {r.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+
       {/* Account Section at Bottom */}
       <Box sx={{ mt: "auto" }}>
         <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)" }} />
         <Box
           sx={{
-            p: 2,
+            px: 1.5,
+            py: 1,
             display: "flex",
             alignItems: "center",
             gap: 1.5,
@@ -947,7 +1103,7 @@ function Sidebar() {
               backgroundColor: "#6366F1",
               fontSize: "15px",
               fontWeight: 600,
-              lineHeight: "24px",
+              lineHeight: "10px",
             }}
           >
             AK
@@ -978,7 +1134,7 @@ function Sidebar() {
         </Box>
         <ListItemButton
           sx={{
-            py: 1.5,
+            py: 0.6,
             px: 2,
             justifyContent: "center",
             "&:hover": {
@@ -1001,7 +1157,7 @@ function Sidebar() {
         <ListItemButton
           onClick={handleLogout}
           sx={{
-            py: 1.5,
+            py: 0.6,
             px: 2,
             justifyContent: "center",
             "&:hover": {

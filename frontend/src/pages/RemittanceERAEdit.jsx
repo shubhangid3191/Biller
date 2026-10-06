@@ -30,9 +30,9 @@ import {
 /* Styles                                                               */
 /* ================================================================== */
 const eobHeadSx = {
-  fontSize: 11,
+  fontSize: 13,
   fontWeight: 600,
-  color: "#374151",
+  color: "#373B4D",
   py: 1.15,
   px: 1,
   backgroundColor: "#F1F3FF",
@@ -44,7 +44,8 @@ const eobBodySx = {
   fontSize: 12,
   py: 1.25,
   px: 1,
-  color: "#374151",
+  color: "#000",
+  fontWeight: 600,
   verticalAlign: "top",
   borderBottom: "1px solid #E5E7EB",
 };
@@ -81,6 +82,7 @@ const eobCardSx = {
   borderRadius: "10px",
   overflow: "hidden",
   width: "100%",
+  fontSize: 13,
 };
 
 const thinScroll = {
@@ -148,7 +150,7 @@ const postingBodySx = {
 function ClaimField({ label, value, calendar, disabled }) {
   return (
     <Box>
-      <Typography sx={{ fontSize: 8, color: "#6B7280", mb: 0.5 }}>
+      <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 0.5 }}>
         {label}
       </Typography>
       <TextField
@@ -158,8 +160,8 @@ function ClaimField({ label, value, calendar, disabled }) {
         disabled={disabled}
         sx={{
           "& .MuiInputBase-root": {
-            height: 26,
-            fontSize: 9,
+            height: 29,
+            fontSize: 12,
             backgroundColor: disabled ? "#F3F4F6" : "#FFFFFF",
           },
           "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
@@ -169,7 +171,7 @@ function ClaimField({ label, value, calendar, disabled }) {
             ? {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <CalendarToday sx={{ fontSize: 12, color: "#9CA3AF" }} />
+                    <CalendarToday sx={{ fontSize: 14, color: "#9CA3AF" }} />
                   </InputAdornment>
                 ),
               }
@@ -183,7 +185,7 @@ function ClaimField({ label, value, calendar, disabled }) {
 function ClaimSelect({ label, value }) {
   return (
     <Box>
-      <Typography sx={{ fontSize: 8, color: "#6B7280", mb: 0.5 }}>
+      <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 0.5 }}>
         {label}
       </Typography>
       <FormControl fullWidth size="small">
@@ -191,13 +193,15 @@ function ClaimSelect({ label, value }) {
           defaultValue={value}
           IconComponent={KeyboardArrowDown}
           sx={{
-            fontSize: 9,
+            fontSize: 12,
             backgroundColor: "#FFFFFF",
-            "& .MuiSelect-select": { py: 0.6, height: 14 },
+            "& .MuiSelect-select": { py: 0.6, height: 14, fontSize: 12 },
             "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
           }}
         >
-          <MenuItem value={value}>{value}</MenuItem>
+          <MenuItem value={value} sx={{ fontSize: 12 }}>
+            {value}
+          </MenuItem>
         </Select>
       </FormControl>
     </Box>
@@ -249,11 +253,31 @@ const EOB_TRANSACTIONS = [
   ["Claim created and added to Queue", "$550.14", "$550.14"],
   ["Claim submitted to Payer - ICIC, $150", "-", "$0.00"],
   ["Payer Settlement EFT/Check #: 150219802000/0906", "$0.00", "$0.00"],
-  ["Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.", "$0.00", "$0.00"],
-  ["Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)", "$0.00", "$0.00"],
-  ["Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.", "$0.00", "$0.00"],
-  ["Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)", "$0.00", "$0.00"],
-  ["Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.", "$0.00", "$0.00"],
+  [
+    "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+    "$0.00",
+    "$0.00",
+  ],
+  [
+    "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+    "$0.00",
+    "$0.00",
+  ],
+  [
+    "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+    "$0.00",
+    "$0.00",
+  ],
+  [
+    "Transferred to Insurance responsibility (Action: None, Status: E-submit to secondary)",
+    "$0.00",
+    "$0.00",
+  ],
+  [
+    "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
+    "$0.00",
+    "$0.00",
+  ],
 ].map(([type, amount, patResp]) => ({
   date: "26 Aug 26",
   type,
@@ -270,12 +294,9 @@ function RemittanceERAEdit() {
   const location = useLocation();
   const { id } = useParams();
 
-  /* Row passed from the Remittance table (may be missing on hard refresh) */
   const remittance = location.state?.remittance ?? null;
 
-  /* Go back to the Remittance ERA/EOB tab (tab index 2) */
-  const handleBack = () =>
-    navigate("/encounters", { state: { activeTab: 2 } });
+  const handleBack = () => navigate("/encounters", { state: { activeTab: 2 } });
 
   return (
     <Box
@@ -290,7 +311,7 @@ function RemittanceERAEdit() {
         ...thinScroll,
       }}
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <Box
         sx={{
           display: "flex",
@@ -303,7 +324,7 @@ function RemittanceERAEdit() {
         <Box>
           <Typography
             sx={{
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: 700,
               color: "#1F2937",
               lineHeight: 1.2,
@@ -311,21 +332,20 @@ function RemittanceERAEdit() {
           >
             Marian, Kalki P (3664)
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 0.6 }}>
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-              Remittance <b>{remittance?.remittanceId ?? id}</b>
-            </Typography>
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 0.6 }}
+          >
+            <Typography sx={{ fontSize: 12, color: "#5C6A7D" }}>
               Claim <b>6178</b>
             </Typography>
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+            <Typography sx={{ fontSize: 12, color: "#5C6A7D" }}>
               Encounter <b>3501</b>
             </Typography>
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-              <b>Born</b> 15 Apr 1958
+            <Typography sx={{ fontSize: 12, color: "#5C6A7D" }}>
+              Born <b>15 Apr 1958</b>
             </Typography>
-            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-              <b>Patient</b> 2885
+            <Typography sx={{ fontSize: 12, color: "#5C6A7D" }}>
+              Patient <b>2885</b>
             </Typography>
           </Box>
         </Box>
@@ -334,16 +354,42 @@ function RemittanceERAEdit() {
           <Button
             variant="outlined"
             size="small"
-            startIcon={<ArrowBackIosNew sx={{ fontSize: "11px !important" }} />}
-            sx={{ ...eobHeaderBtnSx, minWidth: 105 }}
+            startIcon={
+              <ArrowBackIosNew
+                sx={{
+                  fontSize: "16px !important",
+                  color: "#0052E1",
+                  fontWeight: 600,
+                }}
+              />
+            }
+            sx={{
+              ...eobHeaderBtnSx,
+              minWidth: 105,
+              color: "#0D1B2A",
+              fontWeight: 600,
+            }}
           >
             Previous claim
           </Button>
           <Button
             variant="outlined"
             size="small"
-            endIcon={<ArrowForwardIos sx={{ fontSize: "11px !important" }} />}
-            sx={{ ...eobHeaderBtnSx, minWidth: 92 }}
+            endIcon={
+              <ArrowForwardIos
+                sx={{
+                  fontSize: "16px !important",
+                  color: "#0052E1",
+                  fontWeight: 600,
+                }}
+              />
+            }
+            sx={{
+              ...eobHeaderBtnSx,
+              minWidth: 92,
+              color: "#0D1B2A",
+              fontWeight: 600,
+            }}
           >
             Next claim
           </Button>
@@ -351,7 +397,12 @@ function RemittanceERAEdit() {
             variant="outlined"
             size="small"
             onClick={handleBack}
-            sx={{ ...eobHeaderBtnSx, minWidth: 58 }}
+            sx={{
+              ...eobHeaderBtnSx,
+              minWidth: 58,
+              color: "#0D1B2A",
+              fontWeight: 600,
+            }}
           >
             Cancel
           </Button>
@@ -377,7 +428,7 @@ function RemittanceERAEdit() {
         </Box>
       </Box>
 
-      {/* Two-column layout */}
+      {/* ── Two-column layout ── */}
       <Box
         sx={{
           display: "grid",
@@ -386,7 +437,7 @@ function RemittanceERAEdit() {
           alignItems: "start",
         }}
       >
-        {/* ---------- LEFT ---------- */}
+        {/* ────────── LEFT ────────── */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {/* Claim Details */}
           <Box sx={eobCardSx}>
@@ -400,7 +451,9 @@ function RemittanceERAEdit() {
                 borderBottom: "1px solid #E5E7EB",
               }}
             >
-              <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>
+              <Typography
+                sx={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}
+              >
                 Claim Details
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -419,19 +472,23 @@ function RemittanceERAEdit() {
                     },
                   }}
                 />
-                <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                <Typography sx={{ fontSize: 12, color: "#5C6A7D" }}>
                   Show applied
                 </Typography>
                 <Button
                   size="small"
-                  startIcon={<Add sx={{ fontSize: "16px !important" }} />}
+                  startIcon={
+                    <Add
+                      sx={{ fontSize: "20px !important", color: "#0052E1" }}
+                    />
+                  }
                   sx={{
                     minWidth: "auto",
                     ml: 0.5,
                     p: 0,
                     textTransform: "none",
-                    color: "#0066FF",
-                    fontSize: 11,
+                    color: "#5C6A7D",
+                    fontSize: 12,
                   }}
                 >
                   Add New
@@ -445,16 +502,20 @@ function RemittanceERAEdit() {
                   <TableRow sx={{ backgroundColor: "#F9FAFB" }}>
                     <TableCell
                       padding="checkbox"
-                      sx={{ width: 30, py: 0.7, borderBottom: "1px solid #E5E7EB" }}
+                      sx={{
+                        width: 30,
+                        py: 0.7,
+                        borderBottom: "1px solid #E5E7EB",
+                      }}
                     />
                     {["DOS", "Location", "CPT", "Claim#", "ICN", "Status"].map(
                       (h) => (
                         <TableCell
                           key={h}
                           sx={{
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: 600,
-                            color: "#374151",
+                            color: "#373B4D",
                             py: 1,
                             px: 0.8,
                             whiteSpace: "nowrap",
@@ -491,7 +552,7 @@ function RemittanceERAEdit() {
                             fontSize: 12,
                             py: 1.2,
                             px: 0.8,
-                            color: "rgba(0, 0, 0, 0.87)",
+                            color: "#2E2E2E",
                             whiteSpace: "nowrap",
                           }}
                         >
@@ -503,7 +564,7 @@ function RemittanceERAEdit() {
                           fontSize: 12,
                           py: 1.2,
                           px: 0.8,
-                          color: "rgba(0, 0, 0, 0.87)",
+                          color: "#2E2E2E",
                           wordBreak: "break-all",
                         }}
                       >
@@ -511,16 +572,29 @@ function RemittanceERAEdit() {
                       </TableCell>
                       <TableCell sx={{ py: 1.2, px: 0.8 }}>
                         <Chip
-                          label="Primary, Forwarded"
+                          label={
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                lineHeight: 1.1,
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              <span>Primary,</span>
+                              <span>Forwarded</span>
+                            </Box>
+                          }
                           size="small"
                           sx={{
-                            height: 22,
-                            backgroundColor: index === 1 ? "#0066FF" : "#EFF6FF",
+                            height: 36,
+                            backgroundColor:
+                              index === 1 ? "#0066FF" : "#EFF6FF",
                             color: index === 1 ? "#FFFFFF" : "#0066FF",
-                            fontSize: 10,
+                            fontSize: 12,
                             fontWeight: 600,
                             borderRadius: "4px",
-                            "& .MuiChip-label": { px: 0.8 },
+                            "& .MuiChip-label": { px: 0.8, py: 0.3 },
                           }}
                         />
                       </TableCell>
@@ -535,7 +609,12 @@ function RemittanceERAEdit() {
           <Box sx={eobCardSx}>
             <Box sx={{ px: 1.2, py: 1, borderBottom: "1px solid #E5E7EB" }}>
               <Typography
-                sx={{ fontSize: 12, fontWeight: 600, color: "#1F2937", lineHeight: 1.2 }}
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#1F2937",
+                  lineHeight: 1.2,
+                }}
               >
                 Posting Data
               </Typography>
@@ -556,7 +635,11 @@ function RemittanceERAEdit() {
                     !field ? (
                       <Box key={j} />
                     ) : field.t === "s" ? (
-                      <ClaimSelect key={j} label={field.label} value={field.value} />
+                      <ClaimSelect
+                        key={j}
+                        label={field.label}
+                        value={field.value}
+                      />
                     ) : (
                       <ClaimField
                         key={j}
@@ -573,15 +656,15 @@ function RemittanceERAEdit() {
           </Box>
         </Box>
 
-        {/* ---------- RIGHT ---------- */}
+        {/* ────────── RIGHT ────────── */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {/* EOB / ERA Details */}
           <Box sx={eobCardSx}>
             <Box sx={{ px: 1.5, py: 1.5 }}>
               <Typography
                 sx={{
-                  fontSize: 14,
-                  fontWeight: 600,
+                  fontSize: 13,
+                  fontWeight: 700,
                   color: "#1F2937",
                   lineHeight: 1.2,
                   mb: 1.2,
@@ -599,9 +682,15 @@ function RemittanceERAEdit() {
                   width: "100%",
                 }}
               >
+                {/* Note */}
                 <Box>
                   <Typography
-                    sx={{ fontSize: 11, color: "#6B7280", mb: 0.55, lineHeight: 1.2 }}
+                    sx={{
+                      fontSize: 12,
+                      color: "#6B7280",
+                      mb: 0.55,
+                      lineHeight: 1.2,
+                    }}
                   >
                     Note
                   </Typography>
@@ -615,7 +704,9 @@ function RemittanceERAEdit() {
                         borderRadius: "6px",
                         backgroundColor: "#FFFFFF",
                       },
-                      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#E5E7EB",
+                      },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#D1D5DB",
                       },
@@ -633,9 +724,15 @@ function RemittanceERAEdit() {
                   />
                 </Box>
 
+                {/* Reference number */}
                 <Box>
                   <Typography
-                    sx={{ fontSize: 11, color: "#6B7280", mb: 0.55, lineHeight: 1.2 }}
+                    sx={{
+                      fontSize: 12,
+                      color: "#6B7280",
+                      mb: 0.55,
+                      lineHeight: 1.2,
+                    }}
                   >
                     Reference number
                   </Typography>
@@ -644,15 +741,24 @@ function RemittanceERAEdit() {
                   </Box>
                 </Box>
 
+                {/* ERA Balance */}
                 <Box>
                   <Typography
-                    sx={{ fontSize: 11, color: "#6B7280", mb: 0.55, lineHeight: 1.2 }}
+                    sx={{
+                      fontSize: 12,
+                      color: "#6B7280",
+                      mb: 0.55,
+                      lineHeight: 1.2,
+                    }}
                   >
                     ERA Balance
                   </Typography>
-                  <Box sx={eobReadBoxSx}>{remittance?.unpostedAmount ?? "$0"}</Box>
+                  <Box sx={eobReadBoxSx}>
+                    {remittance?.unpostedAmount ?? "$0"}
+                  </Box>
                 </Box>
 
+                {/* View File */}
                 <Button
                   variant="contained"
                   size="small"
@@ -663,12 +769,15 @@ function RemittanceERAEdit() {
                     textTransform: "none",
                     backgroundColor: "#0066FF",
                     color: "#FFFFFF",
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 600,
                     borderRadius: "7px",
                     boxShadow: "none",
                     whiteSpace: "nowrap",
-                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                    "&:hover": {
+                      backgroundColor: "#0052CC",
+                      boxShadow: "none",
+                    },
                   }}
                 >
                   View File
@@ -677,7 +786,7 @@ function RemittanceERAEdit() {
             </Box>
           </Box>
 
-          {/* Transactions */}
+          {/* Transactions table */}
           <Box sx={eobCardSx}>
             <TableContainer
               sx={{
@@ -729,6 +838,7 @@ function RemittanceERAEdit() {
                           color: "#4B5563",
                           lineHeight: 1.4,
                           wordBreak: "break-word",
+                          fontWeight: 500,
                         }}
                       >
                         {t.type}
@@ -740,7 +850,7 @@ function RemittanceERAEdit() {
                             ...eobBodySx,
                             textAlign: "right",
                             whiteSpace: "nowrap",
-                            fontWeight: k === 2 ? 600 : 400,
+                            fontWeight: k === 2 ? 600 : 600,
                           }}
                         >
                           {v}

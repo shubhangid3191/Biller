@@ -22,6 +22,7 @@ import PerformanceOverview from "../pages/PerformanceOverview";
 import ReferringProvider from "../pages/ReferringProvider";
 import ReferringProviderEdit from "../pages/ReferringProviderEdit";
 import RenderingProvider from "../pages/RenderingProvider";
+import RenderingProviderEdit from "../pages/RenderingProviderEdit";
 import Locations from "../pages/Locations";
 import LocationsEdit from "../pages/LocationsEdit";
 import Practice from "../pages/Practice";
@@ -31,6 +32,7 @@ import FeeConfiguration from "../pages/FeeConfiguration";
 import InsuranceProvider from "../pages/InsuranceProvider";
 import InsuranceProviderEdit from "../pages/InsuranceProviderEdit";
 import Program from "../pages/Program";
+import ProgramEdit from "../pages/ProgramEdit";
 
 import PostBillingEditPage from "../pages/PostBillingEditPage";
 import RemittanceERAEdit from "../pages/RemittanceERAEdit";
@@ -108,6 +110,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/rendering-provider/edit"
+        element={
+          <ProtectedRoute>
+            <RenderingProviderEdit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/locations"
         element={
           <ProtectedRoute>
@@ -176,6 +186,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Program />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/program/configuration"
+        element={
+          <ProtectedRoute>
+            <ProgramEdit />
           </ProtectedRoute>
         }
       />

@@ -43,7 +43,7 @@ import {
   TiaChatIcon2,
   encounterAssistCheck,
   CalendarBlueIcon,
-  RPEditIcon
+  RPEditIcon,
 } from "../assets/Assets.jsx";
 
 // Needed so dayjs("08/15/2026", "MM/DD/YYYY") really parses with that format
@@ -607,7 +607,7 @@ function TopBar() {
         </Typography>
       </Box>
 
-      <Stack
+      {/* <Stack
         direction="row"
         spacing={0.8}
         flexWrap="wrap"
@@ -629,7 +629,7 @@ function TopBar() {
         >
           Scrub &amp; approve
         </PrimaryBtn>
-      </Stack>
+      </Stack> */}
     </Box>
   );
 }
@@ -980,7 +980,7 @@ function DetailColumn({ items }) {
 }
 
 function PatientSection({ sectionRef }) {
-  const [showDetails, setShowDetails] = React.useState(false);
+  const [showDetails, setShowDetails] = React.useState(true);
 
   const patient = {
     legalName: "Wayne Jimmy",
@@ -1008,9 +1008,7 @@ function PatientSection({ sectionRef }) {
       accentBg={C.purpleBg}
       rightSlot={
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <OutlineBtn>
-            Select existing
-          </OutlineBtn>
+          <OutlineBtn>Select existing</OutlineBtn>
           <PrimaryBtn>+ New patient</PrimaryBtn>
         </Stack>
       }
@@ -1027,9 +1025,18 @@ function PatientSection({ sectionRef }) {
         >
           <IconButton
             size="small"
-            sx={{ position: "absolute", top: 4, right: 4, color: C.blue }}
+            onClick={() => {}}
+            sx={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              color: C.blue,
+              p: 0.4,
+              "&:hover": { backgroundColor: "#EEF4FF" },
+              borderRadius: "6px",
+            }}
           >
-            <RPEditIcon sx={{ fontSize: 14 }} />
+            <RPEditIcon width={18} height={18} color={C.blue} />
           </IconButton>
 
           <Typography
@@ -1421,7 +1428,7 @@ function CaseInsuranceSection({ sectionRef }) {
 
                   <TableCell sx={{ ...cellSx, width: 48 }}>
                     <IconButton size="small">
-                      <RPEditIcon sx={{ fontSize: 10, color: C.blue }} />
+                      <RPEditIcon width={16} height={16} color={C.blue} />
                     </IconButton>
                   </TableCell>
                 </TableRow>

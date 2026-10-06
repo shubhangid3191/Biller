@@ -12,17 +12,16 @@ import {
   TableHead,
   TableRow,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   Stack,
   Switch,
   Tooltip,
+  InputBase,
 } from "@mui/material";
 import {
   RPEditIcon,
@@ -30,6 +29,7 @@ import {
   RPDeleteIcon,
   FilterIcon,
   ExportIcon,
+  SearchIcon,
 } from "../assets/Assets";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
@@ -48,7 +48,7 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows (varied so sorting can be seen working)                   */
+/* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
   ["Clare Jane", "WashingtonUSe, Aleutians...", "8475875747", "8475875747", "8475875747", "lipsum@gmail...", "Hitex, Balance Report, Fresh"],
@@ -73,30 +73,49 @@ const ROWS = SAMPLE.map(
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
-/* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
 /* ------------------------------------------------------------------ */
 const COLUMNS = [
   { id: "providerName", label: "Provider Name", sort: "alpha" },
-  { id: "address", label: "Address", sort: "alpha" },
+  { id: "address", label: "Address",},
   { id: "npi", label: "NPI", sort: "number" },
   { id: "fax", label: "Fax", sort: "number" },
-  { id: "mobile", label: "Mobile", sort: "number" },
-  { id: "email", label: "Email", sort: "alpha" },
+  { id: "mobile", label: "Mobile",  },
+  { id: "email", label: "Email",  },
   { id: "practice", label: "Practice", sort: "alpha" },
   { id: "actions", label: "Action", last: true },
 ];
 
 /* ------------------------------------------------------------------ */
+/* ✅ NEW: Search helper (Name, NPI, Practice only)                     */
+/* ------------------------------------------------------------------ */
+const SEARCH_FIELDS = ["providerName", "npi", "practice"];
+
+function filterRows(rows, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    SEARCH_FIELDS.some((field) =>
+      String(row[field] ?? "").toLowerCase().includes(q)
+    )
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Sort helpers                                                         */
 /* ------------------------------------------------------------------ */
 const COMPARERS = {
-  alpha: (a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
+  alpha: (a, b) =>
+    String(a).localeCompare(String(b), undefined, { sensitivity: "base" }),
   number: (a, b) => (Number(a) || 0) - (Number(b) || 0),
 };
 
 const SORT_TITLES = {
   alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
-  number: { asc: "Sorted low to high", desc: "Sorted high to low", none: "Sort low to high" },
+  number: {
+    asc: "Sorted low to high",
+    desc: "Sorted high to low",
+    none: "Sort low to high",
+  },
 };
 
 /* asc <-> desc only, no reset to original order */
@@ -109,12 +128,15 @@ function useSortedRows(rows, columns) {
     if (!column?.sort) return rows;
     const factor = sort.dir === "asc" ? 1 : -1;
     const compare = COMPARERS[column.sort];
-    return [...rows].sort((a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor);
+    return [...rows].sort(
+      (a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor
+    );
   }, [rows, columns, sort]);
 
   const handleSort = (columnId) =>
     setSort((prev) => {
-      if (prev.columnId !== columnId || !prev.dir) return { columnId, dir: "asc" };
+      if (prev.columnId !== columnId || !prev.dir)
+        return { columnId, dir: "asc" };
       return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
     });
 
@@ -122,7 +144,7 @@ function useSortedRows(rows, columns) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Shared cell sx                                                        */
+/* Shared cell sx                                                       */
 /* ------------------------------------------------------------------ */
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
@@ -191,7 +213,7 @@ function HeaderCell({ column, sortDir, onSort }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Input style helper                                                   */
+/* Input style helpers                                                  */
 /* ------------------------------------------------------------------ */
 const inputSx = {
   "& .MuiOutlinedInput-root": {
@@ -223,7 +245,7 @@ const selectSx = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Section heading                                                       */
+/* Section heading                                                      */
 /* ------------------------------------------------------------------ */
 function SectionTitle({ children }) {
   return (
@@ -244,7 +266,7 @@ function SectionTitle({ children }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Form field                                                            */
+/* Form field                                                           */
 /* ------------------------------------------------------------------ */
 function FField({ label, placeholder, select, options = [], required }) {
   const lbl = (
@@ -299,7 +321,7 @@ function FField({ label, placeholder, select, options = [], required }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 4-col grid row                                                        */
+/* 4-col grid row                                                       */
 /* ------------------------------------------------------------------ */
 function FormRow({ fields }) {
   return (
@@ -323,7 +345,7 @@ function FormRow({ fields }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Edit Dialog                                                           */
+/* Edit Dialog                                                          */
 /* ------------------------------------------------------------------ */
 function EditDialog({ open, onClose }) {
   const [pcp, setPcp] = React.useState(true);
@@ -334,42 +356,25 @@ function EditDialog({ open, onClose }) {
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: "12px",
-          p: 0,
-        },
-      }}
-      sx={{
-        "& .MuiDialog-paper": { borderRadius: "12px" },
-      }}
+      PaperProps={{ sx: { borderRadius: "12px", p: 0 } }}
+      sx={{ "& .MuiDialog-paper": { borderRadius: "12px" } }}
     >
       <DialogContent sx={{ px: { xs: 2, sm: 3 }, pt: 3, pb: 1 }}>
-        {/* Title */}
         <Typography
           sx={{ fontSize: 18, fontWeight: 700, color: "#111827", mb: 3 }}
         >
           Edit referring provider
         </Typography>
 
-        {/* ── BASIC DETAILS ── */}
+        {/* BASIC DETAILS */}
         <SectionTitle>Basic Details</SectionTitle>
 
         <FormRow
           fields={[
             { label: "First Name", placeholder: "Type here" },
             { label: "Last Name", placeholder: "Type here" },
-            {
-              label: "Date of Birth",
-              placeholder: "Select location",
-              select: true,
-            },
-            {
-              label: "Sex",
-              placeholder: "Select",
-              select: true,
-              options: ["Male", "Female", "Other"],
-            },
+            { label: "Date of Birth", placeholder: "Select location", select: true },
+            { label: "Sex", placeholder: "Select", select: true, options: ["Male", "Female", "Other"] },
           ]}
         />
 
@@ -385,17 +390,9 @@ function EditDialog({ open, onClose }) {
         <FormRow
           fields={[
             { label: "State License Number", placeholder: "Type here" },
-            {
-              label: "State Controlled Substance Number",
-              placeholder: "Type here",
-            },
-            { label: "DEA Number", placeholder: "Typer here" },
-            {
-              label: "Practice",
-              placeholder: "Select",
-              select: true,
-              required: true,
-            },
+            { label: "State Controlled Substance Number", placeholder: "Type here" },
+            { label: "DEA Number", placeholder: "Type here" },
+            { label: "Practice", placeholder: "Select", select: true, required: true },
           ]}
         />
 
@@ -417,7 +414,7 @@ function EditDialog({ open, onClose }) {
           />
         </Box>
 
-        {/* ── ADDRESS ── */}
+        {/* ADDRESS */}
         <Box
           sx={{
             display: "flex",
@@ -459,12 +456,11 @@ function EditDialog({ open, onClose }) {
           ]}
         />
 
-        {/* E-mail — single field */}
         <Box sx={{ mb: 3, maxWidth: { md: "25%" } }}>
           <FField label="E-mail" placeholder="Select" select />
         </Box>
 
-        {/* ── SPECIALTY & TAXONOMY ── */}
+        {/* SPECIALTY & TAXONOMY */}
         <Box
           sx={{
             display: "flex",
@@ -489,7 +485,6 @@ function EditDialog({ open, onClose }) {
           </IconButton>
         </Box>
 
-        {/* Specialty + Taxonomy row */}
         <Box
           sx={{
             display: "grid",
@@ -511,7 +506,6 @@ function EditDialog({ open, onClose }) {
         </Box>
       </DialogContent>
 
-      {/* Footer */}
       <DialogActions sx={{ px: 3, py: 2, borderTop: "1px solid #E5E7EB" }}>
         <Button
           onClick={onClose}
@@ -550,12 +544,20 @@ function EditDialog({ open, onClose }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Main Page                                                             */
+/* Main Page                                                            */
 /* ------------------------------------------------------------------ */
 export default function ReferringProvider() {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = React.useState(false);
-  const { sort, sortedRows, handleSort } = useSortedRows(ROWS, COLUMNS);
+
+  // ✅ NEW: search state
+  const [query, setQuery] = React.useState("");
+
+  // ✅ NEW: filter first, then sort the filtered result
+  const filteredRows = React.useMemo(() => filterRows(ROWS, query), [query]);
+
+  // ✅ CHANGED: sorting now runs on filteredRows instead of ROWS
+  const { sort, sortedRows, handleSort } = useSortedRows(filteredRows, COLUMNS);
 
   return (
     <Box
@@ -568,75 +570,107 @@ export default function ReferringProvider() {
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 2,
-    mb: 3,
-  }}
->
-  <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
-    Referring Provider Management
-  </Typography>
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+          Referring Provider Management
+        </Typography>
 
-  <Stack direction="row" spacing={1.5} flexWrap="wrap">
-    <Button
-      variant="outlined"
-      startIcon={<FilterIcon color="#2563EB" />}
-      sx={{
-        textTransform: "none",
-        fontSize: 13,
-        fontWeight: 500,
-        borderRadius: "8px",
-        color: T.blue,
-        border: "1.5px solid #015DFF",
-        px: 2,
-        "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
-      }}
-    >
-      Filter
-    </Button>
+        
 
-    <Button
-      variant="outlined"
-      startIcon={<ExportIcon color="#2563EB" />}
-      sx={{
-        textTransform: "none",
-        fontSize: 13,
-        fontWeight: 500,
-        borderRadius: "8px",
-        color: T.blue,
-        border: "1.5px solid #015DFF",
-        px: 2,
-        "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
-      }}
-    >
-      Export
-    </Button>
+        <Stack direction="row" spacing={1.5} flexWrap="wrap">
 
-    <Button
-      variant="contained"
-      disableElevation
-      sx={{
-        textTransform: "none",
-        fontSize: 13,
-        fontWeight: 500,
-        borderRadius: "8px",
-        bgcolor: T.blue,
-        px: 2.5,
-        "&:hover": { bgcolor: "#1D4ED8" },
-      }}
-    >
-      Add New
-    </Button>
-  </Stack>
-</Box>
+          {/* ✅ CHANGED: Search bar wired to local state */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.8,
+            border: "1px solid #D1D5DB",
+            borderRadius: "30px",
+            px: 1.2,
+            py: 0.5,
+            bgcolor: "#F4F8FF",
+            width: { xs: "100%", sm: 320 },
+            "&:focus-within": { borderColor: "#DBE3EF" },
+          }}
+        >
+          <SearchIcon width={14} height={14} color="#9CA3AF" />
+          <InputBase
+            placeholder="Search by Name, NPI or Practice..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            inputProps={{ "aria-label": "Search referring providers" }}
+            sx={{
+              fontSize: 12.5,
+              flex: 1,
+              "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+            }}
+          />
+        </Box>
+          <Button
+            variant="outlined"
+            startIcon={<FilterIcon color="#2563EB" />}
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: T.blue,
+              border: "1.5px solid #015DFF",
+              px: 2,
+              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+            }}
+          >
+            Filter
+          </Button>
 
-      {/* ── TABLE ── */}
+          <Button
+            variant="outlined"
+            startIcon={<ExportIcon color="#2563EB" />}
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: T.blue,
+              border: "1.5px solid #015DFF",
+              px: 2,
+              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+            }}
+          >
+            Export
+          </Button>
+
+          <Button
+            variant="contained"
+            disableElevation
+            onClick={() => navigate("/referring-provider/edit", { state: { row: null } })}
+            sx={{
+              textTransform: "none",
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: "8px",
+              bgcolor: T.blue,
+              px: 2.5,
+              "&:hover": { bgcolor: "#1D4ED8" },
+            }}
+          >
+            Add New
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* TABLE */}
       <TableContainer
         sx={{
           border: `1px solid ${T.border}`,
@@ -680,7 +714,7 @@ export default function ReferringProvider() {
                   <Tooltip title="Edit" arrow>
                     <IconButton
                       size="small"
-                      onClick={() => navigate("/referring-provider/edit")}
+                      onClick={() => navigate("/referring-provider/edit", { state: { row } })}
                       sx={{
                         color: T.blue,
                         "&:hover": { bgcolor: "#EEF4FF" },
@@ -692,11 +726,24 @@ export default function ReferringProvider() {
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* ✅ NEW: empty state when search has no matches */}
+            {sortedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  align="center"
+                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
+                >
+                  No matching providers found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* ── EDIT DIALOG ── */}
+      {/* EDIT DIALOG */}
       <EditDialog open={editOpen} onClose={() => setEditOpen(false)} />
     </Box>
   );

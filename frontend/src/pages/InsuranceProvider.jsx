@@ -14,6 +14,7 @@ import {
   TableRow,
   Stack,
   Tooltip,
+  InputBase, // ✅ NEW
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -21,6 +22,7 @@ import {
   ExportIcon,
   RPEditIcon,
   SettingsIcon2,
+  SearchIcon, // ✅ NEW
 } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
@@ -68,6 +70,21 @@ const COLUMNS = [
   { id: "active", label: "Active", center: true },
   { id: "actions", label: "Action", center: true, last: true },
 ];
+
+/* ------------------------------------------------------------------ */
+/* ✅ NEW: Search helper (Payor Name and Payor Code only)               */
+/* ------------------------------------------------------------------ */
+const SEARCH_FIELDS = ["payorName", "payorCode"];
+
+function filterRows(rows, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    SEARCH_FIELDS.some((field) =>
+      String(row[field] ?? "").toLowerCase().includes(q)
+    )
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Sort helpers                                                         */
@@ -191,7 +208,18 @@ function HeaderCell({ column, sortDir, onSort }) {
 export default function InsuranceProvider() {
   const navigate = useNavigate();
   const [data, setData] = React.useState(ROWS);
-  const { sort, sortedRows, handleSort } = useSortedRows(data, COLUMNS);
+
+  // ✅ NEW: search state
+  const [query, setQuery] = React.useState("");
+
+  // ✅ NEW: filter first (on `data`, so checkbox state is kept), then sort
+  const filteredRows = React.useMemo(
+    () => filterRows(data, query),
+    [data, query]
+  );
+
+  // ✅ CHANGED: sorting now runs on filteredRows instead of data
+  const { sort, sortedRows, handleSort } = useSortedRows(filteredRows, COLUMNS);
 
   const toggleActive = (id) => {
     setData((prev) =>
@@ -210,7 +238,7 @@ export default function InsuranceProvider() {
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -226,6 +254,35 @@ export default function InsuranceProvider() {
         </Typography>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
+          {/* ✅ NEW: Search bar */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              border: "1px solid #D1D5DB",
+              borderRadius: "30px",
+              px: 1.2,
+              py: 0.5,
+              bgcolor: "#F4F8FF",
+              width: { xs: "100%", sm: 320 },
+              "&:focus-within": { borderColor: "#DBE3EF" },
+            }}
+          >
+            <SearchIcon width={14} height={14} color="#9CA3AF" />
+            <InputBase
+              placeholder="Search by Nayor Name or Payor Code..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              inputProps={{ "aria-label": "Search by payor name or payor code" }}
+              sx={{
+                fontSize: 12.5,
+                flex: 1,
+                "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+              }}
+            />
+          </Box>
+
           <Button
             variant="outlined"
             startIcon={<FilterIcon width={16} height={16} color={T.blue} />}
@@ -265,7 +322,7 @@ export default function InsuranceProvider() {
           <Button
             variant="contained"
             disableElevation
-            onClick={() => navigate("/insurance-provider/edit")}
+            onClick={() => navigate("/insurance-provider/edit", { state: { row: null } })}
             sx={{
               textTransform: "none",
               fontSize: 13,
@@ -282,7 +339,7 @@ export default function InsuranceProvider() {
         </Stack>
       </Box>
 
-      {/* ── TABLE ── */}
+      {/* TABLE */}
       <TableContainer
         sx={{
           border: `1px solid ${T.border}`,
@@ -353,7 +410,7 @@ export default function InsuranceProvider() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() => navigate("/insurance-provider/edit")}
+                        onClick={() => navigate("/insurance-provider/edit", { state: { row } })}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
@@ -377,6 +434,19 @@ export default function InsuranceProvider() {
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* ✅ NEW: empty state when search has no matches */}
+            {sortedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  align="center"
+                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
+                >
+                  No matching insurance providers found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

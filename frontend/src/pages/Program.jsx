@@ -13,6 +13,7 @@ import {
   TableRow,
   Stack,
   Tooltip,
+  InputBase, // ✅ NEW
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -20,6 +21,7 @@ import {
   ExportIcon,
   RPEditIcon,
   RPDeleteIcon,
+  SearchIcon, // ✅ NEW
 } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
@@ -63,6 +65,21 @@ const COLUMNS = [
   { id: "cpt", label: "CPT", sort: "alpha" },
   { id: "actions", label: "Action", center: true, last: true, width: 140 },
 ];
+
+/* ------------------------------------------------------------------ */
+/* ✅ NEW: Search helper (Program Name and CPT only)                    */
+/* ------------------------------------------------------------------ */
+const SEARCH_FIELDS = ["programName", "cpt"];
+
+function filterRows(rows, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    SEARCH_FIELDS.some((field) =>
+      String(row[field] ?? "").toLowerCase().includes(q)
+    )
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Sort helpers                                                         */
@@ -191,7 +208,18 @@ function HeaderCell({ column, sortDir, onSort }) {
 export default function Program() {
   const navigate = useNavigate();
   const [data] = React.useState(ROWS);
-  const { sort, sortedRows, handleSort } = useSortedRows(data, COLUMNS);
+
+  // ✅ NEW: search state
+  const [query, setQuery] = React.useState("");
+
+  // ✅ NEW: filter first, then sort the filtered result
+  const filteredRows = React.useMemo(
+    () => filterRows(data, query),
+    [data, query]
+  );
+
+  // ✅ CHANGED: sorting now runs on filteredRows instead of data
+  const { sort, sortedRows, handleSort } = useSortedRows(filteredRows, COLUMNS);
 
   return (
     <Box
@@ -204,7 +232,7 @@ export default function Program() {
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -220,6 +248,35 @@ export default function Program() {
         </Typography>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
+          {/* ✅ NEW: Search bar */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              border: "1px solid #D1D5DB",
+              borderRadius: "30px",
+              px: 1.2,
+              py: 0.5,
+              bgcolor: "#F4F8FF",
+              width: { xs: "100%", sm: 320 },
+              "&:focus-within": { borderColor: "#DBE3EF" },
+            }}
+          >
+            <SearchIcon width={14} height={14} color="#9CA3AF" />
+            <InputBase
+              placeholder="Search by program Name or CPT..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              inputProps={{ "aria-label": "Search by program name or CPT" }}
+              sx={{
+                fontSize: 12.5,
+                flex: 1,
+                "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+              }}
+            />
+          </Box>
+
           <Button
             variant="outlined"
             startIcon={<FilterIcon width={16} height={16} color={T.blue} />}
@@ -259,7 +316,7 @@ export default function Program() {
           <Button
             variant="contained"
             disableElevation
-            onClick={() => navigate("/program/configuration")}
+            onClick={() => navigate("/program/configuration", { state: { row: null } })}
             sx={{
               textTransform: "none",
               fontSize: 13,
@@ -276,7 +333,7 @@ export default function Program() {
         </Stack>
       </Box>
 
-      {/* ── TABLE ── */}
+      {/* TABLE */}
       <TableContainer
         sx={{
           border: `1px solid ${T.border}`,
@@ -289,18 +346,18 @@ export default function Program() {
           size="small"
           sx={{ tableLayout: "auto", borderCollapse: "collapse" }}
         >
-         <TableHead>
-  <TableRow>
-    {COLUMNS.map((col) => (
-      <HeaderCell
-        key={col.id}
-        column={col}
-        sortDir={sort.columnId === col.id ? sort.dir : null}
-        onSort={handleSort}
-      />
-    ))}
-  </TableRow>
-</TableHead>
+          <TableHead>
+            <TableRow>
+              {COLUMNS.map((col) => (
+                <HeaderCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                />
+              ))}
+            </TableRow>
+          </TableHead>
 
           <TableBody>
             {sortedRows.map((row) => (
@@ -331,7 +388,7 @@ export default function Program() {
                       <IconButton
                         size="small"
                         aria-label="Edit"
-                        //onClick={() => navigate("/program/configuration")}
+                        onClick={() => navigate("/program/configuration", { state: { row } })}
                         sx={actionBtnSx}
                       >
                         <RPEditIcon width={20} height={20} color={T.blue} />
@@ -350,6 +407,19 @@ export default function Program() {
                 </TableCell>
               </TableRow>
             ))}
+
+            {/* ✅ NEW: empty state when search has no matches */}
+            {sortedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  align="center"
+                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
+                >
+                  No matching programs found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
