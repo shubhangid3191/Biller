@@ -262,6 +262,38 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/claims/pre-billing"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/claims/post-billing"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/claims/remittance-era"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/claims/patient-statement"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/post-billing-claim-page"
         element={
           <ProtectedRoute>

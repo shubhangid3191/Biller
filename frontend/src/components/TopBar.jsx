@@ -9,32 +9,42 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { StarIcon, EditIcon, Bell, TiaChatIcon} from '../assets/Assets';
-
-const drawerWidth = 240;
+import { useSidebar } from './Sidebar';
 
 function TopBar() {
+  const sidebarContext = useSidebar();
+  const sidebarWidth = sidebarContext?.currentWidth || 70;
+
   return (
     <AppBar
       position="fixed"
       sx={{
-        width: `calc(100% - ${drawerWidth}px)`,
-        ml: `${drawerWidth}px`,
+        left: 0,
+        right: 0,
+        width: '100%',
         backgroundColor: '#ffffff',
         boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
         borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+        zIndex: (theme) => theme.zIndex.drawer - 1,
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
+      <Toolbar sx={{ justifyContent: 'space-between', py: 1, minHeight: '56px !important', ml: `${sidebarWidth}px`, transition: 'margin-left 0.3s ease' }}>
         {/* Search Bar */}
         <Box
           sx={{
             position: 'relative',
-            borderRadius: 2,
-            backgroundColor: alpha('#000', 0.04),
+            borderRadius: '8px',
+            backgroundColor: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            transition: 'all 0.2s ease',
             '&:hover': {
-              backgroundColor: alpha('#000', 0.06),
+              borderColor: '#0066ff',
             },
-            width: '100%',
+            '&:focus-within': {
+              backgroundColor: '#ffffff',
+              borderColor: '#0066ff',
+            },
+            flexGrow: 1,
             maxWidth: 600,
             mr: 2,
           }}
@@ -57,12 +67,13 @@ function TopBar() {
             sx={{
               color: 'rgba(0, 0, 0, 0.87)',
               width: '100%',
+              fontFamily: "'Roboto', sans-serif",
               '& .MuiInputBase-input': {
-                padding: '12px 48px 12px 0',
+                padding: '10px 48px 10px 0',
                 paddingLeft: `calc(1em + 32px)`,
-                fontSize: 14,
+                fontSize: 13.5,
                 '&::placeholder': {
-                  color: 'rgba(0, 0, 0, 0.4)',
+                  color: 'rgba(0, 0, 0, 0.5)',
                   opacity: 1,
                 },
               },
@@ -87,6 +98,7 @@ function TopBar() {
               sx={{
                 fontSize: 11,
                 fontWeight: 500,
+                fontFamily: "'Roboto', sans-serif",
                 color: 'rgba(0, 0, 0, 0.6)',
               }}
             >
@@ -96,7 +108,7 @@ function TopBar() {
         </Box>
 
         {/* Right Side Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
           {/* Edit Icon */}
        
             <IconButton
@@ -136,10 +148,12 @@ function TopBar() {
               color: '#ffffff',
               textTransform: 'none',
               fontWeight: 500,
+              fontFamily: "'Roboto', sans-serif",
               px: 2.5,
               py: 1,
               borderRadius: 2,
-              gap: 0.7, whiteSpace: "nowrap",
+              gap: 0.7, 
+              whiteSpace: "nowrap",
               boxShadow: '0 2px 8px rgba(0, 102, 255, 0.3)',
               '&:hover': {
                 backgroundColor: '#0052cc',

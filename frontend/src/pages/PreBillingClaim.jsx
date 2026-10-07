@@ -94,35 +94,35 @@ const tdSx = {
 const checkboxSx = {
   p: 0,
   color: "#9CA3AF",
-  "& .MuiSvgIcon-root": { fontSize: 18 },
+  "& .MuiSvgIcon-root": { fontSize: 18, borderRadius: "4px" },
   "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: BLUE },
 };
 
 const pillBtnSx = (active) => ({
   textTransform: "none",
-  fontSize: 12,
-  fontWeight: 500,
+  fontSize: 11,
+  fontWeight: active ? 600 : 500,
   height: 28,
   minWidth: 0,
-  px: 1.75,
-  borderRadius: "14px",
+  px: 2,
+  borderRadius: "16px",
   gap: 0.6,
-  backgroundColor: active ? BLUE : "#FFFFFF",
-  color: active ? "#FFFFFF" : "#111827",
-  border: active ? "1px solid " + BLUE : "1px solid #E5E7EB",
+  backgroundColor: active ? "#0066FF" : "#FFFFFF",
+  color: active ? "#FFFFFF" : "rgba(0, 0, 0, 0.7)",
+  border: active ? "none" : "1px solid #e0e0e0",
   boxShadow: "none",
   "&:hover": {
-    backgroundColor: active ? "#0952CC" : "#F9FAFB",
+    backgroundColor: active ? "#0052CC" : "#f5f5f5",
     boxShadow: "none",
   },
 });
 
 const filterChipSx = {
   textTransform: "none",
-  color: "#1F2937",
+  color: "#1e293b",
   borderColor: "#E5E7EB",
   backgroundColor: "#FFFFFF",
-  fontWeight: 500,
+  fontWeight: 600,
   fontSize: 12,
   height: 32,
   px: 1.75,
@@ -187,7 +187,7 @@ const thinScroll = {
 const listContainerSx = {
   boxShadow: "none",
   border: "1px solid #e0e0e0",
-  maxHeight: "calc(100vh - 280px)",
+  maxHeight: "400px",
   overflow: "auto",
   ...thinScroll,
 };
@@ -196,22 +196,22 @@ const stmtContainerSx = {
   boxShadow: "none",
   border: "1px solid #E5E7EB",
   borderRadius: "10px",
-  maxHeight: "calc(100vh - 280px)",
+  maxHeight: "400px",
   overflow: "auto",
   ...thinScroll,
 };
 
 const listHeadSx = {
-  fontWeight: 600,
-  fontSize: 11,
-  color: "#374151",
+  fontWeight: 700,
+  fontSize: 12,
+  color: "#1e293b",
   py: 1.2,
   px: 1.25,
   lineHeight: 1.15,
+  backgroundColor: "#ffffff",
+  borderBottom: "1px solid #e0e0e0",
   whiteSpace: "pre-line",
   verticalAlign: "middle",
-  backgroundColor: "#fafafa",
-  borderBottom: "1px solid #e0e0e0",
 };
 
 const listCellSx = {
@@ -233,20 +233,20 @@ const toolbarIconBtnSx = {
 
 const selectActionBtnSx = {
   textTransform: "none",
-  color: "#1f2937",
-  borderColor: "transparent",
+  color: "#1e293b",
+  borderColor: "#e2e8f0",
   backgroundColor: "white",
-  fontWeight: 500,
+  fontWeight: 600,
   fontSize: 13,
   height: 30,
   px: 2,
   minWidth: "auto",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
   borderRadius: "8px",
   "&:hover": {
-    borderColor: "transparent",
-    backgroundColor: "#f9fafb",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    borderColor: "#cbd5e1",
+    backgroundColor: "#f8fafc",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
   },
 };
 
@@ -824,7 +824,7 @@ function ChargeCaptureBanner() {
     <Box
       sx={{
         flexShrink: 0,
-        backgroundColor: "#EFF7FF",
+        backgroundColor: "#ECF5FF",
         border: "1px solid #D5E3F2",
         p: "10px 12px",
         mx: 2,
@@ -866,7 +866,7 @@ function ChargeCaptureBanner() {
         <Typography
           component="div"
           sx={{
-            color: "#374151",
+            color: "#1F2937",
             fontSize: "11px",
             lineHeight: 1.45,
             whiteSpace: "normal",
@@ -1575,16 +1575,15 @@ const PRE_COLUMNS = [
     sort: "alpha",
     render: (r) => `${r.patientName} ${r.gender}`,
   },
-  { id: "cpt", label: "CPT", sort: "alpha" },
-  { id: "modifier", label: "Modifier", sort: "alpha" },
-  { id: "icd", label: "ICD", sort: "alpha" },
-  { id: "primaryInsurance", label: "Primary\nInsurance", sort: "alpha" },
-  { id: "billed", label: "Billed\nAmount", sort: "number" },
-  { id: "patientCopay", label: "Patient\nCopay", sort: "number" },
+  { id: "cpt", label: "CPT" },
+  { id: "modifier", label: "Modifier" },
+  { id: "icd", label: "ICD" },
+  { id: "primaryInsurance", label: "Primary\nInsurance" },
+  { id: "billed", label: "Billed\nAmount" },
+  { id: "patientCopay", label: "Patient\nCopay" },
   {
     id: "status",
     label: "Status",
-    sort: "alpha",
     render: (r) => {
       const s = PRE_STATUS_STYLES[r.status] || PRE_STATUS_STYLES.Unbilled;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
@@ -1593,7 +1592,6 @@ const PRE_COLUMNS = [
   {
     id: "remarks",
     label: "Remarks",
-    sort: "alpha",
     cellSx: { maxWidth: 180, fontSize: 11, color: "rgba(0, 0, 0, 0.7)" },
   },
   { id: "encounterId", label: "Encounter ID #", sort: "number" },
@@ -1619,26 +1617,25 @@ const POST_COLUMNS = [
     sort: "alpha",
     render: (r) => `${r.patientName} ${r.gender}`,
   },
-  { id: "cpt", label: "CPT", sort: "alpha" },
-  { id: "modifier", label: "Modifier", sort: "alpha" },
-  { id: "icd", label: "ICD", sort: "alpha" },
-  { id: "billedTo", label: "Billed to", sort: "alpha" },
-  { id: "billed", label: "Billed", sort: "number" },
-  { id: "adjustment", label: "Adjustment", sort: "number" },
-  { id: "insurancePayment", label: "Insurance\npayment", sort: "number" },
-  { id: "patientPayment", label: "Patient\nPayment", sort: "number" },
-  { id: "billedAs", label: "Billed as", sort: "alpha" },
+  { id: "cpt", label: "CPT" },
+  { id: "modifier", label: "Modifier" },
+  { id: "icd", label: "ICD" },
+  { id: "billedTo", label: "Billed to" },
+  { id: "billed", label: "Billed" },
+  { id: "adjustment", label: "Adjustment" },
+  { id: "insurancePayment", label: "Insurance\npayment" },
+  { id: "patientPayment", label: "Patient\nPayment" },
+  { id: "billedAs", label: "Billed as" },
   {
     id: "status",
     label: "Status",
-    sort: "alpha",
     render: (r) => {
       const s = POST_STATUS_STYLES[r.status] || POST_STATUS_STYLES.Submitted;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
     },
   },
-  { id: "clearingHouse", label: "Clearing\nhouse #", sort: "number" },
-  { id: "firstBilled", label: "First Billed", sort: "number" },
+  { id: "clearingHouse", label: "Clearing\nhouse #" },
+  { id: "firstBilled", label: "First Billed" },
   { id: "encounterId", label: "Encounter ID", sort: "number" },
   { id: "claimId", label: "Claim ID", sort: "number" },
   {
@@ -1655,20 +1652,19 @@ const POST_COLUMNS = [
 
 const REMIT_COLUMNS = [
   { id: "remittanceId", label: "ID", sort: "number" },
-  { id: "location", label: "Location", sort: "alpha" },
-  { id: "provider", label: "Provider", sort: "alpha" },
-  { id: "payer", label: "Payer", sort: "alpha" },
-  { id: "paymentMethod", label: "Payment Method", sort: "alpha" },
-  { id: "chequeNumber", label: "Cheque #", sort: "number" },
-  { id: "amount", label: "Amount", sort: "number" },
+  { id: "location", label: "Location" },
+  { id: "provider", label: "Provider" },
+  { id: "payer", label: "Payer" },
+  { id: "paymentMethod", label: "Payment Method" },
+  { id: "chequeNumber", label: "Cheque #" },
+  { id: "amount", label: "Amount" },
   { id: "checkDate", label: "Check Date", sort: "date" },
   { id: "receivedDate", label: "Received Date", sort: "date" },
-  { id: "claimNumbers", label: "Claim Numbers", sort: "number" },
-  { id: "unpostedAmount", label: "Unposted Amount", sort: "number" },
+  { id: "claimNumbers", label: "Claim Numbers" },
+  { id: "unpostedAmount", label: "Unposted Amount" },
   {
     id: "status",
     label: "Status",
-    sort: "alpha",
     render: (r) => {
       const s = REMIT_STATUS_STYLES[r.status] || REMIT_STATUS_STYLES.Posted;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
@@ -1714,11 +1710,10 @@ const NEW_STMT_COLUMNS = [
     cellSx: { fontWeight: 600 },
   },
   { id: "pid", label: "ID", sort: "number", cellSx: { color: "#4B5563" } },
-  { id: "dob", label: "DOB", sort: "date", cellSx: { color: "#4B5563" } },
+  { id: "dob", label: "DOB", cellSx: { color: "#4B5563" } },
   {
     id: "category",
     label: "Category",
-    sort: "alpha",
     render: (r) => (
       <Chip
         label={r.category}
@@ -1733,12 +1728,11 @@ const NEW_STMT_COLUMNS = [
   {
     id: "lastStatement",
     label: "Last\nstatement",
-    sort: "date",
     cellSx: (r) => ({
       color: r.lastStatement === "Never sent" ? "#B45309" : "#4B5563",
     }),
   },
-  { id: "sent", label: "Sent", sort: "number", cellSx: { color: "#6B7280" } },
+  { id: "sent", label: "Sent", cellSx: { color: "#6B7280" } },
   {
     id: "calls",
     title: "Calls",
@@ -1785,11 +1779,10 @@ const NEW_STMT_COLUMNS = [
     headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
   },
-  { id: "enc", label: "Enc", sort: "alpha", cellSx: { color: "#4B5563" } },
+  { id: "enc", label: "Enc", cellSx: { color: "#4B5563" } },
   {
     id: "balance",
     label: "Balance",
-    sort: "number",
     cellSx: (r) => ({
       fontWeight: 600,
       color: r.negative ? "#DC2626" : "#1F2937",
@@ -1798,7 +1791,6 @@ const NEW_STMT_COLUMNS = [
   {
     id: "reason",
     label: "Reason",
-    sort: "alpha",
     getValue: (r) => r.reason || "Reason here",
     cellSx: { color: "#374151" },
     render: (r) => r.reason || "Reason here",
@@ -1806,7 +1798,6 @@ const NEW_STMT_COLUMNS = [
   {
     id: "selectedBalance",
     label: "Selected",
-    sort: "number",
     getValue: (r) => r.balance,
     headSx: { backgroundColor: selHeadBg, minWidth: 100 },
     cellSx: (r) => ({
@@ -1820,7 +1811,6 @@ const NEW_STMT_COLUMNS = [
   {
     id: "alert",
     label: "Alert",
-    sort: "alpha",
     getValue: (r) => r.alert || "",
     cellSx: { fontSize: 10.5, color: "#A16207", maxWidth: 130 },
     render: (r) =>
@@ -2067,18 +2057,37 @@ function PreBillingClaim() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Determine initial tab based on URL path
+  const getInitialTab = () => {
+    const path = location.pathname;
+    if (path.includes('/claims/pre-billing')) return 0;
+    if (path.includes('/claims/post-billing')) return 1;
+    if (path.includes('/claims/remittance-era')) return 2;
+    if (path.includes('/claims/patient-statement')) return 3;
+    // For /encounters route, check if there's a stored tab in state, otherwise default to 0
+    if (path === '/encounters') {
+      return location.state?.activeTab ?? 0;
+    }
+    return location.state?.activeTab ?? 0;
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(null);
   const [filterForm, setFilterForm] = useState(EMPTY_FILTERS);
   const setFilterField = (key) => (value) =>
     setFilterForm((prev) => ({ ...prev, [key]: value }));
 
-  const [currentTab, setCurrentTab] = useState(location.state?.activeTab ?? 0);
+  const [currentTab, setCurrentTab] = useState(getInitialTab());
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState({
+    preBilling: false,
+    postBilling: false,
+    remittance: false,
+    statement: false,
+  });
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(setAllColumns(true));
 
@@ -2137,10 +2146,19 @@ function PreBillingClaim() {
 
   /* Reopen the correct tab when returning from an edit page */
   useEffect(() => {
-    if (location.state?.activeTab !== undefined) {
+    const path = location.pathname;
+    if (path.includes('/claims/pre-billing')) {
+      setCurrentTab(0);
+    } else if (path.includes('/claims/post-billing')) {
+      setCurrentTab(1);
+    } else if (path.includes('/claims/remittance-era')) {
+      setCurrentTab(2);
+    } else if (path.includes('/claims/patient-statement')) {
+      setCurrentTab(3);
+    } else if (location.state?.activeTab !== undefined) {
       setCurrentTab(location.state.activeTab);
     }
-  }, [location.state]);
+  }, [location.pathname, location.state]);
 
   /* Additional Details */
   const [adj, setAdj] = useState(EMPTY_ADJ);
@@ -2181,6 +2199,19 @@ function PreBillingClaim() {
     setSearchQuery("");
     handleResetFilters();
     setSelectedRows([]);
+    
+    // Only update URL if we're on a claims submenu route, not on /encounters
+    const currentPath = location.pathname;
+    if (currentPath.startsWith('/claims/')) {
+      const tabRoutes = [
+        '/claims/pre-billing',
+        '/claims/post-billing',
+        '/claims/remittance-era',
+        '/claims/patient-statement'
+      ];
+      navigate(tabRoutes[newValue], { replace: true });
+    }
+    // If on /encounters, don't change the route when tabs change
   };
 
   const toggleIn = (setter) => (id) =>
@@ -2530,7 +2561,9 @@ function PreBillingClaim() {
               px: 1.25,
               borderRadius: "18px",
               backgroundColor: "#F5F7FA",
-              border: "1px solid transparent",
+              border: "1px solid #E5E7EB",
+              transition: "border-color 0.2s ease",
+              "&:hover": { borderColor: "#0066FF" },
               "&:focus-within": { borderColor: "#0066FF" },
             }}
           >
@@ -2565,7 +2598,14 @@ function PreBillingClaim() {
           <Button
             variant="outlined"
             size="small"
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            onClick={() => {
+              const tabKeys = ['preBilling', 'postBilling', 'remittance', 'statement'];
+              const currentKey = tabKeys[currentTab];
+              setShowAdvancedFilters(prev => ({
+                ...prev,
+                [currentKey]: !prev[currentKey]
+              }));
+            }}
             sx={{
               height: 32,
               minHeight: 32,
@@ -2573,9 +2613,9 @@ function PreBillingClaim() {
               minWidth: activeFilterCount > 0 ? 152 : 126,
               borderRadius: "18px",
               textTransform: "none",
-              color: showAdvancedFilters ? "#0066FF" : "#374151",
-              borderColor: showAdvancedFilters ? "#0066FF" : "#E5E7EB",
-              backgroundColor: showAdvancedFilters ? "#EFF6FF" : "#FFFFFF",
+              color: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#374151",
+              borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#E5E7EB",
+              backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#EFF6FF" : "#FFFFFF",
               fontWeight: 500,
               fontSize: 11.5,
               px: 1.25,
@@ -2586,8 +2626,8 @@ function PreBillingClaim() {
               justifyContent: "center",
               gap: "6px",
               "&:hover": {
-                borderColor: showAdvancedFilters ? "#0052CC" : "#D1D5DB",
-                backgroundColor: showAdvancedFilters ? "#DBEAFE" : "#F9FAFB",
+                borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0052CC" : "#D1D5DB",
+                backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#DBEAFE" : "#F9FAFB",
               },
             }}
           >
@@ -2601,7 +2641,7 @@ function PreBillingClaim() {
                 flexShrink: 0,
               }}
             >
-              {showAdvancedFilters ? (
+              {showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? (
                 <Close sx={{ fontSize: 16 }} />
               ) : (
                 <FilterIcon1 width={16} height={16} />
@@ -2679,7 +2719,10 @@ function PreBillingClaim() {
       </Box>
 
       {/* Advanced Filters Panel */}
-      {showAdvancedFilters && (
+      {(showAdvancedFilters.preBilling && currentTab === 0) ||
+       (showAdvancedFilters.postBilling && currentTab === 1) ||
+       (showAdvancedFilters.remittance && currentTab === 2) ||
+       (showAdvancedFilters.statement && currentTab === 3) ? (
         <Box sx={{ backgroundColor: "#F5F7FA", px: 2, py: 2 }}>
           <Box
             sx={{
@@ -2689,85 +2732,360 @@ function PreBillingClaim() {
               p: "18px 18px 20px",
             }}
           >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-                columnGap: "14px",
-                rowGap: "19px",
-                mb: "20px",
-              }}
-            >
-              {/* Row 1 */}
-              <FilterSelect
-                label="Select Provider"
-                value={filterForm.provider}
-                onChange={setFilterField("provider")}
-                options={providerOptions}
-              />
-              <FilterSelect
-                label="Service Location"
-                value={filterForm.serviceLocation}
-                onChange={setFilterField("serviceLocation")}
-                options={locationOptions}
-              />
-              <FilterText
-                label="Patient Name"
-                value={filterForm.patientName}
-                onChange={setFilterField("patientName")}
-              />
-              <FilterText
-                label="Claim/Encounter ID"
-                value={filterForm.claimNumber}
-                onChange={setFilterField("claimNumber")}
-              />
-              <FilterDate
-                label="DOS From"
-                value={filterForm.dosFrom}
-                onChange={setFilterField("dosFrom")}
-              />
-              <FilterDate
-                label="DOS Till"
-                value={filterForm.dosTill}
-                onChange={setFilterField("dosTill")}
-              />
+            {/* PRE-BILLING FILTERS */}
+            {currentTab === 0 && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  columnGap: "14px",
+                  rowGap: "19px",
+                  mb: "20px",
+                }}
+              >
+                {/* Row 1 */}
+                <FilterSelect
+                  label="Select Practice"
+                  value={filterForm.provider}
+                  onChange={setFilterField("provider")}
+                  options={providerOptions}
+                />
+                <FilterSelect
+                  label="Service Location"
+                  value={filterForm.serviceLocation}
+                  onChange={setFilterField("serviceLocation")}
+                  options={locationOptions}
+                />
+                <FilterText
+                  label="Patient Name"
+                  value={filterForm.patientName}
+                  onChange={setFilterField("patientName")}
+                />
+                <FilterText
+                  label="Fin ID"
+                  value={filterForm.finId}
+                  onChange={setFilterField("finId")}
+                />
+                <FilterText
+                  label="MRN"
+                  value={filterForm.mrn}
+                  onChange={setFilterField("mrn")}
+                />
+                <FilterText
+                  label="Batch#"
+                  value={filterForm.batchNumber}
+                  onChange={setFilterField("batchNumber")}
+                />
 
-              {/* Row 2 */}
-              <FilterSelect
-                label="Select Insurance"
-                value={filterForm.insurance}
-                onChange={setFilterField("insurance")}
-                options={insuranceOptions}
-              />
-              <FilterSelect
-                label="Select Insurance Plan"
-                placeholder="Select Plan"
-                value={filterForm.insurancePlan}
-                onChange={setFilterField("insurancePlan")}
-                options={PLAN_OPTIONS}
-              />
-              <FilterText
-                label="Batch Number"
-                value={filterForm.batchNumber}
-                onChange={setFilterField("batchNumber")}
-              />
-              <FilterText
-                label="FIN ID"
-                value={filterForm.finId}
-                onChange={setFilterField("finId")}
-              />
-              <FilterText
-                label="MRN"
-                value={filterForm.mrn}
-                onChange={setFilterField("mrn")}
-              />
-              <FilterSelect
-                label="Select Status"
-                value={filterForm.status}
-                onChange={setFilterField("status")}
-                options={advStatusOptions}
-              />
-            </Box>
+                {/* Row 2 */}
+                <FilterText
+                  label="Claim Number"
+                  value={filterForm.claimNumber}
+                  onChange={setFilterField("claimNumber")}
+                />
+                <FilterDate
+                  label="DOS From"
+                  value={filterForm.dosFrom}
+                  onChange={setFilterField("dosFrom")}
+                />
+                <FilterDate
+                  label="DOS Till"
+                  value={filterForm.dosTill}
+                  onChange={setFilterField("dosTill")}
+                />
+                <FilterSelect
+                  label="Select Status"
+                  value={filterForm.status}
+                  onChange={setFilterField("status")}
+                  options={advStatusOptions}
+                />
+                <FilterSelect
+                  label="Select Insurance"
+                  value={filterForm.insurance}
+                  onChange={setFilterField("insurance")}
+                  options={insuranceOptions}
+                />
+                <FilterSelect
+                  label="Select Submission Method"
+                  value={filterForm.insurancePlan}
+                  onChange={setFilterField("insurancePlan")}
+                  options={PLAN_OPTIONS}
+                />
+              </Box>
+            )}
+
+            {/* POST-BILLING FILTERS */}
+            {currentTab === 1 && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  columnGap: "14px",
+                  rowGap: "19px",
+                  mb: "20px",
+                }}
+              >
+                {/* Row 1 */}
+                <FilterSelect
+                  label="Select Practice"
+                  value={filterForm.provider}
+                  onChange={setFilterField("provider")}
+                  options={providerOptions}
+                />
+                <FilterSelect
+                  label="Service Location"
+                  value={filterForm.serviceLocation}
+                  onChange={setFilterField("serviceLocation")}
+                  options={locationOptions}
+                />
+                <FilterText
+                  label="Patient Name"
+                  value={filterForm.patientName}
+                  onChange={setFilterField("patientName")}
+                />
+                <FilterText
+                  label="Fin ID"
+                  value={filterForm.finId}
+                  onChange={setFilterField("finId")}
+                />
+                <FilterText
+                  label="MRN"
+                  value={filterForm.mrn}
+                  onChange={setFilterField("mrn")}
+                />
+                <FilterText
+                  label="Batch#"
+                  value={filterForm.batchNumber}
+                  onChange={setFilterField("batchNumber")}
+                />
+
+                {/* Row 2 */}
+                <FilterText
+                  label="Claim Number"
+                  value={filterForm.claimNumber}
+                  onChange={setFilterField("claimNumber")}
+                />
+                <FilterDate
+                  label="DOS From"
+                  value={filterForm.dosFrom}
+                  onChange={setFilterField("dosFrom")}
+                />
+                <FilterDate
+                  label="DOS Till"
+                  value={filterForm.dosTill}
+                  onChange={setFilterField("dosTill")}
+                />
+                <FilterSelect
+                  label="Select Status"
+                  value={filterForm.status}
+                  onChange={setFilterField("status")}
+                  options={advStatusOptions}
+                />
+                <FilterSelect
+                  label="Select Insurance"
+                  value={filterForm.insurance}
+                  onChange={setFilterField("insurance")}
+                  options={insuranceOptions}
+                />
+                <FilterSelect
+                  label="Select Submission Method"
+                  value={filterForm.insurancePlan}
+                  onChange={setFilterField("insurancePlan")}
+                  options={PLAN_OPTIONS}
+                />
+
+                {/* Row 3 */}
+                <FilterSelect
+                  label="Select Rendering Provider"
+                  value={filterForm.patientName}
+                  onChange={setFilterField("patientName")}
+                  options={providerOptions}
+                />
+                <FilterSelect
+                  label="Select Insurance Plan"
+                  value={filterForm.mrn}
+                  onChange={setFilterField("mrn")}
+                  options={PLAN_OPTIONS}
+                />
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+              </Box>
+            )}
+
+            {/* REMITTANCE ERA/EOB FILTERS */}
+            {currentTab === 2 && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  columnGap: "14px",
+                  rowGap: "19px",
+                  mb: "20px",
+                }}
+              >
+                {/* Row 1 */}
+                <FilterSelect
+                  label="Select Practice"
+                  value={filterForm.provider}
+                  onChange={setFilterField("provider")}
+                  options={providerOptions}
+                />
+                <FilterDate
+                  label="Received Since"
+                  value={filterForm.receivedSince}
+                  onChange={setFilterField("receivedSince")}
+                />
+                <FilterDate
+                  label="Received Till"
+                  value={filterForm.receivedTill}
+                  onChange={setFilterField("receivedTill")}
+                />
+                <FilterText
+                  label="Claim Number"
+                  value={filterForm.claimNumber}
+                  onChange={setFilterField("claimNumber")}
+                />
+                <FilterText
+                  label="Check Number"
+                  value={filterForm.checkNumber}
+                  onChange={setFilterField("checkNumber")}
+                />
+                <FilterText
+                  label="Id"
+                  value={filterForm.eraId}
+                  onChange={setFilterField("eraId")}
+                />
+
+                {/* Row 2 */}
+                <FilterSelect
+                  label="Status"
+                  value={filterForm.status}
+                  onChange={setFilterField("status")}
+                  options={advStatusOptions}
+                />
+                <FilterSelect
+                  label="Payor"
+                  value={filterForm.insurance}
+                  onChange={setFilterField("insurance")}
+                  options={insuranceOptions}
+                />
+                <FilterDate
+                  label="Check Date From"
+                  value={filterForm.dosFrom}
+                  onChange={setFilterField("dosFrom")}
+                />
+                <FilterDate
+                  label="Check Date Till"
+                  value={filterForm.dosTill}
+                  onChange={setFilterField("dosTill")}
+                />
+                <FilterSelect
+                  label="Payment Method"
+                  value={filterForm.paymentMethod}
+                  onChange={setFilterField("paymentMethod")}
+                  options={["EFT", "Check", "Wire Transfer", "Card"]}
+                />
+                <FilterText
+                  label="Total Posted Amount"
+                  value={filterForm.totalPostedAmount}
+                  onChange={setFilterField("totalPostedAmount")}
+                />
+
+                {/* Row 3 */}
+                <FilterText
+                  label="Total Unposted Amount"
+                  value={filterForm.totalUnpostedAmount}
+                  onChange={setFilterField("totalUnpostedAmount")}
+                />
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+                <Box /> {/* Empty cell */}
+              </Box>
+            )}
+
+            {/* PATIENT STATEMENT FILTERS */}
+            {currentTab === 3 && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  columnGap: "14px",
+                  rowGap: "19px",
+                  mb: "20px",
+                }}
+              >
+                {statementSubTab === "new" ? (
+                  <>
+                    {/* Row 1 - New Statement Filters */}
+                    <FilterSelect
+                      label="Practice"
+                      value={filterForm.provider}
+                      onChange={setFilterField("provider")}
+                      options={providerOptions}
+                    />
+                    <FilterSelect
+                      label="Service Location"
+                      value={filterForm.serviceLocation}
+                      onChange={setFilterField("serviceLocation")}
+                      options={locationOptions}
+                    />
+                    <FilterText
+                      label="Patient Name"
+                      value={filterForm.patientName}
+                      onChange={setFilterField("patientName")}
+                    />
+                    <FilterText
+                      label="Global Patient ID"
+                      value={filterForm.claimNumber}
+                      onChange={setFilterField("claimNumber")}
+                    />
+                    <Box /> {/* Empty cell */}
+                    <Box /> {/* Empty cell */}
+                  </>
+                ) : (
+                  <>
+                    {/* Row 1 - History Filters */}
+                    <FilterSelect
+                      label="Practice"
+                      value={filterForm.provider}
+                      onChange={setFilterField("provider")}
+                      options={providerOptions}
+                    />
+                    <FilterSelect
+                      label="Service Location"
+                      value={filterForm.serviceLocation}
+                      onChange={setFilterField("serviceLocation")}
+                      options={locationOptions}
+                    />
+                    <FilterText
+                      label="Patient Name"
+                      value={filterForm.patientName}
+                      onChange={setFilterField("patientName")}
+                    />
+                    <FilterText
+                      label="Batch Name"
+                      value={filterForm.batchNumber}
+                      onChange={setFilterField("batchNumber")}
+                    />
+                    <FilterSelect
+                      label="Batch Status"
+                      value={filterForm.status}
+                      onChange={setFilterField("status")}
+                      options={["Draft", "Email sent", "Partially sent", "Failure", "Queued for email"]}
+                    />
+                    <FilterText
+                      label="Global Patient ID"
+                      value={filterForm.claimNumber}
+                      onChange={setFilterField("claimNumber")}
+                    />
+                  </>
+                )}
+              </Box>
+            )}
 
             <Box sx={{ display: "flex", gap: "16px", alignItems: "center" }}>
               <Button
@@ -2814,7 +3132,7 @@ function PreBillingClaim() {
             </Box>
           </Box>
         </Box>
-      )}
+      ) : null}
 
       {/* ================= PRE-BILLING TAB ================= */}
       {currentTab === 0 && (
@@ -2907,6 +3225,7 @@ function PreBillingClaim() {
                   onCheck: handleOpenCheckPopup,
                 }}
                 minWidth={1400}
+                stickyHeader
                 containerSx={listContainerSx}
                 headSx={listHeadSx}
                 cellSx={listCellSx}
@@ -3200,7 +3519,7 @@ function PreBillingClaim() {
                         backgroundColor: "#f8f9fa",
                         cursor: "pointer",
                         color: "#006FFD",
-                        fontSize: 10,
+                        fontSize: 9,
                         lineHeight: 1.15,
                         fontWeight: 600,
                         "&:hover": {
@@ -3213,7 +3532,7 @@ function PreBillingClaim() {
                       <span
                         style={{
                           color: "#9CA3AF",
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: 500,
                           whiteSpace: "nowrap",
                           marginLeft: 8,
@@ -3264,6 +3583,7 @@ function PreBillingClaim() {
               selection={claimSelection}
               ctx={{ onEdit: handleEditClick, onCheck: handleOpenCheckPopup }}
               minWidth={1750}
+              stickyHeader
               containerSx={listContainerSx}
               headSx={listHeadSx}
               cellSx={listCellSx}
@@ -3503,6 +3823,7 @@ function PreBillingClaim() {
               }}
               ctx={{ onShowEob: handleShowEobDetails }}
               minWidth={1600}
+              stickyHeader
               containerSx={listContainerSx}
               headSx={{ ...listHeadSx, whiteSpace: "nowrap" }}
               cellSx={listCellSx}
@@ -3589,7 +3910,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Tables */}
-          <Box sx={{ px: 2 }}>
+          <Box sx={{ pb: 2, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
                 columns={NEW_STMT_COLUMNS}
@@ -3605,10 +3926,16 @@ function PreBillingClaim() {
                 ctx={{ selectedIds: statementSelectedRows }}
                 minWidth={1250}
                 stickyHeader
-                containerSx={stmtContainerSx}
-                headSx={thSx}
-                cellSx={tdSx}
-                rowSx={() => ({ backgroundColor: "#FFFFFF" })}
+                containerSx={listContainerSx}
+                headSx={{
+                  ...listHeadSx,
+                  whiteSpace: "nowrap",
+                }}
+                cellSx={listCellSx}
+                rowSx={(row, index) => ({
+                  backgroundColor: getListColor(index),
+                  borderBottom: "none",
+                })}
                 cbSx={checkboxSx}
                 checkHeadSx={{ pl: 1.5 }}
                 checkCellSx={{ pl: 1.5 }}
@@ -3628,10 +3955,16 @@ function PreBillingClaim() {
                 }}
                 minWidth={1150}
                 stickyHeader
-                containerSx={stmtContainerSx}
-                headSx={thSx}
-                cellSx={tdSx}
-                rowSx={() => ({ backgroundColor: "#FFFFFF" })}
+                containerSx={listContainerSx}
+                headSx={{
+                  ...listHeadSx,
+                  whiteSpace: "nowrap",
+                }}
+                cellSx={listCellSx}
+                rowSx={(row, index) => ({
+                  backgroundColor: getListColor(index),
+                  borderBottom: "none",
+                })}
                 cbSx={checkboxSx}
                 checkHeadSx={{ pl: 1.5 }}
                 checkCellSx={{ pl: 1.5 }}

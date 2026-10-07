@@ -27,9 +27,9 @@ import {
 const T = {
   blue: "#006FFD",
   title: "#1E293B",
-  headBg: "#EBF1FE",
-  headText: "#373B4D",
-  headSymbol: "#52525B",
+  headBg: "#ffffff",
+  headText: "#1e293b",
+  headSymbol: "#64748b",
   muted: "#64748B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
