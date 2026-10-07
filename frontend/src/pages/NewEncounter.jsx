@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -33,6 +33,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import {
   AlertBellIcon,
@@ -319,6 +320,14 @@ const gridCols = (n, bp = "lg") => ({
   }),
 });
 
+// Fixed grid that doesn't collapse - always N columns
+const fixedGrid = (n) => ({
+  display: "grid",
+  gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
+  gap: 1.5,
+  width: "100%",
+});
+
 /* =========================================================
    FORM FIELD
    ========================================================= */
@@ -457,15 +466,10 @@ function FormField({
   );
 }
 
-/* RESPONSIVE: 1 col -> 2 cols (sm) -> 4 cols (lg).
-   Rows that use a 3-col layout (md: 4 fields) switch to 3 cols at md. */
+/* Fixed 4-column layout - no collapsing */
 function FieldRow({ fields }) {
-  const hasThird = fields.some((f) => f.md === 4);
-  const cols = hasThird ? 3 : 4;
-  const bp = hasThird ? "md" : "lg";
-
   return (
-    <Box sx={gridCols(cols, bp)}>
+    <Box sx={fixedGrid(4)}>
       {fields.map((f, i) => {
         let span = 1;
         if (f.md === 6) span = 2;
@@ -475,10 +479,7 @@ function FieldRow({ fields }) {
             key={i}
             sx={{
               minWidth: 0,
-              ...cqs({
-                sm: { gridColumn: `span ${Math.min(span, 2)}` },
-                [bp]: { gridColumn: `span ${Math.min(span, cols)}` },
-              }),
+              gridColumn: `span ${span}`,
             }}
           >
             <FormField {...f} />
@@ -637,7 +638,7 @@ function TopBar() {
 /* =========================================================
    STEPPER NAV
    ========================================================= */
-function StepperNav({ activeId, onStepClick, onAlertsClick }) {
+function StepperNav({ activeId, onStepClick, onAlertsClick, onBack }) {
   const listRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -665,16 +666,34 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
         ...cq("md", { flexDirection: "row", alignItems: "center" }),
       }}
     >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1, minWidth: 0 }}>
+        {onBack && (
+          <IconButton
+            onClick={onBack}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": {
+                bgcolor: "#F3F4F6",
+                borderColor: "#D1D5DB",
+              },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        )}
       <Box
         ref={listRef}
         sx={{
           display: "flex",
           alignItems: "center",
           overflowX: "auto",
-          flexGrow: 0,
-          width: "100%",
+          flexGrow: 1,
           minWidth: 0,
-          ...cq("md", { flexGrow: 1, width: "auto" }),
           ...scrollHide,
         }}
       >
@@ -688,11 +707,11 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.75,
+                  gap: 0.4,
                   cursor: "pointer",
                   flexShrink: 0,
-                  px: 1.3,
-                  py: 0.55,
+                  px: 0.8,
+                  py: 0.3,
                   borderRadius: "999px",
                   bgcolor: isActive ? "#1A1D23" : "#fff",
                   border: isActive
@@ -708,8 +727,8 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
               >
                 <Box
                   sx={{
-                    width: 22,
-                    height: 22,
+                    width: 18,
+                    height: 18,
                     borderRadius: "50%",
                     bgcolor: isActive ? C.blue : "transparent",
                     border: isActive
@@ -718,7 +737,7 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 11,
+                    fontSize: 9,
                     fontWeight: isActive ? 800 : 600,
                     color: isActive ? "#fff" : "#5A6B7E",
                     flexShrink: 0,
@@ -730,7 +749,7 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
                 </Box>
                 <Typography
                   sx={{
-                    fontSize: 13.5,
+                    fontSize: 11,
                     fontWeight: 700,
                     color: isActive ? "#fff" : "#5A6B7E",
                     whiteSpace: "nowrap",
@@ -747,8 +766,8 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
                   aria-hidden="true"
                   sx={{
                     flexShrink: 0,
-                    mx: 0.5,
-                    fontSize: 13,
+                    mx: 0.3,
+                    fontSize: 12,
                     fontWeight: 600,
                     color: "#C8CDD8",
                     userSelect: "none",
@@ -761,6 +780,7 @@ function StepperNav({ activeId, onStepClick, onAlertsClick }) {
             </React.Fragment>
           );
         })}
+      </Box>
       </Box>
 
       <Stack direction="row" spacing={0.8} flexShrink={0}>
@@ -815,7 +835,13 @@ function SummaryItem({ label, value, valueColor }) {
   );
 }
 
-function EncounterSummary() {
+function EncounterSummary({ claimData }) {
+  const encounterText = claimData ? `${claimData.encounterId || 'N/A'} - Draft` : "NEW - Draft";
+  const patientText = claimData ? claimData.patientName : "Wayne, Jimmy";
+  const detailsText = claimData 
+    ? `${claimData.dob || 'N/A'} - ${claimData.gender?.replace(/[()]/g, '') || 'N/A'} - MRN ${claimData.mrn || 'N/A'}`
+    : "06/15/1978 - M - MRN 326362969";
+
   return (
     <Paper
       elevation={0}
@@ -841,11 +867,11 @@ function EncounterSummary() {
           ...cq("sm", { flexDirection: "row", gap: 4 }),
         }}
       >
-        <SummaryItem label="Encounter" value="NEW - Draft" />
-        <SummaryItem label="Patient" value="Wayne, Jimmy" />
+        <SummaryItem label="Encounter" value={encounterText} />
+        <SummaryItem label="Patient" value={patientText} />
         <SummaryItem
           label="Details"
-          value="06/15/1978 - M - MRN 326362969"
+          value={detailsText}
           valueColor={C.textMuted}
         />
       </Box>
@@ -979,23 +1005,69 @@ function DetailColumn({ items }) {
   );
 }
 
-function PatientSection({ sectionRef }) {
-  const [showDetails, setShowDetails] = React.useState(true);
+function PatientSection({ sectionRef, isNewClaim = false, claimData = null }) {
+  const navigate = useNavigate();
+  
+  // Determine patient data based on mode
+  const getInitialPatient = () => {
+    if (claimData) {
+      // Edit mode - populate from claim data
+      return {
+        legalName: claimData.patientName || "",
+        dob: claimData.dob || "",
+        gender: claimData.gender?.replace(/[()]/g, '') || "",
+        mrn: claimData.mrn || "",
+        ssn: "",
+        mobile: "",
+        address: "",
+        maritalStatus: "",
+        emplStatus: "",
+        referralSource: "",
+        employer: "",
+        pcp: "",
+        referringPhysician: "",
+      };
+    } else if (isNewClaim) {
+      // New claim - empty fields
+      return {
+        legalName: "",
+        dob: "",
+        gender: "",
+        mrn: "",
+        ssn: "",
+        mobile: "",
+        address: "",
+        maritalStatus: "",
+        emplStatus: "",
+        referralSource: "",
+        employer: "",
+        pcp: "",
+        referringPhysician: "",
+      };
+    } else {
+      // Default - pre-filled example data
+      return {
+        legalName: "Wayne Jimmy",
+        dob: "08/25/1978",
+        gender: "Male",
+        mrn: "563526626",
+        ssn: "563526626",
+        mobile: "(313) 404-6928",
+        address: "Capitol Way S, Washingtone, AR 12344",
+        maritalStatus: "NA",
+        emplStatus: "NA",
+        referralSource: "NA",
+        employer: "NA",
+        pcp: "NA",
+        referringPhysician: "NA",
+      };
+    }
+  };
 
-  const patient = {
-    legalName: "Wayne Jimmy",
-    dob: "08/25/1978",
-    gender: "Male",
-    mrn: "563526626",
-    ssn: "563526626",
-    mobile: "(313) 404-6928",
-    address: "Capitol Way S,\nWashingtone, AR 12344",
-    maritalStatus: "NA",
-    emplStatus: "NA",
-    referralSource: "NA",
-    employer: "NA",
-    pcp: "NA",
-    referringPhysician: "NA",
+  const [patient, setPatient] = React.useState(getInitialPatient());
+
+  const handleFieldChange = (field) => (event) => {
+    setPatient(prev => ({ ...prev, [field]: event.target.value }));
   };
 
   return (
@@ -1009,130 +1081,148 @@ function PatientSection({ sectionRef }) {
       rightSlot={
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <OutlineBtn>Select existing</OutlineBtn>
-          <PrimaryBtn>+ New patient</PrimaryBtn>
+          <PrimaryBtn onClick={() => navigate("/add-new-patient")}>+ New patient</PrimaryBtn>
         </Stack>
       }
     >
-      {showDetails && (
-        <Box
-          sx={{
-            borderRadius: "10px",
-            px: { xs: 0, md: 1 },
-            py: 1,
-            bgcolor: "#fff",
-            position: "relative",
-          }}
-        >
-          <IconButton
-            size="small"
-            onClick={() => {}}
-            sx={{
-              position: "absolute",
-              top: 4,
-              right: 4,
-              color: C.blue,
-              p: 0.4,
-              "&:hover": { backgroundColor: "#EEF4FF" },
-              borderRadius: "6px",
-            }}
-          >
-            <RPEditIcon width={18} height={18} color={C.blue} />
-          </IconButton>
+      {/* Row 1: Legal Name, DOB, Gender, MRN */}
+      <Box sx={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
+        gap: 1.5, 
+        width: "100%" 
+      }}>
+        <LabeledInput
+          label="Legal Name"
+          value={patient.legalName}
+          onChange={handleFieldChange("legalName")}
+          placeholder="Enter legal name"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="DOB"
+          value={patient.dob}
+          onChange={handleFieldChange("dob")}
+          placeholder="MM/DD/YYYY"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="Gender"
+          select
+          value={patient.gender}
+          onChange={handleFieldChange("gender")}
+          options={["Male", "Female", "Other"]}
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="MRN"
+          value={patient.mrn}
+          onChange={handleFieldChange("mrn")}
+          placeholder="Enter MRN"
+          sx={inputNormal()}
+        />
+      </Box>
 
-          <Typography
-            sx={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              color: C.textMuted,
-              textTransform: "uppercase",
-              mb: 1.2,
-            }}
-          >
-            Patient Details
+      {/* Row 2: SSN, Mobile, Marital Status, Empl. Status */}
+      <Box sx={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
+        gap: 1.5, 
+        width: "100%" 
+      }}>
+        <LabeledInput
+          label="SSN"
+          value={patient.ssn}
+          onChange={handleFieldChange("ssn")}
+          placeholder="000-00-0000"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="Mobile"
+          value={patient.mobile}
+          onChange={handleFieldChange("mobile")}
+          placeholder="(000) 000-0000"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="Marital Status"
+          value={patient.maritalStatus}
+          onChange={handleFieldChange("maritalStatus")}
+          placeholder="Enter status"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="Empl. Status"
+          value={patient.emplStatus}
+          onChange={handleFieldChange("emplStatus")}
+          placeholder="Enter status"
+          sx={inputNormal()}
+        />
+      </Box>
+
+      {/* Row 3: Address (2 lines - multiline), Referral Source, Employer */}
+      <Box sx={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
+        gap: 1.5, 
+        width: "100%" 
+      }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography component="label" sx={labelSx}>
+            Address
           </Typography>
-
-          <Box sx={gridCols(4, "lg")}>
-            <DetailColumn
-              items={[
-                { label: "Legal Name", value: patient.legalName },
-                { label: "DOB", value: patient.dob },
-                { label: "Gender", value: patient.gender },
-                { label: "MRN", value: patient.mrn },
-              ]}
-            />
-            <DetailColumn
-              items={[
-                { label: "SSN", value: patient.ssn },
-                { label: "Mobile", value: patient.mobile },
-                { label: "Marital Status", value: patient.maritalStatus },
-                { label: "Empl. Status", value: patient.emplStatus },
-              ]}
-            />
-            <DetailColumn
-              items={[{ label: "Address:", value: patient.address, pre: true }]}
-            />
-            <DetailColumn
-              items={[
-                { label: "Referral Source", value: patient.referralSource },
-                { label: "Employer", value: patient.employer },
-                { label: "PCP", value: patient.pcp },
-                {
-                  label: "Referring Physician",
-                  value: patient.referringPhysician,
-                },
-              ]}
-            />
-          </Box>
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            value={patient.address}
+            onChange={handleFieldChange("address")}
+            placeholder="Enter full address"
+            slotProps={{ input: { sx: inputNormal() } }}
+            sx={hideHelper}
+          />
         </Box>
-      )}
+        <LabeledInput
+          label="Referral Source"
+          value={patient.referralSource}
+          onChange={handleFieldChange("referralSource")}
+          placeholder="Enter source"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="Employer"
+          value={patient.employer}
+          onChange={handleFieldChange("employer")}
+          placeholder="Enter employer"
+          sx={inputNormal()}
+        />
+        <LabeledInput
+          label="PCP"
+          value={patient.pcp}
+          onChange={handleFieldChange("pcp")}
+          placeholder="Enter PCP"
+          sx={inputNormal()}
+        />
+      </Box>
 
-      {/* {!showDetails && (
-        <>
-          <FieldRow
-            fields={[
-              { label: "Legal Name", value: "Wayne, Jimmy" },
-              { label: "Date of Birth", value: "06/15/1978", icon: true },
-              { label: "Gender", value: "Male" },
-              { label: "MRN", value: "326362969" },
-            ]}
-          />
-          <FieldRow
-            fields={[
-              { label: "SSN", value: "000-00-5433", md: 3 },
-              { label: "Mobile Phone", value: "(313) 404-6928", md: 3 },
-              {
-                label: "Address",
-                value: "Capitol Way S, Washingtone, AR 12344",
-                md: 6,
-              },
-            ]}
-          />
-          <FieldRow
-            fields={[
-              { label: "Marital Status", value: "NA" },
-              { label: "Employment Status", value: "NA" },
-              { label: "Referral Source", value: "Not Specified" },
-              { label: "Employer", value: "NA" },
-            ]}
-          />
-          <FieldRow
-            fields={[
-              { label: "Primary Care Physician", value: "NA" },
-              { label: "Referring Physician", value: "NA" },
-              {
-                label: "Default Rendering Provider",
-                value: "Kumar V2, Jayram",
-              },
-              {
-                label: "Default Service Location",
-                value: "The University RL",
-                highlightedGreen: true,
-              },
-            ]}
-          />
-        </>
-      )} */}
+      {/* Row 4: Referring Physician only */}
+      <Box sx={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
+        gap: 1.5, 
+        width: "100%" 
+      }}>
+        <LabeledInput
+          label="Referring Physician"
+          value={patient.referringPhysician}
+          onChange={handleFieldChange("referringPhysician")}
+          placeholder="Enter physician"
+          sx={inputNormal()}
+        />
+        <Box /> {/* Empty placeholder */}
+        <Box /> {/* Empty placeholder */}
+        <Box /> {/* Empty placeholder */}
+      </Box>
     </SectionCard>
   );
 }
@@ -1715,7 +1805,7 @@ function ConditionsSection({ sectionRef }) {
         </Box>
       </Box>
 
-      <Box sx={gridCols(3, "md")}>
+      <Box sx={fixedGrid(3)}>
         <LabeledInput
           label="Condition Date Type"
           select
@@ -1723,8 +1813,8 @@ function ConditionsSection({ sectionRef }) {
           options={["None", "Initial", "Last seen", "Acute manifestation"]}
           sx={inputOrange()}
         />
-        <LabeledInput label="Start Date" defaultValue="NA" />
-        <LabeledInput label="End Date" defaultValue="NA" />
+        <LabeledInput label="Start Date" defaultValue="NA" sx={inputOrange()} />
+        <LabeledInput label="End Date" defaultValue="NA" sx={inputOrange()} />
       </Box>
 
       <Box sx={{ minWidth: 0 }}>
@@ -1919,16 +2009,17 @@ function ChargesSection({ sectionRef }) {
       key={key}
       label={label}
       onDelete={onDelete}
-      deleteIcon={<CloseIcon sx={{ fontSize: 12 }} />}
+      deleteIcon={<CloseIcon sx={{ fontSize: 10 }} />}
       sx={{
         bgcolor: bg,
         color,
         fontWeight: 600,
-        fontSize: 13,
-        borderRadius: "20px",
-        height: 30,
+        fontSize: 11,
+        borderRadius: "14px",
+        height: 24,
         px: 0.5,
-        "& .MuiChip-deleteIcon": { color, fontSize: 14 },
+        "& .MuiChip-deleteIcon": { color, fontSize: 12 },
+        "& .MuiChip-label": { px: 1 },
       }}
     />
   );
@@ -1964,7 +2055,17 @@ function ChargesSection({ sectionRef }) {
         ]}
       />
 
-      <Box sx={gridCols(4, "lg")}>
+      <Box sx={fixedGrid(4)}>
+        <LabeledInput
+          label="Referring Provider"
+          defaultValue=""
+          sx={inputAmber()}
+        />
+        <LabeledInput
+          label="NPI"
+          defaultValue=""
+          sx={inputAmber()}
+        />
         <LabeledInput
           label="Place of Service"
           defaultValue="11 - Office"
@@ -1975,8 +2076,13 @@ function ChargesSection({ sectionRef }) {
           defaultValue="In Office"
           sx={inputAmber()}
         />
-        <LabeledInput label="Copay Due" defaultValue="0.00" />
-        <LabeledInput label="Payment Amount" defaultValue="0.00" />
+      </Box>
+
+      <Box sx={fixedGrid(4)}>
+        <LabeledInput label="Copay Due" defaultValue="0.00" sx={inputAmber()} />
+        <LabeledInput label="Payment Amount" defaultValue="0.00" sx={inputAmber()} />
+        <Box />
+        <Box />
       </Box>
 
       <Box>
@@ -2017,10 +2123,10 @@ function ChargesSection({ sectionRef }) {
               }}
               slotProps={{
                 input: {
-                  sx: { ...inputNormal(), height: 30, borderRadius: "20px" },
+                  sx: { ...inputNormal(), height: 24, borderRadius: "14px" },
                 },
               }}
-              sx={{ width: 130, ...hideHelper }}
+              sx={{ width: 110, ...hideHelper }}
             />
           ) : (
             <Chip
@@ -2032,11 +2138,12 @@ function ChargesSection({ sectionRef }) {
                 borderColor: "#DCD6F8",
                 color: C.purple,
                 fontWeight: 600,
-                fontSize: 13,
-                borderRadius: "20px",
-                height: 30,
+                fontSize: 11,
+                borderRadius: "14px",
+                height: 24,
                 px: 0.5,
                 cursor: "pointer",
+                "& .MuiChip-label": { px: 1 },
               }}
             />
           )}
@@ -2844,8 +2951,18 @@ const getScrollParent = (el) => {
 
 export default function NewEncounter() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeId, setActiveId] = React.useState(STEPS[0].id);
+
+  // Get claim data from location state (for edit mode)
+  const claimData = location.state?.claim;
+  
+  // Check if we're creating a new claim (hide encounter info boxes)
+  const isNewClaim = window.location.pathname === '/new-claim';
+  
+  // Check if we're editing an existing claim
+  const isEditMode = window.location.pathname.includes('/pre-billing-edit') && claimData;
 
   const sectionRefs = React.useRef({});
   const rootRef = React.useRef(null);
@@ -3045,9 +3162,10 @@ export default function NewEncounter() {
           ...cq("sm", { position: "sticky" }),
           "@media (max-height: 600px)": { position: "static" },
           top: 0,
-          zIndex: 30,
+          zIndex: 100,
           bgcolor: C.pageBg,
           borderBottom: `1px solid ${C.borderLight}`,
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
         }}
       >
         <Box sx={{ ...CONTAINER, pt: { xs: 1.5, md: 2 }, pb: 0 }}>
@@ -3056,6 +3174,7 @@ export default function NewEncounter() {
             activeId={activeId}
             onStepClick={handleStepClick}
             onAlertsClick={() => setAlertOpen(true)}
+            onBack={() => navigate(-1)}
           />
         </Box>
       </Box>
@@ -3074,10 +3193,10 @@ export default function NewEncounter() {
           pb: "60px",
         }}
       >
-        <EncounterSummary />
-        <AssistBanner />
+        {!isNewClaim && <EncounterSummary claimData={claimData} />}
+        {!isNewClaim && <AssistBanner />}
 
-        <PatientSection sectionRef={setRef("patient")} />
+        <PatientSection sectionRef={setRef("patient")} isNewClaim={isNewClaim} claimData={claimData} />
         <CaseInsuranceSection sectionRef={setRef("case")} />
         <ConditionsSection sectionRef={setRef("conditions")} />
         <ChargesSection sectionRef={setRef("charges")} />

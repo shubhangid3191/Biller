@@ -162,7 +162,7 @@ function TopBar() {
             }}
           >
             <TiaChatIcon color="#fff" width={25} height={25} />
-             TiaChat
+             TIAChat
           </Button>
         </Box>
       </Toolbar>

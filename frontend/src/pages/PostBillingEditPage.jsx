@@ -39,10 +39,10 @@ const LOG_ENTRIES = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const LOG_COLUMNS = [
-  { key: "date", label: "Date", icon: "unfold", width: "20%" },
-  { key: "time", label: "Time", icon: "unfold", width: "18%" },
-  { key: "user", label: "Updated by", icon: "arrow", width: "22%" },
-  { key: "remarks", label: "Remarks", icon: "arrow", width: "40%" },
+  { key: "date", label: "Date", sortable: true, width: "20%" },
+  { key: "time", label: "Time", sortable: false, width: "18%" },
+  { key: "user", label: "Updated By", sortable: false, width: "22%" },
+  { key: "remarks", label: "Remarks", sortable: false, width: "40%" },
 ];
 
 const logSortValue = (row, key) => {
@@ -755,7 +755,7 @@ export default function PostBillingEditPage({
 
       {/* ── CHARGES AND BALANCE ── */}
       <Box sx={{ ...cardSx, flexShrink: 0 }}>
-        {cardHeader("Charges and balance")}
+        {cardHeader("Charges and Balance")}
         <Box sx={{ p: 1.5 }}>
           <Box
             sx={{
@@ -1198,7 +1198,7 @@ export default function PostBillingEditPage({
               onClick={() => setRemovedCount((c) => c + 1)}
               sx={outlineBtnSx}
             >
-              Delete last transaction
+              Delete Last Transaction
             </Button>
 
             <Button
@@ -1256,20 +1256,27 @@ export default function PostBillingEditPage({
       {activeTab === 1 &&
         (() => {
           const rows = [...LOG_ENTRIES];
-          if (logSort.key) {
+          if (logSort.key === 'date') {
             rows.sort((a, b) => {
-              const va = logSortValue(a, logSort.key);
-              const vb = logSortValue(b, logSort.key);
+              const va = logSortValue(a, 'date');
+              const vb = logSortValue(b, 'date');
               const r = va < vb ? -1 : va > vb ? 1 : 0;
               return logSort.dir === "asc" ? r : -r;
             });
           }
-          const toggleSort = (key) =>
+          const toggleSort = (key) => {
+            if (key !== 'date') return; // Only allow sorting on date column
             setLogSort((prev) =>
-              prev.key === key
-                ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
+              prev.key === key && prev.dir === 'asc'
+                ? { key, dir: "desc" }
                 : { key, dir: "asc" },
             );
+          };
+
+          const getSortTitle = () => {
+            if (logSort.key !== 'date') return "Sort oldest first";
+            return logSort.dir === "asc" ? "Sorted oldest first" : "Sorted newest first";
+          };
 
           return (
             <Box sx={{ p: { xs: 1, sm: 1.5 } }}>
@@ -1291,24 +1298,26 @@ export default function PostBillingEditPage({
                       {LOG_COLUMNS.map((col) => (
                         <TableCell
                           key={col.key}
-                          onClick={() => toggleSort(col.key)}
+                          onClick={() => col.sortable && toggleSort(col.key)}
                           sx={{
                             backgroundColor: "#E8EEFC",
                             borderBottom: "1px solid #D6E0F5",
                             borderRight: "1px solid #D6E0F5",
                             "&:last-of-type": { borderRight: 0 },
-                            cursor: "pointer",
+                            cursor: col.sortable ? "pointer" : "default",
                             userSelect: "none",
                             py: 1.4,
                             px: 1.5,
                             width: col.width,
+                            textAlign: "center",
                           }}
                         >
                           <Box
                             sx={{
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
+                              gap: 0.3,
                             }}
                           >
                             <Typography
@@ -1320,29 +1329,21 @@ export default function PostBillingEditPage({
                             >
                               {col.label}
                             </Typography>
-                            {col.icon === "unfold" ? (
-                              <UnfoldMore
-                                sx={{
-                                  fontSize: 17,
-                                  color:
-                                    logSort.key === col.key
-                                      ? "#0066FF"
-                                      : "#4B5563",
-                                }}
-                              />
-                            ) : (
+                            {col.sortable && (
                               <KeyboardArrowDown
+                                title={getSortTitle()}
                                 sx={{
-                                  fontSize: 17,
+                                  fontSize: 16,
                                   color:
                                     logSort.key === col.key
-                                      ? "#0066FF"
-                                      : "#4B5563",
+                                      ? "#2563EB"
+                                      : "#52525B",
                                   transform:
                                     logSort.key === col.key &&
                                     logSort.dir === "desc"
                                       ? "rotate(180deg)"
                                       : "none",
+                                  transition: "transform .15s ease",
                                 }}
                               />
                             )}
@@ -1362,6 +1363,7 @@ export default function PostBillingEditPage({
                             py: 1.6,
                             px: 1.5,
                             height: 41,
+                            textAlign: "center",
                           }}
                         >
                           {row.date}
@@ -1372,6 +1374,7 @@ export default function PostBillingEditPage({
                             color: "#4B5563",
                             py: 1.6,
                             px: 1.5,
+                            textAlign: "center",
                           }}
                         >
                           {row.time}
@@ -1383,6 +1386,7 @@ export default function PostBillingEditPage({
                             color: "#4B5563",
                             py: 1.6,
                             px: 1.5,
+                            textAlign: "center",
                           }}
                         >
                           {row.user}
@@ -1394,6 +1398,7 @@ export default function PostBillingEditPage({
                             color: "#4B5563",
                             py: 1.6,
                             px: 1.5,
+                            textAlign: "center",
                           }}
                         >
                           {row.remarks}

@@ -82,6 +82,7 @@ const thSx = {
   whiteSpace: "pre-line",
   lineHeight: 1.2,
   padding: "8px 8px",
+  textAlign: "center",
 };
 
 const tdSx = {
@@ -89,6 +90,7 @@ const tdSx = {
   color: "#1F2937",
   padding: "6px 8px",
   borderBottom: "1px solid #F0F1F4",
+  textAlign: "center",
 };
 
 const checkboxSx = {
@@ -212,6 +214,7 @@ const listHeadSx = {
   borderBottom: "1px solid #e0e0e0",
   whiteSpace: "pre-line",
   verticalAlign: "middle",
+  textAlign: "center",
 };
 
 const listCellSx = {
@@ -219,6 +222,7 @@ const listCellSx = {
   py: 1.2,
   px: 1.25,
   color: "rgba(0, 0, 0, 0.87)",
+  textAlign: "center",
 };
 
 const toolbarIconBtnSx = {
@@ -334,7 +338,7 @@ function SortHeadCell({ column, sortDir, onSort, sx }) {
           display: "flex",
           alignItems: "center",
           justifyContent: column.center ? "center" : "flex-start",
-          gap: 0,
+          gap: 0.3,
         }}
       >
         {column.label}
@@ -900,7 +904,7 @@ function ChargeCaptureBanner() {
           "&:hover": { backgroundColor: "#0066FF", boxShadow: "none" },
         }}
       >
-        View details
+        View Details
       </Button>
     </Box>
   );
@@ -1568,22 +1572,24 @@ const historyStatementData = historyBatchStatuses.map((status, index) => ({
 /* Table column definitions (id, label, sort type, optional render)     */
 /* ================================================================== */
 const PRE_COLUMNS = [
-  { id: "dosShort", label: "DOS", sort: "date" },
+  { id: "dosShort", label: "DOS", sort: "date", center: true },
   {
     id: "patientName",
     label: "Patient Name\n(Gender)",
     sort: "alpha",
+    center: true,
     render: (r) => `${r.patientName} ${r.gender}`,
   },
-  { id: "cpt", label: "CPT" },
-  { id: "modifier", label: "Modifier" },
-  { id: "icd", label: "ICD" },
-  { id: "primaryInsurance", label: "Primary\nInsurance" },
-  { id: "billed", label: "Billed\nAmount" },
-  { id: "patientCopay", label: "Patient\nCopay" },
+  { id: "cpt", label: "CPT", center: true },
+  { id: "modifier", label: "Modifier", center: true },
+  { id: "icd", label: "ICD", center: true },
+  { id: "primaryInsurance", label: "Primary\nInsurance", center: true },
+  { id: "billed", label: "Billed\nAmount", center: true },
+  { id: "patientCopay", label: "Patient\nCopay", center: true },
   {
     id: "status",
     label: "Status",
+    center: true,
     render: (r) => {
       const s = PRE_STATUS_STYLES[r.status] || PRE_STATUS_STYLES.Unbilled;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
@@ -1592,14 +1598,16 @@ const PRE_COLUMNS = [
   {
     id: "remarks",
     label: "Remarks",
+    center: true,
     cellSx: { maxWidth: 180, fontSize: 11, color: "rgba(0, 0, 0, 0.7)" },
   },
-  { id: "encounterId", label: "Encounter ID #", sort: "number" },
-  { id: "claimId", label: "Claim ID", sort: "number" },
-  { id: "referenceId", label: "Reference ID", sort: "number" },
+  { id: "encounterId", label: "Encounter ID #", sort: "number", center: true },
+  { id: "claimId", label: "Claim ID", sort: "number", center: true },
+  { id: "referenceId", label: "Reference ID", sort: "number", center: true },
   {
     id: "actions",
     label: "Actions",
+    center: true,
     render: (r, ctx) => (
       <RowActionIcons
         onEdit={() => ctx.onEdit(r)}
@@ -1610,37 +1618,40 @@ const PRE_COLUMNS = [
 ];
 
 const POST_COLUMNS = [
-  { id: "dos", label: "DOS", sort: "date" },
+  { id: "dos", label: "DOS", sort: "date", center: true },
   {
     id: "patientName",
     label: "Patient Name\n(Gender)",
     sort: "alpha",
+    center: true,
     render: (r) => `${r.patientName} ${r.gender}`,
   },
-  { id: "cpt", label: "CPT" },
-  { id: "modifier", label: "Modifier" },
-  { id: "icd", label: "ICD" },
-  { id: "billedTo", label: "Billed to" },
-  { id: "billed", label: "Billed" },
-  { id: "adjustment", label: "Adjustment" },
-  { id: "insurancePayment", label: "Insurance\npayment" },
-  { id: "patientPayment", label: "Patient\nPayment" },
-  { id: "billedAs", label: "Billed as" },
+  { id: "cpt", label: "CPT", center: true },
+  { id: "modifier", label: "Modifier", center: true },
+  { id: "icd", label: "ICD", center: true },
+  { id: "billedTo", label: "Billed To", center: true },
+  { id: "billed", label: "Billed", center: true },
+  { id: "adjustment", label: "Adjustment", center: true },
+  { id: "insurancePayment", label: "Insurance\nPayment", center: true },
+  { id: "patientPayment", label: "Patient\nPayment", center: true },
+  { id: "billedAs", label: "Billed As", center: true },
   {
     id: "status",
     label: "Status",
+    center: true,
     render: (r) => {
       const s = POST_STATUS_STYLES[r.status] || POST_STATUS_STYLES.Submitted;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
     },
   },
-  { id: "clearingHouse", label: "Clearing\nhouse #" },
-  { id: "firstBilled", label: "First Billed" },
-  { id: "encounterId", label: "Encounter ID", sort: "number" },
-  { id: "claimId", label: "Claim ID", sort: "number" },
+  { id: "clearingHouse", label: "Clearing\nhouse #", center: true },
+  { id: "firstBilled", label: "First Billed", center: true },
+  { id: "encounterId", label: "Encounter ID", sort: "number", center: true },
+  { id: "claimId", label: "Claim ID", sort: "number", center: true },
   {
     id: "actions",
     label: "Actions",
+    center: true,
     render: (r, ctx) => (
       <RowActionIcons
         onEdit={() => ctx.onEdit(r)}
@@ -1651,20 +1662,21 @@ const POST_COLUMNS = [
 ];
 
 const REMIT_COLUMNS = [
-  { id: "remittanceId", label: "ID", sort: "number" },
-  { id: "location", label: "Location" },
-  { id: "provider", label: "Provider" },
-  { id: "payer", label: "Payer" },
-  { id: "paymentMethod", label: "Payment Method" },
-  { id: "chequeNumber", label: "Cheque #" },
-  { id: "amount", label: "Amount" },
-  { id: "checkDate", label: "Check Date", sort: "date" },
-  { id: "receivedDate", label: "Received Date", sort: "date" },
-  { id: "claimNumbers", label: "Claim Numbers" },
-  { id: "unpostedAmount", label: "Unposted Amount" },
+  { id: "remittanceId", label: "ID", sort: "number", center: true },
+  { id: "location", label: "Location", center: true },
+  { id: "provider", label: "Provider", center: true },
+  { id: "payer", label: "Payer", center: true },
+  { id: "paymentMethod", label: "Payment Method", center: true },
+  { id: "chequeNumber", label: "Cheque #", center: true },
+  { id: "amount", label: "Amount", center: true },
+  { id: "checkDate", label: "Check Date", sort: "date", center: true },
+  { id: "receivedDate", label: "Received Date", sort: "date", center: true },
+  { id: "claimNumbers", label: "Claim Numbers", center: true },
+  { id: "unpostedAmount", label: "Unposted Amount", center: true },
   {
     id: "status",
     label: "Status",
+    center: true,
     render: (r) => {
       const s = REMIT_STATUS_STYLES[r.status] || REMIT_STATUS_STYLES.Posted;
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
@@ -1673,8 +1685,9 @@ const REMIT_COLUMNS = [
   {
     id: "actions",
     label: "Action",
+    center: true,
     render: (r, ctx) => (
-      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", justifyContent: "center" }}>
         <Tooltip title="Refresh/Sync" placement="top">
           <IconButton
             size="small"
@@ -1705,15 +1718,17 @@ const iconCellSx = { color: "#4B5563", px: 0 };
 const NEW_STMT_COLUMNS = [
   {
     id: "name",
-    label: "Patient name",
+    label: "Patient Name",
     sort: "alpha",
+    center: true,
     cellSx: { fontWeight: 600 },
   },
-  { id: "pid", label: "ID", sort: "number", cellSx: { color: "#4B5563" } },
-  { id: "dob", label: "DOB", cellSx: { color: "#4B5563" } },
+  { id: "pid", label: "ID", sort: "number", center: true, cellSx: { color: "#4B5563" } },
+  { id: "dob", label: "DOB", center: true, cellSx: { color: "#4B5563" } },
   {
     id: "category",
     label: "Category",
+    center: true,
     render: (r) => (
       <Chip
         label={r.category}
@@ -1727,12 +1742,13 @@ const NEW_STMT_COLUMNS = [
   },
   {
     id: "lastStatement",
-    label: "Last\nstatement",
+    label: "Last\nStatement",
+    center: true,
     cellSx: (r) => ({
       color: r.lastStatement === "Never sent" ? "#B45309" : "#4B5563",
     }),
   },
-  { id: "sent", label: "Sent", cellSx: { color: "#6B7280" } },
+  { id: "sent", label: "Sent", center: true, cellSx: { color: "#6B7280" } },
   {
     id: "calls",
     title: "Calls",
@@ -1779,10 +1795,11 @@ const NEW_STMT_COLUMNS = [
     headSx: { ...iconColSx, px: 0.25 },
     cellSx: iconCellSx,
   },
-  { id: "enc", label: "Enc", cellSx: { color: "#4B5563" } },
+  { id: "enc", label: "Enc", center: true, cellSx: { color: "#4B5563" } },
   {
     id: "balance",
     label: "Balance",
+    center: true,
     cellSx: (r) => ({
       fontWeight: 600,
       color: r.negative ? "#DC2626" : "#1F2937",
@@ -1791,6 +1808,7 @@ const NEW_STMT_COLUMNS = [
   {
     id: "reason",
     label: "Reason",
+    center: true,
     getValue: (r) => r.reason || "Reason here",
     cellSx: { color: "#374151" },
     render: (r) => r.reason || "Reason here",
@@ -1798,6 +1816,7 @@ const NEW_STMT_COLUMNS = [
   {
     id: "selectedBalance",
     label: "Selected",
+    center: true,
     getValue: (r) => r.balance,
     headSx: { backgroundColor: selHeadBg, minWidth: 100 },
     cellSx: (r) => ({
@@ -1811,11 +1830,12 @@ const NEW_STMT_COLUMNS = [
   {
     id: "alert",
     label: "Alert",
+    center: true,
     getValue: (r) => r.alert || "",
     cellSx: { fontSize: 10.5, color: "#A16207", maxWidth: 130 },
     render: (r) =>
       r.alert ? (
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.6 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.6, justifyContent: "center" }}>
           <Box
             sx={{
               width: 5,
@@ -1881,17 +1901,17 @@ const HISTORY_COLUMNS = [
     sort: "number",
     cellSx: { color: "#4B5563" },
   },
-  { id: "batchName", label: "Batch name", sort: "alpha" },
+  { id: "batchName", label: "Batch Name", sort: "alpha" },
   {
     id: "batchDescription",
-    label: "Batch description",
+    label: "Batch Description",
     sort: "alpha",
     cellSx: { color: "#9CA3AF" },
   },
-  { id: "noOfStatement", label: "No. of statement", sort: "number" },
+  { id: "noOfStatement", label: "No. of Statement", sort: "number" },
   {
     id: "totalBalance",
-    label: "Total balance",
+    label: "Total Balance",
     sort: "alpha",
     cellSx: (r) => ({
       color: r.totalBalance === "Never sent" ? "#B45309" : "#1F2937",
@@ -1899,7 +1919,7 @@ const HISTORY_COLUMNS = [
   },
   {
     id: "batchStatus",
-    label: "Batch status",
+    label: "Batch Status",
     sort: "alpha",
     render: (r) => (
       <Chip
@@ -2006,7 +2026,7 @@ const setAllColumns = (value) => ({
 const ACTION_MENU_ITEMS = [
   ["Print Claim", "Ctrl+P"],
   ["Rebill", "Ctrl+R"],
-  ["Transfer balance", "Ctrl+T"],
+  ["Transfer Balance", "Ctrl+T"],
   [
     <>
       Transfer patient balance to
@@ -2018,12 +2038,12 @@ const ACTION_MENU_ITEMS = [
   ],
   ["Note", "Ctrl+N"],
   ["Settle", "Ctrl+S"],
-  ["Re-open", "Ctrl+Shift+R"],
+  ["Re-Open", "Ctrl+Shift+R"],
   ["Void", "Ctrl+O"],
   ["Apply Payment", "Ctrl+Shift+A"],
   ["Adjustment", "Ctrl+J"],
-  ["Apply payment & adjust", "Ctrl+Shift+J"],
-  ["Set follow-up date", "Ctrl+Shift+F"],
+  ["Apply Payment & Adjust", "Ctrl+Shift+J"],
+  ["Set Follow-up Date", "Ctrl+Shift+F"],
 ];
 
 /* ================================================================== */
@@ -2041,14 +2061,14 @@ const PRE_CHIPS = [
 const REMIT_CHIPS = [
   ["all", "All", null],
   ["notPosted", "Not Posted", "Not Posted"],
-  ["partiallyPosted", "Partially posted", "Partially posted"],
-  ["fullyPosted", "Fully posted", "Fully posted"],
-  ["markReview", "Mark as review", "Mark as review"],
+  ["partiallyPosted", "Partially Posted", "Partially posted"],
+  ["fullyPosted", "Fully Posted", "Fully posted"],
+  ["markReview", "Mark as Review", "Mark as review"],
 ];
 
 const TABS = [
-  "Pre-billing Claims",
-  "Post-billing Claims",
+  "Pre-Billing Claims",
+  "Post-Billing Claims",
   "Remittance ERA/EOB",
   "Patient Statement",
 ];
@@ -2088,6 +2108,11 @@ function PreBillingClaim() {
     remittance: false,
     statement: false,
   });
+
+  // Check if we're on a claims submenu route (not encounters)
+  const isClaimsSubmenu = location.pathname.startsWith('/claims/');
+  // Determine if tabs and banner should be hidden
+  const hideTabsAndBanner = isClaimsSubmenu;
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(setAllColumns(true));
 
@@ -2495,7 +2520,8 @@ function PreBillingClaim() {
         overflowY: "auto",
       }}
     >
-      {/* Main Tabs and Search Bar in Same Row (never wraps) */}
+      {/* Main Tabs and Search Bar in Same Row (never wraps) - Hidden for Claims Submenu */}
+      {!hideTabsAndBanner && (
       <Box
         sx={{
           display: "flex",
@@ -2649,7 +2675,7 @@ function PreBillingClaim() {
             </Box>
 
             <Box component="span" sx={{ lineHeight: 1, whiteSpace: "nowrap" }}>
-              Advanced filters
+              Advanced Filters
             </Box>
 
             {activeFilterCount > 0 && (
@@ -2717,6 +2743,7 @@ function PreBillingClaim() {
           )}
         </Box>
       </Box>
+      )}
 
       {/* Advanced Filters Panel */}
       {(showAdvancedFilters.preBilling && currentTab === 0) ||
@@ -3137,7 +3164,7 @@ function PreBillingClaim() {
       {/* ================= PRE-BILLING TAB ================= */}
       {currentTab === 0 && (
         <Box>
-          <ChargeCaptureBanner />
+          {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Status chips + actions */}
           <Box
@@ -3418,7 +3445,7 @@ function PreBillingClaim() {
             ...thinScroll,
           }}
         >
-          <ChargeCaptureBanner />
+          {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Action buttons row */}
           <Box
@@ -3549,7 +3576,7 @@ function PreBillingClaim() {
                 variant="outlined"
                 sx={{ ...selectActionBtnSx, whiteSpace: "nowrap" }}
               >
-                Submit E-claim
+                Submit E-Claim
               </Button>
               <Button
                 variant="contained"
@@ -3753,7 +3780,7 @@ function PreBillingClaim() {
       {/* ================= REMITTANCE ERA/EOB TAB ================= */}
       {currentTab === 2 && (
         <Box>
-          <ChargeCaptureBanner />
+          {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           <Box
             sx={{
@@ -3845,7 +3872,7 @@ function PreBillingClaim() {
             boxSizing: "border-box",
           }}
         >
-          <ChargeCaptureBanner />
+          {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Toolbar */}
           <Box

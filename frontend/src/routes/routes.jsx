@@ -376,6 +376,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/new-claim"
+        element={
+          <ProtectedRoute>
+            <NewEncounter />
+          </ProtectedRoute>
+        }
+      />
            <Route
         path="/pre-billing-edit/:id"
         element={

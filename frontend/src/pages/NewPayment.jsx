@@ -42,10 +42,10 @@ const thinScroll = {
 };
 
 const labelSx = {
-  fontSize: 12,
+  fontSize: 11,
   fontWeight: 500,
   color: "#6B7280",
-  mb: 0.6,
+  mb: 0.5,
   display: "block",
 };
 
@@ -53,11 +53,11 @@ const inputSx = {
   width: "100%",
   "& .MuiOutlinedInput-root": {
     width: "100%",
-    height: 40,
-    minHeight: 40,
+    height: 34,
+    minHeight: 34,
     boxSizing: "border-box",
     fontSize: 12,
-    borderRadius: "8px",
+    borderRadius: "6px",
     backgroundColor: "#F9FAFC",
     color: "#1F2937",
     "& fieldset": {
@@ -72,42 +72,42 @@ const inputSx = {
     "& input": {
       height: "100%",
       boxSizing: "border-box",
-      padding: "0 12px",
+      padding: "0 10px",
       fontSize: 12,
     },
     "& .MuiInputAdornment-root": {
-      marginRight: 8,
+      marginRight: 6,
     },
   },
   "& .MuiSelect-select": {
-    minHeight: "40px !important",
-    height: "40px",
+    minHeight: "34px !important",
+    height: "34px",
     boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
-    padding: "0 36px 0 12px !important",
+    padding: "0 32px 0 10px !important",
     fontSize: 12,
   },
   "& .MuiSelect-icon": {
     color: "#6B7280",
-    right: 8,
-    fontSize: 20,
+    right: 6,
+    fontSize: 18,
   },
 };
 
 const cardSx = {
   backgroundColor: "#FFFFFF",
-  borderRadius: "10px",
+  borderRadius: "8px",
   border: "1px solid #E5E7EB",
-  p: 1.75,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+  p: 2,
+  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
 };
 
 const cardTitleSx = {
   fontSize: 13,
   fontWeight: 700,
   color: "#1F2937",
-  mb: 1.4,
+  mb: 1.2,
 };
 
 /* ─────────────────────────────────────────────
@@ -291,17 +291,17 @@ export default function NewPayment() {
      SUMMARY block values (derived)
   ───────────────────────────────────────────── */
   const summaryItems = [
-    { label: "Total Amount", value: "$50.00", color: "#1F2937", bg: null },
-    { label: "Applied to Charges", value: "$0.00", color: "#1F2937", bg: null },
+    { label: "Total Amount", value: "$50.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Applied to Charges", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
     {
       label: "Applied to Capitated",
       value: "$0.00",
       color: "#1F2937",
-      bg: null,
+      bg: "#F3F4F6",
     },
-    { label: "Adjustments", value: "$0.00", color: "#1F2937", bg: null },
-    { label: "Refunds", value: "$0.00", color: "#1F2937", bg: null },
-    { label: "Unapplied", value: "$50.00", color: "#D97706", bg: "#FEF3C7" },
+    { label: "Adjustments", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Refunds", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Unapplied", value: "$50.00", color: "#7A4300", bg: "#FFF1DC" },
   ];
 
   /* ─────────────────────────────────────────────
@@ -314,7 +314,7 @@ export default function NewPayment() {
     fontSize: 12,
     borderRadius: "8px",
     backgroundColor: "#FFFFFF",
-    fontWeight: 500,
+    fontWeight: 700,
     height: 34,
     px: 1.6,
     whiteSpace: "nowrap",
@@ -335,8 +335,8 @@ export default function NewPayment() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-            gap: 2,
-            mb: 2,
+            gap: 1.5,
+            mb: 1.5,
           }}
         >
           <Box>
@@ -387,8 +387,8 @@ export default function NewPayment() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "3fr 2fr" },
-            gap: 2,
-            mb: 2,
+            gap: 1.5,
+            mb: 1.5,
           }}
         >
           <Box>
@@ -438,8 +438,8 @@ export default function NewPayment() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-            gap: 2,
-            mb: 2,
+            gap: 1.5,
+            mb: 1.5,
           }}
         >
           <Box>
@@ -494,7 +494,7 @@ export default function NewPayment() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "2fr 3fr" },
-            gap: 2,
+            gap: 1.5,
           }}
         >
           <Box>
@@ -542,16 +542,16 @@ export default function NewPayment() {
               key={item.label}
               sx={{
                 border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                p: 1.2,
-                backgroundColor: item.bg || "#FAFAFA",
+                borderRadius: "6px",
+                p: 1,
+                backgroundColor: item.bg,
               }}
             >
-              <Typography sx={{ fontSize: 11, color: "#6B7280", mb: 0.4 }}>
+              <Typography sx={{ fontSize: 10, color: "#6B7280", mb: 0.3 }}>
                 {item.label}
               </Typography>
               <Typography
-                sx={{ fontSize: 14, fontWeight: 700, color: item.color }}
+                sx={{ fontSize: 13, fontWeight: 700, color: item.color }}
               >
                 {item.value}
               </Typography>
@@ -566,15 +566,15 @@ export default function NewPayment() {
           value={lineTab}
           onChange={(_, v) => setLineTab(v)}
           sx={{
-            minHeight: 34,
-            mb: 1.5,
+            minHeight: 32,
+            mb: 2,
             borderBottom: "2px solid #E5E7EB",
             "& .MuiTab-root": {
               textTransform: "none",
               fontSize: 12,
               fontWeight: 600,
-              minHeight: 34,
-              color: "#6B7280",
+              minHeight: 32,
+              color: "#1F2937",
               px: 1.5,
               py: 0,
             },
@@ -593,8 +593,8 @@ export default function NewPayment() {
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-                gap: 1.5,
-                mb: 1.5,
+                gap: 2,
+                mb: 2,
               }}
             >
               <Box>
@@ -630,7 +630,8 @@ export default function NewPayment() {
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                gap: 1.5,
+                gap: 2,
+                mb: 3,
               }}
             >
               <FSelect
@@ -656,14 +657,14 @@ export default function NewPayment() {
         )}
 
         {/* Footer action buttons */}
-        <Box sx={{ display: "flex", gap: 1, mt: 2, flexWrap: "wrap" }}>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+        <Box sx={{ display: "flex", gap: 1, mt: 10, flexWrap: "wrap" }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
             Next Line
           </Button>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
             + Add Encounter
           </Button>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600 }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
             + Add Patient
           </Button>
         </Box>
@@ -735,21 +736,11 @@ export default function NewPayment() {
         <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
           <Table
             size="small"
-            sx={{ minWidth: 520, tableLayout: "fixed", width: "100%" }}
+            sx={{ minWidth: 480, tableLayout: "auto", width: "100%" }}
           >
-            <colgroup>
-              <col style={{ width: 32 }} />
-              <col style={{ width: "13%" }} />
-              <col />
-              <col style={{ width: "7%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "11%" }} />
-              <col style={{ width: "13%" }} />
-            </colgroup>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ px: 0.5, py: 0.8 }}>
+                <TableCell padding="checkbox" sx={{ px: 0.8, py: 1 }}>
                   <Checkbox
                     size="small"
                     indeterminate={
@@ -762,7 +753,7 @@ export default function NewPayment() {
                         e.target.checked ? CHARGES.map((c) => c.id) : [],
                       )
                     }
-                    sx={{ p: 0, "& svg": { fontSize: 16 } }}
+                    sx={{ p: 0, "& svg": { fontSize: 15 } }}
                   />
                 </TableCell>
                 {[
@@ -777,11 +768,11 @@ export default function NewPayment() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: 600,
                       color: "#6B7280",
-                      px: 0.5,
-                      py: 0.8,
+                      px: 0.8,
+                      py: 1,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -798,20 +789,20 @@ export default function NewPayment() {
                     backgroundColor: idx % 2 === 0 ? "#F5F5FF" : "#FFFFFF",
                   }}
                 >
-                  <TableCell padding="checkbox" sx={{ px: 0.5 }}>
+                  <TableCell padding="checkbox" sx={{ px: 0.8 }}>
                     <Checkbox
                       size="small"
                       checked={selectedRows.includes(c.id)}
                       onChange={() => toggleRow(c.id)}
-                      sx={{ p: 0, "& svg": { fontSize: 16 } }}
+                      sx={{ p: 0, "& svg": { fontSize: 15 } }}
                     />
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 1.5,
+                      px: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -819,26 +810,26 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 1.5,
+                      px: 0.8,
                       wordBreak: "break-word",
                     }}
                   >
                     {c.description}
                   </TableCell>
                   <TableCell
-                    sx={{ fontSize: 11.5, color: "#374151", py: 1, px: 0.5 }}
+                    sx={{ fontSize: 11, color: "#374151", py: 1.5, px: 0.8 }}
                   >
                     {c.mod}
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 1.5,
+                      px: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -846,10 +837,10 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 1.5,
+                      px: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -857,29 +848,30 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 1.5,
+                      px: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
                     {c.patResp}
                   </TableCell>
-                  <TableCell sx={{ py: 1, px: 0.5 }}>
+                  <TableCell sx={{ py: 1.5, px: 0.8 }}>
                     <TextField
                       size="small"
                       defaultValue={c.thisPayment}
                       sx={{
                         width: "100%",
+                        minWidth: 70,
                         "& .MuiOutlinedInput-root": {
-                          fontSize: 11.5,
+                          fontSize: 11,
                           fontWeight: 600,
-                          height: 32,
-                          minHeight: 32,
-                          borderRadius: "7px",
+                          height: 28,
+                          minHeight: 28,
+                          borderRadius: "6px",
                           backgroundColor: "#FFF",
-                          "& input": { textAlign: "center", px: 0.5 },
+                          "& input": { textAlign: "center", px: 0.4 },
                           "& fieldset": { borderColor: "#D1D5DB" },
                         },
                       }}
@@ -917,23 +909,15 @@ export default function NewPayment() {
             <Add sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
-        <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 1.2 }}>
+        <Typography sx={{ fontSize: 10, color: "#9CA3AF", mb: 1 }}>
           EOBs, ERAs and supporting documents for this payment
         </Typography>
 
         <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
           <Table
             size="small"
-            sx={{ tableLayout: "fixed", width: "100%", minWidth: 480 }}
+            sx={{ tableLayout: "auto", width: "100%", minWidth: 420 }}
           >
-            <colgroup>
-              <col style={{ width: "24%" }} />
-              <col style={{ width: "10%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "29%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "8%" }} />
-            </colgroup>
             <TableHead>
               <TableRow>
                 {[
@@ -947,11 +931,11 @@ export default function NewPayment() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: 600,
                       color: "#9CA3AF",
-                      py: 0.75,
-                      px: 0.5,
+                      py: 0.6,
+                      px: 0.4,
                     }}
                   >
                     {h}
@@ -967,14 +951,14 @@ export default function NewPayment() {
                       fontSize: 11,
                       fontWeight: 600,
                       color: "#1F2937",
-                      py: 1,
-                      px: 0.5,
+                      py: 0.8,
+                      px: 0.4,
                       wordBreak: "break-word",
                     }}
                   >
                     {f.fileName}
                   </TableCell>
-                  <TableCell sx={{ py: 1, px: 0.5 }}>
+                  <TableCell sx={{ py: 0.8, px: 0.4 }}>
                     <Chip
                       label={f.tag}
                       size="small"
@@ -982,9 +966,9 @@ export default function NewPayment() {
                         backgroundColor: "#EFF6FF",
                         color: "#0066FF",
                         fontWeight: 600,
-                        fontSize: 10,
-                        height: 18,
-                        borderRadius: "5px",
+                        fontSize: 9,
+                        height: 16,
+                        borderRadius: "4px",
                       }}
                     />
                   </TableCell>
@@ -992,8 +976,8 @@ export default function NewPayment() {
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 0.5,
+                      py: 0.8,
+                      px: 0.4,
                       wordBreak: "break-word",
                     }}
                   >
@@ -1003,8 +987,8 @@ export default function NewPayment() {
                     sx={{
                       fontSize: 11,
                       color: "#6B7280",
-                      py: 1,
-                      px: 0.5,
+                      py: 0.8,
+                      px: 0.4,
                       wordBreak: "break-word",
                     }}
                   >
@@ -1014,22 +998,22 @@ export default function NewPayment() {
                     sx={{
                       fontSize: 11,
                       color: "#6B7280",
-                      py: 1,
-                      px: 0.5,
+                      py: 0.8,
+                      px: 0.4,
                       whiteSpace: "nowrap",
                     }}
                   >
                     {f.uploadedOn}
                   </TableCell>
-                  <TableCell sx={{ py: 1, px: 0.5 }}>
-                    <Box sx={{ display: "flex", gap: 0.25 }}>
-                      <IconButton size="small" sx={{ p: 0.4 }}>
+                  <TableCell sx={{ py: 0.8, px: 0.4 }}>
+                    <Box sx={{ display: "flex", gap: 0.2 }}>
+                      <IconButton size="small" sx={{ p: 0.3 }}>
                         <DownloadIcon2
-                          sx={{ fontSize: 15, color: "#374151" }}
+                          sx={{ fontSize: 14, color: "#374151" }}
                         />
                       </IconButton>
-                      <IconButton size="small" sx={{ p: 0.4 }}>
-                        <RPDeleteIcon sx={{ fontSize: 15, color: "#DC2626" }} />
+                      <IconButton size="small" sx={{ p: 0.3 }}>
+                        <RPDeleteIcon sx={{ fontSize: 14, color: "#DC2626" }} />
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -1045,15 +1029,8 @@ export default function NewPayment() {
         <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
           <Table
             size="small"
-            sx={{ tableLayout: "fixed", width: "100%", minWidth: 420 }}
+            sx={{ tableLayout: "auto", width: "100%", minWidth: 380 }}
           >
-            <colgroup>
-              <col style={{ width: "14%" }} />
-              <col />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "14%" }} />
-            </colgroup>
             <TableHead>
               <TableRow sx={{ backgroundColor: "#F1F0FD" }}>
                 {[
@@ -1066,11 +1043,11 @@ export default function NewPayment() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: 600,
                       color: "#1F2937",
-                      py: 0.9,
-                      px: 1,
+                      py: 1.2,
+                      px: 1.5,
                     }}
                   >
                     {h}
@@ -1088,10 +1065,10 @@ export default function NewPayment() {
                 >
                   <TableCell
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 1,
+                      py: 1.5,
+                      px: 1.5,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1099,10 +1076,10 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 1,
+                      py: 1.5,
+                      px: 1.5,
                       wordBreak: "break-word",
                       fontWeight: 500,
                     }}
@@ -1111,10 +1088,10 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 1,
+                      py: 1.5,
+                      px: 1.5,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1122,10 +1099,10 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#374151",
-                      py: 1,
-                      px: 1,
+                      py: 1.5,
+                      px: 1.5,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1133,10 +1110,10 @@ export default function NewPayment() {
                   </TableCell>
                   <TableCell
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#1F2937",
-                      py: 1,
-                      px: 1,
+                      py: 1.5,
+                      px: 1.5,
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                     }}

@@ -255,6 +255,12 @@ function Sidebar() {
 
   const claimsMenuItems = [
     {
+      text: "Add New Claim",
+      icon: <Add sx={{ fontSize: 18 }} />,
+      path: "/new-claim",
+      badge: null,
+    },
+    {
       text: "Pre Billing Claim",
       icon: <PreBillingClaim width={18} height={18} color="currentColor" />,
       path: "/claims/pre-billing",
@@ -270,12 +276,6 @@ function Sidebar() {
       text: "Remittance ERA/EOB",
       icon: <ERA width={18} height={18} color="currentColor" />,
       path: "/claims/remittance-era",
-      badge: null,
-    },
-    {
-      text: "Patient Statement",
-      icon: <Statement width={18} height={18} color="currentColor" />,
-      path: "/claims/patient-statement",
       badge: null,
     },
   ];
