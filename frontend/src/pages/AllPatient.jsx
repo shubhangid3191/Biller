@@ -1050,13 +1050,14 @@ function PhysicianChip({ label }) {
   return (
     <Box
       sx={{
-        display: "inline-block",
-        maxWidth: "100%",
+        display: "block",
+        width: "100%",
+        textAlign: "center",
         bgcolor: T.physicianBg,
         border: `1px solid ${T.physicianBg}`,
         borderRadius: "4px",
-        px: 0.8,
-        py: 0.35,
+        px: 1.5,
+        py: 0.5,
         fontSize: 12,
         fontWeight: 700,
         color: T.physicianText,

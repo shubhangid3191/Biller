@@ -1,10 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
   Dialog,
   FormControl,
+  FormHelperText,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -17,11 +18,13 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import {
   OcrIcon,
   ExcelIcon,
@@ -32,7 +35,82 @@ import {
   UploadFileIcon,
 } from "../assets/Assets";
 
+// Required so dayjs can actually parse "DD-MM-YYYY" strings
+dayjs.extend(customParseFormat);
+
 const FONT = "'Inter', 'Segoe UI', sans-serif";
+const DATE_FORMAT = "DD-MM-YYYY";
+
+/* ------------------------------------------------------------------ */
+/* Date helpers                                                         */
+/* ------------------------------------------------------------------ */
+
+// Auto-inserts dashes while typing: 25122024 -> 25-12-2024
+const maskDate = (raw) => {
+  const d = (raw || "").replace(/\D/g, "").slice(0, 8);
+  let out = d.slice(0, 2);
+  if (d.length > 2) out += "-" + d.slice(2, 4);
+  if (d.length > 4) out += "-" + d.slice(4);
+  return out;
+};
+
+// Strict parse: returns a valid dayjs object or null
+const parseDate = (value) => {
+  if (!value || value.length !== 10) return null;
+  const parsed = dayjs(value, DATE_FORMAT, true);
+  return parsed.isValid() ? parsed : null;
+};
+
+/* ------------------------------------------------------------------ */
+/* Email validation                                                     */
+/* ------------------------------------------------------------------ */
+// name@domain.tld  (no spaces, one @, domain needs a dot, TLD >= 2 letters)
+const EMAIL_REGEX =
+  /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+// returns an error message, or "" when the email is valid
+const getEmailError = (value) => {
+  const v = (value || "").trim();
+  if (!v) return "Email is required";
+  if (v.length > 254) return "Email is too long";
+  if (v.includes("..")) return "Enter a valid email address";
+  if (!EMAIL_REGEX.test(v)) return "Enter a valid email address";
+  return "";
+};
+
+/* ------------------------------------------------------------------ */
+/* Required-field validation                                            */
+/* field name -> text used in "<label> is required"                     */
+/* ------------------------------------------------------------------ */
+const REQUIRED_FIELDS = {
+  location: "Location",
+  admittingPhysician: "Admitting Physician",
+  patientType: "Patient Type",
+  mrn: "MRN",
+  fin: "FIN",
+  patientFirstName: "First name",
+  patientMiddleName: "Middle name",
+  patientLastName: "Last name",
+  dateOfBirth: "Date of birth",
+  email: "Email",
+  admitDate: "Admit date",
+  dateOfService: "Date of service",
+  bed: "Bed",
+};
+
+const DATE_FIELDS = ["dateOfBirth", "admitDate", "dateOfService"];
+
+// returns an error message, or "" when the field is fine
+const validateField = (name, value) => {
+  const v = String(value || "").trim();
+  const label = REQUIRED_FIELDS[name];
+  if (!label) return "";
+  if (!v) return `${label} is required`;
+  if (name === "email") return getEmailError(v);
+  if (DATE_FIELDS.includes(name) && !parseDate(v))
+    return "Enter a valid date (DD-MM-YYYY)";
+  return "";
+};
 
 /* ------------------------------------------------------------------ */
 /* Theme                                                                */
@@ -44,6 +122,7 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
+          fontFamily: FONT,
           borderRadius: "8px",
           fontSize: 13,
           backgroundColor: "#fff",
@@ -54,6 +133,7 @@ const theme = createTheme({
             borderColor: "#006FFD",
             borderWidth: 1.5,
           },
+          "&.Mui-error fieldset": { borderColor: "#EF4444" },
         },
         input: {
           padding: "8px 12px",
@@ -71,7 +151,9 @@ const theme = createTheme({
         },
       },
     },
-    MuiMenuItem: { styleOverrides: { root: { fontSize: 13 } } },
+    MuiMenuItem: { styleOverrides: { root: { fontSize: 13, fontFamily: FONT } } },
+    MuiFormHelperText: { styleOverrides: { root: { fontFamily: FONT } } },
+    MuiPickersDay: { styleOverrides: { root: { fontFamily: FONT } } },
     MuiDialog: {
       styleOverrides: {
         paper: {
@@ -83,6 +165,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
+          fontFamily: FONT,
           borderRadius: "10px",
           textTransform: "none",
           fontWeight: 600,
@@ -171,9 +254,10 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           borderRadius: "20px",
           p: 0,
           overflow: "hidden",
-          width: { xs: "92vw", sm: "560px" },
-          maxWidth: { xs: "92vw", sm: "560px" },
-          mx: { xs: 1, sm: "auto" },
+          width: { xs: "calc(100vw - 24px)", sm: "560px" },
+          maxWidth: { xs: "calc(100vw - 24px)", sm: "560px" },
+          m: { xs: "12px", sm: "32px" },
+          maxHeight: "calc(100% - 24px)",
         },
       }}
       sx={{
@@ -201,9 +285,6 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontWeight: 600,
-          fontSize: "18px",
-          fontFamily: FONT,
           px: { xs: 2, sm: 2.5 },
           pt: { xs: 1.5, sm: 2 },
           pb: 1.5,
@@ -212,20 +293,20 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
         <Typography
           sx={{
             fontWeight: 600,
-            fontSize: 18,
+            fontSize: { xs: 16, sm: 18 },
             fontFamily: FONT,
-            color: "#111827",
+            color: "#1D1B20",
           }}
         >
           {cfg.title}
         </Typography>
-        <IconButton onClick={handleClose} sx={{ color: "#015DFF", p: 0.5 }}>
-          <CloseIcon sx={{ fontSize: 20 }} />
+        <IconButton onClick={handleClose} sx={{ color: "#1D1B20", p: 0.5 }}>
+          <CloseIcon sx={{ fontSize: 24 }} />
         </IconButton>
       </Box>
 
       {/* Content */}
-      <Box sx={{ px: { xs: 2, sm: 2.5 }, pt: 1, pb: 0.5 }}>
+      <Box sx={{ px: { xs: 2, sm: 2.5 }, pt: 1, pb: 0.5, overflowY: "auto" }}>
         {/* Drag & Drop zone */}
         <Box
           onClick={() => fileInputRef.current?.click()}
@@ -255,12 +336,13 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
               fontWeight: 500,
               color: "#7B89B2",
               fontFamily: FONT,
-              fontSize: 14,
+              fontSize: { xs: 13, sm: 14 },
+              whiteSpace: "pre-line",
+              wordBreak: "break-word",
             }}
           >
-            {cfg.hint}
+            {file ? file.name : cfg.hint}
           </Typography>
-         
         </Box>
 
         {/* Upload from computer zone */}
@@ -285,14 +367,12 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
               fontWeight: 500,
               color: "#7B89B2",
               fontFamily: FONT,
-              fontSize: 14,
+              fontSize: { xs: 13, sm: 14 },
             }}
           >
             Upload file from computer
           </Typography>
         </Box>
-
-      
       </Box>
 
       {/* Footer */}
@@ -303,7 +383,6 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           alignItems: "center",
           gap: 1,
           p: { xs: 1.5, sm: 2 },
-         
         }}
       >
         <Button
@@ -347,7 +426,9 @@ const FieldLabel = ({ children, required }) => (
     component="label"
     sx={{
       display: "block",
+      fontFamily: FONT,
       fontSize: 12,
+      lineHeight: "16px", // fixed height so labels stay aligned in every column
       fontWeight: 700,
       color: "#2F3036",
       mb: "6px",
@@ -357,7 +438,14 @@ const FieldLabel = ({ children, required }) => (
     {required && (
       <Typography
         component="span"
-        sx={{ color: "#EF4444", ml: "2px", fontWeight: 700 }}
+        sx={{
+          color: "#EF4444",
+          ml: "2px",
+          fontWeight: 700,
+          fontSize: "inherit", // default span size (16px) was making the label taller
+          lineHeight: "inherit",
+          fontFamily: "inherit",
+        }}
       >
         *
       </Typography>
@@ -370,6 +458,7 @@ const SectionHeader = ({ title }) => (
     sx={{
       fontWeight: 700,
       color: "#000",
+      fontFamily: FONT,
       fontSize: 15,
       textTransform: "uppercase",
       mb: "16px",
@@ -387,8 +476,9 @@ const ToolbarBtn = ({ icon, label, onClick }) => (
     sx={{
       borderColor: "#E1E1E2",
       color: "#015DFF",
+      fontFamily: FONT,
       fontWeight: 600,
-      fontSize: 15,
+      fontSize: { xs: 13, sm: 15 },
       borderRadius: "8px",
       height: "36px",
       px: 1.5,
@@ -403,18 +493,27 @@ const ToolbarBtn = ({ icon, label, onClick }) => (
   </Button>
 );
 
-const DropdownField = ({ value, onChange, placeholder, children }) => (
-  <FormControl fullWidth>
+// Defined outside DropdownField so it isn't re-created on every render
+const DropdownArrow = (props) => (
+  <KeyboardArrowDownIcon {...props} sx={{ color: "#8F9098", fontSize: 20 }} />
+);
+
+const DropdownField = ({
+  value,
+  onChange,
+  onClose,
+  placeholder,
+  error = false,
+  helperText,
+  children,
+}) => (
+  <FormControl fullWidth error={error}>
     <Select
       value={value}
       onChange={onChange}
+      onClose={onClose}
       displayEmpty
-      IconComponent={(props) => (
-        <KeyboardArrowDownIcon
-          {...props}
-          sx={{ color: "#8F9098", fontSize: 20 }}
-        />
-      )}
+      IconComponent={DropdownArrow}
       renderValue={(val) =>
         val ? (
           <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
@@ -429,6 +528,7 @@ const DropdownField = ({ value, onChange, placeholder, children }) => (
         "& fieldset": { borderColor: "#C5C6CC" },
         "&:hover fieldset": { borderColor: "#9CA3AF" },
         "&.Mui-focused fieldset": { borderColor: "#006FFD", borderWidth: 1.5 },
+        "&.Mui-error fieldset": { borderColor: "#EF4444" },
         "& .MuiSelect-select": {
           py: "0 !important",
           px: "12px !important",
@@ -445,63 +545,92 @@ const DropdownField = ({ value, onChange, placeholder, children }) => (
       </MenuItem>
       {children}
     </Select>
+    {helperText && (
+      <FormHelperText sx={{ mx: 0, mt: "3px", fontSize: 11, fontFamily: FONT }}>
+        {helperText}
+      </FormHelperText>
+    )}
   </FormControl>
 );
 
-const TextInput = ({ placeholder, value, onChange, type = "text" }) => (
+const TextInput = ({
+  placeholder,
+  value,
+  onChange,
+  onBlur,
+  type = "text",
+  error = false,
+  helperText,
+}) => (
   <TextField
     fullWidth
     type={type}
     placeholder={placeholder}
     value={value}
     onChange={onChange}
-    sx={{ "& .MuiInputBase-root": { height: "42px" } }}
+    onBlur={onBlur}
+    error={error}
+    helperText={helperText}
+    sx={{
+      "& .MuiInputBase-root": { height: "42px" },
+      "& .MuiFormHelperText-root": { mx: 0, fontSize: 11 },
+    }}
   />
 );
 
-const DateInput = ({ value, onChange }) => {
+/* ------------------------------------------------------------------ */
+/* DateInput — DD-MM-YYYY (typing is auto-masked, calendar popup too)  */
+/* ------------------------------------------------------------------ */
+const DateInput = ({
+  value,
+  onChange,
+  onBlur,
+  error = false,
+  helperText,
+  disableFuture = false,
+}) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const iconRef = useRef(null);
-
-  const handleIconClick = (e) => {
-    setAnchorEl(e.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDateChange = (newVal) => {
-    if (newVal) {
-      onChange({ target: { value: newVal.format("DD-MM-YYYY") } });
-    }
-    handleClose();
-  };
-
-  const parsedValue = value
-    ? dayjs(value, "DD-MM-YYYY").isValid()
-      ? dayjs(value, "DD-MM-YYYY")
-      : null
-    : null;
+  const fieldRef = useRef(null);
 
   const open = Boolean(anchorEl);
+  const parsedValue = parseDate(value);
+  const isComplete = value.length === 10;
+  const invalidFormat = isComplete && !parsedValue;
+  const hasError = invalidFormat || error;
+  const message = invalidFormat
+    ? "Enter a valid date (DD-MM-YYYY)"
+    : helperText;
+
+  const emit = (v) => onChange({ target: { value: v } });
+
+  const handleTyping = (e) => emit(maskDate(e.target.value));
+
+  const handleDateChange = (newVal) => {
+    if (newVal && newVal.isValid()) emit(newVal.format(DATE_FORMAT));
+    setAnchorEl(null);
+  };
 
   return (
     <>
       <TextField
         fullWidth
+        ref={fieldRef}
         placeholder="DD-MM-YYYY"
         value={value}
-        onChange={onChange}
+        onChange={handleTyping}
+        onBlur={onBlur}
+        error={hasError}
+        helperText={hasError ? message : undefined}
+        inputProps={{ inputMode: "numeric", maxLength: 10 }}
         slotProps={{
           input: {
             endAdornment: (
               <InputAdornment position="end" sx={{ mr: "-4px" }}>
                 <IconButton
-                  ref={iconRef}
-                  onClick={handleIconClick}
+                  onClick={() => setAnchorEl(fieldRef.current)}
                   sx={{ p: "4px", "&:hover": { background: "transparent" } }}
                   disableRipple
+                  aria-label="Open calendar"
                 >
                   <CalendarIcon width={14} height={16} color="#1E1E1E" />
                 </IconButton>
@@ -509,12 +638,15 @@ const DateInput = ({ value, onChange }) => {
             ),
           },
         }}
-        sx={{ "& .MuiInputBase-root": { height: "42px" } }}
+        sx={{
+          "& .MuiInputBase-root": { height: "42px" },
+          "& .MuiFormHelperText-root": { mx: 0, fontSize: 11 },
+        }}
       />
       <Popover
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
+        onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
@@ -522,6 +654,7 @@ const DateInput = ({ value, onChange }) => {
             borderRadius: "12px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
             mt: 0.5,
+            maxWidth: "calc(100vw - 16px)",
           },
         }}
       >
@@ -529,8 +662,10 @@ const DateInput = ({ value, onChange }) => {
           <DateCalendar
             value={parsedValue}
             onChange={handleDateChange}
+            disableFuture={disableFuture}
             sx={{
               width: { xs: "280px", sm: "320px" },
+              maxWidth: "100%",
               "& .MuiPickersDay-root.Mui-selected": {
                 backgroundColor: "#015DFF",
               },
@@ -546,20 +681,31 @@ const DateInput = ({ value, onChange }) => {
 };
 
 const FormField = ({ label, required, children }) => (
-  <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+  <Box
+    sx={{ display: "flex", flexDirection: "column", width: "100%", minWidth: 0 }}
+  >
     <FieldLabel required={required}>{label}</FieldLabel>
     {children}
   </Box>
 );
 
+/*
+  Responsive grid:
+    mobile  (<600px)   -> 1 column
+    tablet  (600-900)  -> 2 columns
+    desktop (>=900)    -> 3 columns
+*/
 const FieldRow = ({ children, mb = "16px" }) => (
   <Box
     sx={{
-      display: "flex",
-      flexDirection: { xs: "column", sm: "row" },
+      display: "grid",
+      gridTemplateColumns: {
+        xs: "minmax(0, 1fr)",
+        sm: "repeat(2, minmax(0, 1fr))",
+        md: "repeat(3, minmax(0, 1fr))",
+      },
       gap: "16px",
       mb,
-      "& > *": { flex: "1 1 0", minWidth: 0 },
     }}
   >
     {children}
@@ -569,8 +715,26 @@ const FieldRow = ({ children, mb = "16px" }) => (
 /* ------------------------------------------------------------------ */
 /* Main Component                                                       */
 /* ------------------------------------------------------------------ */
+const sectionSx = {
+  borderRadius: "16px",
+  p: { xs: "14px", sm: "20px" },
+  mb: "16px",
+  bgcolor: "#fff",
+};
+
 function AddNewPatient() {
   const navigate = useNavigate();
+
+  // Load Inter from Google Fonts (only once)
+  useEffect(() => {
+    if (document.getElementById("inter-font")) return;
+    const link = document.createElement("link");
+    link.id = "inter-font";
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+    document.head.appendChild(link);
+  }, []);
   const [form, setForm] = useState({
     provider: "",
     specialty: "",
@@ -596,8 +760,67 @@ function AddNewPatient() {
   // Dialog state: null | "OCR" | "Excel" | "JSON" | "HL7"
   const [openDialog, setOpenDialog] = useState(null);
 
+  // fields the user has visited (or tried to submit) -> their errors become visible
+  const [touched, setTouched] = useState({});
+
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
+
+  // error shows after the user leaves the field (or presses Add Patient),
+  // then updates live while they fix it
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  const errorProps = (name) => ({
+    error: Boolean(errorOf(name)),
+    helperText: errorOf(name) || undefined,
+  });
+
+  // props for text inputs and date inputs
+  const tx = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onBlur: () => touch(name),
+    ...errorProps(name),
+  });
+
+  // props for dropdowns (error appears when the menu closes with nothing chosen)
+  const dd = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onClose: () => touch(name),
+    ...errorProps(name),
+  });
+
+  const handleEmailBlur = () => {
+    setForm((prev) => ({ ...prev, email: prev.email.trim() }));
+    touch("email");
+  };
+
+  const handleAddPatient = () => {
+    // show every error at once
+    const allTouched = {};
+    Object.keys(REQUIRED_FIELDS).forEach((name) => (allTouched[name] = true));
+    setTouched(allTouched);
+
+    const hasErrors = Object.keys(REQUIRED_FIELDS).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      // bring the first error into view
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    // TODO: API call
+    console.log("Patient data:", form);
+  };
 
   const handleOk = (file) => {
     if (file) console.log(`[${openDialog}] file selected:`, file.name);
@@ -610,29 +833,58 @@ function AddNewPatient() {
         sx={{
           bgcolor: "#F3F4F6",
           minHeight: "100vh",
-          p: { xs: 2, sm: "20px" },
+          p: { xs: 1.5, sm: 2.5 },
+          boxSizing: "border-box",
+          width: "100%",
+          overflowX: "hidden",
         }}
       >
         {/* ---- Top Bar ---- */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
+            flexDirection: { xs: "column", md: "row" },
             justifyContent: "space-between",
-            alignItems: { xs: "flex-start", sm: "center" },
+            alignItems: { xs: "flex-start", md: "center" },
             gap: 1.5,
             mb: "16px",
           }}
         >
-          <Box>
-            <Typography
-              sx={{ fontWeight: 700, color: "#171923", fontSize: 20 }}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              sx={{
+                flexShrink: 0,
+                color: "#5A6B7E",
+                border: "1.5px solid #E4E9EF",
+                borderRadius: "8px",
+                width: 36,
+                height: 36,
+                "&:hover": {
+                  bgcolor: "#F3F4F6",
+                  borderColor: "#D1D5DB",
+                },
+              }}
             >
-              Add New Patient
-            </Typography>
-            <Typography sx={{ color: "#1A1A1A", mt: 0.3, fontSize: 14 }}>
-              Complete all required fields to create a new patient
-            </Typography>
+              <ArrowBackIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Box>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  color: "#171923",
+                  fontFamily: FONT,
+                  fontSize: { xs: 18, sm: 20 },
+                }}
+              >
+                Add New Patient
+              </Typography>
+              <Typography
+                sx={{ color: "#1A1A1A", mt: 0.3, fontFamily: FONT, fontSize: { xs: 13, sm: 14 } }}
+              >
+                Complete all required fields to create a new patient
+              </Typography>
+            </Box>
           </Box>
           <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
             <ToolbarBtn
@@ -670,10 +922,7 @@ function AddNewPatient() {
         ))}
 
         {/* ---- ASSIGN ---- */}
-        <Paper
-          elevation={0}
-          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
-        >
+        <Paper elevation={0} sx={sectionSx}>
           <SectionHeader title="ASSIGN" />
           <FieldRow>
             <FormField label="Provider">
@@ -699,8 +948,7 @@ function AddNewPatient() {
             </FormField>
             <FormField label="Location" required>
               <DropdownField
-                value={form.location}
-                onChange={set("location")}
+                {...dd("location")}
                 placeholder="Select location"
               >
                 <MenuItem value="Ward A">Ward A</MenuItem>
@@ -722,43 +970,38 @@ function AddNewPatient() {
             </FormField>
             <FormField label="Admitting Physician" required>
               <DropdownField
-                value={form.admittingPhysician}
-                onChange={set("admittingPhysician")}
+                {...dd("admittingPhysician")}
                 placeholder="Select provider"
               >
                 <MenuItem value="Dr. Smith">Dr. Smith</MenuItem>
                 <MenuItem value="Dr. Jones">Dr. Jones</MenuItem>
               </DropdownField>
             </FormField>
-            <Box />
           </FieldRow>
         </Paper>
 
         {/* ---- BASIC INFORMATION ---- */}
-        <Paper
-          elevation={0}
-          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
-        >
+        <Paper elevation={0} sx={sectionSx}>
           <SectionHeader title="BASIC INFORMATION" />
           <FieldRow>
             <FormField label="Patient Type" required>
-              <TextInput
-                placeholder="Full name"
-                value={form.patientType}
-                onChange={set("patientType")}
-              />
+              <DropdownField
+                {...dd("patientType")}
+                placeholder="Select patient type"
+              >
+                <MenuItem value="Outpatient">Outpatient</MenuItem>
+                <MenuItem value="Inpatient">Inpatient</MenuItem>
+              </DropdownField>
             </FormField>
-            <FormField label="MRN">
+            <FormField label="MRN" required>
               <TextInput
                 placeholder="Medical record number"
-                value={form.mrn}
-                onChange={set("mrn")}
+                {...tx("mrn")}
               />
             </FormField>
-            <FormField label="FIN">
+            <FormField label="FIN" required>
               <DropdownField
-                value={form.fin}
-                onChange={set("fin")}
+                {...dd("fin")}
                 placeholder="Accession number"
               >
                 <MenuItem value="ACC-001">ACC-001</MenuItem>
@@ -770,30 +1013,27 @@ function AddNewPatient() {
             <FormField label="Patient First Name" required>
               <TextInput
                 placeholder="First name"
-                value={form.patientFirstName}
-                onChange={set("patientFirstName")}
+                {...tx("patientFirstName")}
               />
             </FormField>
             <FormField label="Patient Middle Name" required>
               <TextInput
                 placeholder="Middle name"
-                value={form.patientMiddleName}
-                onChange={set("patientMiddleName")}
+                {...tx("patientMiddleName")}
               />
             </FormField>
             <FormField label="Patient Last Name" required>
               <TextInput
                 placeholder="Last name"
-                value={form.patientLastName}
-                onChange={set("patientLastName")}
+                {...tx("patientLastName")}
               />
             </FormField>
           </FieldRow>
           <FieldRow>
             <FormField label="Date of Birth" required>
               <DateInput
-                value={form.dateOfBirth}
-                onChange={set("dateOfBirth")}
+                {...tx("dateOfBirth")}
+                disableFuture
               />
             </FormField>
             <FormField label="ZIP Code">
@@ -811,72 +1051,59 @@ function AddNewPatient() {
               />
             </FormField>
           </FieldRow>
-          <Box sx={{ display: "flex", gap: "16px" }}>
-            <Box sx={{ flex: "1 1 0", minWidth: 0 }}>
-              <FormField label="Email" required>
-                <TextInput
-                  placeholder="Enter email"
-                  type="email"
-                  value={form.email}
-                  onChange={set("email")}
-                />
-              </FormField>
-            </Box>
-            <Box sx={{ flex: "2 1 0" }} />
-          </Box>
+          <FieldRow mb="0px">
+            <FormField label="Email" required>
+              <TextInput
+                placeholder="Enter email"
+                type="email"
+                {...tx("email")}
+                onBlur={handleEmailBlur}
+              />
+            </FormField>
+          </FieldRow>
         </Paper>
 
         {/* ---- VISIT DETAILS ---- */}
-        <Paper
-          elevation={0}
-          sx={{ borderRadius: "16px", p: "20px", mb: "16px", bgcolor: "#fff" }}
-        >
+        <Paper elevation={0} sx={sectionSx}>
           <SectionHeader title="VISIT DETAILS" />
           <FieldRow>
             <FormField label="Admit Date" required>
-              <DateInput
-                value={form.admitDate}
-                onChange={set("admitDate")}
-              />
+              <DateInput {...tx("admitDate")} />
             </FormField>
             <FormField label="Date of Service" required>
               <DateInput
-                value={form.dateOfService}
-                onChange={set("dateOfService")}
+                {...tx("dateOfService")}
               />
             </FormField>
             <FormField label="Bed" required>
               <TextInput
                 placeholder="Room 5 Bed 32"
-                value={form.bed}
-                onChange={set("bed")}
+                {...tx("bed")}
               />
             </FormField>
           </FieldRow>
-          <Box sx={{ display: "flex", gap: "16px" }}>
-            <Box sx={{ flex: "1 1 0", minWidth: 0 }}>
-              <FormField label="Status">
-                <DropdownField
-                  value={form.status}
-                  onChange={set("status")}
-                  placeholder="Not Seen"
-                >
-                  <MenuItem value="Not Seen">Not Seen</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                </DropdownField>
-              </FormField>
-            </Box>
-            <Box sx={{ flex: "2 1 0" }} />
-          </Box>
+          <FieldRow mb="0px">
+            <FormField label="Status">
+              <DropdownField
+                value={form.status}
+                onChange={set("status")}
+                placeholder="Not Seen"
+              >
+                <MenuItem value="Not Seen">Not Seen</MenuItem>
+                <MenuItem value="In Progress">In Progress</MenuItem>
+                <MenuItem value="Completed">Completed</MenuItem>
+              </DropdownField>
+            </FormField>
+          </FieldRow>
         </Paper>
 
         {/* ---- Footer Buttons ---- */}
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column-reverse", sm: "row" },
             justifyContent: "flex-end",
-            gap: "16px",
+            gap: { xs: "10px", sm: "16px" },
             pt: 1,
             pb: 1,
           }}
@@ -899,6 +1126,7 @@ function AddNewPatient() {
           </Button>
           <Button
             variant="contained"
+            onClick={handleAddPatient}
             sx={{
               bgcolor: "#015DFF",
               color: "#fff",
@@ -912,10 +1140,6 @@ function AddNewPatient() {
           >
             Add Patient
           </Button>
-
-
-
-          
         </Box>
       </Box>
     </ThemeProvider>
