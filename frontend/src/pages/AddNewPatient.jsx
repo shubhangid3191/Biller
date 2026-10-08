@@ -83,6 +83,8 @@ const getEmailError = (value) => {
 /* field name -> text used in "<label> is required"                     */
 /* ------------------------------------------------------------------ */
 const REQUIRED_FIELDS = {
+  provider: "Provider",
+  specialty: "Specialty",
   location: "Location",
   admittingPhysician: "Admitting Physician",
   patientType: "Patient Type",
@@ -925,20 +927,18 @@ function AddNewPatient() {
         <Paper elevation={0} sx={sectionSx}>
           <SectionHeader title="ASSIGN" />
           <FieldRow>
-            <FormField label="Provider">
+            <FormField label="Provider" required>
               <DropdownField
-                value={form.provider}
-                onChange={set("provider")}
+                {...dd("provider")}
                 placeholder="Select provider"
               >
                 <MenuItem value="Dr. Smith">Dr. Smith</MenuItem>
                 <MenuItem value="Dr. Jones">Dr. Jones</MenuItem>
               </DropdownField>
             </FormField>
-            <FormField label="Specialty">
+            <FormField label="Specialty" required>
               <DropdownField
-                value={form.specialty}
-                onChange={set("specialty")}
+                {...dd("specialty")}
                 placeholder="Select specialty"
               >
                 <MenuItem value="Cardiology">Cardiology</MenuItem>
@@ -1016,10 +1016,9 @@ function AddNewPatient() {
                 {...tx("patientFirstName")}
               />
             </FormField>
-            <FormField label="Patient Middle Name" required>
+            <FormField label="Patient Middle Name" >
               <TextInput
                 placeholder="Middle name"
-                {...tx("patientMiddleName")}
               />
             </FormField>
             <FormField label="Patient Last Name" required>
@@ -1052,11 +1051,10 @@ function AddNewPatient() {
             </FormField>
           </FieldRow>
           <FieldRow mb="0px">
-            <FormField label="Email" required>
+            <FormField label="Email" >
               <TextInput
                 placeholder="Enter email"
                 type="email"
-                {...tx("email")}
                 onBlur={handleEmailBlur}
               />
             </FormField>

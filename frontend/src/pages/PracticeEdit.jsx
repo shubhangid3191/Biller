@@ -9,6 +9,7 @@ import {
   MenuItem,
   Select,
   FormControl,
+  FormHelperText,
   Switch,
   InputAdornment,
   Table,
@@ -18,6 +19,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AddIcon from "@mui/icons-material/Add";
 import {
@@ -32,46 +34,110 @@ import {
 const T = {
   blue: "#2563EB",
   page: "#F7F9FC",
-  border: "#D5DCE8",
+  border: "#C5C6CC",
   headBg: "#EBF1FE",
   headBorder: "#BED3FC",
   rowLine: "#EEF1F7",
 };
 
-const ICON_SIZE = {
-  delete: 20,
-  add: 16,
-};
+const ICON_SIZE = { delete: 20, add: 16 };
 
 /* ------------------------------------------------------------------ */
 /* Validation                                                          */
 /* ------------------------------------------------------------------ */
 
+const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
-const validatePhone = (value) =>
-  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+const REQUIRED_TEXT_FIELDS = {
+  practiceName:    "Practice Name",
+  practiceCode:    "Practice Short Code",
+  npi:             "NPI",
+  ein:             "EIN",
+  sftpHost:        "SFTP Host",
+  sftpUsername:    "SFTP Username",
+  sftpPassword:    "SFTP Password",
+  sftpPort:        "SFTP Port",
+  practiceCodeField: "Practice Code",
+  patientStatement: "Patient Statement Message",
+  billingPhone:    "Billing Question Phone",
+  extension:       "Extension",
+};
+
+const validateField = (name, value) => {
+  const v = String(value ?? "").trim();
+  if (!REQUIRED_TEXT_FIELDS[name]) return "";
+  if (!v) return `${REQUIRED_TEXT_FIELDS[name]} is required`;
+  if (name === "billingPhone" && !PHONE_REGEX.test(v)) return PHONE_ERROR;
+  return "";
+};
+
+const ALL_REQUIRED = Object.fromEntries(
+  Object.keys(REQUIRED_TEXT_FIELDS).map((k) => [k, ""]),
+);
 
 /* ------------------------------------------------------------------ */
-/* Input / Select styles                                               */
+/* Input / Select styles — matches AddNewPatient                       */
 /* ------------------------------------------------------------------ */
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
+    fontSize: 13,
+    bgcolor: "#fff",
+    "& input": { padding: "8px 12px", fontSize: 13, color: "#1E1E1E" },
+    "& input::placeholder": { color: "#8F9098", opacity: 1 },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#006FFD",
+      borderWidth: "1.5px",
+    },
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
+  },
+  "& .MuiInputBase-root": { height: "42px" },
+  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+};
+
+const selectSx = (error = false) => ({
+  height: "42px",
+  borderRadius: "8px",
+  fontSize: 13,
+  bgcolor: "#fff",
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#C5C6CC",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#9CA3AF",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#006FFD",
+    borderWidth: "1.5px",
+  },
+  "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
+  "& .MuiSelect-select": {
+    padding: "0 !important",
+    px: "12px !important",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+    height: "42px",
+    boxSizing: "border-box",
+  },
+  "& .MuiSvgIcon-root": { color: "#8F9098" },
+});
+
+const tblInputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "6px",
     fontSize: 12,
     bgcolor: "#fff",
 
     "& input": {
-      py: "10px",
-      px: "14px",
+      py: "5px",
+      px: "8px",
       fontSize: 12,
       color: "#1F2937",
-    },
-
-    "& input::placeholder": {
-      color: "#8F9098",
-      opacity: 1,
     },
 
     "& .MuiOutlinedInput-notchedOutline": {
@@ -83,25 +149,18 @@ const inputSx = {
     },
 
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.blue,
+      borderColor: "#006FFD",
       borderWidth: "1.5px",
-    },
-
-    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#EF4444",
     },
   },
 
   "& .MuiFormHelperText-root": {
-    fontSize: 11,
-    mx: 0,
-    mt: 0.4,
-    color: "#EF4444",
+    display: "none",
   },
 };
 
-const selectSx = {
-  borderRadius: "8px",
+const tblSelectSx = {
+  borderRadius: "6px",
   fontSize: 12,
   bgcolor: "#fff",
 
@@ -114,76 +173,14 @@ const selectSx = {
   },
 
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.blue,
-    borderWidth: "1.5px",
-  },
-
-  "& .MuiSelect-select": {
-    py: "10px",
-    px: "14px",
-    fontSize: 12,
-    color: "#8F9098",
-  },
-
-  "& .MuiSvgIcon-root": {
-    color: "#8F9098",
-  },
-};
-
-const tblInputSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "6px",
-    fontSize: 11,
-    bgcolor: "#fff",
-
-    "& input": {
-      py: "5px",
-      px: "8px",
-      fontSize: 11,
-      color: "#1F2937",
-    },
-
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.border,
-    },
-
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#9CA3AF",
-    },
-
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.blue,
-      borderWidth: "1.5px",
-    },
-  },
-
-  "& .MuiFormHelperText-root": {
-    display: "none",
-  },
-};
-
-const tblSelectSx = {
-  borderRadius: "6px",
-  fontSize: 11,
-  bgcolor: "#fff",
-
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.border,
-  },
-
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#9CA3AF",
-  },
-
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.blue,
+    borderColor: "#006FFD",
     borderWidth: "1.5px",
   },
 
   "& .MuiSelect-select": {
     py: "5px",
     px: "8px",
-    fontSize: 11,
+    fontSize: 12,
     color: "#1F2937",
   },
 
@@ -199,69 +196,34 @@ const tblSelectSx = {
 
 function Label({ children, required }) {
   return (
-    <Typography
-      sx={{
-        fontSize: 12,
-        fontWeight: 700,
-        color: "#000",
-        mb: 0.6,
-      }}
-    >
+    <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
       {children}
-
       {required && (
-        <Box
-          component="span"
-          sx={{
-            color: "red",
-            ml: 0.3,
-          }}
-        >
-          *
-        </Box>
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>
       )}
     </Typography>
   );
 }
 
 function InputField({
-  label,
-  placeholder = "Type here",
-  required,
-  endIcon,
-  value,
-  onChange,
-  onBlur,
-  error,
-  inputMode,
-  maxLength,
+  label, placeholder = "Type here", required,
+  endIcon, value, onChange, onBlur, error, inputMode, maxLength,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
-
       <TextField
         fullWidth
-        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
         error={!!error}
         helperText={error || ""}
-        inputProps={{
-          inputMode,
-          maxLength,
-        }}
+        inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    {endIcon}
-                  </InputAdornment>
-                ),
-              }
+            ? { endAdornment: <InputAdornment position="end">{endIcon}</InputAdornment> }
             : undefined
         }
         sx={inputSx}
@@ -271,44 +233,38 @@ function InputField({
 }
 
 function SelectField({
-  label,
-  placeholder = "Select",
-  options = [],
-  required,
+  label, placeholder = "Select", options = [],
+  required, value, onChange, onClose, error,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
-
-      <FormControl fullWidth size="small">
+      <FormControl fullWidth error={!!error}>
         <Select
           displayEmpty
-          defaultValue=""
-          sx={selectSx}
+          value={value ?? ""}
+          onChange={onChange}
+          onClose={onClose}
+          sx={selectSx(!!error)}
           IconComponent={KeyboardArrowDownIcon}
+          renderValue={(val) =>
+            val ? (
+              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+            ) : (
+              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+            )
+          }
         >
-          <MenuItem
-            value=""
-            sx={{
-              fontSize: 12,
-              color: "#8F9098",
-            }}
-          >
-            {placeholder}
-          </MenuItem>
-
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</MenuItem>
           {options.map((o) => (
-            <MenuItem
-              key={o}
-              value={o}
-              sx={{
-                fontSize: 12,
-              }}
-            >
-              {o}
-            </MenuItem>
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>{o}</MenuItem>
           ))}
         </Select>
+        {error && (
+          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+            {error}
+          </FormHelperText>
+        )}
       </FormControl>
     </Box>
   );
@@ -535,36 +491,61 @@ export default function PracticeEdit() {
   const [active, setActive] = React.useState(row?.active ?? true);
 
   const [form, setForm] = React.useState({
-    practiceName:  row?.practice   ?? "",
-    npi:           row?.npi        ?? "",
-    address:       row?.address    ?? "",
-    contact:       row?.contact    ?? "",
-    workPhone:     row?.workPhone  ?? "",
-    fax:           row?.fax        ?? "",
+    practiceName:      row?.practice  ?? "",
+    practiceCode:      "",
+    npi:               row?.npi       ?? "",
+    ein:               "",
+    sftpHost:          "",
+    sftpUsername:      "",
+    sftpPassword:      "",
+    sftpPort:          "",
+    practiceCodeField: "",
+    patientStatement:  "",
+    billingPhone:      row?.contact   ?? "",
+    extension:         "",
   });
+
+  const [touched, setTouched] = React.useState({});
 
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const [phone, setPhoneValue] = React.useState(row?.contact ?? "");
-  const [phoneError, setPhoneError] = React.useState("");
-
-  const handlePhoneChange = (e) => {
-    setPhoneValue(
-      e.target.value.replace(/\D/g, "").slice(0, 10)
-    );
-
-    setPhoneError("");
+  const setPhone = (field) => (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm((prev) => ({ ...prev, [field]: digits }));
   };
 
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
+
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  const tx = (name) => ({
+    value: form[name],
+    onChange: name === "billingPhone" ? setPhone(name) : set(name),
+    onBlur: () => touch(name),
+    error: errorOf(name),
+  });
+
   const handleSave = () => {
-    const err = validatePhone(phone);
+    const allTouched = Object.fromEntries(
+      Object.keys(ALL_REQUIRED).map((k) => [k, true]),
+    );
+    setTouched(allTouched);
 
-    setPhoneError(err);
-
-    if (err) return;
-
-    // valid — submit here
+    const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    console.log("Practice data:", form);
   };
 
   return (
@@ -597,15 +578,31 @@ export default function PracticeEdit() {
       >
         {/* Title */}
 
-        <Typography
-          sx={{
-            fontSize: 28,
-            fontWeight: 700,
-            color: "#111827",
-          }}
-        >
-          {isEdit ? "Edit Practice" : "Add New Practice"}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+          <Typography
+            sx={{
+              fontSize: { xs: 16, sm: 18, md: 20 },
+              fontWeight: 700,
+              color: "#111827",
+            }}
+          >
+            {isEdit ? "Edit Practice" : "Add New Practice"}
+          </Typography>
+        </Box>
 
         {/* =========================================================
             SINGLE BOX
@@ -615,10 +612,10 @@ export default function PracticeEdit() {
           {/* Row 1 */}
 
           <FormGrid>
-            <InputField label="Practice Name" value={form.practiceName} onChange={set("practiceName")} />
-            <InputField label="Practice Short Code" />
-            <InputField label="NPI" value={form.npi} onChange={set("npi")} />
-            <InputField label="EIN" />
+            <InputField label="Practice Name" required {...tx("practiceName")} />
+            <InputField label="Practice Short Code" required {...tx("practiceCode")} />
+            <InputField label="NPI" required {...tx("npi")} />
+            <InputField label="EIN" required {...tx("ein")} />
           </FormGrid>
 
           {/* Row 2 */}
@@ -645,25 +642,17 @@ export default function PracticeEdit() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: `1px solid ${T.border}`,
+                  border: "1px solid #C5C6CC",
                   borderRadius: "8px",
-                  px: "14px",
-                  height: 38,
+                  px: "12px",
+                  height: 42,
                   width: "100%",
                   bgcolor: "#fff",
                   boxSizing: "border-box",
-
-                  "&:hover": {
-                    borderColor: "#9CA3AF",
-                  },
+                  "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    color: "#8F9098",
-                  }}
-                >
+                <Typography sx={{ fontSize: 13, color: "#1E1E1E" }}>
                   Active
                 </Typography>
 
@@ -694,16 +683,16 @@ export default function PracticeEdit() {
               </Box>
             </Box>
 
-            <InputField label="SFTP Host" />
-            <InputField label="SFTP Username" />
+            <InputField label="SFTP Host"  />
+            <InputField label="SFTP Username"  />
             <InputField label="SFTP Password" />
           </Box>
 
           {/* Row 3 */}
 
           <FormGrid cols={4}>
-            <InputField label="SFTP Port" />
-            <InputField label="Practice Code" />
+            <InputField label="SFTP Port" required {...tx("sftpPort")} />
+            <InputField label="Practice Code" required {...tx("practiceCodeField")} />
             <Box />
             <Box />
           </FormGrid>
@@ -715,21 +704,16 @@ export default function PracticeEdit() {
           </SectionTitle>
 
           <FormGrid cols={4}>
-            <InputField label="Patient Statement Message" />
+            <InputField label="Patient Statement Message"   />
 
             <InputField
-              label="Billing Question Phone"
-              value={phone}
-              onChange={handlePhoneChange}
-              onBlur={() =>
-                setPhoneError(validatePhone(phone))
-              }
-              error={phoneError}
+              label="Billing Question Phone" required
               inputMode="numeric"
               maxLength={10}
+              {...tx("billingPhone")}
             />
 
-            <InputField label="Extension" />
+            <InputField label="Extension"  />
 
             <Box />
           </FormGrid>
@@ -822,9 +806,9 @@ export default function PracticeEdit() {
                       key={col}
                       sx={{
                         ...headCellSx,
-                        fontSize: "9px",
+                        fontSize: 12,
                         fontWeight: 600,
-                        padding: "6px 4px",
+                        padding: "6px 8px",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -863,308 +847,111 @@ export default function PracticeEdit() {
                         padding: "4px",
                       }}
                     >
-                      <FormControl
-                        fullWidth
-                        size="small"
-                      >
+                      <FormControl fullWidth size="small">
                         <Select
                           defaultValue={row.type}
                           sx={{
                             ...tblSelectSx,
-                            fontSize: "9px",
-
                             "& .MuiSelect-select": {
-                              padding: "5px 4px",
-                              fontSize: "9px",
+                              padding: "5px 8px",
+                              fontSize: 12,
                             },
                           }}
-                          IconComponent={
-                            KeyboardArrowDownIcon
-                          }
+                          IconComponent={KeyboardArrowDownIcon}
                         >
-                          {["Billing", "Mailing"].map(
-                            (o) => (
-                              <MenuItem
-                                key={o}
-                                value={o}
-                                sx={{
-                                  fontSize: "9px",
-                                }}
-                              >
-                                {o}
-                              </MenuItem>
-                            )
-                          )}
+                          {["Billing", "Mailing"].map((o) => (
+                            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+                              {o}
+                            </MenuItem>
+                          ))}
                         </Select>
                       </FormControl>
                     </TableCell>
 
                     {/* ADDRESS 1 */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <TextField
-                        size="small"
-                        fullWidth
-                        defaultValue={row.addr1}
-                        sx={{
-                          ...tblInputSx,
-
-                          "& .MuiInputBase-input": {
-                            fontSize: "9px",
-                            padding: "5px 4px",
-                          },
-                        }}
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.addr1}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
                       />
                     </TableCell>
 
                     {/* ADDRESS 2 */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <TextField
-                        size="small"
-                        fullWidth
-                        defaultValue={row.addr2}
-                        sx={{
-                          ...tblInputSx,
-
-                          "& .MuiInputBase-input": {
-                            fontSize: "9px",
-                            padding: "5px 4px",
-                          },
-                        }}
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.addr2}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
                       />
                     </TableCell>
 
                     {/* ZIP */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <TextField
-                        size="small"
-                        fullWidth
-                        defaultValue={row.zip}
-                        sx={{
-                          ...tblInputSx,
-
-                          "& .MuiInputBase-input": {
-                            fontSize: "9px",
-                            padding: "5px 4px",
-                          },
-                        }}
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.zip}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
                       />
                     </TableCell>
 
                     {/* CITY */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <TextField
-                        size="small"
-                        fullWidth
-                        defaultValue={row.city}
-                        sx={{
-                          ...tblInputSx,
-
-                          "& .MuiInputBase-input": {
-                            fontSize: "9px",
-                            padding: "5px 4px",
-                          },
-                        }}
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.city}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
                       />
                     </TableCell>
 
                     {/* COUNTRY */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "5px 4px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "9px",
-                          color: "#2E2E2E",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {row.country}
-                      </Typography>
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.country}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
+                      />
                     </TableCell>
 
                     {/* STATE */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <FormControl
-                        fullWidth
-                        size="small"
-                      >
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <FormControl fullWidth size="small">
                         <Select
                           defaultValue={row.state}
-                          sx={{
-                            ...tblSelectSx,
-                            fontSize: "9px",
-
-                            "& .MuiSelect-select": {
-                              padding: "5px 4px",
-                              fontSize: "9px",
-                            },
-                          }}
-                          IconComponent={
-                            KeyboardArrowDownIcon
-                          }
+                          sx={{ ...tblSelectSx, "& .MuiSelect-select": { padding: "5px 8px", fontSize: 12 } }}
+                          IconComponent={KeyboardArrowDownIcon}
                         >
-                          {[
-                            "Arizona",
-                            "California",
-                            "Texas",
-                          ].map((o) => (
-                            <MenuItem
-                              key={o}
-                              value={o}
-                              sx={{
-                                fontSize: "9px",
-                              }}
-                            >
-                              {o}
-                            </MenuItem>
+                          {["Arizona", "California", "Texas"].map((o) => (
+                            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </TableCell>
 
                     {/* COUNTY */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "4px",
-                      }}
-                    >
-                      <FormControl
-                        fullWidth
-                        size="small"
-                      >
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <FormControl fullWidth size="small">
                         <Select
                           defaultValue={row.county}
-                          sx={{
-                            ...tblSelectSx,
-                            fontSize: "9px",
-
-                            "& .MuiSelect-select": {
-                              padding: "5px 4px",
-                              fontSize: "9px",
-                            },
-                          }}
-                          IconComponent={
-                            KeyboardArrowDownIcon
-                          }
+                          sx={{ ...tblSelectSx, "& .MuiSelect-select": { padding: "5px 8px", fontSize: 12 } }}
+                          IconComponent={KeyboardArrowDownIcon}
                         >
-                          {[
-                            "Alpine",
-                            "Barry",
-                            "Clark",
-                          ].map((o) => (
-                            <MenuItem
-                              key={o}
-                              value={o}
-                              sx={{
-                                fontSize: "9px",
-                              }}
-                            >
-                              {o}
-                            </MenuItem>
+                          {["Alpine", "Barry", "Clark"].map((o) => (
+                            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </TableCell>
 
                     {/* PHONE */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "5px 4px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "9px",
-                          color: "#2E2E2E",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {row.phone}
-                      </Typography>
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.phone}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
+                      />
                     </TableCell>
 
                     {/* FAX */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "5px 4px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "9px",
-                          color: "#2E2E2E",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {row.fax}
-                      </Typography>
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.fax}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
+                      />
                     </TableCell>
 
                     {/* E-MAIL */}
-
-                    <TableCell
-                      sx={{
-                        ...bodyCellSx,
-                        padding: "5px 4px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "9px",
-                          color: "#2E2E2E",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {row.email}
-                      </Typography>
+                    <TableCell sx={{ ...bodyCellSx, padding: "4px" }}>
+                      <TextField size="small" fullWidth defaultValue={row.email}
+                        sx={{ ...tblInputSx, "& .MuiInputBase-input": { fontSize: 12, padding: "5px 8px" } }}
+                      />
                     </TableCell>
 
                     {/* ACTION */}
@@ -1204,7 +991,8 @@ export default function PracticeEdit() {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
             gap: 1.5,
             pb: 3,
           }}

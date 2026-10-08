@@ -4,13 +4,16 @@ import {
   Box,
   Typography,
   Button,
+  IconButton,
   TextField,
   MenuItem,
   Select,
   FormControl,
+  FormHelperText,
   Switch,
   InputAdornment,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 /* ------------------------------------------------------------------ */
@@ -19,99 +22,131 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 const T = {
   blue: "#2563EB",
   page: "#F7F9FC",
-  border: "#D5DCE8",
+  border: "#C5C6CC",
 };
 
 /* ------------------------------------------------------------------ */
 /* Validation                                                           */
 /* ------------------------------------------------------------------ */
-const PHONE_FIELDS = ["payorPhone", "payorFax"];
+const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
-const validatePhone = (value) =>
-  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+const REQUIRED_TEXT = {
+  payorName:    "Payor Name",
+  payorCode:    "Payor Code",
+  payorEmail:   "Payor E-mail",
+  payorPhone:   "Payor Phone",
+  payorFax:     "Payor Fax",
+  payorAddress: "Payor Address",
+  payorCity:    "Payor City",
+  payorZip:     "Zip Code",
+};
+
+const REQUIRED_SELECT = {
+  state:            "State",
+  country:          "Country",
+  submissionMethod: "Submission Method",
+};
+
+const validateField = (name, value) => {
+  const v = String(value ?? "").trim();
+
+  if (REQUIRED_TEXT[name]) {
+    if (!v) return `${REQUIRED_TEXT[name]} is required`;
+    if (name === "payorEmail") {
+      if (!EMAIL_REGEX.test(v)) return "Enter a valid email address";
+    }
+    if ((name === "payorPhone" || name === "payorFax") && !PHONE_REGEX.test(v))
+      return PHONE_ERROR;
+    return "";
+  }
+  if (REQUIRED_SELECT[name]) {
+    if (!v) return `${REQUIRED_SELECT[name]} is required`;
+    return "";
+  }
+  return "";
+};
+
+const ALL_REQUIRED = {
+  ...Object.fromEntries(Object.keys(REQUIRED_TEXT).map((k) => [k, ""])),
+  ...Object.fromEntries(Object.keys(REQUIRED_SELECT).map((k) => [k, ""])),
+};
 
 /* ------------------------------------------------------------------ */
-/* Input / Select styles                                                */
+/* Input / Select styles — matches AddNewPatient                        */
 /* ------------------------------------------------------------------ */
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
-    fontSize: 12,
+    fontSize: 13,
     bgcolor: "#fff",
-    "& input": { py: "10px", px: "14px", fontSize: 12, color: "#1F2937" },
+    "& input": { padding: "8px 12px", fontSize: 13, color: "#1E1E1E" },
     "& input::placeholder": { color: "#8F9098", opacity: 1 },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.blue,
+      borderColor: "#006FFD",
       borderWidth: "1.5px",
     },
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
-  "& .MuiFormHelperText-root": {
-    fontSize: 11,
-    mx: 0,
-    mt: 0.4,
-    color: "#EF4444",
-  },
+  "& .MuiInputBase-root": { height: "42px" },
+  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
 };
 
-const selectSx = {
+const selectSx = (error = false) => ({
+  height: "42px",
   borderRadius: "8px",
-  fontSize: 12,
+  fontSize: 13,
   bgcolor: "#fff",
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#C5C6CC",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#9CA3AF",
+  },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.blue,
+    borderColor: error ? "#EF4444" : "#006FFD",
     borderWidth: "1.5px",
   },
+  "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   "& .MuiSelect-select": {
-    py: "10px",
-    px: "14px",
-    fontSize: 12,
-    color: "#8F9098",
+    padding: "0 !important",
+    px: "12px !important",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+    height: "42px",
+    boxSizing: "border-box",
   },
   "& .MuiSvgIcon-root": { color: "#8F9098" },
-};
+});
 
 /* ------------------------------------------------------------------ */
-/* Label                                                                */
+/* Shared components                                                    */
 /* ------------------------------------------------------------------ */
 function Label({ children, required }) {
   return (
     <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
       {children}
       {required && (
-        <Box component="span" sx={{ color: "red", ml: 0.3 }}>
-          *
-        </Box>
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>
       )}
     </Typography>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Field components                                                     */
-/* ------------------------------------------------------------------ */
 function InputField({
-  label,
-  placeholder = "Type here",
-  required,
-  endIcon,
-  value,
-  onChange,
-  onBlur,
-  error,
-  inputMode,
-  maxLength,
+  label, placeholder = "Type here", required,
+  endIcon, value, onChange, onBlur, error, inputMode, maxLength,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
       <TextField
         fullWidth
-        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -121,11 +156,7 @@ function InputField({
         inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">{endIcon}</InputAdornment>
-                ),
-              }
+            ? { endAdornment: <InputAdornment position="end">{endIcon}</InputAdornment> }
             : undefined
         }
         sx={inputSx}
@@ -135,30 +166,38 @@ function InputField({
 }
 
 function SelectField({
-  label,
-  placeholder = "Select",
-  options = [],
-  required,
+  label, placeholder = "Select", options = [],
+  required, value, onChange, onClose, error,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
-      <FormControl fullWidth size="small">
+      <FormControl fullWidth error={!!error}>
         <Select
           displayEmpty
-          defaultValue=""
-          sx={selectSx}
+          value={value ?? ""}
+          onChange={onChange}
+          onClose={onClose}
+          sx={selectSx(!!error)}
           IconComponent={KeyboardArrowDownIcon}
+          renderValue={(val) =>
+            val ? (
+              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+            ) : (
+              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+            )
+          }
         >
-          <MenuItem value="" sx={{ fontSize: 12, color: "#8F9098" }}>
-            {placeholder}
-          </MenuItem>
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</MenuItem>
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
-              {o}
-            </MenuItem>
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>{o}</MenuItem>
           ))}
         </Select>
+        {error && (
+          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+            {error}
+          </FormHelperText>
+        )}
       </FormControl>
     </Box>
   );
@@ -191,37 +230,71 @@ export default function InsuranceProviderEdit() {
   const [mandatoryCode, setMandatoryCode] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    payorName:    row?.payorName  ?? "",
-    payorCode:    row?.payorCode  ?? "",
-    payorEmail:   "",
-    payorAddress: row?.address    ?? "",
-    payorStreet:  "",
-    payorStreet2: "",
-    payorCity:    "",
-    payorZip:     "",
-    payorPhone:   "",
-    payorFax:     row?.fax        ?? "",
+    payorName:        row?.payorName  ?? "",
+    payorCode:        row?.payorCode  ?? "",
+    payorEmail:       "",
+    payorPhone:       "",
+    payorFax:         row?.fax        ?? "",
+    payorAddress:     row?.address    ?? "",
+    payorStreet:      "",
+    payorStreet2:     "",
+    payorCity:        "",
+    payorZip:         "",
+    state:            "",
+    country:          "",
+    submissionMethod: "",
   });
-  const [errors, setErrors] = React.useState({});
 
-  /* phone fields: digits only, max 10, error cleared while typing */
+  const [touched, setTouched] = React.useState({});
+
+  const set = (field) => (e) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
   const setPhone = (field) => (e) => {
     const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
     setForm((prev) => ({ ...prev, [field]: digits }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const blurPhone = (field) => () =>
-    setErrors((prev) => ({ ...prev, [field]: validatePhone(form[field]) }));
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
+
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  const tx = (name) => ({
+    value: form[name],
+    onChange: name === "payorPhone" || name === "payorFax"
+      ? setPhone(name)
+      : set(name),
+    onBlur: () => touch(name),
+    error: errorOf(name),
+  });
+
+  const sel = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onClose: () => touch(name),
+    error: errorOf(name),
+  });
 
   const handleSave = () => {
-    const nextErrors = {};
-    PHONE_FIELDS.forEach((f) => {
-      nextErrors[f] = validatePhone(form[f]);
-    });
-    setErrors(nextErrors);
-    if (Object.values(nextErrors).some(Boolean)) return;
-    // valid — submit `form` to the API here
+    const allTouched = Object.fromEntries(
+      Object.keys(ALL_REQUIRED).map((k) => [k, true]),
+    );
+    setTouched(allTouched);
+
+    const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    console.log("Insurance data:", form);
   };
 
   return (
@@ -245,9 +318,27 @@ export default function InsuranceProviderEdit() {
         }}
       >
         {/* Title */}
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
-          {isEdit ? "Edit Insurance" : "Add New Insurance"}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+          <Typography
+            sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, fontWeight: 700, color: "#111827" }}
+          >
+            {isEdit ? "Edit Insurance" : "Add New Insurance"}
+          </Typography>
+        </Box>
 
         {/* ══ SINGLE BOX ══ */}
         <Box
@@ -261,22 +352,21 @@ export default function InsuranceProviderEdit() {
         >
           {/* Row 1 */}
           <FormGrid>
-            <InputField label="Payor Name" required />
-            <InputField label="Payor Code" required />
+            <InputField label="Payor Name" required {...tx("payorName")} />
+            <InputField label="Payor Code" required {...tx("payorCode")} />
             <InputField
               label="Payor E-mail"
-              placeholder="Select location"
+              placeholder="email@example.com"
               required
+              {...tx("payorEmail")}
             />
             <InputField
               label="Payor Phone"
               required
-              value={form.payorPhone}
-              onChange={setPhone("payorPhone")}
-              onBlur={blurPhone("payorPhone")}
-              error={errors.payorPhone}
               inputMode="numeric"
               maxLength={10}
+              placeholder="10-digit number"
+              {...tx("payorPhone")}
             />
           </FormGrid>
 
@@ -285,43 +375,47 @@ export default function InsuranceProviderEdit() {
             <InputField
               label="Payor Fax"
               required
-              value={form.payorFax}
-              onChange={setPhone("payorFax")}
-              onBlur={blurPhone("payorFax")}
-              error={errors.payorFax}
               inputMode="numeric"
               maxLength={10}
+              placeholder="10-digit number"
+              {...tx("payorFax")}
             />
-            <InputField label="Payor Address" required />
-            <InputField label="Payor Street" required />
-            <InputField label="Payor Street 2" required />
+            <InputField label="Payor Address" required {...tx("payorAddress")} />
+            <InputField
+              label="Payor Street"
+              value={form.payorStreet}
+              onChange={set("payorStreet")}
+            />
+            <InputField
+              label="Payor Street 2"
+              value={form.payorStreet2}
+              onChange={set("payorStreet2")}
+            />
           </FormGrid>
 
           {/* Row 3 — City → State → Country → Zip */}
           <FormGrid>
-            <InputField label="Payor City" required />
+            <InputField label="Payor City" required {...tx("payorCity")} />
             <SelectField
               label="State"
               required
-              options={["California", "Texas", "New York"]}
+              options={["California", "Texas", "New York", "Florida"]}
+              {...sel("state")}
             />
             <SelectField
               label="Country"
               required
-              options={["USA", "Canada", "India"]}
+              options={["USA", "Canada", "India", "United Kingdom"]}
+              {...sel("country")}
             />
-            <InputField label="Zip Code" required />
+            <InputField label="Zip Code" required {...tx("payorZip")} />
           </FormGrid>
 
           {/* Row 4 — Submission Method + Mandatory code toggle */}
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-                md: "repeat(4, 1fr)",
-              },
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
               gap: 2,
               mb: 1,
             }}
@@ -330,9 +424,9 @@ export default function InsuranceProviderEdit() {
               label="Submission Method"
               required
               options={["Electronic", "Paper", "Fax"]}
+              {...sel("submissionMethod")}
             />
 
-            {/* Spans 2 columns on md+ = Country + State width */}
             <Box
               sx={{
                 minWidth: 0,
@@ -345,10 +439,10 @@ export default function InsuranceProviderEdit() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: `1px solid ${T.border}`,
+                  border: "1px solid #C5C6CC",
                   borderRadius: "8px",
-                  px: "14px",
-                  height: 38,
+                  px: "12px",
+                  height: 42,
                   width: "100%",
                   bgcolor: "#fff",
                   boxSizing: "border-box",
@@ -357,8 +451,8 @@ export default function InsuranceProviderEdit() {
               >
                 <Typography
                   sx={{
-                    fontSize: 12,
-                    color: "#8F9098",
+                    fontSize: 13,
+                    color: "#1E1E1E",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -389,7 +483,13 @@ export default function InsuranceProviderEdit() {
 
         {/* ══ FOOTER BUTTONS ══ */}
         <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+            gap: 1.5,
+            pb: 3,
+          }}
         >
           <Button
             variant="outlined"
@@ -402,6 +502,7 @@ export default function InsuranceProviderEdit() {
               color: "#015DFF",
               border: "1.5px solid #015DFF",
               px: 3,
+              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
             }}
           >
             Cancel

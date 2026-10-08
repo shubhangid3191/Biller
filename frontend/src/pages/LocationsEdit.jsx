@@ -9,9 +9,11 @@ import {
   MenuItem,
   Select,
   FormControl,
+  FormHelperText,
   Switch,
   InputAdornment,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RPDeleteIcon } from "../assets/Assets";
 
@@ -30,10 +32,49 @@ const ICON_SIZE = { delete: 20, add: 16 };
 /* ------------------------------------------------------------------ */
 /* Validation                                                           */
 /* ------------------------------------------------------------------ */
-const PHONE_FIELDS = ["mobile", "workContact"];
+const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
-const validatePhone = (value) =>
-  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+
+/* All required text/phone fields → label shown in error messages */
+const REQUIRED_TEXT_FIELDS = {
+  locationName: "Service Location Name",
+  npi:          "Organisation NPI",
+  cliaNumber:   "CLIA Number",
+  address1:     "Address 1",
+  zipCode:      "Zip Code",
+  city:         "City",
+  mobile:       "Mobile no.",
+};
+
+/* Required select fields → label shown in error messages */
+const REQUIRED_SELECT_FIELDS = {
+  otherId:       "Other ID",
+  licenseType:   "License Type",
+  posCode:       "POS Code",
+  addressType:   "Address Type",
+  state:         "State",
+  country:       "Country",
+  county:        "County",
+  fax:           "Fax",
+  email:         "E-mail",
+};
+
+const validateField = (name, value) => {
+  const v = String(value ?? "").trim();
+  if (REQUIRED_TEXT_FIELDS[name]) {
+    if (!v) return `${REQUIRED_TEXT_FIELDS[name]} is required`;
+    if (name === "mobile" && !PHONE_REGEX.test(v)) return PHONE_ERROR;
+  }
+  if (REQUIRED_SELECT_FIELDS[name]) {
+    if (!v) return `${REQUIRED_SELECT_FIELDS[name]} is required`;
+  }
+  return "";
+};
+
+const ALL_REQUIRED = {
+  ...Object.fromEntries(Object.keys(REQUIRED_TEXT_FIELDS).map((k) => [k, ""])),
+  ...Object.fromEntries(Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""])),
+};
 
 /* ------------------------------------------------------------------ */
 /* Input / Select styles                                                */
@@ -41,18 +82,19 @@ const validatePhone = (value) =>
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
-    fontSize: 12,
+    fontSize: 13,
     bgcolor: "#fff",
-    "& input": { py: "10px", px: "14px", fontSize: 12, color: "#1F2937" },
+    "& input": { padding: "8px 12px", fontSize: 13, color: "#1E1E1E" },
     "& input::placeholder": { color: "#8F9098", opacity: 1 },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.blue,
+      borderColor: "#006FFD",
       borderWidth: "1.5px",
     },
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
+  "& .MuiInputBase-root": { height: "42px" },
   "& .MuiFormHelperText-root": {
     fontSize: 11,
     mx: 0,
@@ -61,24 +103,33 @@ const inputSx = {
   },
 };
 
-const selectSx = {
+const selectSx = (error = false) => ({
+  height: "42px",
   borderRadius: "8px",
-  fontSize: 12,
+  fontSize: 13,
   bgcolor: "#fff",
-  "& .MuiOutlinedInput-notchedOutline": { borderColor: T.border },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#C5C6CC",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? "#EF4444" : "#9CA3AF",
+  },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.blue,
+    borderColor: error ? "#EF4444" : "#006FFD",
     borderWidth: "1.5px",
   },
+  "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   "& .MuiSelect-select": {
-    py: "10px",
-    px: "14px",
-    fontSize: 12,
-    color: "#8F9098",
+    padding: "0 !important",
+    px: "12px !important",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+    height: "42px",
+    boxSizing: "border-box",
   },
   "& .MuiSvgIcon-root": { color: "#8F9098" },
-};
+});
 
 /* ------------------------------------------------------------------ */
 /* Shared components                                                    */
@@ -88,7 +139,7 @@ function Label({ children, required }) {
     <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
       {children}
       {required && (
-        <Box component="span" sx={{ color: "red", ml: 0.3 }}>
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
           *
         </Box>
       )}
@@ -105,6 +156,7 @@ function InputField({
   onChange,
   onBlur,
   error,
+  helperText,
   inputMode,
   maxLength,
 }) {
@@ -113,13 +165,12 @@ function InputField({
       <Label required={required}>{label}</Label>
       <TextField
         fullWidth
-        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
         error={!!error}
-        helperText={error || ""}
+        helperText={helperText || error || ""}
         inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
@@ -141,26 +192,44 @@ function SelectField({
   placeholder = "Select",
   options = [],
   required,
+  value,
+  onChange,
+  onClose,
+  error,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
-      <FormControl fullWidth size="small">
+      <FormControl fullWidth error={!!error}>
         <Select
           displayEmpty
-          defaultValue=""
-          sx={selectSx}
+          value={value ?? ""}
+          onChange={onChange}
+          onClose={onClose}
+          sx={selectSx(!!error)}
           IconComponent={KeyboardArrowDownIcon}
+          renderValue={(val) =>
+            val ? (
+              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+            ) : (
+              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+            )
+          }
         >
-          <MenuItem value="" sx={{ fontSize: 12, color: "#8F9098" }}>
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
             {placeholder}
           </MenuItem>
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
               {o}
             </MenuItem>
           ))}
         </Select>
+        {error && (
+          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+            {error}
+          </FormHelperText>
+        )}
       </FormControl>
     </Box>
   );
@@ -226,38 +295,86 @@ export default function LocationsEdit() {
   const [active, setActive] = React.useState(row?.active ?? true);
 
   const [form, setForm] = React.useState({
-    locationName: row?.location    ?? "",
-    npi:          row?.npi         ?? "",
-    contact:      row?.contact     ?? "",
-    fax:          row?.fax         ?? "",
-    practice:     row?.practice    ?? "",
-    address:      row?.address     ?? "",
-    mobile:       row?.contact     ?? "",
+    locationName: row?.location   ?? "",
+    npi:          row?.npi        ?? "",
+    cliaNumber:   row?.contact    ?? "",
+    address1:     row?.address    ?? "",
+    zipCode:      "",
+    city:         row?.practice   ?? "",
+    mobile:       row?.contact    ?? "",
     workContact:  "",
+    /* selects */
+    otherId:      "",
+    licenseType:  "",
+    posCode:      "",
+    addressType:  "",
+    addressLine2: "",
+    state:        "",
+    country:      "",
+    county:       "",
+    fax:          "",
+    email:        "",
   });
-  const [errors, setErrors] = React.useState({});
 
+  /* touched mirrors the shape of ALL_REQUIRED */
+  const [touched, setTouched] = React.useState({});
+
+  /* ---------- helpers ---------- */
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  /* phone fields: digits only, max 10, error cleared while typing */
+  /* phone fields: digits only, max 10 */
   const setPhone = (field) => (e) => {
     const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
     setForm((prev) => ({ ...prev, [field]: digits }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const blurPhone = (field) => () =>
-    setErrors((prev) => ({ ...prev, [field]: validatePhone(form[field]) }));
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
 
+  /* error shows after the user leaves the field (or presses Save),
+     then updates live while they fix it */
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  /* props helpers */
+  const tx = (name) => ({
+    value: form[name],
+    onChange: name === "mobile" || name === "workContact"
+      ? setPhone(name)
+      : set(name),
+    onBlur: () => touch(name),
+    error: errorOf(name),
+  });
+
+  const sel = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onClose: () => touch(name),
+    error: errorOf(name),
+  });
+
+  /* ---------- save ---------- */
   const handleSave = () => {
-    const nextErrors = {};
-    PHONE_FIELDS.forEach((f) => {
-      nextErrors[f] = validatePhone(form[f]);
-    });
-    setErrors(nextErrors);
-    if (Object.values(nextErrors).some(Boolean)) return;
-    // valid — submit `form` to the API here
+    /* mark every required field as touched */
+    const allTouched = Object.fromEntries(
+      Object.keys(ALL_REQUIRED).map((k) => [k, true]),
+    );
+    setTouched(allTouched);
+
+    const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    /* valid — submit form to API here */
+    console.log("Location data:", form);
   };
 
   return (
@@ -273,7 +390,7 @@ export default function LocationsEdit() {
     >
       <Box
         sx={{
-          maxWidth: 1100,
+          maxWidth: 1400,
           mx: "auto",
           display: "flex",
           flexDirection: "column",
@@ -281,22 +398,53 @@ export default function LocationsEdit() {
         }}
       >
         {/* Title */}
-        <Typography sx={{ fontSize: 26, fontWeight: 700, color: "#111827" }}>
-          {isEdit ? "Edit Service Location" : "Add New Service Location"}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+            {isEdit ? "Edit Service Location" : "Add New Service Location"}
+          </Typography>
+        </Box>
 
         {/* ══ BASIC DETAILS BOX ══ */}
         <SectionBox>
           {/* Row 1 */}
           <FormGrid>
-            <InputField label="Service Location Name" required value={form.locationName} onChange={set("locationName")} />
-            <InputField label="Organisation NPI" required value={form.npi} onChange={set("npi")} />
+            <InputField
+              label="Service Location Name"
+              required
+              {...tx("locationName")}
+            />
+            <InputField
+              label="Organisation NPI"
+              required
+              {...tx("npi")}
+            />
             <SelectField
               label="Other ID"
               placeholder="Select location"
               required
+              options={["ID-001", "ID-002", "ID-003"]}
+              {...sel("otherId")}
             />
-            <SelectField label="Select License Type" required />
+            <SelectField
+              label="Select License Type"
+              required
+              options={["Type A", "Type B", "Type C"]}
+              {...sel("licenseType")}
+            />
           </FormGrid>
 
           {/* Row 2 — 2 fields + Active toggle */}
@@ -312,10 +460,19 @@ export default function LocationsEdit() {
               mb: 2.5,
             }}
           >
-            <SelectField label="Select POS Code" required />
-            <InputField label="CLIA Number" required value={form.contact} onChange={set("contact")} />
+            <SelectField
+              label="Select POS Code"
+              required
+              options={["11 – Office", "21 – Inpatient Hospital", "22 – Outpatient Hospital"]}
+              {...sel("posCode")}
+            />
+            <InputField
+              label="CLIA Number"
+              required
+              {...tx("cliaNumber")}
+            />
 
-            {/* Active toggle — same row alignment as other inputs */}
+            {/* Active toggle */}
             <Box>
               <Typography
                 aria-hidden="true"
@@ -333,16 +490,16 @@ export default function LocationsEdit() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: `1px solid ${T.border}`,
+                  border: "1px solid #C5C6CC",
                   borderRadius: "8px",
-                  px: "14px",
-                  height: 38,
+                  px: "12px",
+                  height: 42,
                   bgcolor: "#fff",
                   boxSizing: "border-box",
                   "&:hover": { borderColor: "#9CA3AF" },
                 }}
               >
-                <Typography sx={{ fontSize: 12, color: "#8F9098" }}>
+                <Typography sx={{ fontSize: 13, color: "#1E1E1E" }}>
                   Active
                 </Typography>
                 <Switch
@@ -386,18 +543,58 @@ export default function LocationsEdit() {
 
           {/* Row 1 */}
           <FormGrid>
-            <InputField label="Address Type" placeholder="Basic" required />
-            <InputField label="Address 1" placeholder="Address 1" required value={form.address} onChange={set("address")} />
-            <SelectField label="Address 2" placeholder="Address 2" required />
-            <InputField label="Zip Code" required />
+            <SelectField
+              label="Address Type"
+              placeholder="Basic"
+              required
+              options={["Home", "Work", "Billing"]}
+              {...sel("addressType")}
+            />
+            <InputField
+              label="Address 1"
+              placeholder="Address 1"
+              required
+              {...tx("address1")}
+            />
+            <SelectField
+              label="Address 2"
+              placeholder="Address 2"
+              options={["Suite", "Apt", "Floor"]}
+              value={form.addressLine2}
+              onChange={set("addressLine2")}
+            />
+            <InputField
+              label="Zip Code"
+              required
+              {...tx("zipCode")}
+            />
           </FormGrid>
 
-          {/* Row 2 — City → State → Country → County */}
+          {/* Row 2 */}
           <FormGrid>
-            <InputField label="City" required value={form.practice} onChange={set("practice")} />
-            <SelectField label="State" required />
-            <SelectField label="Country" required />
-            <SelectField label="County" required />
+            <InputField
+              label="City"
+              required
+              {...tx("city")}
+            />
+            <SelectField
+              label="State"
+              required
+              options={["California", "Texas", "New York", "Florida"]}
+              {...sel("state")}
+            />
+            <SelectField
+              label="Country"
+              required
+              options={["United States", "Canada", "United Kingdom"]}
+              {...sel("country")}
+            />
+            <SelectField
+              label="County"
+              required
+              options={["Los Angeles", "Harris", "Miami-Dade"]}
+              {...sel("county")}
+            />
           </FormGrid>
 
           {/* Row 3 */}
@@ -405,30 +602,53 @@ export default function LocationsEdit() {
             <InputField
               label="Mobile no."
               required
-              value={form.mobile}
-              onChange={setPhone("mobile")}
-              onBlur={blurPhone("mobile")}
-              error={errors.mobile}
+              placeholder="10-digit number"
               inputMode="numeric"
               maxLength={10}
+              {...tx("mobile")}
             />
             <InputField
               label="Work Contact no."
-              value={form.workContact}
-              onChange={setPhone("workContact")}
-              onBlur={blurPhone("workContact")}
-              error={errors.workContact}
+              placeholder="10-digit number"
               inputMode="numeric"
               maxLength={10}
+              value={form.workContact}
+              onChange={setPhone("workContact")}
+              onBlur={() => {
+                if (form.workContact && !PHONE_REGEX.test(form.workContact)) {
+                  touch("workContact");
+                }
+              }}
+              error={
+                form.workContact && !PHONE_REGEX.test(form.workContact)
+                  ? PHONE_ERROR
+                  : ""
+              }
             />
-            <SelectField label="Fax" required />
-            <SelectField label="E-mail" required />
+            <SelectField
+              label="Fax"
+              required
+              options={["Fax 1", "Fax 2"]}
+              {...sel("fax")}
+            />
+            <SelectField
+              label="E-mail"
+              required
+              options={["email@example.com"]}
+              {...sel("email")}
+            />
           </FormGrid>
         </SectionBox>
 
         {/* ══ FOOTER BUTTONS ══ */}
         <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, pb: 3 }}
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+            gap: 1.5,
+            pb: 3,
+          }}
         >
           <Button
             variant="outlined"

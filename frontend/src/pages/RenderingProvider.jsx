@@ -293,7 +293,7 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 12,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
@@ -340,7 +340,7 @@ function HeaderCell({ column, sortDir, onSort }) {
             >
               <KeyboardArrowDownIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: 12,
                   transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                   transition: "transform .15s ease",
                 }}
@@ -359,9 +359,9 @@ function HeaderCell({ column, sortDir, onSort }) {
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
-    fontSize: 13,
+    fontSize: 12,
     bgcolor: "#fff",
-    "& input": { py: "8px", px: "12px", fontSize: 13 },
+    "& input": { py: "8px", px: "12px", fontSize: 12 },
     "& .MuiOutlinedInput-notchedOutline": { borderColor: "#D5DCE8" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -374,7 +374,7 @@ const inputSx = {
 
 const selectSx = {
   borderRadius: "8px",
-  fontSize: 13,
+  fontSize: 12,
   bgcolor: "#fff",
   "& .MuiOutlinedInput-notchedOutline": { borderColor: "#D5DCE8" },
   "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
@@ -382,7 +382,7 @@ const selectSx = {
     borderColor: T.blue,
     borderWidth: "1.5px",
   },
-  "& .MuiSelect-select": { py: "8px", px: "12px", fontSize: 13 },
+  "& .MuiSelect-select": { py: "8px", px: "12px", fontSize: 12 },
 };
 
 /* ------------------------------------------------------------------ */
@@ -392,7 +392,7 @@ function SectionTitle({ children }) {
   return (
     <Typography
       sx={{
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: 700,
         letterSpacing: "0.08em",
         color: "#374151",
@@ -434,11 +434,11 @@ function FField({ label, placeholder, select, options = [], required }) {
             sx={selectSx}
             IconComponent={KeyboardArrowDownIcon}
           >
-            <MenuItem value="" sx={{ fontSize: 13, color: "#9CA3AF" }}>
+            <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
               {placeholder || "Select"}
             </MenuItem>
             {options.map((o) => (
-              <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
+              <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
                 {o}
               </MenuItem>
             ))}
@@ -502,7 +502,7 @@ function EditDialog({ open, onClose }) {
     >
       <DialogContent sx={{ px: { xs: 2, sm: 3 }, pt: 3, pb: 1 }}>
         <Typography
-          sx={{ fontSize: 18, fontWeight: 700, color: "#111827", mb: 3 }}
+          sx={{ fontSize: 20, fontWeight: 700, color: "#111827", mb: 3 }}
         >
           Edit referring provider
         </Typography>
@@ -556,7 +556,7 @@ function EditDialog({ open, onClose }) {
 
         {/* PCP Toggle */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>
             PCP
           </Typography>
           <Switch

@@ -6,7 +6,9 @@ import {
   TextField,
   Button,
   Stack,
+  IconButton,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 /* ------------------------------------------------------------------ */
 /* Theme tokens                                                          */
@@ -17,39 +19,63 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Shared helpers                                                        */
+/* Validation                                                            */
 /* ------------------------------------------------------------------ */
-const labelSx = {
-  fontSize: 13,
-  fontWeight: 500,
-  color: "#374151",
-  mb: 0.6,
-  display: "block",
+const REQUIRED_FIELDS = {
+  programName: "Program Name",
+  description: "Description",
 };
 
+const validateField = (name, value) => {
+  const v = String(value ?? "").trim();
+  if (!REQUIRED_FIELDS[name]) return "";
+  if (!v) return `${REQUIRED_FIELDS[name]} is required`;
+  return "";
+};
+
+const ALL_REQUIRED = Object.fromEntries(
+  Object.keys(REQUIRED_FIELDS).map((k) => [k, ""]),
+);
+
+/* ------------------------------------------------------------------ */
+/* Input styles — matches AddNewPatient                                  */
+/* ------------------------------------------------------------------ */
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     fontSize: 13,
     borderRadius: "8px",
-    backgroundColor: "#F9FAFC",
-    "& fieldset": { borderColor: "#E5E7EB" },
-    "&:hover fieldset": { borderColor: "#D1D5DB" },
-    "&.Mui-focused fieldset": { borderColor: T.blue },
+    bgcolor: "#fff",
+    "& input, & textarea": { fontSize: 13, color: "#1E1E1E", padding: "8px 12px" },
+    "& input::placeholder, & textarea::placeholder": { color: "#8F9098", opacity: 1 },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#006FFD",
+      borderWidth: "1.5px",
+    },
+    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
+  "& .MuiInputBase-root:not(.MuiInputBase-multiline)": { height: "42px" },
+  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
 };
 
-function InputField({ label, value, onChange, placeholder, required, multiline, rows }) {
+/* ------------------------------------------------------------------ */
+/* InputField component                                                  */
+/* ------------------------------------------------------------------ */
+function InputField({ label, value, onChange, onBlur, error, placeholder, required, multiline, rows }) {
   return (
     <Box>
-      <Typography sx={labelSx}>
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6, display: "block" }}>
         {label}
         {required && <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>}
       </Typography>
       <TextField
         fullWidth
-        size="small"
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
         placeholder={placeholder ?? "Type here"}
         multiline={multiline}
         rows={multiline ? (rows ?? 3) : undefined}
@@ -69,16 +95,46 @@ export default function ProgramEdit() {
   const isEdit = row !== null;
 
   const [form, setForm] = React.useState({
-    programName:  row?.programName  ?? "",
-    description:  row?.description  ?? "",
-    cpt:          row?.cpt          ?? "",
+    programName: row?.programName ?? "",
+    description: row?.description ?? "",
+    cpt:         row?.cpt         ?? "",
   });
+
+  const [touched, setTouched] = React.useState({});
 
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
+
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  const tx = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onBlur: () => touch(name),
+    error: errorOf(name),
+  });
+
   const handleSave = () => {
-    if (!form.programName.trim()) return;
+    const allTouched = Object.fromEntries(
+      Object.keys(ALL_REQUIRED).map((k) => [k, true]),
+    );
+    setTouched(allTouched);
+
+    const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
     navigate("/program");
   };
 
@@ -103,9 +159,27 @@ export default function ProgramEdit() {
         }}
       >
         {/* Title */}
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: "#111827" }}>
+         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        <Typography
+          sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, fontWeight: 700, color: "#111827" }}
+        >
           {isEdit ? "Edit Program" : "Add New Program"}
         </Typography>
+        </Box>
 
         {/* Form card */}
         <Box
@@ -123,16 +197,16 @@ export default function ProgramEdit() {
           <InputField
             label="Program Name"
             required
-            value={form.programName}
-            onChange={set("programName")}
+            placeholder="Enter program name"
+            {...tx("programName")}
           />
           <InputField
             label="Description"
             required
             multiline
             rows={3}
-            value={form.description}
-            onChange={set("description")}
+            placeholder="Enter description"
+            {...tx("description")}
           />
           <InputField
             label="CPT"
@@ -143,7 +217,10 @@ export default function ProgramEdit() {
         </Box>
 
         {/* Action buttons */}
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction={{ xs: "column-reverse", sm: "row" }}
+          spacing={1.5}
+        >
           <Button
             variant="contained"
             disableElevation

@@ -10,9 +10,11 @@ import {
   MenuItem,
   Select,
   FormControl,
+  FormHelperText,
   Switch,
   Popover,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -65,11 +67,47 @@ const OPTIONS = {
 /* Validation                                                          */
 /* ------------------------------------------------------------------ */
 
-const PHONE_FIELDS = ["mobilePhone", "workContact", "phone"];
+const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
-const validatePhone = (value) =>
-  !value || /^\d{10}$/.test(value) ? "" : PHONE_ERROR;
+/* All required text/phone fields → label shown in error messages */
+const REQUIRED_TEXT_FIELDS = {
+  firstName:      "First Name",
+  lastName:       "Last Name",
+  dateOfBirth:    "Date of Birth",
+  npi:            "National Provider Identifier",
+  stateLicense:   "State License Number",
+  mobilePhone:    "Mobile Phone",
+  phone:          "Phone",
+  taxonomy:       "Taxonomy",
+};
+
+/* Required select fields → label shown in error messages */
+const REQUIRED_SELECT_FIELDS = {
+  sex:       "Sex",
+  practice:  "Practice",
+  fax:       "Fax",
+  email:     "E-mail",
+  specialty: "Specialty",
+};
+
+const validateField = (name, value) => {
+  const v = String(value ?? "").trim();
+  if (REQUIRED_TEXT_FIELDS[name]) {
+    if (!v) return `${REQUIRED_TEXT_FIELDS[name]} is required`;
+    if ((name === "mobilePhone" || name === "phone") && !PHONE_REGEX.test(v))
+      return PHONE_ERROR;
+  }
+  if (REQUIRED_SELECT_FIELDS[name]) {
+    if (!v) return `${REQUIRED_SELECT_FIELDS[name]} is required`;
+  }
+  return "";
+};
+
+const ALL_REQUIRED = {
+  ...Object.fromEntries(Object.keys(REQUIRED_TEXT_FIELDS).map((k) => [k, ""])),
+  ...Object.fromEntries(Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""])),
+};
 
 /* ------------------------------------------------------------------ */
 /* Input styles                                                        */
@@ -78,14 +116,13 @@ const validatePhone = (value) =>
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "8px",
-    fontSize: 12,
+    fontSize: 13,
     bgcolor: "#fff",
 
     "& input": {
-      py: "10px",
-      px: "14px",
-      fontSize: 12,
-      color: "#1F2937",
+      padding: "8px 12px",
+      fontSize: 13,
+      color: "#1E1E1E",
     },
 
     "& input::placeholder": {
@@ -94,7 +131,7 @@ const inputSx = {
     },
 
     "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.border,
+      borderColor: "#C5C6CC",
     },
 
     "&:hover .MuiOutlinedInput-notchedOutline": {
@@ -102,7 +139,7 @@ const inputSx = {
     },
 
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: T.blue,
+      borderColor: "#006FFD",
       borderWidth: "1.5px",
     },
 
@@ -110,6 +147,8 @@ const inputSx = {
       borderColor: "#EF4444",
     },
   },
+
+  "& .MuiInputBase-root": { height: "42px" },
 
   "& .MuiFormHelperText-root": {
     fontSize: 11,
@@ -119,35 +158,43 @@ const inputSx = {
   },
 };
 
-const selectSx = {
+const selectSx = (error = false) => ({
+  height: "42px",
   borderRadius: "8px",
-  fontSize: 12,
+  fontSize: 13,
   bgcolor: "#fff",
 
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.border,
+    borderColor: error ? "#EF4444" : "#C5C6CC",
   },
 
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#9CA3AF",
+    borderColor: error ? "#EF4444" : "#9CA3AF",
   },
 
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: T.blue,
+    borderColor: error ? "#EF4444" : "#006FFD",
     borderWidth: "1.5px",
   },
 
+  "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#EF4444",
+  },
+
   "& .MuiSelect-select": {
-    py: "10px",
-    px: "14px",
-    fontSize: 12,
-    color: "#1F2937",
+    padding: "0 !important",
+    px: "12px !important",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+    height: "42px",
+    boxSizing: "border-box",
   },
 
   "& .MuiSvgIcon-root": {
     color: "#8F9098",
   },
-};
+});
 
 /* ------------------------------------------------------------------ */
 /* Shared components                                                   */
@@ -169,7 +216,7 @@ function Label({ children, required }) {
         <Box
           component="span"
           sx={{
-            color: "red",
+            color: "#EF4444",
             ml: 0.3,
           }}
         >
@@ -197,7 +244,6 @@ function InputField({
 
       <TextField
         fullWidth
-        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -221,62 +267,45 @@ function SelectField({
   required,
   value,
   onChange,
+  onClose,
+  error,
 }) {
   return (
     <Box>
       <Label required={required}>{label}</Label>
 
-      <FormControl fullWidth size="small">
+      <FormControl fullWidth error={!!error}>
         <Select
           displayEmpty
           value={value}
           onChange={onChange}
-          sx={selectSx}
+          onClose={onClose}
+          sx={selectSx(!!error)}
           IconComponent={KeyboardArrowDownIcon}
           renderValue={(val) =>
             val ? (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#1F2937",
-                }}
-              >
-                {val}
-              </span>
+              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
             ) : (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#8F9098",
-                }}
-              >
-                {placeholder}
-              </span>
+              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
             )
           }
         >
-          <MenuItem
-            value=""
-            sx={{
-              fontSize: 12,
-              color: "#8F9098",
-            }}
-          >
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
             {placeholder}
           </MenuItem>
 
           {options.map((o) => (
-            <MenuItem
-              key={o}
-              value={o}
-              sx={{
-                fontSize: 12,
-              }}
-            >
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
               {o}
             </MenuItem>
           ))}
         </Select>
+
+        {error && (
+          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+            {error}
+          </FormHelperText>
+        )}
       </FormControl>
     </Box>
   );
@@ -290,20 +319,23 @@ function DateField({
   label,
   value,
   onChange,
+  onBlur,
   required,
-  placeholder = "DD-MM-YYYY",
+  error,
+  placeholder = "MM-DD-YYYY",
 }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClose = () => {
     setAnchorEl(null);
+    if (onBlur) onBlur();
   };
 
   const handleDateChange = (newVal) => {
     if (newVal) {
       onChange({
         target: {
-          value: newVal.format("DD-MM-YYYY"),
+          value: newVal.format("MM-DD-YYYY"),
         },
       });
     }
@@ -311,7 +343,7 @@ function DateField({
     handleClose();
   };
 
-  const parsed = value ? dayjs(value, "DD-MM-YYYY") : null;
+  const parsed = value ? dayjs(value, "MM-DD-YYYY") : null;
   const parsedValue = parsed && parsed.isValid() ? parsed : null;
 
   return (
@@ -320,55 +352,48 @@ function DateField({
 
       <TextField
         fullWidth
-        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
+        error={!!error}
+        helperText={error || ""}
         slotProps={{
           input: {
             endAdornment: (
-              <InputAdornment
-                position="end"
-                sx={{
-                  mr: "-4px",
-                }}
-              >
+              <InputAdornment position="end" sx={{ mr: "-4px" }}>
                 <IconButton
                   onClick={(e) => setAnchorEl(e.currentTarget)}
                   aria-label="Open calendar"
                   sx={{
                     p: "4px",
-                    "&:hover": {
-                      background: "transparent",
-                    },
+                    "&:hover": { background: "transparent" },
                   }}
                   disableRipple
                 >
-                  <CalendarIcon
-                    width={14}
-                    height={16}
-                    color="#1E1E1E"
-                  />
+                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
                 </IconButton>
               </InputAdornment>
             ),
           },
         }}
-        sx={inputSx}
+        sx={{
+          ...inputSx,
+          "& .MuiFormHelperText-root": {
+            fontSize: 11,
+            mx: 0,
+            mt: 0.4,
+            color: "#EF4444",
+          },
+        }}
       />
 
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
           sx: {
             borderRadius: "12px",
@@ -383,18 +408,9 @@ function DateField({
             onChange={handleDateChange}
             disableFuture
             sx={{
-              width: {
-                xs: "280px",
-                sm: "320px",
-              },
-
-              "& .MuiPickersDay-root.Mui-selected": {
-                backgroundColor: "#015DFF",
-              },
-
-              "& .MuiPickersDay-root:hover": {
-                backgroundColor: "#EEF4FF",
-              },
+              width: { xs: "280px", sm: "320px" },
+              "& .MuiPickersDay-root.Mui-selected": { backgroundColor: "#015DFF" },
+              "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
         </LocalizationProvider>
@@ -436,7 +452,7 @@ function SectionTitle({ children }) {
   return (
     <Typography
       sx={{
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 700,
         letterSpacing: "0.09em",
         color: "#111827",
@@ -489,80 +505,92 @@ export default function ReferringProviderEdit() {
   const [pcp, setPcp] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    firstName:            row?.providerName?.split(" ")[0] ?? "",
-    lastName:             row?.providerName?.split(" ").slice(1).join(" ") ?? "",
-    dateOfBirth:          "",
-    sex:                  "",
-    suffix:               "",
-    prefix:               "",
-    npi:                  row?.npi           ?? "",
-    groupNpi:             "",
-    stateLicense:         "",
-    controlledSubstance:  "",
-    dea:                  "",
-    practice:             row?.practice      ?? "",
-    addressType:          "",
-    address1:             row?.address       ?? "",
-    address2:             "",
-    zipCode:              "",
-    city:                 "",
-    country:              "",
-    state:                "",
-    mobilePhone:          row?.mobile        ?? "",
-    workContact:          "",
-    phone:                "",
-    fax:                  row?.fax           ?? "",
-    email:                row?.email         ?? "",
-    specialty:            "",
-    taxonomy:             "",
+    firstName:           row?.providerName?.split(" ")[0] ?? "",
+    lastName:            row?.providerName?.split(" ").slice(1).join(" ") ?? "",
+    dateOfBirth:         "",
+    sex:                 "",
+    suffix:              "",
+    prefix:              "",
+    npi:                 row?.npi        ?? "",
+    groupNpi:            "",
+    stateLicense:        "",
+    controlledSubstance: "",
+    dea:                 "",
+    practice:            row?.practice   ?? "",
+    addressType:         "",
+    address1:            row?.address    ?? "",
+    address2:            "",
+    zipCode:             "",
+    city:                "",
+    country:             "",
+    state:               "",
+    mobilePhone:         row?.mobile     ?? "",
+    workContact:         "",
+    phone:               "",
+    fax:                 row?.fax        ?? "",
+    email:               row?.email      ?? "",
+    specialty:           "",
+    taxonomy:            "",
   });
 
-  const [errors, setErrors] = React.useState({});
+  /* touched mirrors ALL_REQUIRED keys */
+  const [touched, setTouched] = React.useState({});
 
+  /* ---------- helpers ---------- */
   const set = (field) => (e) =>
-    setForm((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  /* Phone fields */
-
+  /* phone fields: digits only, max 10 */
   const setPhone = (field) => (e) => {
-    const digits = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 10);
-
-    setForm((prev) => ({
-      ...prev,
-      [field]: digits,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [field]: "",
-    }));
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setForm((prev) => ({ ...prev, [field]: digits }));
   };
 
-  const blurPhone = (field) => () =>
-    setErrors((prev) => ({
-      ...prev,
-      [field]: validatePhone(form[field]),
-    }));
+  const touch = (name) =>
+    setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
 
+  /* error shows only after the user has visited the field */
+  const errorOf = (name) =>
+    touched[name] ? validateField(name, form[name]) : "";
+
+  /* props helpers */
+  const tx = (name) => ({
+    value: form[name],
+    onChange: name === "mobilePhone" || name === "phone" || name === "workContact"
+      ? setPhone(name)
+      : set(name),
+    onBlur: () => touch(name),
+    error: errorOf(name),
+  });
+
+  const sel = (name) => ({
+    value: form[name],
+    onChange: set(name),
+    onClose: () => touch(name),
+    error: errorOf(name),
+  });
+
+  /* ---------- save ---------- */
   const handleSave = () => {
-    const nextErrors = {};
+    /* mark every required field as touched */
+    const allTouched = Object.fromEntries(
+      Object.keys(ALL_REQUIRED).map((k) => [k, true]),
+    );
+    setTouched(allTouched);
 
-    PHONE_FIELDS.forEach((field) => {
-      nextErrors[field] = validatePhone(form[field]);
-    });
-
-    setErrors(nextErrors);
-
-    if (Object.values(nextErrors).some(Boolean)) {
+    const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
+      validateField(name, form[name]),
+    );
+    if (hasErrors) {
+      setTimeout(() => {
+        document
+          .querySelector(".Mui-error")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
       return;
     }
-
-    // valid — submit form to API here
+    /* valid — submit form to API here */
+    console.log("Provider data:", form);
   };
 
   return (
@@ -596,16 +624,32 @@ export default function ReferringProviderEdit() {
         {/* =========================================================
             TITLE
         ========================================================= */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: "1.5px solid #E4E9EF",
+              borderRadius: "8px",
+              width: 36,
+              height: 36,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 20 }} />
+          </IconButton>
 
         <Typography
           sx={{
-            fontSize: 28,
+            fontSize: { xs: 16, sm: 18, md: 20 },
             fontWeight: 700,
             color: "#111827",
           }}
         >
           {isEdit ? "Edit Referring Provider" : "Add New Referring Provider"}
         </Typography>
+        </Box>
 
         {/* =========================================================
             BASIC DETAILS
@@ -616,28 +660,24 @@ export default function ReferringProviderEdit() {
 
           <FormGrid>
             <InputField
-              label="First Name"
-              value={form.firstName}
-              onChange={set("firstName")}
+              label="First Name" required
+              {...tx("firstName")}
             />
 
             <InputField
-              label="Last Name"
-              value={form.lastName}
-              onChange={set("lastName")}
+              label="Last Name" required
+              {...tx("lastName")}
             />
 
             <DateField
-              label="Date of Birth"
-              value={form.dateOfBirth}
-              onChange={set("dateOfBirth")}
+              label="Date of Birth" required
+              {...tx("dateOfBirth")}
             />
 
             <SelectField
-              label="Sex"
+              label="Sex" required
               options={OPTIONS.sex}
-              value={form.sex}
-              onChange={set("sex")}
+              {...sel("sex")}
             />
           </FormGrid>
 
@@ -657,9 +697,8 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="National Provider Identifier"
-              value={form.npi}
-              onChange={set("npi")}
+              label="National Provider Identifier" required
+              {...tx("npi")}
             />
 
             <InputField
@@ -671,9 +710,8 @@ export default function ReferringProviderEdit() {
 
           <FormGrid>
             <InputField
-              label="State License Number"
-              value={form.stateLicense}
-              onChange={set("stateLicense")}
+              label="State License Number" required
+              {...tx("stateLicense")}
             />
 
             <InputField
@@ -684,17 +722,15 @@ export default function ReferringProviderEdit() {
 
             <InputField
               label="DEA Number"
-              placeholder="Typer here"
+              placeholder="Type here"
               value={form.dea}
               onChange={set("dea")}
             />
 
             <SelectField
-              label="Practice"
-              required
+              label="Practice" required
               options={OPTIONS.practice}
-              value={form.practice}
-              onChange={set("practice")}
+              {...sel("practice")}
             />
           </FormGrid>
 
@@ -717,7 +753,7 @@ export default function ReferringProviderEdit() {
                 border: `1px solid ${T.border}`,
                 borderRadius: "8px",
                 px: "14px",
-                height: 38,
+                height: 42,
                 bgcolor: "#fff",
                 boxSizing: "border-box",
 
@@ -849,13 +885,10 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="Mobile Phone"
-              value={form.mobilePhone}
-              onChange={setPhone("mobilePhone")}
-              onBlur={blurPhone("mobilePhone")}
-              error={errors.mobilePhone}
+              label="Mobile Phone" required
               inputMode="numeric"
               maxLength={10}
+              {...tx("mobilePhone")}
             />
           </FormGrid>
 
@@ -864,36 +897,38 @@ export default function ReferringProviderEdit() {
           <FormGrid>
             <InputField
               label="Work Contact No."
-              value={form.workContact}
-              onChange={setPhone("workContact")}
-              onBlur={blurPhone("workContact")}
-              error={errors.workContact}
               inputMode="numeric"
               maxLength={10}
+              value={form.workContact}
+              onChange={setPhone("workContact")}
+              onBlur={() => {
+                if (form.workContact && !PHONE_REGEX.test(form.workContact))
+                  touch("workContact");
+              }}
+              error={
+                form.workContact && !PHONE_REGEX.test(form.workContact)
+                  ? PHONE_ERROR
+                  : ""
+              }
             />
 
             <InputField
-              label="Phone"
-              value={form.phone}
-              onChange={setPhone("phone")}
-              onBlur={blurPhone("phone")}
-              error={errors.phone}
+              label="Phone" required
               inputMode="numeric"
               maxLength={10}
+              {...tx("phone")}
             />
 
             <SelectField
-              label="Fax"
+              label="Fax" required
               options={OPTIONS.fax}
-              value={form.fax}
-              onChange={set("fax")}
+              {...sel("fax")}
             />
 
             <SelectField
-              label="E-mail"
+              label="E-mail" required
               options={OPTIONS.email}
-              value={form.email}
-              onChange={set("email")}
+              {...sel("email")}
             />
           </FormGrid>
         </SectionBox>
@@ -942,10 +977,9 @@ export default function ReferringProviderEdit() {
             }}
           >
             <SelectField
-              label="Specialty"
+              label="Specialty" required
               options={OPTIONS.specialty}
-              value={form.specialty}
-              onChange={set("specialty")}
+              {...sel("specialty")}
             />
 
             <Box
@@ -957,10 +991,9 @@ export default function ReferringProviderEdit() {
             >
               <Box sx={{ flex: 1 }}>
                 <InputField
-                  label="Taxonomy"
-                  placeholder="Address 1"
-                  value={form.taxonomy}
-                  onChange={set("taxonomy")}
+                  label="Taxonomy" required
+                  placeholder="Type here"
+                  {...tx("taxonomy")}
                 />
               </Box>
 
@@ -987,7 +1020,8 @@ export default function ReferringProviderEdit() {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
             gap: 1.5,
             pb: 3,
           }}
