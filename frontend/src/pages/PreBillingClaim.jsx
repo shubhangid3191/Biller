@@ -809,36 +809,62 @@ function AdjText({ label, value, onChange, placeholder, type, endIcon }) {
 /* Grid-view helpers */
 function GridSection({ title, flex, children, sx }) {
   return (
-    <Box sx={{ flex, ...sx }}>
+    <Box sx={{ flex: { xs: "1 1 auto", md: flex }, minWidth: { xs: "100%", sm: "45%", md: "auto" }, ...sx }}>
       <Typography
         variant="caption"
         sx={{
-          color: "rgba(0, 0, 0, 0.4)",
-          fontSize: 9,
+          color: "#9CA3AF",
+          fontSize: 8.5,
           fontWeight: 600,
           textTransform: "uppercase",
-          letterSpacing: "0.5px",
+          letterSpacing: "0.3px",
+          lineHeight: 1,
+          mb: 0.5,
         }}
       >
         {title}
       </Typography>
-      <Box sx={{ mt: 0.8 }}>{children}</Box>
+      <Box sx={{ mt: 0.5 }}>{children}</Box>
     </Box>
   );
 }
 
 function GridLine({ label, children, last }) {
   return (
-    <Typography
+    <Box
       sx={{
-        fontSize: 11,
+        display: "flex",
+        alignItems: "center",
+        fontSize: 10.5,
         color: "rgba(0, 0, 0, 0.87)",
-        mb: last ? 0 : 0.4,
+        mb: last ? 0 : 0.3,
         lineHeight: 1.4,
+        overflow: "hidden",
+        gap: 0.3,
       }}
     >
-      <strong style={{ fontWeight: 600 }}>{label}</strong> {children}
-    </Typography>
+      <Box
+        component="span"
+        sx={{
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </Box>
+      <Box
+        component="span"
+        sx={{
+          fontWeight: 700,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          minWidth: 0,
+        }}
+      >
+        {children}
+      </Box>
+    </Box>
   );
 }
 
@@ -2550,10 +2576,10 @@ function PreBillingClaim() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          flexWrap: "nowrap",
+          flexWrap: { xs: "wrap", md: "nowrap" },
           borderBottom: "1px solid #e0e0e0",
           backgroundColor: "white",
-          px: 2,
+          px: { xs: 1, sm: 2 },
           gap: 1,
           minWidth: 0,
         }}
@@ -2561,19 +2587,20 @@ function PreBillingClaim() {
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
-          variant="standard"
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             minHeight: 48,
-            flex: "0 0 auto",
+            flex: { xs: "1 1 100%", md: "0 0 auto" },
             flexShrink: 0,
             "& .MuiTabs-flexContainer": { gap: 0 },
             "& .MuiTab-root": {
               minHeight: 48,
               textTransform: "none",
-              fontSize: 12,
+              fontSize: { xs: 11, sm: 12 },
               fontWeight: 500,
               color: "#000000",
-              px: 1.2,
+              px: { xs: 0.8, sm: 1.2 },
               minWidth: "auto",
               whiteSpace: "nowrap",
             },
@@ -2592,10 +2619,11 @@ function PreBillingClaim() {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 0.5,
-            flex: "1 1 0",
+            gap: { xs: 0.5, sm: 0.8 },
+            flex: { xs: "1 1 100%", md: "1 1 0" },
             minWidth: 0,
             justifyContent: "flex-end",
+            mt: { xs: 1, md: 0 },
           }}
         >
           <Box
@@ -2604,8 +2632,8 @@ function PreBillingClaim() {
               alignItems: "center",
               gap: 0.8,
               flex: "1 1 120px",
-              maxWidth: 290,
-              minWidth: 90,
+              maxWidth: { xs: "100%", md: 290 },
+              minWidth: { xs: 0, sm: 90 },
               height: 32,
               px: 1.25,
               borderRadius: "18px",
@@ -2658,22 +2686,22 @@ function PreBillingClaim() {
             sx={{
               height: 32,
               minHeight: 32,
-              width: activeFilterCount > 0 ? 152 : 126,
-              minWidth: activeFilterCount > 0 ? 152 : 126,
+              width: { xs: "auto", sm: activeFilterCount > 0 ? 152 : 126 },
+              minWidth: { xs: 32, sm: activeFilterCount > 0 ? 152 : 126 },
               borderRadius: "18px",
               textTransform: "none",
               color: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#374151",
               borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#E5E7EB",
               backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#EFF6FF" : "#FFFFFF",
               fontWeight: 500,
-              fontSize: 11.5,
-              px: 1.25,
+              fontSize: { xs: 0, sm: 11.5 },
+              px: { xs: 0, sm: 1.25 },
               whiteSpace: "nowrap",
               flexShrink: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "6px",
+              gap: { xs: 0, sm: "6px" },
               "&:hover": {
                 borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0052CC" : "#D1D5DB",
                 backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#DBEAFE" : "#F9FAFB",
@@ -2697,7 +2725,7 @@ function PreBillingClaim() {
               )}
             </Box>
 
-            <Box component="span" sx={{ lineHeight: 1, whiteSpace: "nowrap" }}>
+            <Box component="span" sx={{ lineHeight: 1, whiteSpace: "nowrap", display: { xs: "none", sm: "block" } }}>
               Advanced Filters
             </Box>
 
@@ -2787,7 +2815,12 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  gridTemplateColumns: { 
+                    xs: "repeat(1, minmax(0, 1fr))",
+                    sm: "repeat(2, minmax(0, 1fr))", 
+                    md: "repeat(3, minmax(0, 1fr))",
+                    lg: "repeat(6, minmax(0, 1fr))"
+                  },
                   columnGap: "14px",
                   rowGap: "19px",
                   mb: "20px",
@@ -2869,7 +2902,12 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  gridTemplateColumns: { 
+                    xs: "repeat(1, minmax(0, 1fr))",
+                    sm: "repeat(2, minmax(0, 1fr))", 
+                    md: "repeat(3, minmax(0, 1fr))",
+                    lg: "repeat(6, minmax(0, 1fr))"
+                  },
                   columnGap: "14px",
                   rowGap: "19px",
                   mb: "20px",
@@ -2969,7 +3007,12 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  gridTemplateColumns: { 
+                    xs: "repeat(1, minmax(0, 1fr))",
+                    sm: "repeat(2, minmax(0, 1fr))", 
+                    md: "repeat(3, minmax(0, 1fr))",
+                    lg: "repeat(6, minmax(0, 1fr))"
+                  },
                   columnGap: "14px",
                   rowGap: "19px",
                   mb: "20px",
@@ -3062,7 +3105,12 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  gridTemplateColumns: { 
+                    xs: "repeat(1, minmax(0, 1fr))",
+                    sm: "repeat(2, minmax(0, 1fr))", 
+                    md: "repeat(3, minmax(0, 1fr))",
+                    lg: "repeat(6, minmax(0, 1fr))"
+                  },
                   columnGap: "14px",
                   rowGap: "19px",
                   mb: "20px",
@@ -3300,7 +3348,7 @@ function PreBillingClaim() {
                   width: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
+                  gap: 1,
                 }}
               >
                 {preBillingFiltered.length === 0 && (
@@ -3319,131 +3367,236 @@ function PreBillingClaim() {
                         backgroundColor: getGridColor(index),
                         border: "1px solid #e0e0e0",
                         borderRadius: 1,
-                        px: 2,
-                        py: 1.5,
+                        px: 1.5,
+                        py: 0.8,
+                         mb: "14px",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
                       }}
                     >
                       <Box
+                        // sx={{
+                        //   display: "flex",
+                        //   gap: 2,
+                        //   alignItems: "flex-start",
+                        //   width: "100%",
+                        //   flexWrap: { xs: "wrap", xl: "nowrap" },
+                        // }}
                         sx={{
-                          display: "flex",
-                          gap: 4,
-                          alignItems: "flex-start",
-                          width: "100%",
-                        }}
+    display: "flex",
+    columnGap: "28px",
+    rowGap: 2,
+    alignItems: "flex-start",
+    width: "100%",
+    flexWrap: { xs: "wrap", xl: "nowrap" },
+  }}
                       >
-                        <GridSection title="Encounter details" flex="0 0 105px">
-                          <GridLine label="Encounter ID:">
-                            {row.encounterId}
-                          </GridLine>
-                          <GridLine label="Claim ID:">{row.claimId}</GridLine>
-                          <GridLine label="DOS:">{row.dos}</GridLine>
-                          <GridLine label="POS:" last>
-                            {row.pos}
-                          </GridLine>
-                        </GridSection>
+                        {/* Checkbox */}
+                        <Box sx={{ flex: "0 0 auto", pt: 0.3 }}>
+                          <Checkbox
+                            size="small"
+                            checked={selectedRows.includes(row.id)}
+                            onChange={() => {
+                              setSelectedRows((prev) =>
+                                prev.includes(row.id)
+                                  ? prev.filter((id) => id !== row.id)
+                                  : [...prev, row.id]
+                              );
+                            }}
+                            sx={{
+                              p: 0,
+                              color: "#9CA3AF",
+                              "& .MuiSvgIcon-root": { fontSize: 18 },
+                              "&.Mui-checked": { color: "#0066FF" },
+                            }}
+                          />
+                        </Box>
 
-                        <GridSection title="Patient details" flex="0 0 110px">
+                        {/* Encounter Details */}
+                        <Box sx={{ flex: "0 0 auto", width: "140px" }}>
                           <Typography
                             sx={{
-                              fontSize: 11,
+                              fontSize: 9,
                               fontWeight: 600,
                               color: "rgba(0, 0, 0, 0.87)",
-                              mb: 0.5,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                              mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Encounter Details
+                          </Typography>
+                          <GridLine label="Encounter ID:">{row.encounterId}</GridLine>
+                          <GridLine label="Claim ID:">{row.claimId}</GridLine>
+                          <GridLine label="DOS:">{row.dos}</GridLine>
+                          <GridLine label="POS:">{row.pos}</GridLine>
+                          <GridLine label="Rendering Prov.:" last>JohnJohn</GridLine>
+                        </Box>
+
+                        {/* Patient Details */}
+                        <Box sx={{ flex: "0 0 auto", width: "145px" }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                               mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Patient Details
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              mb: 0.3,
+                              lineHeight: 1.4,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             {row.patientName} {row.gender}
                           </Typography>
                           <GridLine label="FIN:">{row.fin}</GridLine>
                           <GridLine label="MRN:">{row.mrn}</GridLine>
-                          <GridLine label="DOB:" last>
-                            {row.dob}
-                          </GridLine>
-                        </GridSection>
+                          <GridLine label="DOB:">{row.dob}</GridLine>
+                          <GridLine label="Referring Prov.:" last>JohnJohn</GridLine>
+                        </Box>
 
-                        <GridSection
-                          title="Admit & authorization"
-                          flex="0 0 105px"
-                        >
+                        {/* Admit & Authorization */}
+                        <Box sx={{ flex: "0 0 auto", width: "135px" }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                               mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Admit & Authorization
+                          </Typography>
                           <GridLine label="DOA:">{row.doa}</GridLine>
                           <GridLine label="Referral#:">{row.referral}</GridLine>
-                          <GridLine label="Author:">{row.author}</GridLine>
-                          <GridLine label="Subscriber ID:" last>
-                            {row.subscriber}
-                          </GridLine>
-                        </GridSection>
+                          <GridLine label="Authir:">{row.author}</GridLine>
+                          <GridLine label="Subscriber ID:" last>{row.subscriber}</GridLine>
+                        </Box>
 
-                        <GridSection
-                          title="Audit & authorization"
-                          flex="0 0 120px"
-                        >
+                        {/* Audit & Authorization */}
+                        <Box sx={{ flex: "0 0 auto", width: "160px" }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                               mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Audit & Authorization
+                          </Typography>
                           <GridLine label="CPT:">{row.cpt2}</GridLine>
                           <GridLine label="Modifier:">{row.modifier2}</GridLine>
                           <GridLine label="ICD:">{row.icd2}</GridLine>
-                          <GridLine label="Place of Service:" last>
-                            {row.placeOfService}
-                          </GridLine>
-                        </GridSection>
+                          <GridLine label="Place of Service:" last>{row.placeOfService}</GridLine>
+                        </Box>
 
-                        <GridSection
-                          title="Insurance & payment details"
-                          flex="0 0 120px"
-                        >
-                          <GridLine label="Insurance:">
-                            {row.primaryInsurance}
-                          </GridLine>
+                        {/* Insurance & Payment */}
+                        <Box sx={{ flex: "0 0 auto", width: "165px" }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                             mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Insurance & Payment Details
+                          </Typography>
+                          <GridLine label="Insurance:">{row.primaryInsurance}</GridLine>
                           <GridLine label="Plan:">{row.plan}</GridLine>
-                          <GridLine label="Billed amount:">
-                            {row.billedAmount}
-                          </GridLine>
-                          <GridLine label="Patient payment:" last>
-                            {row.patientPayment}
-                          </GridLine>
-                        </GridSection>
+                          <GridLine label="Billed amount:">{row.billedAmount}</GridLine>
+                          <GridLine label="Patient paymemt:" last>{row.patientPayment}</GridLine>
+                        </Box>
 
-                        <GridSection
-                          title="Status & remarks"
-                          sx={{ flex: "1 1 auto", minWidth: 0, maxWidth: 155 }}
-                        >
+                        {/* Status & Remarks */}
+                        <Box sx={{ flex: "0 0 auto", width: "150px" }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              fontWeight: 600,
+                              color: "rgba(0, 0, 0, 0.87)",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                              mb: 2,
+                              mt: 1,
+                              lineHeight: 1,
+                            }}
+                          >
+                            Status & Remarks
+                          </Typography>
                           <StatusPill
                             label={row.status}
                             bg={st.bg}
                             fg={st.fg}
-                            height={22}
-                            mb={0.8}
+                            height={19}
+                            mb={0.4}
                           />
                           <Typography
                             sx={{
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: 600,
                               color: "rgba(0, 0, 0, 0.87)",
-                              mb: 0.5,
+                              mb: 0.3,
                               lineHeight: 1.4,
+                              whiteSpace: "nowrap",
                             }}
                           >
                             Remarks
                           </Typography>
                           <Typography
                             sx={{
-                              fontSize: 10.5,
+                              fontSize: 10,
                               color: "rgba(0, 0, 0, 0.7)",
-                              lineHeight: 1.5,
+                              lineHeight: 1.4,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             {row.remarks}
                           </Typography>
-                        </GridSection>
+                        </Box>
 
+                        {/* Edit Icon */}
                         <Box
                           sx={{
-                            flex: "0 0 36px",
+                            flex: "0 0 auto",
                             display: "flex",
-                            justifyContent: "center",
+                            alignItems: "flex-start",
+                            pt: 0.5,
                           }}
                         >
                           <IconButton
                             size="small"
-                            sx={{ color: "#0066ff", mt: 0.5 }}
+                            sx={{ color: "#0066ff", p: 0.5 }}
                             onClick={() => handleEditPreBilling(row)}
                           >
                             <EditIconClaim />
