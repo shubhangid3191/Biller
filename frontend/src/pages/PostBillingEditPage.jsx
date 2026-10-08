@@ -276,7 +276,7 @@ export default function PostBillingEditPage({
   const uc = claim.uc || "1";
   const um = claim.um || "ML";
   const lineNote = claim.lineNote || "Lorem ipsum";
-  const payerTrk = claim.payerTrk || clearingTrk;
+  const PayorTrk = claim.PayorTrk || clearingTrk;
   const referralNo =
     claim.referral && claim.referral !== "NA"
       ? claim.referral
@@ -335,7 +335,7 @@ export default function PostBillingEditPage({
     billedRow,
     processed(ackDesc),
     processed(
-      "No syntax or eligibility errors were flagged before the file went out to the payer.",
+      "No syntax or eligibility errors were flagged before the file went out to the Payor.",
     ),
     createdRow,
     billedRow,
@@ -575,7 +575,7 @@ export default function PostBillingEditPage({
                   {infoField("Type of Service", typeOfService, true)}
                   {infoField("NDC", ndc, false)}
                   {infoField("UM", um, false)}
-                  {infoField("Payer Trk#", payerTrk, false)}
+                  {infoField("Payor Trk", PayorTrk, false)}
                   {infoField("Local use data", localUse, false)}
                 </Box>
               </>

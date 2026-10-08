@@ -79,32 +79,7 @@ function TopBar() {
               },
             }}
           />
-          <Box
-            sx={{
-              position: 'absolute',
-              right: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              backgroundColor: alpha('#000', 0.08),
-              px: 1,
-              py: 0.3,
-              borderRadius: 1,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 11,
-                fontWeight: 500,
-                fontFamily: "'Roboto', sans-serif",
-                color: 'rgba(0, 0, 0, 0.6)',
-              }}
-            >
-              ⌘K
-            </Typography>
-          </Box>
+      
         </Box>
 
         {/* Right Side Icons */}

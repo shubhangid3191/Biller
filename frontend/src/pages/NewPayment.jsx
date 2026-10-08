@@ -204,7 +204,7 @@ const ATTACHMENTS = [
     fileName: "EOB_150219802000.pdf",
     tag: "EOB",
     referenceNumber: "150219802000",
-    comments: "Primary payer EOB — BCBS of Michigan",
+    comments: "Primary Payor EOB — BCBS of Michigan",
     uploadedOn: "09/13/2026",
   },
 ];
@@ -219,14 +219,14 @@ const EOB_TRANSACTIONS = [
   },
   {
     date: "26 Aug 26",
-    transaction: "Claim submitted to Payer - ICIC, $150",
+    transaction: "Claim submitted to Payor - ICIC, $150",
     amount: "–",
     patResp: "$0.00",
     balance: "$550.14",
   },
   {
     date: "26 Aug 26",
-    transaction: "Payer Settlement EFT/Check #: 150219802000/0906",
+    transaction: "Payor Settlement EFT/Check: 150219802000/0906",
     amount: "$0.00",
     patResp: "$0.00",
     balance: "$550.14",

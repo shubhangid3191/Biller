@@ -584,7 +584,7 @@ export default function AIInsight() {
               }}
             >
               BCBSM is paying 13% below contract on G0439 across 6 claims.
-              Recoverable: $124.74. This matches a fee-schedule update the payer
+              Recoverable: $124.74. This matches a fee-schedule update the Payor
               applied incorrectly.
             </Typography>
 

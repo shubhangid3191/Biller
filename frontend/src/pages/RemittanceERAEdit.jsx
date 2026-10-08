@@ -214,8 +214,8 @@ function ClaimSelect({ label, value }) {
 const POSTING_ROWS = [
   [
     { t: "f", label: "Posting Date", value: "09/13/2026", calendar: true },
-    { t: "s", label: "Payer sequence", value: "Primary" },
-    { t: "s", label: "Payer", value: "6734759 - ICI" },
+    { t: "s", label: "Payor sequence", value: "Primary" },
+    { t: "s", label: "Payor", value: "6734759 - ICI" },
   ],
   [
     { t: "f", label: "Allowed", value: "$73.13" },
@@ -251,8 +251,8 @@ const POSTING_ROWS = [
 
 const EOB_TRANSACTIONS = [
   ["Claim created and added to Queue", "$550.14", "$550.14"],
-  ["Claim submitted to Payer - ICIC, $150", "-", "$0.00"],
-  ["Payer Settlement EFT/Check #: 150219802000/0906", "$0.00", "$0.00"],
+  ["Claim submitted to Payor - ICIC, $150", "-", "$0.00"],
+  ["Payor Settlement EFT/Check #: 150219802000/0906", "$0.00", "$0.00"],
   [
     "Patient Responsibility - PR-1: $3.96, PR-2: $15.36, PR-3: $13.52.",
     "$0.00",

@@ -62,7 +62,7 @@ const SAMPLE_CLAIM = {
     {
       id: 2,
       code: "Not coded",
-      description: "Add a secondary diagnosis if the payer needs one",
+      description: "Add a secondary diagnosis if the Payor needs one",
     },
   ],
 };
@@ -119,7 +119,7 @@ const SAMPLE_LOG = [
     date: "26 Aug 26",
     type: "Claim processed",
     description:
-      "No syntax or eligibility errors were flagged before the file went out to the payer.",
+      "No syntax or eligibility errors were flagged before the file went out to the Payor.",
     link: "Raw clearinghouse message",
     amount: "$0.00",
     patResp: "$0.00",

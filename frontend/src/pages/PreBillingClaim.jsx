@@ -31,12 +31,16 @@ import {
   ViewModule,
   KeyboardArrowDown,
   Close,
-  CalendarToday,
   InfoOutlined,
   Add,
   Send,
   MicNone,
 } from "@mui/icons-material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import {
   Search,
   FilterIcon1,
@@ -60,7 +64,10 @@ import {
   Share,
   DeleteIcon,
   SearchIcon,
+  BlueCalendarIcon,
 } from "../assets/Assets";
+
+dayjs.extend(customParseFormat);
 
 /* ================================================================== */
 /* Design tokens / shared styles                                        */
@@ -675,25 +682,37 @@ function FilterText({ label, value, onChange }) {
 }
 
 function FilterDate({ label, value, onChange }) {
+  const parsed = value && dayjs(value, "MM/DD/YYYY", true).isValid()
+    ? dayjs(value, "MM/DD/YYYY", true)
+    : null;
+
   return (
     <Box>
       <Typography sx={HEAD_LABEL_SX}>{label}</Typography>
-      <TextField
-        fullWidth
-        size="small"
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        InputLabelProps={{ shrink: true }}
-        sx={filterFieldSx}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <CalendarToday sx={{ fontSize: 18, color: "#9CA3AF" }} />
-            </InputAdornment>
-          ),
-        }}
-      />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          value={parsed}
+          onChange={(newValue) => {
+            if (newValue && newValue.isValid()) {
+              onChange(newValue.format("MM/DD/YYYY"));
+            } else {
+              onChange("");
+            }
+          }}
+          format="MM/DD/YYYY"
+          slots={{
+            openPickerIcon: () => <BlueCalendarIcon width={16} height={17} />,
+          }}
+          slotProps={{
+            textField: {
+              fullWidth: true,
+              size: "small",
+              sx: filterFieldSx,
+            },
+            openPickerButton: { sx: { p: 0.5, mr: 0.2 } },
+          }}
+        />
+      </LocalizationProvider>
     </Box>
   );
 }
@@ -728,9 +747,9 @@ const adjSelectSx = {
 };
 
 const ADJ_LABEL_SX = {
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 600,
-  color: "#374151",
+  color: "#1E293B",
   mb: 0.7,
   whiteSpace: "nowrap",
 };
@@ -1289,7 +1308,7 @@ const remittanceData = REMIT_SAMPLE.map(
       remittanceId,
       location,
       provider,
-      payer,
+      Payor,
       paymentMethod,
       chequeNumber,
       amount,
@@ -1305,7 +1324,7 @@ const remittanceData = REMIT_SAMPLE.map(
     remittanceId,
     location,
     provider,
-    payer,
+    Payor,
     paymentMethod,
     chequeNumber,
     amount,
@@ -1601,7 +1620,7 @@ const PRE_COLUMNS = [
     center: true,
     cellSx: { maxWidth: 180, fontSize: 11, color: "rgba(0, 0, 0, 0.7)" },
   },
-  { id: "encounterId", label: "Encounter ID #", sort: "number", center: true },
+  { id: "encounterId", label: "Encounter ID", sort: "number", center: true },
   { id: "claimId", label: "Claim ID", sort: "number", center: true },
   { id: "referenceId", label: "Reference ID", sort: "number", center: true },
   {
@@ -1630,7 +1649,7 @@ const POST_COLUMNS = [
   { id: "modifier", label: "Modifier", center: true },
   { id: "icd", label: "ICD", center: true },
   { id: "billedTo", label: "Billed To", center: true },
-  { id: "billed", label: "Billed", center: true },
+  { id: "billed", label: "Billed Amnt", center: true },
   { id: "adjustment", label: "Adjustment", center: true },
   { id: "insurancePayment", label: "Insurance\nPayment", center: true },
   { id: "patientPayment", label: "Patient\nPayment", center: true },
@@ -1644,7 +1663,7 @@ const POST_COLUMNS = [
       return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
     },
   },
-  { id: "clearingHouse", label: "Clearing\nhouse #", center: true },
+  { id: "clearingHouse", label: "Clearing\nHouse", center: true },
   { id: "firstBilled", label: "First Billed", center: true },
   { id: "encounterId", label: "Encounter ID", sort: "number", center: true },
   { id: "claimId", label: "Claim ID", sort: "number", center: true },
@@ -1665,9 +1684,9 @@ const REMIT_COLUMNS = [
   { id: "remittanceId", label: "ID", sort: "number", center: true },
   { id: "location", label: "Location", center: true },
   { id: "provider", label: "Provider", center: true },
-  { id: "payer", label: "Payer", center: true },
+  { id: "Payor", label: "Payor", center: true },
   { id: "paymentMethod", label: "Payment Method", center: true },
-  { id: "chequeNumber", label: "Cheque #", center: true },
+  { id: "chequeNumber", label: "Check", center: true },
   { id: "amount", label: "Amount", center: true },
   { id: "checkDate", label: "Check Date", sort: "date", center: true },
   { id: "receivedDate", label: "Received Date", sort: "date", center: true },
@@ -2253,11 +2272,15 @@ function PreBillingClaim() {
   const hasVal = (v) =>
     v !== undefined && v !== null && String(v).trim() !== "";
 
-  /* <input type="date"> gives YYYY-MM-DD */
+  /* <input type="date"> gives YYYY-MM-DD, but we now use MM/DD/YYYY */
   const parseInputDate = (s) => {
     if (!s) return null;
-    const [y, mo, d] = s.split("-").map(Number);
-    return new Date(y, mo - 1, d).getTime();
+    const m = String(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const year = Number(m[3]);
+    const month = Number(m[1]) - 1;
+    const day = Number(m[2]);
+    return new Date(year, month, day).getTime();
   };
 
   const matchesDateRange = (dateStr) => {
@@ -2375,14 +2398,14 @@ function PreBillingClaim() {
       "remittanceId",
       "location",
       "provider",
-      "payer",
+      "Payor",
       "paymentMethod",
       "chequeNumber",
       "status",
     ],
     textMap: { claimNumber: "remittanceId" },
     selectMap: {
-      insurance: "payer",
+      insurance: "Payor",
       provider: "provider",
       serviceLocation: "location",
     },
@@ -2491,7 +2514,7 @@ function PreBillingClaim() {
 
   const searchPlaceholder =
     currentTab === 2
-      ? "Search ID, Payer, Provider, Cheque #..."
+      ? "Search ID, Payor, Provider, Check..."
       : currentTab === 3
         ? statementSubTab === "new"
           ? "Search patient, ID, DOB, category..."
@@ -3632,7 +3655,7 @@ function PreBillingClaim() {
               }}
             >
               <Typography
-                sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}
+                sx={{ fontSize: 15, fontWeight: 600, color: "#1E293B", mb: 2 }}
               >
                 Additional Details
               </Typography>
@@ -3671,7 +3694,7 @@ function PreBillingClaim() {
                   />
                   <AdjText
                     label="Adjustment Code"
-                    placeholder="Type here.."
+                    placeholder="Type here"
                     value={adj.code}
                     onChange={setAdjField("code")}
                   />
@@ -3702,7 +3725,7 @@ function PreBillingClaim() {
                     endIcon={<Search sx={{ fontSize: 16, color: "#111827" }} />}
                   />
                   <AdjSelect
-                    label="Change status"
+                    label="Status"
                     value={adj.changeStatus}
                     onChange={setAdjField("changeStatus")}
                     options={[

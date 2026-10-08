@@ -100,7 +100,7 @@ const PRIORITIES = [
   {
     rank: 3,
     title: "Post BCBSM ERA 56,117 (auto-post blocked)",
-    subtitle: "Payer-ID mismatch on 4 of 13 claims · can resolve",
+    subtitle: "Payor-ID mismatch on 4 of 13 claims · can resolve",
     amount: "$6,117",
     tag: "Posting",
   },

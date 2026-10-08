@@ -47,6 +47,12 @@ import {
   RPEditIcon,
 } from "../assets/Assets.jsx";
 
+import {
+  validatePhone,
+  createPhoneChangeHandler,
+  createPhoneBlurHandler,
+} from "../utils/phoneValidation.js";
+
 // Needed so dayjs("08/15/2026", "MM/DD/YYYY") really parses with that format
 dayjs.extend(customParseFormat);
 
@@ -282,7 +288,7 @@ function OutlineBtn({ children, startIcon, onClick, sx: sxExtra = {} }) {
 }
 
 /* Simple labelled text input / select used outside of <FieldRow /> */
-function LabeledInput({ label, sx, select, options = [], ...rest }) {
+function LabeledInput({ label, sx, select, options = [], error, helperText, onBlur, inputProps, ...rest }) {
   return (
     <Box sx={{ minWidth: 0 }}>
       <Typography component="label" sx={labelSx}>
@@ -292,9 +298,24 @@ function LabeledInput({ label, sx, select, options = [], ...rest }) {
         fullWidth
         size="small"
         select={!!select}
+        error={!!error}
+        helperText={error || helperText}
+        onBlur={onBlur}
         SelectProps={select ? { IconComponent: ArrowDropDownIcon } : undefined}
         slotProps={{ input: { sx: sx || inputNormal() } }}
-        sx={hideHelper}
+        inputProps={inputProps}
+        sx={{
+          ...hideHelper,
+          ...(error && {
+            "& .MuiFormHelperText-root": {
+              display: "block",
+              fontSize: 11,
+              color: "#EF4444",
+              mt: 0.4,
+              mx: 0,
+            },
+          }),
+        }}
         {...rest}
       >
         {select &&
@@ -1065,9 +1086,24 @@ function PatientSection({ sectionRef, isNewClaim = false, claimData = null }) {
   };
 
   const [patient, setPatient] = React.useState(getInitialPatient());
+  const [phoneErrors, setPhoneErrors] = React.useState({});
 
   const handleFieldChange = (field) => (event) => {
     setPatient(prev => ({ ...prev, [field]: event.target.value }));
+  };
+
+  // Phone field handler - strips non-digits and limits to 10
+  const handlePhoneChange = (field) => (event) => {
+    const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+    setPatient(prev => ({ ...prev, [field]: digits }));
+    // Clear error when typing
+    setPhoneErrors(prev => ({ ...prev, [field]: "" }));
+  };
+
+  // Validate phone on blur
+  const handlePhoneBlur = (field) => () => {
+    const error = validatePhone(patient[field]);
+    setPhoneErrors(prev => ({ ...prev, [field]: error }));
   };
 
   return (
@@ -1138,10 +1174,13 @@ function PatientSection({ sectionRef, isNewClaim = false, claimData = null }) {
           sx={inputNormal()}
         />
         <LabeledInput
-          label="Mobile"
+          label="Mobile No"
           value={patient.mobile}
-          onChange={handleFieldChange("mobile")}
-          placeholder="(000) 000-0000"
+          onChange={handlePhoneChange("mobile")}
+          onBlur={handlePhoneBlur("mobile")}
+          error={phoneErrors.mobile}
+          placeholder="10-digit number"
+          inputProps={{ inputMode: "numeric", maxLength: 10 }}
           sx={inputNormal()}
         />
         <LabeledInput
@@ -1364,7 +1403,7 @@ function CaseInsuranceSection({ sectionRef }) {
           { label: "Case Name", value: "Aetna test", md: 4 },
           { label: "Description", value: "Aetna test", md: 4 },
           {
-            label: "Payer Scenario",
+            label: "Payor Scenario",
             value: "Commercial",
             select: true,
             options: ["Commercial", "Medicare", "Medicaid", "Self-pay"],
