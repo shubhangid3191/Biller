@@ -396,6 +396,7 @@ function ListTable({
   checkHeadSx,
   checkCellSx,
   highlightSelected = true,
+  onRowClick,
 }) {
   const { sort, sortedRows, handleSort } = useSortedRows(rows, columns);
 
@@ -461,7 +462,11 @@ function ListTable({
               <TableRow
                 key={row.id}
                 selected={highlightSelected && isSel}
-                sx={rowSx ? rowSx(row, index) : undefined}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                sx={{
+                  ...(rowSx ? rowSx(row, index) : {}),
+                  ...(onRowClick ? { cursor: 'pointer' } : {}),
+                }}
               >
                 {selection && (
                   <TableCell
@@ -527,16 +532,27 @@ function RowActionIcons({ onEdit, onCheck }) {
     ["Document", Icon5, undefined],
     ["Check", Icon6, onCheck],
   ];
+  
+  const handleEditClick = (e) => {
+    e.stopPropagation(); // Prevent row click
+    if (onEdit) onEdit();
+  };
+  
+  const handleIconClick = (handler) => (e) => {
+    e.stopPropagation(); // Prevent row click
+    if (handler) handler();
+  };
+  
   return (
     <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
       <Tooltip title="Edit" placement="top">
-        <IconButton size="small" sx={{ padding: "4px" }} onClick={onEdit}>
+        <IconButton size="small" sx={{ padding: "4px" }} onClick={handleEditClick}>
           <EditIconClaim />
         </IconButton>
       </Tooltip>
       {items.map(([title, Icon, handler]) => (
         <Tooltip key={title} title={title} placement="top">
-          <IconButton size="small" sx={{ padding: "4px" }} onClick={handler}>
+          <IconButton size="small" sx={{ padding: "4px" }} onClick={handleIconClick(handler)}>
             <Icon />
           </IconButton>
         </Tooltip>
@@ -2049,24 +2065,113 @@ const EMPTY_ADJ = {
   notes: "",
 };
 
-const COLUMN_OPTIONS = [
-  { key: "dos", label: "DOS" },
+// Column options for each tab
+const PRE_BILLING_COLUMN_OPTIONS = [
+  { key: "dosShort", label: "DOS" },
+  { key: "patientName", label: "Patient Name (Gender)" },
   { key: "cpt", label: "CPT" },
   { key: "modifier", label: "Modifier" },
   { key: "icd", label: "ICD" },
   { key: "primaryInsurance", label: "Primary Insurance" },
-  { key: "billedAmount", label: "Billed Amount" },
+  { key: "billed", label: "Billed Amount" },
   { key: "patientCopay", label: "Patient Copay" },
   { key: "status", label: "Status" },
   { key: "remarks", label: "Remarks" },
-  { key: "encounterId", label: "Encounter ID #" },
+  { key: "encounterId", label: "Encounter ID" },
+  { key: "claimId", label: "Claim ID" },
+  { key: "referenceId", label: "Reference ID" },
+];
+
+const POST_BILLING_COLUMN_OPTIONS = [
+  { key: "dos", label: "DOS" },
+  { key: "patientName", label: "Patient Name (Gender)" },
+  { key: "cpt", label: "CPT" },
+  { key: "modifier", label: "Modifier" },
+  { key: "icd", label: "ICD" },
+  { key: "billedTo", label: "Billed To" },
+  { key: "billed", label: "Billed Amount" },
+  { key: "adjustment", label: "Adjustment" },
+  { key: "insurancePayment", label: "Insurance Payment" },
+  { key: "patientPayment", label: "Patient Payment" },
+  { key: "billedAs", label: "Billed As" },
+  { key: "status", label: "Status" },
+  { key: "clearingHouse", label: "Clearing House" },
+  { key: "firstBilled", label: "First Billed" },
+  { key: "encounterId", label: "Encounter ID" },
   { key: "claimId", label: "Claim ID" },
 ];
 
-const setAllColumns = (value) => ({
-  patientName: value,
-  ...Object.fromEntries(COLUMN_OPTIONS.map((c) => [c.key, value])),
+const REMITTANCE_COLUMN_OPTIONS = [
+  { key: "remittanceId", label: "Remittance ID" },
+  { key: "location", label: "Location" },
+  { key: "provider", label: "Provider" },
+  { key: "Payor", label: "Payor" },
+  { key: "paymentMethod", label: "Payment Method" },
+  { key: "chequeNumber", label: "Check Number" },
+  { key: "amount", label: "Amount" },
+  { key: "checkDate", label: "Check Date" },
+  { key: "receivedDate", label: "Received Date" },
+  { key: "claimNumbers", label: "Claim Numbers" },
+  { key: "unpostedAmount", label: "Unposted Amount" },
+  { key: "status", label: "Status" },
+];
+
+const PATIENT_STATEMENT_COLUMN_OPTIONS = [
+  { key: "name", label: "Patient Name" },
+  { key: "pid", label: "Patient ID" },
+  { key: "dob", label: "DOB" },
+  { key: "category", label: "Category" },
+  { key: "lastStatement", label: "Last Statement" },
+  { key: "sent", label: "Sent" },
+  { key: "calls", label: "Calls" },
+  { key: "emails", label: "Emails" },
+  { key: "prints", label: "Prints" },
+  { key: "docs", label: "Documents" },
+  { key: "enc", label: "Encounters" },
+  { key: "balance", label: "Balance" },
+  { key: "reason", label: "Reason" },
+  { key: "selectedBalance", label: "Selected Balance" },
+  { key: "alert", label: "Alert" },
+];
+
+const HISTORY_COLUMN_OPTIONS = [
+  { key: "practice", label: "Practice" },
+  { key: "batchId", label: "Batch ID" },
+  { key: "batchName", label: "Batch Name" },
+  { key: "batchDescription", label: "Batch Description" },
+  { key: "noOfStatement", label: "No. of Statement" },
+  { key: "totalBalance", label: "Total Balance" },
+  { key: "batchStatus", label: "Batch Status" },
+  { key: "statementWithErrors", label: "Statement with Errors" },
+];
+
+// Helper to get column options based on current tab and subtab
+const getColumnOptions = (tabIndex, statementSubTab = "new") => {
+  switch (tabIndex) {
+    case 0: return PRE_BILLING_COLUMN_OPTIONS;
+    case 1: return POST_BILLING_COLUMN_OPTIONS;
+    case 2: return REMITTANCE_COLUMN_OPTIONS;
+    case 3: 
+      return statementSubTab === "history" 
+        ? HISTORY_COLUMN_OPTIONS 
+        : PATIENT_STATEMENT_COLUMN_OPTIONS;
+    default: return PRE_BILLING_COLUMN_OPTIONS;
+  }
+};
+
+const setAllColumns = (columnOptions, value) => ({
+  ...Object.fromEntries(columnOptions.map((c) => [c.key, value])),
 });
+
+// Helper function to filter columns based on visibility
+const filterColumns = (columns, visibleColumns) => {
+  return columns.filter(col => {
+    // Always show actions/action column
+    if (col.id === 'actions' || col.id === 'action') return true;
+    // Show column if it's visible
+    return visibleColumns[col.id] !== false;
+  });
+};
 
 const ACTION_MENU_ITEMS = [
   ["Print Claim", "Ctrl+P"],
@@ -2159,7 +2264,26 @@ function PreBillingClaim() {
   // Determine if tabs and banner should be hidden
   const hideTabsAndBanner = isClaimsSubmenu;
   const [showColumnSettings, setShowColumnSettings] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState(setAllColumns(true));
+  
+  // Separate column visibility for each tab
+  const [visibleColumnsPreBilling, setVisibleColumnsPreBilling] = useState(
+    setAllColumns(PRE_BILLING_COLUMN_OPTIONS, true)
+  );
+  const [visibleColumnsPostBilling, setVisibleColumnsPostBilling] = useState(
+    setAllColumns(POST_BILLING_COLUMN_OPTIONS, true)
+  );
+  const [visibleColumnsRemittance, setVisibleColumnsRemittance] = useState(
+    setAllColumns(REMITTANCE_COLUMN_OPTIONS, true)
+  );
+  const [visibleColumnsPatientStatement, setVisibleColumnsPatientStatement] = useState(
+    setAllColumns(PATIENT_STATEMENT_COLUMN_OPTIONS, true)
+  );
+  const [visibleColumnsHistory, setVisibleColumnsHistory] = useState(
+    setAllColumns(HISTORY_COLUMN_OPTIONS, true)
+  );
+  
+  // Temporary state for column dialog (only apply on Save View)
+  const [tempVisibleColumns, setTempVisibleColumns] = useState({});
 
   /* Check-action: Add Remark popup */
   const [checkPopupOpen, setCheckPopupOpen] = useState(false);
@@ -2171,6 +2295,53 @@ function PreBillingClaim() {
 
   const remarkKey = checkPopupRow ? `${currentTab}-${checkPopupRow.id}` : null;
   const currentRemarks = remarkKey ? remarksByClaim[remarkKey] || [] : [];
+
+  // Helper to get current visible columns based on tab
+  const getCurrentVisibleColumns = () => {
+    switch (currentTab) {
+      case 0: return visibleColumnsPreBilling;
+      case 1: return visibleColumnsPostBilling;
+      case 2: return visibleColumnsRemittance;
+      case 3: 
+        return statementSubTab === "history" 
+          ? visibleColumnsHistory 
+          : visibleColumnsPatientStatement;
+      default: return visibleColumnsPreBilling;
+    }
+  };
+
+  // Helper to set visible columns for current tab
+  const setCurrentVisibleColumns = (columns) => {
+    switch (currentTab) {
+      case 0: setVisibleColumnsPreBilling(columns); break;
+      case 1: setVisibleColumnsPostBilling(columns); break;
+      case 2: setVisibleColumnsRemittance(columns); break;
+      case 3: 
+        if (statementSubTab === "history") {
+          setVisibleColumnsHistory(columns);
+        } else {
+          setVisibleColumnsPatientStatement(columns);
+        }
+        break;
+    }
+  };
+  
+  // Open dialog - initialize temp state with current tab's visibility
+  const handleOpenColumnSettings = () => {
+    setTempVisibleColumns(getCurrentVisibleColumns());
+    setShowColumnSettings(true);
+  };
+  
+  // Save View - apply temp state to actual state
+  const handleSaveColumnSettings = () => {
+    setCurrentVisibleColumns(tempVisibleColumns);
+    setShowColumnSettings(false);
+  };
+  
+  // Cancel - discard changes
+  const handleCancelColumnSettings = () => {
+    setShowColumnSettings(false);
+  };
 
   const formatRemarkTime = (d = new Date()) => {
     const p = (n) => String(n).padStart(2, "0");
@@ -2247,7 +2418,11 @@ function PreBillingClaim() {
   const [historySelectedRows, setHistorySelectedRows] = useState([]);
 
   const handleEditClick = (claim) =>
-    navigate(`/post-billing-edit/${claim.id}`, { state: { claim } });
+    navigate(`/claims/post-billing-edit/${claim.id}`, { state: { claim } });
+  
+  // Handler for clicking on post-billing row (anywhere in the row) - opens detail view
+  const handlePostBillingRowClick = (claim) =>
+    navigate(`/claims/post-billing-detail/${claim.id}`, { state: { claim } });
 
   const handleEditPreBilling = (claim) =>
     navigate(`/pre-billing-edit/${claim.id}`, { state: { claim } });
@@ -3285,7 +3460,7 @@ function PreBillingClaim() {
               >
                 New Claim
               </Button>
-              <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
+              <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button
                 variant="outlined"
                 endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
@@ -3315,7 +3490,7 @@ function PreBillingClaim() {
           {viewMode === "list" ? (
             <Box sx={{ pb: 2, px: 2 }}>
               <ListTable
-                columns={PRE_COLUMNS}
+                columns={filterColumns(PRE_COLUMNS, visibleColumnsPreBilling)}
                 rows={preBillingFiltered}
                 selection={claimSelection}
                 ctx={{
@@ -3643,7 +3818,7 @@ function PreBillingClaim() {
                 flexShrink: 0,
               }}
             >
-              <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
+              <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button
                 variant="outlined"
                 endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
@@ -3781,10 +3956,11 @@ function PreBillingClaim() {
           {/* Post-billing table */}
           <Box sx={{ pb: 2, px: 2 }}>
             <ListTable
-              columns={POST_COLUMNS}
+              columns={filterColumns(POST_COLUMNS, visibleColumnsPostBilling)}
               rows={postBillingFiltered}
               selection={claimSelection}
               ctx={{ onEdit: handleEditClick, onCheck: handleOpenCheckPopup }}
+              onRowClick={handlePostBillingRowClick}
               minWidth={1750}
               stickyHeader
               containerSx={listContainerSx}
@@ -3984,7 +4160,7 @@ function PreBillingClaim() {
             <Box sx={{ flex: 1 }} />
 
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
+              <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button
                 variant="outlined"
                 endIcon={<KeyboardArrowDown sx={{ fontSize: 20 }} />}
@@ -4014,7 +4190,7 @@ function PreBillingClaim() {
 
           <Box sx={{ pb: 2, px: 2 }}>
             <ListTable
-              columns={REMIT_COLUMNS}
+              columns={filterColumns(REMIT_COLUMNS, visibleColumnsRemittance)}
               rows={remittanceFiltered}
               selection={{
                 selected: remittanceSelected,
@@ -4099,7 +4275,7 @@ function PreBillingClaim() {
                 flexWrap: "wrap",
               }}
             >
-              <ToolbarIcons onSettings={() => setShowColumnSettings(true)} />
+              <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button variant="outlined" sx={filterChipSx}>
                 Balance greater than $
               </Button>
@@ -4116,7 +4292,7 @@ function PreBillingClaim() {
           <Box sx={{ pb: 2, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
-                columns={NEW_STMT_COLUMNS}
+                columns={filterColumns(NEW_STMT_COLUMNS, visibleColumnsPatientStatement)}
                 rows={newStatementFiltered}
                 selection={{
                   selected: statementSelectedRows,
@@ -4146,7 +4322,7 @@ function PreBillingClaim() {
               />
             ) : (
               <ListTable
-                columns={HISTORY_COLUMNS}
+                columns={filterColumns(HISTORY_COLUMNS, visibleColumnsHistory)}
                 rows={historyFiltered}
                 selection={{
                   selected: historySelectedRows,
@@ -4342,16 +4518,19 @@ function PreBillingClaim() {
       {/* ================= CUSTOMISE COLUMNS DIALOG ================= */}
       <Dialog
         open={showColumnSettings}
-        onClose={() => setShowColumnSettings(false)}
+        onClose={handleCancelColumnSettings}
         PaperProps={{
           sx: {
             width: "100%",
             maxWidth: 500,
-            minHeight: 570,
+            minHeight: 500,
+            maxHeight: 650,
             borderRadius: "22px",
             overflow: "hidden",
             boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
             m: 20,
+            display: "flex",
+            flexDirection: "column",
           },
         }}
       >
@@ -4376,7 +4555,7 @@ function PreBillingClaim() {
             </Typography>
             <IconButton
               size="small"
-              onClick={() => setShowColumnSettings(false)}
+              onClick={handleCancelColumnSettings}
               sx={{
                 p: 0.3,
                 color: "#111827",
@@ -4406,30 +4585,39 @@ function PreBillingClaim() {
               {[
                 ["Select all", true],
                 ["Clear All", false],
-              ].map(([label, value]) => (
-                <Typography
-                  key={label}
-                  onClick={() => setVisibleColumns(setAllColumns(value))}
-                  sx={{
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    color: "#0066FF",
-                    cursor: "pointer",
-                  }}
-                >
-                  {label}
-                </Typography>
-              ))}
+              ].map(([label, value]) => {
+                const currentColumnOptions = getColumnOptions(currentTab, statementSubTab);
+                return (
+                  <Typography
+                    key={label}
+                    onClick={() => setTempVisibleColumns(setAllColumns(currentColumnOptions, value))}
+                    sx={{
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      color: "#0066FF",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {label}
+                  </Typography>
+                );
+              })}
             </Box>
 
             <Typography sx={{ fontSize: 11, color: "#171923" }}>
-              {Object.values(visibleColumns).filter(Boolean).length} of 12 shown
+              {Object.values(tempVisibleColumns).filter(Boolean).length} of {getColumnOptions(currentTab, statementSubTab).length} shown
             </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ px: 2.5, pb: 1, flex: 1, overflow: "hidden" }}>
-          {COLUMN_OPTIONS.map((col) => (
+        <Box sx={{ 
+          px: 2.5, 
+          flex: 1, 
+          overflow: "auto",
+          maxHeight: 400,
+          minHeight: 300,
+        }}>
+          {getColumnOptions(currentTab, statementSubTab).map((col) => (
             <Box
               key={col.key}
               sx={{
@@ -4472,9 +4660,9 @@ function PreBillingClaim() {
 
               <Checkbox
                 size="small"
-                checked={visibleColumns[col.key]}
+                checked={tempVisibleColumns[col.key]}
                 onChange={(e) =>
-                  setVisibleColumns((prev) => ({
+                  setTempVisibleColumns((prev) => ({
                     ...prev,
                     [col.key]: e.target.checked,
                   }))
@@ -4516,7 +4704,10 @@ function PreBillingClaim() {
           {/* Reset to default */}
           <Button
             variant="outlined"
-            onClick={() => setVisibleColumns(setAllColumns(true))}
+            onClick={() => {
+              const currentColumnOptions = getColumnOptions(currentTab, statementSubTab);
+              setTempVisibleColumns(setAllColumns(currentColumnOptions, true));
+            }}
             sx={{
               textTransform: "none",
               fontSize: "10px",
@@ -4544,7 +4735,7 @@ function PreBillingClaim() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
             <Button
               variant="outlined"
-              onClick={() => setShowColumnSettings(false)}
+              onClick={handleCancelColumnSettings}
               sx={{
                 textTransform: "none",
                 fontSize: "10px",
@@ -4571,7 +4762,7 @@ function PreBillingClaim() {
             <Button
               variant="contained"
               disableElevation
-              onClick={() => setShowColumnSettings(false)}
+              onClick={handleSaveColumnSettings}
               sx={{
                 textTransform: "none",
                 fontSize: "10px",

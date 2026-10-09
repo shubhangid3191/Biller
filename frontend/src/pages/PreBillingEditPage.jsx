@@ -614,7 +614,7 @@ function TopBar() {
             mb: 0.25,
           }}
         >
-          Charge Capture
+          Pri Charge Capture
         </Typography>
         <Typography
           sx={{
@@ -1026,7 +1026,7 @@ function DetailColumn({ items }) {
   );
 }
 
-function PatientSection({ sectionRef, isNewClaim = false, claimData = null }) {
+function PatientSection({ sectionRef, isNewClaim = false, isEditMode = false, claimData = null }) {
   const navigate = useNavigate();
   
   // Determine patient data based on mode
@@ -1117,7 +1117,9 @@ function PatientSection({ sectionRef, isNewClaim = false, claimData = null }) {
       rightSlot={
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <OutlineBtn>Select existing</OutlineBtn>
-          <PrimaryBtn onClick={() => navigate("/add-new-patient")}>+ New patient</PrimaryBtn>
+          {!isEditMode && (
+            <PrimaryBtn onClick={() => navigate("/add-new-patient")}>+ New patient</PrimaryBtn>
+          )}
         </Stack>
       }
     >
@@ -2988,7 +2990,7 @@ const getScrollParent = (el) => {
   return window;
 };
 
-export default function NewEncounter() {
+export default function PreBillingEditPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [alertOpen, setAlertOpen] = React.useState(false);
@@ -3000,8 +3002,10 @@ export default function NewEncounter() {
   // Check if we're creating a new claim (hide encounter info boxes)
   const isNewClaim = window.location.pathname === '/new-claim';
   
-  // Check if we're editing an existing claim
-  const isEditMode = window.location.pathname.includes('/pre-billing-edit') && claimData;
+  // Check if we're editing an existing claim (pre-billing or post-billing edit)
+  const isEditMode = (window.location.pathname.includes('/pre-billing-edit') || 
+                      window.location.pathname.includes('/post-billing-edit') ||
+                      (window.location.pathname === '/new-claim' && claimData));
 
   const sectionRefs = React.useRef({});
   const rootRef = React.useRef(null);
@@ -3235,7 +3239,7 @@ export default function NewEncounter() {
         {!isNewClaim && <EncounterSummary claimData={claimData} />}
         {!isNewClaim && <AssistBanner />}
 
-        <PatientSection sectionRef={setRef("patient")} isNewClaim={isNewClaim} claimData={claimData} />
+        <PatientSection sectionRef={setRef("patient")} isNewClaim={isNewClaim} isEditMode={isEditMode} claimData={claimData} />
         <CaseInsuranceSection sectionRef={setRef("case")} />
         <ConditionsSection sectionRef={setRef("conditions")} />
         <ChargesSection sectionRef={setRef("charges")} />

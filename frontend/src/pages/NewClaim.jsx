@@ -614,7 +614,7 @@ function TopBar() {
             mb: 0.25,
           }}
         >
-          Post Charge Capture
+          New Charge Capture
         </Typography>
         <Typography
           sx={{
@@ -2990,22 +2990,16 @@ const getScrollParent = (el) => {
   return window;
 };
 
-export default function PostBillingEditPage() {
+export default function NewClaim() {
   const navigate = useNavigate();
   const location = useLocation();
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeId, setActiveId] = React.useState(STEPS[0].id);
 
-  // Get claim data from location state (for edit mode)
-  const claimData = location.state?.claim;
-  
-  // Check if we're creating a new claim (hide encounter info boxes)
-  const isNewClaim = window.location.pathname === '/new-claim';
-  
-  // Check if we're editing an existing claim (pre-billing or post-billing edit)
-  const isEditMode = (window.location.pathname.includes('/pre-billing-edit') || 
-                      window.location.pathname.includes('/post-billing-edit') ||
-                      (window.location.pathname === '/new-claim' && claimData));
+  // NewClaim page - always blank fields, never in edit mode
+  const claimData = null;
+  const isNewClaim = true;
+  const isEditMode = false;
 
   const sectionRefs = React.useRef({});
   const rootRef = React.useRef(null);

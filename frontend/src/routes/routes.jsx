@@ -2,7 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import AllPatient from "../pages/AllPatient";
 import AddNewPatient from "../pages/AddNewPatient";
-import NewEncounter from "../pages/NewEncounter";
+import NewClaim from "../pages/NewClaim";
+import PreBillingEditPage from "../pages/PreBillingEditPage";
 import Statement from "../pages/Statement";
 import RefundsNew from "../pages/RefundsNew";
 import BulkEligibility from "../pages/BulkEligibility";
@@ -35,6 +36,7 @@ import Program from "../pages/Program";
 import ProgramEdit from "../pages/ProgramEdit";
 
 import PostBillingEditPage from "../pages/PostBillingEditPage";
+import PostBillingDetail from "../pages/PostBillingDetail";
 import RemittanceERAEdit from "../pages/RemittanceERAEdit";
 
 const AppRoutes = () => {
@@ -368,11 +370,11 @@ const AppRoutes = () => {
 
       {/* ---------- Edit pages ---------- */}
 
-            <Route
+      <Route
         path="/new-encounter"
         element={
           <ProtectedRoute>
-            <NewEncounter />
+            <NewClaim />
           </ProtectedRoute>
         }
       />
@@ -380,15 +382,15 @@ const AppRoutes = () => {
         path="/new-claim"
         element={
           <ProtectedRoute>
-            <NewEncounter />
+            <NewClaim />
           </ProtectedRoute>
         }
       />
-           <Route
+      <Route
         path="/pre-billing-edit/:id"
         element={
           <ProtectedRoute>
-            <NewEncounter />
+            <PreBillingEditPage />
           </ProtectedRoute>
         }
       />
@@ -405,6 +407,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PostBillingEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post-billing-detail/:id"
+        element={
+          <ProtectedRoute>
+            <PostBillingDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/claims/post-billing-edit/:id"
+        element={
+          <ProtectedRoute>
+            <PostBillingEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/claims/post-billing-detail/:id"
+        element={
+          <ProtectedRoute>
+            <PostBillingDetail />
           </ProtectedRoute>
         }
       />
