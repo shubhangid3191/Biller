@@ -2374,7 +2374,7 @@ const SELECT_ACTION_ITEMS = [
   { label: "Reject", highlighted: false },
 ];
 
-function FooterBar({ navigate }) {
+function FooterBar({ navigate, onBack }) {
   const [anchor, setAnchor] = React.useState(null);
   const open = Boolean(anchor);
 
@@ -2468,7 +2468,7 @@ function FooterBar({ navigate }) {
       >
         <Button
           variant="outlined"
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           sx={{ textTransform: "none", borderRadius: "8px", ...footBtn }}
         >
           Cancel
@@ -2996,8 +2996,9 @@ export default function PostBillingEditPage() {
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeId, setActiveId] = React.useState(STEPS[0].id);
 
-  // Get claim data from location state (for edit mode)
+  // Get claim data and active tab from location state
   const claimData = location.state?.claim;
+  const activeTab = location.state?.activeTab ?? 1; // Default to post-billing tab (index 1)
   
   // Check if we're creating a new claim (hide encounter info boxes)
   const isNewClaim = window.location.pathname === '/new-claim';
@@ -3006,6 +3007,11 @@ export default function PostBillingEditPage() {
   const isEditMode = (window.location.pathname.includes('/pre-billing-edit') || 
                       window.location.pathname.includes('/post-billing-edit') ||
                       (window.location.pathname === '/new-claim' && claimData));
+  
+  // Back navigation with tab preservation
+  const handleBack = () => {
+    navigate('/encounters', { state: { activeTab } });
+  };
 
   const sectionRefs = React.useRef({});
   const rootRef = React.useRef(null);
@@ -3217,7 +3223,7 @@ export default function PostBillingEditPage() {
             activeId={activeId}
             onStepClick={handleStepClick}
             onAlertsClick={() => setAlertOpen(true)}
-            onBack={() => navigate(-1)}
+            onBack={handleBack}
           />
         </Box>
       </Box>
@@ -3245,7 +3251,7 @@ export default function PostBillingEditPage() {
         <ChargesSection sectionRef={setRef("charges")} />
         <AdditionalDetailsSection sectionRef={setRef("additional")} />
 
-        <FooterBar navigate={navigate} />
+        <FooterBar navigate={navigate} onBack={handleBack} />
       </Box>
 
       <PatientAlertDialog

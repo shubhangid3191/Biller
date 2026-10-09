@@ -181,8 +181,9 @@ export default function PostBillingDetail({
   const navigate = useNavigate();
   const { state } = useLocation();
   const claim = claimProp ?? state?.claim;
+  const savedActiveTab = state?.activeTab ?? 1; // Get saved tab or default to post-billing (1)
   const onBack =
-    onBackProp ?? (() => navigate("/encounters", { state: { activeTab: 1 } }));
+    onBackProp ?? (() => navigate("/encounters", { state: { activeTab: savedActiveTab } }));
   const [actionAnchorEl, setActionAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [logSort, setLogSort] = useState({ key: null, dir: "asc" });

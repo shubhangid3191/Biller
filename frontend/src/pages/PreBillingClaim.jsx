@@ -2418,14 +2418,20 @@ function PreBillingClaim() {
   const [historySelectedRows, setHistorySelectedRows] = useState([]);
 
   const handleEditClick = (claim) =>
-    navigate(`/claims/post-billing-edit/${claim.id}`, { state: { claim } });
+    navigate(`/claims/post-billing-edit/${claim.id}`, { 
+      state: { claim, activeTab: currentTab } 
+    });
   
   // Handler for clicking on post-billing row (anywhere in the row) - opens detail view
   const handlePostBillingRowClick = (claim) =>
-    navigate(`/claims/post-billing-detail/${claim.id}`, { state: { claim } });
+    navigate(`/claims/post-billing-detail/${claim.id}`, { 
+      state: { claim, activeTab: currentTab } 
+    });
 
   const handleEditPreBilling = (claim) =>
-    navigate(`/pre-billing-edit/${claim.id}`, { state: { claim } });
+    navigate(`/pre-billing-edit/${claim.id}`, { 
+      state: { claim, activeTab: currentTab } 
+    });
 
   const handleShowEobDetails = (remittance) =>
     navigate(`/remittance-era-edit/${remittance.id}`, {
