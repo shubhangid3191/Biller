@@ -32,15 +32,15 @@ function TopBar() {
       <Toolbar
         sx={{
           justifyContent: "space-between",
-          py: 1,
-          minHeight: "56px !important",
+          py: 0.5,
+          minHeight: "42px !important",
         }}
       >
         {/* Search Bar */}
         <Box
           sx={{
             position: "relative",
-            borderRadius: "8px",
+            borderRadius: "6px",
             backgroundColor: "#f9fafb",
             border: "1px solid #e5e7eb",
             transition: "all 0.2s ease",
@@ -52,13 +52,13 @@ function TopBar() {
               borderColor: "#0066ff",
             },
             flexGrow: 1,
-            maxWidth: 600,
+            maxWidth: 500,
             mr: 2,
           }}
         >
           <Box
             sx={{
-              padding: "0 16px",
+              padding: "0 10px",
               height: "100%",
               position: "absolute",
               pointerEvents: "none",
@@ -67,7 +67,7 @@ function TopBar() {
               justifyContent: "center",
             }}
           >
-            <StarIcon width={18} height={18} color="rgba(0, 0, 0, 0.54)" />
+            <StarIcon width={14} height={14} color="rgba(0, 0, 0, 0.54)" />
           </Box>
           <InputBase
             placeholder='Ask anything — "show denied claims over $500 from BCBSM"'
@@ -76,9 +76,9 @@ function TopBar() {
               width: "100%",
               fontFamily: "'Roboto', sans-serif",
               "& .MuiInputBase-input": {
-                padding: "10px 48px 10px 0",
-                paddingLeft: `calc(1em + 32px)`,
-                fontSize: 13.5,
+                padding: "6px 36px 6px 0",
+                paddingLeft: `calc(1em + 24px)`,
+                fontSize: 12,
                 "&::placeholder": {
                   color: "rgba(0, 0, 0, 0.5)",
                   opacity: 1,
@@ -90,7 +90,7 @@ function TopBar() {
 
         {/* Right Side Icons */}
         <Box
-          sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}
+          sx={{ display: "flex", alignItems: "center", gap: 0.75, flexShrink: 0 }}
         >
           {/* Edit Icon */}
 
@@ -98,13 +98,13 @@ function TopBar() {
             size="small"
             sx={{
               color: "rgba(0, 0, 0, 0.54)",
-              p: 0.5,
+              p: 0.4,
               "&:hover": {
                 backgroundColor: alpha("#000", 0.04),
               },
             }}
           >
-            <EditIcon width={16} height={16} color="rgba(0, 0, 0, 0.54)" />
+            <EditIcon width={14} height={14} color="rgba(0, 0, 0, 0.54)" />
           </IconButton>
 
           {/* Notification Bell */}
@@ -113,13 +113,13 @@ function TopBar() {
             size="small"
             sx={{
               color: "rgba(0, 0, 0, 0.54)",
-              p: 0.5,
+              p: 0.4,
               "&:hover": {
                 backgroundColor: alpha("#000", 0.04),
               },
             }}
           >
-            <Bell width={14} height={16} color="rgba(0, 0, 0, 0.54)" />
+            <Bell width={13} height={14} color="rgba(0, 0, 0, 0.54)" />
           </IconButton>
 
           {/* TiaChat Button */}
@@ -131,19 +131,21 @@ function TopBar() {
               textTransform: "none",
               fontWeight: 500,
               fontFamily: "'Roboto', sans-serif",
-              px: 2.5,
-              py: 1,
-              borderRadius: 2,
-              gap: 0.7,
+              px: 1.75,
+              py: 0.5,
+              borderRadius: 1.5,
+              gap: 0.5,
+              fontSize: 12,
               whiteSpace: "nowrap",
-              boxShadow: "0 2px 8px rgba(0, 102, 255, 0.3)",
+              boxShadow: "none",
+              minHeight: 28,
               "&:hover": {
                 backgroundColor: "#0052cc",
-                boxShadow: "0 4px 12px rgba(0, 102, 255, 0.4)",
+                boxShadow: "none",
               },
             }}
           >
-            <TiaChatIcon color="#fff" width={25} height={25} />
+            <TiaChatIcon color="#fff" width={18} height={18} />
             TIAChat
           </Button>
         </Box>
