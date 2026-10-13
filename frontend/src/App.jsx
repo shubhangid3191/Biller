@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { Box, CssBaseline } from '@mui/material';
-import Sidebar from './components/Sidebar';
+import Sidebar, { SidebarProvider } from './components/Sidebar';
 import TopBar from './components/TopBar';
 import AppRoutes from './routes/routes';
 
@@ -13,23 +13,25 @@ function AppContent() {
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#f5f7fa' }}>
-      <Sidebar />
-      <TopBar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          pt: '64px',
-          height: '100vh',
-          overflow: 'auto',
-          backgroundColor: '#f5f7fa',
-          minWidth: 0,
-        }}
-      >
-        <AppRoutes />
+    <SidebarProvider>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#f5f7fa' }}>
+        <Sidebar />
+        <TopBar />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            pt: '56px',
+            height: '100vh',
+            overflow: 'auto',
+            backgroundColor: '#f5f7fa',
+            minWidth: 0,
+          }}
+        >
+          <AppRoutes />
+        </Box>
       </Box>
-    </Box>
+    </SidebarProvider>
   );
 }
 

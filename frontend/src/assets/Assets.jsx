@@ -1690,11 +1690,21 @@ export const CalendarBlueIcon = ({ width = 24, height = 24 }) => (
   </svg>
 );
 
-
 export const send = ({ width = 24, height = 24 }) => (
-<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11.5 0.5L5.45 6.55M5.45 6.55L0.5 4.35L11.5 0.5L7.65 11.5L5.45 6.55Z" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M11.5 0.5L5.45 6.55M5.45 6.55L0.5 4.35L11.5 0.5L7.65 11.5L5.45 6.55Z"
+      stroke="white"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
 );
 
 export const EyeVisible = ({ width = 24, height = 24 }) => (
@@ -1750,7 +1760,11 @@ export const DownloadIcon2 = ({ idth = 24, height = 24 }) => (
 /* ------------------------------------------------------------------ */
 /* RecentsArrowIcon — used in MY RECENTS sidebar section header        */
 /* ------------------------------------------------------------------ */
-export const RecentsArrowIcon = ({ width = 16, height = 16, color = "white" }) => (
+export const RecentsArrowIcon = ({
+  width = 16,
+  height = 16,
+  color = "white",
+}) => (
   <svg
     width={width}
     height={height}
@@ -1765,5 +1779,21 @@ export const RecentsArrowIcon = ({ width = 16, height = 16, color = "white" }) =
   </svg>
 );
 
-
-
+export const MyRecentsArrowIcon = ({
+  width = 16,
+  height = 16,
+  color = "#ffffff",
+}) => (
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M4.26536 12.0007L3.33203 11.0673L9.73203 4.66732H3.9987V3.33398H11.9987V11.334H10.6654V5.60065L4.26536 12.0007Z"
+      fill={color}
+    />
+  </svg>
+);
