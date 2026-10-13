@@ -35,6 +35,9 @@ import {
   Add,
   Send,
   MicNone,
+  CloudUpload,
+  CheckCircle,
+  Error as ErrorIcon,
 } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -330,7 +333,7 @@ function useSortedRows(rows, columns) {
 }
 
 /* Header cell with the sort arrow (shared by all 4 tabs) */
-function SortHeadCell({ column, sortDir, onSort, sx }) {
+function SortHeadCell({ column, sortDir, onSort, onFilterClick, filterActive, sx }) {
   const active = !!sortDir;
   const titles = column.sort ? SORT_TITLES[column.sort] : null;
   const plainLabel =
@@ -375,6 +378,30 @@ function SortHeadCell({ column, sortDir, onSort, sx }) {
             </IconButton>
           </Tooltip>
         )}
+        {column.hasFilter && (
+          <Tooltip title="Filter" arrow>
+            <IconButton
+              size="small"
+              aria-label={`Filter ${plainLabel}`}
+              onClick={onFilterClick}
+              sx={{
+                p: 0.2,
+                ml: column.center ? 0 : "auto",
+                flexShrink: 0,
+                borderRadius: "6px",
+                color: filterActive ? SORT_BLUE : SORT_ARROW,
+                bgcolor: filterActive ? "#DCE7FD" : "transparent",
+                "&:hover": { bgcolor: "#DCE7FD" },
+              }}
+            >
+              <KeyboardArrowDown
+                sx={{
+                  fontSize: 16,
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
     </TableCell>
   );
@@ -397,6 +424,8 @@ function ListTable({
   checkCellSx,
   highlightSelected = true,
   onRowClick,
+  onFilterClick,
+  filterActive,
 }) {
   const { sort, sortedRows, handleSort } = useSortedRows(rows, columns);
 
@@ -431,6 +460,8 @@ function ListTable({
                 column={col}
                 sortDir={sort.columnId === col.id ? sort.dir : null}
                 onSort={handleSort}
+                onFilterClick={col.hasFilter ? (e) => onFilterClick && onFilterClick(e, col.id) : undefined}
+                filterActive={col.hasFilter && filterActive}
                 sx={{
                   ...headSx,
                   ...col.headSx,
@@ -1191,9 +1222,9 @@ const REMIT_SAMPLE = [
   [
     "1234567",
     "GCH-IH",
-    "Ramesh M. MD",
     "Aetna",
     "Cheque",
+    "ERA",
     "14315316136",
     "$455",
     "11/20/2025",
@@ -1205,9 +1236,9 @@ const REMIT_SAMPLE = [
   [
     "1234568",
     "GCH-OH",
-    "Sarah K. MD",
     "BCBS",
     "EFT",
+    "EOB",
     "14315316137",
     "$1,240",
     "11/21/2025",
@@ -1219,9 +1250,9 @@ const REMIT_SAMPLE = [
   [
     "1234569",
     "GCH-IH",
-    "David L. MD",
     "Cigna",
     "Cheque",
+    "ERA",
     "14315316138",
     "$820",
     "11/19/2025",
@@ -1233,9 +1264,9 @@ const REMIT_SAMPLE = [
   [
     "1234570",
     "GCH-OH",
-    "Emily R. MD",
     "UnitedHealth",
     "EFT",
+    "ERA",
     "14315316139",
     "$2,100",
     "11/22/2025",
@@ -1247,9 +1278,9 @@ const REMIT_SAMPLE = [
   [
     "1234571",
     "GCH-IH",
-    "Michael T. MD",
     "Aetna",
     "Cheque",
+    "EOB",
     "14315316140",
     "$675",
     "11/18/2025",
@@ -1261,9 +1292,9 @@ const REMIT_SAMPLE = [
   [
     "1234572",
     "GCH-OH",
-    "Jennifer W. MD",
     "Medicare",
     "EFT",
+    "ERA",
     "14315316141",
     "$3,450",
     "11/23/2025",
@@ -1275,9 +1306,9 @@ const REMIT_SAMPLE = [
   [
     "1234573",
     "GCH-IH",
-    "Robert H. MD",
     "BCBS",
     "Cheque",
+    "ERA",
     "14315316142",
     "$1,890",
     "11/17/2025",
@@ -1289,9 +1320,9 @@ const REMIT_SAMPLE = [
   [
     "1234574",
     "GCH-OH",
-    "Lisa M. MD",
     "Cigna",
     "EFT",
+    "EOB",
     "14315316143",
     "$920",
     "11/24/2025",
@@ -1303,9 +1334,9 @@ const REMIT_SAMPLE = [
   [
     "1234575",
     "GCH-IH",
-    "James P. MD",
     "UnitedHealth",
     "Cheque",
+    "ERA",
     "14315316144",
     "$1,550",
     "11/16/2025",
@@ -1317,9 +1348,9 @@ const REMIT_SAMPLE = [
   [
     "1234576",
     "GCH-OH",
-    "Patricia D. MD",
     "Aetna",
     "EFT",
+    "ERA",
     "14315316145",
     "$2,340",
     "11/25/2025",
@@ -1331,9 +1362,9 @@ const REMIT_SAMPLE = [
   [
     "1234577",
     "GCH-IH",
-    "William S. MD",
     "Medicare",
     "Cheque",
+    "ERA",
     "14315316146",
     "$780",
     "11/15/2025",
@@ -1349,9 +1380,9 @@ const remittanceData = REMIT_SAMPLE.map(
     [
       remittanceId,
       location,
-      provider,
       Payor,
       paymentMethod,
+      eraEobType,
       chequeNumber,
       amount,
       checkDate,
@@ -1365,9 +1396,9 @@ const remittanceData = REMIT_SAMPLE.map(
     id: id + 1,
     remittanceId,
     location,
-    provider,
     Payor,
     paymentMethod,
+    eraEobType,
     chequeNumber,
     amount,
     checkDate,
@@ -1725,9 +1756,9 @@ const POST_COLUMNS = [
 const REMIT_COLUMNS = [
   { id: "remittanceId", label: "ID", sort: "number", center: true },
   { id: "location", label: "Location", center: true },
-  { id: "provider", label: "Provider", center: true },
   { id: "Payor", label: "Payor", center: true },
-  { id: "paymentMethod", label: "Payment Method", center: true },
+  { id: "paymentMethod", label: "Payment\nMethod", center: true },
+  { id: "eraEobType", label: "ERA/\nEOB", center: true, hasFilter: true },
   { id: "chequeNumber", label: "Check", center: true },
   { id: "amount", label: "Amount", center: true },
   { id: "checkDate", label: "Check Date", sort: "date", center: true },
@@ -2104,9 +2135,9 @@ const POST_BILLING_COLUMN_OPTIONS = [
 const REMITTANCE_COLUMN_OPTIONS = [
   { key: "remittanceId", label: "Remittance ID" },
   { key: "location", label: "Location" },
-  { key: "provider", label: "Provider" },
   { key: "Payor", label: "Payor" },
   { key: "paymentMethod", label: "Payment Method" },
+  { key: "eraEobType", label: "ERA/EOB" },
   { key: "chequeNumber", label: "Check Number" },
   { key: "amount", label: "Amount" },
   { key: "checkDate", label: "Check Date" },
@@ -2265,6 +2296,12 @@ function PreBillingClaim() {
   const hideTabsAndBanner = isClaimsSubmenu;
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   
+  // OCR Upload state (only for Remittance/ERA tab)
+  const [showOCRDialog, setShowOCRDialog] = useState(false);
+  const [ocrFiles, setOcrFiles] = useState([]);
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [ocrResults, setOcrResults] = useState([]);
+  
   // Separate column visibility for each tab
   const [visibleColumnsPreBilling, setVisibleColumnsPreBilling] = useState(
     setAllColumns(PRE_BILLING_COLUMN_OPTIONS, true)
@@ -2343,6 +2380,141 @@ function PreBillingClaim() {
     setShowColumnSettings(false);
   };
 
+  // OCR handlers (for Remittance/ERA tab)
+  const handleOpenOCR = () => {
+    setShowOCRDialog(true);
+    setOcrFiles([]);
+    setOcrResults([]);
+  };
+
+  const handleCloseOCR = () => {
+    setShowOCRDialog(false);
+    setOcrFiles([]);
+    setOcrResults([]);
+    setOcrProcessing(false);
+  };
+
+  const handleFileUpload = (event) => {
+    const files = Array.from(event.target.files);
+    const newFiles = files.map((file) => ({
+      id: Date.now() + Math.random(),
+      file,
+      name: file.name,
+      size: (file.size / 1024).toFixed(2) + " KB",
+      status: "pending",
+    }));
+    setOcrFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (fileId) => {
+    setOcrFiles((prev) => prev.filter((f) => f.id !== fileId));
+  };
+
+  const handleProcessOCR = async () => {
+    setOcrProcessing(true);
+    
+    // Only process files that are still "pending"
+    const filesToProcess = ocrFiles.filter(f => f.status === "pending");
+    
+    if (filesToProcess.length === 0) {
+      setOcrProcessing(false);
+      return;
+    }
+    
+    // Keep existing results and add new ones
+    const newResults = [];
+    let recordIndex = ocrResults.length; // Continue from existing count
+    
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
+      
+      // Update status to processing
+      setOcrFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: "processing" } : f
+        )
+      );
+      
+      // Simulate processing delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Simulate success/failure (90% success rate)
+      const success = Math.random() > 0.1;
+      
+      setOcrFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id
+            ? { ...f, status: success ? "success" : "error" }
+            : f
+        )
+      );
+      
+      if (success) {
+        // Simulate multiple records per PDF (1-3 records per file)
+        const recordsInFile = Math.floor(Math.random() * 3) + 1; // 1 to 3 records
+        
+        for (let j = 0; j < recordsInFile; j++) {
+          const claimAmount = BILLED_LIST[recordIndex % BILLED_LIST.length];
+          const paidAmount = Math.round(claimAmount * 0.85);
+          const adjustmentAmount = claimAmount - paidAmount;
+          
+          newResults.push({
+            id: `${file.id}-${j}`,
+            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ''}`,
+            claimNumber: `${12345670 + recordIndex}`,
+            payerName: INSURERS[recordIndex % INSURERS.length],
+            checkNumber: `${14315316146 + recordIndex}`,
+            checkDate: dayjs().subtract(recordIndex, "day").format("MM/DD/YYYY"),
+            claimedAmount: claimAmount,
+            paidAmount: paidAmount,
+            adjustmentAmount: adjustmentAmount,
+            location: recordIndex % 2 === 0 ? "GCH-IH" : "GCH-OH",
+            eraEobType: "EOB", // Keep as EOB even after conversion
+            paymentMethod: recordIndex % 2 === 0 ? "Cheque" : "EFT",
+            status: "Posted",
+          });
+          
+          recordIndex++;
+        }
+      }
+    }
+    
+    // Append new results to existing ones
+    setOcrResults((prev) => [...prev, ...newResults]);
+    setOcrProcessing(false);
+  };
+
+  const handleSaveERA = () => {
+    // Convert OCR results to remittance format and add to the top of the table
+    const newRemittanceRecords = ocrResults.map((result, index) => {
+      const newId = Math.max(...remittanceRecords.map(r => r.id), 0) + index + 1;
+      return {
+        id: newId,
+        remittanceId: result.claimNumber,
+        location: result.location || "GCH-IH",
+        Payor: result.payerName,
+        paymentMethod: result.paymentMethod || "Cheque",
+        eraEobType: "EOB", // Keep as EOB in the main table
+        chequeNumber: result.checkNumber,
+        amount: `$${money(result.paidAmount)}`,
+        checkDate: result.checkDate,
+        receivedDate: dayjs().format("MM/DD/YYYY"),
+        claimNumbers: 1,
+        unpostedAmount: `$${money(result.adjustmentAmount)}`,
+        status: result.status,
+      };
+    });
+
+    // Add new records to the top of the table
+    setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
+    
+    // Show success message
+    alert(`${ocrResults.length} EOB records converted and added to Remittance table successfully!`);
+    
+    // Close dialog and reset
+    handleCloseOCR();
+  };
+
   const formatRemarkTime = (d = new Date()) => {
     const p = (n) => String(n).padStart(2, "0");
     return `${p(d.getMonth() + 1)}/${p(d.getDate())}/${d.getFullYear()} ${p(
@@ -2409,6 +2581,18 @@ function PreBillingClaim() {
   /* Remittance */
   const [remittanceFilter, setRemittanceFilter] = useState("all");
   const [remittanceSelected, setRemittanceSelected] = useState([]);
+  const [remittanceRecords, setRemittanceRecords] = useState(() => {
+    // Load from localStorage if available
+    const saved = localStorage.getItem('remittanceRecords');
+    return saved ? JSON.parse(saved) : remittanceData;
+  });
+  const [eraEobFilter, setEraEobFilter] = useState({ ERA: true, EOB: true });
+  const [eraEobAnchor, setEraEobAnchor] = useState(null);
+
+  // Save remittance records to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('remittanceRecords', JSON.stringify(remittanceRecords));
+  }, [remittanceRecords]);
 
   /* Patient Statement */
   const [statementSubTab, setStatementSubTab] = useState("new");
@@ -2600,20 +2784,19 @@ function PreBillingClaim() {
   });
 
   /* ---------- Remittance ERA/EOB ---------- */
-  const remittanceSearched = applyAll(remittanceData, {
+  const remittanceSearched = applyAll(remittanceRecords, {
     searchFields: [
       "remittanceId",
       "location",
-      "provider",
       "Payor",
       "paymentMethod",
+      "eraEobType",
       "chequeNumber",
       "status",
     ],
     textMap: { claimNumber: "remittanceId" },
     selectMap: {
       insurance: "Payor",
-      provider: "provider",
       serviceLocation: "location",
     },
     statusField: "status",
@@ -2623,9 +2806,17 @@ function PreBillingClaim() {
   const remitChipStatus = REMIT_CHIPS.find(
     (c) => c[0] === remittanceFilter,
   )?.[2];
-  const remittanceFiltered = remitChipStatus
+  const remittanceStatusFiltered = remitChipStatus
     ? remittanceSearched.filter((r) => r.status === remitChipStatus)
     : remittanceSearched;
+  
+  // Apply ERA/EOB type filter
+  const remittanceFiltered = remittanceStatusFiltered.filter((r) => {
+    if (eraEobFilter.ERA && eraEobFilter.EOB) return true;
+    if (eraEobFilter.ERA && r.eraEobType === "ERA") return true;
+    if (eraEobFilter.EOB && r.eraEobType === "EOB") return true;
+    return false;
+  });
 
   /* ---------- Patient Statement: New ---------- */
   const newStatementFiltered = applyAll(newStatementData, {
@@ -2705,10 +2896,7 @@ function PreBillingClaim() {
                 "Queued for email",
               ];
 
-  const providerOptions =
-    currentTab === 2
-      ? [...new Set(remittanceData.map((r) => r.provider))]
-      : PROVIDER_OPTIONS;
+  const providerOptions = PROVIDER_OPTIONS;
   const locationOptions =
     currentTab === 2 ? ["GCH-IH", "GCH-OH"] : ["The University RL"];
   const insuranceOptions = [
@@ -2721,7 +2909,7 @@ function PreBillingClaim() {
 
   const searchPlaceholder =
     currentTab === 2
-      ? "Search ID, Payor, Provider, Check..."
+      ? "Search ID, Payor, Payment Method, Check..."
       : currentTab === 3
         ? statementSubTab === "new"
           ? "Search patient, ID, DOB, category..."
@@ -4163,6 +4351,69 @@ function PreBillingClaim() {
               />
             ))}
 
+            {/* ERA/EOB Filter Dropdown */}
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl) && currentTab === 2}
+              onClose={() => setAnchorEl(null)}
+              PaperProps={{
+                sx: {
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: 200,
+                  mt: 0.5,
+                },
+              }}
+            >
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                  Filter by Type
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      "&:hover": { backgroundColor: "#F9FAFB" },
+                      p: 0.5,
+                      borderRadius: "6px",
+                    }}
+                    onClick={() => setEraEobFilter(prev => ({ ...prev, ERA: !prev.ERA }))}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={eraEobFilter.ERA}
+                      sx={checkboxSx}
+                    />
+                    <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
+                      ERA ({remittanceSearched.filter(r => r.eraEobType === "ERA").length})
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      "&:hover": { backgroundColor: "#F9FAFB" },
+                      p: 0.5,
+                      borderRadius: "6px",
+                    }}
+                    onClick={() => setEraEobFilter(prev => ({ ...prev, EOB: !prev.EOB }))}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={eraEobFilter.EOB}
+                      sx={checkboxSx}
+                    />
+                    <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
+                      EOB ({remittanceSearched.filter(r => r.eraEobType === "EOB").length})
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Menu>
+
             <Box sx={{ flex: 1 }} />
 
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -4207,6 +4458,8 @@ function PreBillingClaim() {
                   ),
               }}
               ctx={{ onShowEob: handleShowEobDetails }}
+              onFilterClick={(e) => setEraEobAnchor(e.currentTarget)}
+              filterActive={!eraEobFilter.ERA || !eraEobFilter.EOB}
               minWidth={1600}
               stickyHeader
               containerSx={listContainerSx}
@@ -4218,6 +4471,69 @@ function PreBillingClaim() {
               })}
             />
           </Box>
+
+          {/* ERA/EOB Column Filter Menu */}
+          <Menu
+            anchorEl={eraEobAnchor}
+            open={Boolean(eraEobAnchor)}
+            onClose={() => setEraEobAnchor(null)}
+            PaperProps={{
+              sx: {
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                minWidth: 180,
+                mt: 0.5,
+              },
+            }}
+          >
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1.5 }}>
+                Filter by Type
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "#F9FAFB" },
+                    p: 0.5,
+                    borderRadius: "6px",
+                  }}
+                  onClick={() => setEraEobFilter(prev => ({ ...prev, ERA: !prev.ERA }))}
+                >
+                  <Checkbox
+                    size="small"
+                    checked={eraEobFilter.ERA}
+                    sx={checkboxSx}
+                  />
+                  <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
+                    ERA ({remittanceSearched.filter(r => r.eraEobType === "ERA").length})
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "#F9FAFB" },
+                    p: 0.5,
+                    borderRadius: "6px",
+                  }}
+                  onClick={() => setEraEobFilter(prev => ({ ...prev, EOB: !prev.EOB }))}
+                >
+                  <Checkbox
+                    size="small"
+                    checked={eraEobFilter.EOB}
+                    sx={checkboxSx}
+                  />
+                  <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
+                    EOB ({remittanceSearched.filter(r => r.eraEobType === "EOB").length})
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Menu>
         </Box>
       )}
 
@@ -5009,6 +5325,388 @@ function PreBillingClaim() {
             >
               Send
             </Button>
+          </Box>
+        </Box>
+      </Dialog>
+
+      {/* ================= OCR EOB TO ERA DIALOG (Remittance Tab) ================= */}
+      <Dialog
+        open={showOCRDialog}
+        onClose={handleCloseOCR}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            overflow: "hidden",
+            maxHeight: "90vh",
+          },
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #E5E7EB",
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{ fontSize: 18, fontWeight: 700, color: "#1F2937", mb: 0.5 }}
+            >
+              EOB to ERA Converter
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+              Upload EOB documents to automatically extract and convert to ERA format
+            </Typography>
+          </Box>
+          <IconButton
+            size="small"
+            onClick={handleCloseOCR}
+            sx={{
+              p: 0.5,
+              color: "#6B7280",
+              "&:hover": { backgroundColor: "#F3F4F6", color: "#111827" },
+            }}
+          >
+            <Close sx={{ fontSize: 24 }} />
+          </IconButton>
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ px: 3, py: 3, maxHeight: "60vh", overflow: "auto", ...thinScroll }}>
+          {/* Upload Area */}
+          <Box
+            sx={{
+              border: "2px dashed #D1D5DB",
+              borderRadius: "12px",
+              p: 4,
+              textAlign: "center",
+              backgroundColor: "#F9FAFB",
+              mb: 3,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              "&:hover": {
+                borderColor: "#0066FF",
+                backgroundColor: "#EEF3FE",
+              },
+            }}
+            onClick={() => document.getElementById("ocr-file-input").click()}
+          >
+            <CloudUpload
+              sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }}
+            />
+            <Typography
+              sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 1 }}
+            >
+              Click to upload EOB files
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+              Supports PDF, JPG, PNG formats • Maximum 10MB per file
+            </Typography>
+            <input
+              id="ocr-file-input"
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </Box>
+
+          {/* File List */}
+          {ocrFiles.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}
+              >
+                Uploaded Files ({ocrFiles.length})
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {ocrFiles.map((file) => (
+                  <Box
+                    key={file.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 2,
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "10px",
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "8px",
+                        backgroundColor:
+                          file.status === "success"
+                            ? "#DFF5EA"
+                            : file.status === "error"
+                            ? "#FCE4E4"
+                            : file.status === "processing"
+                            ? "#FDF1DC"
+                            : "#E3EEFB",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {file.status === "success" ? (
+                        <CheckCircle sx={{ fontSize: 24, color: "#1E7F55" }} />
+                      ) : file.status === "error" ? (
+                        <ErrorIcon sx={{ fontSize: 24, color: "#C0392B" }} />
+                      ) : (
+                        <CloudUpload
+                          sx={{
+                            fontSize: 24,
+                            color:
+                              file.status === "processing"
+                                ? "#F59E0B"
+                                : "#2F5FA8",
+                          }}
+                        />
+                      )}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#1F2937",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {file.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                        {file.size} •{" "}
+                        {file.status === "success"
+                          ? "Converted successfully"
+                          : file.status === "error"
+                          ? "Failed to process"
+                          : file.status === "processing"
+                          ? "Processing..."
+                          : "Ready to process"}
+                      </Typography>
+                    </Box>
+                    {file.status === "pending" && (
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveFile(file.id)}
+                        sx={{
+                          p: 0.5,
+                          color: "#6B7280",
+                          "&:hover": { color: "#C0392B" },
+                        }}
+                      >
+                        <Close sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* Results Table */}
+          {ocrResults.length > 0 && (
+            <Box>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}
+              >
+                Converted ERA Data ({ocrResults.length})
+              </Typography>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  boxShadow: "none",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                }}
+              >
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {[
+                        "Claim #",
+                        "Location",
+                        "Payer",
+                        "Payment Method",
+                        "Check #",
+                        "Check Date",
+                        "Claimed",
+                        "Paid",
+                        "Adjustment",
+                      ].map((h) => (
+                        <TableCell
+                          key={h}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: 11,
+                            color: "#4B5563",
+                            backgroundColor: "#F9FAFB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {h}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {ocrResults.map((result) => (
+                      <TableRow key={result.id}>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.claimNumber}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.location}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.payerName}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.paymentMethod}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.checkNumber}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.checkDate}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          ${money(result.claimedAmount)}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11, color: "#1E7F55", fontWeight: 600 }}>
+                          ${money(result.paidAmount)}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
+                          ${money(result.adjustmentAmount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderTop: "1px solid #E5E7EB",
+            backgroundColor: "#F9FAFB",
+          }}
+        >
+          <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+            {(() => {
+              const processedCount = ocrFiles.filter(f => f.status === "success").length;
+              const pendingCount = ocrFiles.filter(f => f.status === "pending").length;
+              const totalRecords = ocrResults.length;
+              
+              if (totalRecords > 0 && pendingCount === 0) {
+                return `${totalRecords} record(s) converted from ${processedCount} file(s)`;
+              } else if (pendingCount > 0 && totalRecords > 0) {
+                return `${totalRecords} record(s) converted, ${pendingCount} file(s) ready to process`;
+              } else if (pendingCount > 0) {
+                return `${pendingCount} file(s) ready to process`;
+              } else if (ocrFiles.length > 0) {
+                return `${processedCount} file(s) processed`;
+              } else {
+                return "No files uploaded";
+              }
+            })()}
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              onClick={handleCloseOCR}
+              disabled={ocrProcessing}
+              sx={{
+                textTransform: "none",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#E5E7EB",
+                px: 2.5,
+                "&:hover": { borderColor: "#D1D5DB" },
+              }}
+            >
+              Cancel
+            </Button>
+            {ocrResults.length > 0 ? (
+              <>
+                {ocrFiles.filter(f => f.status === "pending").length > 0 && (
+                  <Button
+                    variant="outlined"
+                    onClick={handleProcessOCR}
+                    disabled={ocrProcessing}
+                    sx={{
+                      textTransform: "none",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#0066FF",
+                      borderColor: "#0066FF",
+                      px: 2.5,
+                      "&:hover": { 
+                        borderColor: "#0052CC",
+                        backgroundColor: "rgba(0, 102, 255, 0.04)"
+                      },
+                    }}
+                  >
+                    {ocrProcessing ? "Processing..." : "Process More Files"}
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={handleSaveERA}
+                  sx={{
+                    textTransform: "none",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    backgroundColor: "#0066FF",
+                    px: 2.5,
+                    boxShadow: "none",
+                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                  }}
+                >
+                  Save ERA Data
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleProcessOCR}
+                disabled={ocrFiles.filter(f => f.status === "pending").length === 0 || ocrProcessing}
+                sx={{
+                  textTransform: "none",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  backgroundColor: "#0066FF",
+                  px: 2.5,
+                  boxShadow: "none",
+                  "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                }}
+              >
+                {ocrProcessing ? "Processing..." : "Process Files"}
+              </Button>
+            )}
           </Box>
         </Box>
       </Dialog>

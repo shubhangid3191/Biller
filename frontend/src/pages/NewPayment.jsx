@@ -21,6 +21,9 @@ import {
   Tabs,
   useMediaQuery,
   useTheme,
+  Dialog,
+  Paper,
+  Tooltip,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -28,13 +31,33 @@ import {
   Add,
   Close,
   KeyboardArrowDown,
+  CloudUpload,
+  CheckCircle,
 } from "@mui/icons-material";
 import { RPDeleteIcon, DownloadIcon2 } from "../assets/Assets";
 import { useNavigate } from "react-router-dom";
+import ErrorIcon from "@mui/icons-material/Error";
+import dayjs from "dayjs";
 
 /* ─────────────────────────────────────────────
    Shared style helpers
 ───────────────────────────────────────────── */
+const money = (n) => {
+  if (typeof n === "string") return n;
+  return n ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
+};
+
+const INSURERS = [
+  "Cigna Health",
+  "UnitedHealthcare",
+  "Aetna",
+  "Blue Cross Blue Shield",
+  "Humana",
+  "Kaiser Permanente",
+];
+
+const BILLED_LIST = [5573.52, 6600.72, 7800.14, 8250.00, 9100.50];
+
 const thinScroll = {
   "&::-webkit-scrollbar": { width: 4, height: 4 },
   "&::-webkit-scrollbar-track": { background: "transparent" },
@@ -263,6 +286,8 @@ export default function NewPayment() {
   const [postDate, setPostDate] = useState("09/26/2026");
   const [type, setType] = useState("Patient");
   const [patient, setPatient] = useState("Rivet, Stacie  ID 2522");
+  const [globalPatientId, setGlobalPatientId] = useState("");
+  const [patientDob, setPatientDob] = useState("");
   const [appointment, setAppointment] = useState("");
   const [category, setCategory] = useState("None");
   const [method, setMethod] = useState("3 - Credit Card");
@@ -282,10 +307,128 @@ export default function NewPayment() {
   const [lineTab, setLineTab] = useState(0);
   const [selectedRows, setSelectedRows] = useState([]);
 
+  /* ── OCR state ── */
+  const [showOCRDialog, setShowOCRDialog] = useState(false);
+  const [ocrFiles, setOcrFiles] = useState([]);
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [ocrResults, setOcrResults] = useState([]);
+
   const toggleRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+
+  /* ── OCR handlers ── */
+  const handleOpenOCR = () => {
+    setShowOCRDialog(true);
+    setOcrFiles([]);
+    setOcrResults([]);
+  };
+
+  const handleCloseOCR = () => {
+    setShowOCRDialog(false);
+    setOcrFiles([]);
+    setOcrResults([]);
+    setOcrProcessing(false);
+  };
+
+  const handleFileUpload = (event) => {
+    const files = Array.from(event.target.files);
+    const newFiles = files.map((file) => ({
+      id: Date.now() + Math.random(),
+      file,
+      name: file.name,
+      size: (file.size / 1024).toFixed(2) + " KB",
+      status: "pending",
+    }));
+    setOcrFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (fileId) => {
+    setOcrFiles((prev) => prev.filter((f) => f.id !== fileId));
+  };
+
+  const handleProcessOCR = async () => {
+    setOcrProcessing(true);
+    
+    // Only process files that are still "pending"
+    const filesToProcess = ocrFiles.filter(f => f.status === "pending");
+    
+    if (filesToProcess.length === 0) {
+      setOcrProcessing(false);
+      return;
+    }
+    
+    // Keep existing results and add new ones
+    const newResults = [];
+    let recordIndex = ocrResults.length; // Continue from existing count
+    
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
+      
+      // Update status to processing
+      setOcrFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: "processing" } : f
+        )
+      );
+      
+      // Simulate processing delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Simulate success/failure (90% success rate)
+      const success = Math.random() > 0.1;
+      
+      setOcrFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id
+            ? { ...f, status: success ? "success" : "error" }
+            : f
+        )
+      );
+      
+      if (success) {
+        // Simulate multiple records per PDF (1-3 records per file)
+        const recordsInFile = Math.floor(Math.random() * 3) + 1; // 1 to 3 records
+        
+        for (let j = 0; j < recordsInFile; j++) {
+          const claimAmount = BILLED_LIST[recordIndex % BILLED_LIST.length];
+          const paidAmount = Math.round(claimAmount * 0.85);
+          const adjustmentAmount = claimAmount - paidAmount;
+          
+          newResults.push({
+            id: `${file.id}-${j}`,
+            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ''}`,
+            claimNumber: `${12345670 + recordIndex}`,
+            payerName: INSURERS[recordIndex % INSURERS.length],
+            checkNumber: `${14315316146 + recordIndex}`,
+            checkDate: dayjs().subtract(recordIndex, "day").format("MM/DD/YYYY"),
+            claimedAmount: claimAmount,
+            paidAmount: paidAmount,
+            adjustmentAmount: adjustmentAmount,
+            location: recordIndex % 2 === 0 ? "GCH-IH" : "GCH-OH",
+            eraEobType: "EOB",
+            paymentMethod: recordIndex % 2 === 0 ? "Cheque" : "EFT",
+            status: "Posted",
+          });
+          
+          recordIndex++;
+        }
+      }
+    }
+    
+    // Append new results to existing ones
+    setOcrResults((prev) => [...prev, ...newResults]);
+    setOcrProcessing(false);
+  };
+
+  const handleSaveERA = () => {
+    // In a real implementation, this would add ERA data to the payment
+    alert(`${ocrResults.length} EOB records converted and ready to be added to payment!`);
+    
+    // Close dialog and reset
+    handleCloseOCR();
+  };
 
   /* ─────────────────────────────────────────────
      SUMMARY block values (derived)
@@ -340,7 +483,7 @@ export default function NewPayment() {
           }}
         >
           <Box>
-            <Typography sx={labelSx}>Batch #</Typography>
+            <Typography sx={labelSx}>Batch </Typography>
             <TextField
               fullWidth
               size="small"
@@ -374,64 +517,130 @@ export default function NewPayment() {
                 <MenuItem value="Insurance" sx={{ fontSize: 12 }}>
                   Insurance
                 </MenuItem>
-                <MenuItem value="Employer" sx={{ fontSize: 12 }}>
-                  Employer
-                </MenuItem>
+               
               </Select>
             </FormControl>
           </Box>
         </Box>
 
-        {/* Row 2: Patient (wider) | Appointment — 3:2 ratio */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "3fr 2fr" },
-            gap: 1.5,
-            mb: 1.5,
-          }}
-        >
-          <Box>
-            <Typography sx={labelSx}>Patient</Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={patient}
-              onChange={(e) => setPatient(e.target.value)}
-              sx={inputSx}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment
-                    position="end"
-                    sx={{ mr: 0.5, cursor: "pointer" }}
-                  >
-                    <SearchIcon sx={{ fontSize: 18, color: "#6B7280" }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
+        {/* Conditional Row: Patient Details - only when Type = "Patient" */}
+        {type === "Patient" && (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+              gap: 1.5,
+              mb: 1.5,
+            }}
+          >
+            <Box>
+              <Typography sx={labelSx}>Select Patient *</Typography>
+              <FormControl fullWidth size="small" sx={inputSx}>
+                <Select
+                  value={patient}
+                  onChange={(e) => setPatient(e.target.value)}
+                  IconComponent={KeyboardArrowDown}
+                  displayEmpty
+                >
+                  <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                    Select patient
+                  </MenuItem>
+                  <MenuItem value="Rivet, Stacie  ID 2522" sx={{ fontSize: 12 }}>
+                    Rivet, Stacie  ID 2522
+                  </MenuItem>
+                  <MenuItem value="Johnson, Mark  ID 1234" sx={{ fontSize: 12 }}>
+                    Johnson, Mark  ID 1234
+                  </MenuItem>
+                  <MenuItem value="Smith, Jane  ID 5678" sx={{ fontSize: 12 }}>
+                    Smith, Jane  ID 5678
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Box>
+              <Typography sx={labelSx}>Global Patient Id *</Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={globalPatientId}
+                onChange={(e) => setGlobalPatientId(e.target.value)}
+                placeholder="Enter ID"
+                sx={inputSx}
+              />
+            </Box>
+            <Box>
+              <Typography sx={labelSx}>Patient DOB *</Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                value={patientDob}
+                onChange={(e) => setPatientDob(e.target.value)}
+                sx={inputSx}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <CalendarToday sx={{ fontSize: 15, color: "#0066FF" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
           </Box>
-          <Box>
-            <Typography sx={labelSx}>Appointment</Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={appointment}
-              onChange={(e) => setAppointment(e.target.value)}
-              placeholder="Select"
-              sx={inputSx}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end" sx={{ mr: 0.5 }}>
-                    <Close
-                      sx={{ fontSize: 16, color: "#9CA3AF", cursor: "pointer" }}
-                    />
-                  </InputAdornment>
-                ),
-              }}
-            />
+        )}
+
+        {/* Row 2: Patient (wider) | Appointment — 3:2 ratio - hidden when Type = "Patient" */}
+        {type === "Insurance" && (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "3fr 2fr" },
+              gap: 1.5,
+              mb: 1.5,
+            }}
+          >
+            <Box>
+              <Typography sx={labelSx}>Patient</Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={patient}
+                onChange={(e) => setPatient(e.target.value)}
+                sx={inputSx}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment
+                      position="end"
+                      sx={{ mr: 0.5, cursor: "pointer" }}
+                    >
+                      <SearchIcon sx={{ fontSize: 18, color: "#6B7280" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+            <Box>
+              <Typography sx={labelSx}>Appointment</Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={appointment}
+                onChange={(e) => setAppointment(e.target.value)}
+                placeholder="Select"
+                sx={inputSx}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end" sx={{ mr: 0.5 }}>
+                      <Close
+                        sx={{ fontSize: 16, color: "#9CA3AF", cursor: "pointer" }}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Row 3: Category | Method | Reference # — 3 equal cols */}
         <Box
@@ -477,7 +686,7 @@ export default function NewPayment() {
             </FormControl>
           </Box>
           <Box>
-            <Typography sx={labelSx}>Reference #</Typography>
+            <Typography sx={labelSx}>Reference </Typography>
             <TextField
               fullWidth
               size="small"
@@ -722,7 +931,7 @@ export default function NewPayment() {
                 p: 0,
                 minWidth: "auto",
                 whiteSpace: "nowrap",
-                "&:hover": { background: "none", textDecoration: "underline" },
+                "&:hover": { background: "none", },
               }}
             >
               + Add Patient
@@ -923,7 +1132,7 @@ export default function NewPayment() {
                 {[
                   "FILE NAME",
                   "TAG",
-                  "REFERENCE #",
+                  "REFERENCE ",
                   "COMMENTS",
                   "UPLOADED ON",
                   "ACTION",
@@ -1167,6 +1376,29 @@ export default function NewPayment() {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
+          {/* OCR Upload Button - shown on all screen sizes */}
+          <Tooltip title="Upload EOB for ERA Conversion" arrow>
+            <Button 
+              variant="contained"
+              onClick={handleOpenOCR}
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#0066FF",
+                color: "white",
+                fontSize: 12,
+                fontWeight: 700,
+                borderRadius: "8px",
+                height: 34,
+                px: 1.6,
+                minWidth: 34,
+                boxShadow: "none",
+                "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+              }}
+            >
+              <CloudUpload sx={{ fontSize: 18 }} />
+            </Button>
+          </Tooltip>
+
           {/* Process Virtual Card — shown on larger screens */}
           {!isMobile && (
             <Button variant="outlined" sx={headerBtnSx}>
@@ -1231,6 +1463,388 @@ export default function NewPayment() {
           {rightPanel}
         </Box>
       </Box>
+
+      {/* ── OCR Dialog ── */}
+      <Dialog
+        open={showOCRDialog}
+        onClose={handleCloseOCR}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            overflow: "hidden",
+            maxHeight: "90vh",
+          },
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #E5E7EB",
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{ fontSize: 18, fontWeight: 700, color: "#1F2937", mb: 0.5 }}
+            >
+              EOB to ERA Converter
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+              Upload EOB documents to automatically extract and convert to ERA format
+            </Typography>
+          </Box>
+          <IconButton
+            size="small"
+            onClick={handleCloseOCR}
+            sx={{
+              p: 0.5,
+              color: "#6B7280",
+              "&:hover": { backgroundColor: "#F3F4F6", color: "#111827" },
+            }}
+          >
+            <Close sx={{ fontSize: 24 }} />
+          </IconButton>
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ px: 3, py: 3, maxHeight: "60vh", overflow: "auto", ...thinScroll }}>
+          {/* Upload Area */}
+          <Box
+            sx={{
+              border: "2px dashed #D1D5DB",
+              borderRadius: "12px",
+              p: 4,
+              textAlign: "center",
+              backgroundColor: "#F9FAFB",
+              mb: 3,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              "&:hover": {
+                borderColor: "#0066FF",
+                backgroundColor: "#EEF3FE",
+              },
+            }}
+            onClick={() => document.getElementById("ocr-file-input").click()}
+          >
+            <CloudUpload
+              sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }}
+            />
+            <Typography
+              sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 1 }}
+            >
+              Click to upload EOB files
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+              Supports PDF, JPG, PNG formats • Maximum 10MB per file
+            </Typography>
+            <input
+              id="ocr-file-input"
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleFileUpload}
+              style={{ display: "none" }}
+            />
+          </Box>
+
+          {/* File List */}
+          {ocrFiles.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}
+              >
+                Uploaded Files ({ocrFiles.length})
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {ocrFiles.map((file) => (
+                  <Box
+                    key={file.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 2,
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "10px",
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "8px",
+                        backgroundColor:
+                          file.status === "success"
+                            ? "#DFF5EA"
+                            : file.status === "error"
+                            ? "#FCE4E4"
+                            : file.status === "processing"
+                            ? "#FDF1DC"
+                            : "#E3EEFB",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {file.status === "success" ? (
+                        <CheckCircle sx={{ fontSize: 24, color: "#1E7F55" }} />
+                      ) : file.status === "error" ? (
+                        <ErrorIcon sx={{ fontSize: 24, color: "#C0392B" }} />
+                      ) : (
+                        <CloudUpload
+                          sx={{
+                            fontSize: 24,
+                            color:
+                              file.status === "processing"
+                                ? "#F59E0B"
+                                : "#2F5FA8",
+                          }}
+                        />
+                      )}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#1F2937",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {file.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                        {file.size} •{" "}
+                        {file.status === "success"
+                          ? "Converted successfully"
+                          : file.status === "error"
+                          ? "Failed to process"
+                          : file.status === "processing"
+                          ? "Processing..."
+                          : "Ready to process"}
+                      </Typography>
+                    </Box>
+                    {file.status === "pending" && (
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveFile(file.id)}
+                        sx={{
+                          p: 0.5,
+                          color: "#6B7280",
+                          "&:hover": { color: "#C0392B" },
+                        }}
+                      >
+                        <Close sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* Results Table */}
+          {ocrResults.length > 0 && (
+            <Box>
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 2 }}
+              >
+                Converted ERA Data ({ocrResults.length})
+              </Typography>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  boxShadow: "none",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "10px",
+                }}
+              >
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {[
+                        "Claim #",
+                        "Location",
+                        "Payer",
+                        "Payment Method",
+                        "Check #",
+                        "Check Date",
+                        "Claimed",
+                        "Paid",
+                        "Adjustment",
+                      ].map((h) => (
+                        <TableCell
+                          key={h}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: 11,
+                            color: "#4B5563",
+                            backgroundColor: "#F9FAFB",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {h}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {ocrResults.map((result) => (
+                      <TableRow key={result.id}>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.claimNumber}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.location}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.payerName}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.paymentMethod}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.checkNumber}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          {result.checkDate}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11 }}>
+                          ${money(result.claimedAmount)}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11, color: "#1E7F55", fontWeight: 600 }}>
+                          ${money(result.paidAmount)}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
+                          ${money(result.adjustmentAmount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderTop: "1px solid #E5E7EB",
+            backgroundColor: "#F9FAFB",
+          }}
+        >
+          <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+            {(() => {
+              const processedCount = ocrFiles.filter(f => f.status === "success").length;
+              const pendingCount = ocrFiles.filter(f => f.status === "pending").length;
+              const totalRecords = ocrResults.length;
+              
+              if (totalRecords > 0 && pendingCount === 0) {
+                return `${totalRecords} record(s) converted from ${processedCount} file(s)`;
+              } else if (pendingCount > 0 && totalRecords > 0) {
+                return `${totalRecords} record(s) converted, ${pendingCount} file(s) ready to process`;
+              } else if (pendingCount > 0) {
+                return `${pendingCount} file(s) ready to process`;
+              } else if (ocrFiles.length > 0) {
+                return `${processedCount} file(s) processed`;
+              } else {
+                return "No files uploaded";
+              }
+            })()}
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              onClick={handleCloseOCR}
+              disabled={ocrProcessing}
+              sx={{
+                textTransform: "none",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#374151",
+                borderColor: "#E5E7EB",
+                px: 2.5,
+                "&:hover": { borderColor: "#D1D5DB" },
+              }}
+            >
+              Cancel
+            </Button>
+            {ocrResults.length > 0 ? (
+              <>
+                {ocrFiles.filter(f => f.status === "pending").length > 0 && (
+                  <Button
+                    variant="outlined"
+                    onClick={handleProcessOCR}
+                    disabled={ocrProcessing}
+                    sx={{
+                      textTransform: "none",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#0066FF",
+                      borderColor: "#0066FF",
+                      px: 2.5,
+                      "&:hover": { 
+                        borderColor: "#0052CC",
+                        backgroundColor: "rgba(0, 102, 255, 0.04)"
+                      },
+                    }}
+                  >
+                    {ocrProcessing ? "Processing..." : "Process More Files"}
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={handleSaveERA}
+                  sx={{
+                    textTransform: "none",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    backgroundColor: "#0066FF",
+                    px: 2.5,
+                    boxShadow: "none",
+                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                  }}
+                >
+                  Save ERA Data
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleProcessOCR}
+                disabled={ocrFiles.filter(f => f.status === "pending").length === 0 || ocrProcessing}
+                sx={{
+                  textTransform: "none",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  backgroundColor: "#0066FF",
+                  px: 2.5,
+                  boxShadow: "none",
+                  "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                }}
+              >
+                {ocrProcessing ? "Processing..." : "Process Files"}
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
