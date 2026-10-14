@@ -14,7 +14,7 @@ function AppContent() {
 
   return (
     <SidebarProvider>
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#f5f7fa' }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#ECEEF4' }}>
         <Sidebar />
         <TopBar />
         <Box
@@ -24,7 +24,7 @@ function AppContent() {
             pt: '56px',
             height: '100vh',
             overflow: 'auto',
-            backgroundColor: '#f5f7fa',
+            backgroundColor: '#ECEEF4',
             minWidth: 0,
           }}
         >

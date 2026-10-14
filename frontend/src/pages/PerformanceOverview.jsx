@@ -37,10 +37,6 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 
-// -----------------------------------------------------------------------------
-// MOCK DATA
-// -----------------------------------------------------------------------------
-
 const monthlyClaims = [
   { month: "Jan", claims: 2500 },
   { month: "Feb", claims: 4200 },
@@ -99,7 +95,6 @@ const PROVIDER_SCALE = [
   1, 0.9, 1.1, 0.8, 1.2, 0.95, 1.05, 1.3, 0.85, 1, 0.9, 1.15,
 ];
 
-// Each row gets a unique `id` so recharts doesn't merge identical provider names
 const providerData = PROVIDER_SCALE.map((scale, id) => {
   const row = { id, name: "Abhimani Wickrama" };
   MONTHS_12.forEach((m, i) => {
@@ -131,10 +126,6 @@ const billedRows = Array.from({ length: 11 }, () => ({
   collected: "$1,25,800.68",
 }));
 
-// -----------------------------------------------------------------------------
-// COMMON TOKENS
-// -----------------------------------------------------------------------------
-
 const blue = "#0867F2";
 const border = "#E5E7EB";
 const text = "#111827";
@@ -146,10 +137,6 @@ const BAR_LIGHTEST = "#C7DEFB";
 
 const monthBarColor = (claims) =>
   claims >= 3800 ? BAR_DARK : claims < 2000 ? BAR_LIGHTEST : BAR_LIGHT;
-
-// -----------------------------------------------------------------------------
-// HEADER CONTROLS
-// -----------------------------------------------------------------------------
 
 const FilterSelect = ({ label, width = 100, xsFull = false }) => (
   <FormControl
@@ -213,17 +200,14 @@ const segmentWrap = {
   flexShrink: 0,
 };
 
-// -----------------------------------------------------------------------------
-// CARDS
-// -----------------------------------------------------------------------------
-
 const DashboardCard = ({ children, sx = {} }) => (
   <Paper
     elevation={0}
     sx={{
       border: `1px solid ${border}`,
-      borderRadius: "10px",
+      borderRadius: "7px",
       backgroundColor: "#fff",
+      boxShadow: "none",
       overflow: "hidden",
       minWidth: 0,
       display: "flex",
@@ -256,8 +240,9 @@ const KpiCard = ({ title, value, subtitle, icon, valueColor = "#1665D8" }) => (
     sx={{
       minHeight: 104,
       border: `1px solid ${border}`,
-      borderRadius: "10px",
-      p: "18px 20px",
+      borderRadius: "7px",
+      boxShadow: "none",
+      p: 1.75,
       backgroundColor: "#fff",
       display: "flex",
       alignItems: "center",
@@ -306,10 +291,6 @@ const KpiCard = ({ title, value, subtitle, icon, valueColor = "#1665D8" }) => (
   </Paper>
 );
 
-// -----------------------------------------------------------------------------
-// STATUS CARD (Rounding / Coding / Notes)
-// -----------------------------------------------------------------------------
-
 const StatusCard = ({
   title,
   badge,
@@ -320,7 +301,6 @@ const StatusCard = ({
   colors,
   sx = {},
 }) => {
-  // Build the donut from the real counts
   const sum = items.reduce((a, it) => a + Number(it[1]), 0) || 1;
   let acc = 0;
   const stops = items
@@ -332,7 +312,7 @@ const StatusCard = ({
     .join(", ");
 
   return (
-    <DashboardCard sx={{ p: "18px 20px", minHeight: 190, ...sx }}>
+    <DashboardCard sx={{ p: 1.75, minHeight: 190, ...sx }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={{ fontSize: "14px", fontWeight: 700, color: text }}>
           {title}
@@ -361,7 +341,6 @@ const StatusCard = ({
         spacing={2}
         sx={{ flex: 1, mt: 1.5 }}
       >
-        {/* Donut */}
         <Box
           sx={{
             width: 104,
@@ -397,7 +376,6 @@ const StatusCard = ({
           </Box>
         </Box>
 
-        {/* Legend */}
         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
           {items.map((item, index) => (
             <Stack
@@ -459,17 +437,13 @@ const StatusCard = ({
   );
 };
 
-// -----------------------------------------------------------------------------
-// ICD / CPT CARD
-// -----------------------------------------------------------------------------
-
 const PROBLEM_COLORS = ["#3478E5", "#7437F5", "#1594AF", "#0D9B75", "#E78900"];
 
 const ProblemsCard = ({ title, subtitle, rows }) => {
   const max = Math.max(...rows.map((r) => Number(r[1])));
 
   return (
-    <DashboardCard sx={{ p: "20px 24px" }}>
+    <DashboardCard sx={{ p: 1.75 }}>
       <Typography sx={{ fontSize: "14px", fontWeight: 700, mb: 0.5 }}>
         {title}
       </Typography>
@@ -536,13 +510,8 @@ const ProblemsCard = ({ title, subtitle, rows }) => {
   );
 };
 
-// -----------------------------------------------------------------------------
-// OVERVIEW
-// -----------------------------------------------------------------------------
-
 const OverviewView = () => (
   <>
-    {/* KPI CARDS */}
     <Box
       sx={{
         display: "grid",
@@ -551,7 +520,7 @@ const OverviewView = () => (
           sm: "repeat(2, minmax(0,1fr))",
           md: "repeat(4, minmax(0,1fr))",
         },
-        gap: "20px",
+        gap: 1.5,
       }}
     >
       <KpiCard
@@ -585,7 +554,6 @@ const OverviewView = () => (
       />
     </Box>
 
-    {/* CHART ROW */}
     <Box
       sx={{
         display: "grid",
@@ -594,13 +562,12 @@ const OverviewView = () => (
           md: "repeat(2, minmax(0,1fr))",
           lg: "minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)",
         },
-        gap: "20px",
+        gap: 1.5,
       }}
     >
-      {/* Monthly claims */}
       <DashboardCard
         sx={{
-          p: "16px 18px",
+          p: 1.75,
           gridColumn: { md: "1 / -1", lg: "auto" },
         }}
       >
@@ -640,8 +607,7 @@ const OverviewView = () => (
         </Box>
       </DashboardCard>
 
-      {/* Collections */}
-      <DashboardCard sx={{ p: "16px 18px" }}>
+      <DashboardCard sx={{ p: 1.75 }}>
         <CardTitle title="Collections" subtitle="Inpatient vs outpatient" />
 
         <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
@@ -712,8 +678,7 @@ const OverviewView = () => (
         </Stack>
       </DashboardCard>
 
-      {/* AR Aging */}
-      <DashboardCard sx={{ p: "16px 18px" }}>
+      <DashboardCard sx={{ p: 1.75 }}>
         <CardTitle title="AR aging" subtitle="Amount by days outstanding" />
 
         <Box sx={{ height: 140, width: "100%" }}>
@@ -751,7 +716,6 @@ const OverviewView = () => (
       </DashboardCard>
     </Box>
 
-    {/* ROUNDING / CODING / NOTES */}
     <Box
       sx={{
         display: "grid",
@@ -760,7 +724,7 @@ const OverviewView = () => (
           md: "repeat(2, minmax(0,1fr))",
           lg: "repeat(3, minmax(0,1fr))",
         },
-        gap: "20px",
+        gap: 1.5,
       }}
     >
       <StatusCard
@@ -808,7 +772,6 @@ const OverviewView = () => (
       />
     </Box>
 
-    {/* ICD / CPT */}
     <Box
       sx={{
         display: "grid",
@@ -816,7 +779,7 @@ const OverviewView = () => (
           xs: "minmax(0,1fr)",
           md: "repeat(2, minmax(0,1fr))",
         },
-        gap: "20px",
+        gap: 1.5,
       }}
     >
       <ProblemsCard
@@ -854,10 +817,6 @@ const OverviewView = () => (
   </>
 );
 
-// -----------------------------------------------------------------------------
-// CLAIMS VIEW
-// -----------------------------------------------------------------------------
-
 const CARD_BORDER = "#C3D2F2";
 const CELL_BORDER = "#DCE4F5";
 const HEAD_BG = "#EAF0FF";
@@ -867,7 +826,6 @@ const BILLED_BG = "#FAC3C3";
 const COLLECTED_BG = "#C6EFAE";
 const HEAT_MAX = 908;
 
-// Heat-map shade: higher value = darker blue, "–" stays white
 const heatBg = (v) =>
   typeof v === "number"
     ? `rgba(37, 99, 235, ${0.1 + 0.5 * (v / HEAT_MAX)})`
@@ -919,7 +877,6 @@ const ProviderHead = ({ rowSpan }) => (
   </TableCell>
 );
 
-// Custom tick: plain SVG <text> never wraps (recharts' default tick does)
 const NameTick = ({ x, y, payload }) => (
   <text
     x={x}
@@ -936,7 +893,6 @@ const NameTick = ({ x, y, payload }) => (
 
 const ClaimsView = () => (
   <>
-    {/* TOP: TOTAL CLAIMS + PROVIDER CLAIMS */}
     <Box
       sx={{
         display: "grid",
@@ -944,10 +900,9 @@ const ClaimsView = () => (
           xs: "minmax(0,1fr)",
           lg: "minmax(0,1.35fr) minmax(0,1fr)",
         },
-        gap: "20px",
+        gap: 1.5,
       }}
     >
-      {/* TOTAL CLAIMS */}
       <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <SectionTitle>Total Claims</SectionTitle>
 
@@ -1022,12 +977,10 @@ const ClaimsView = () => (
         </DashboardCard>
       </Box>
 
-      {/* PROVIDER CLAIMS */}
       <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <SectionTitle>Provider Claims</SectionTitle>
 
         <DashboardCard sx={{ borderColor: "#E1E8F6", flex: 1 }}>
-          {/* Header strip: name + 12-month legend */}
           <Box sx={{ backgroundColor: HEAD_BG, px: 2, py: 1.25 }}>
             <Typography
               sx={{ fontSize: "12px", fontWeight: 700, color: text, mb: 0.75 }}
@@ -1080,7 +1033,6 @@ const ClaimsView = () => (
               >
                 <XAxis type="number" hide />
 
-                {/* Unique id per row so identical names don't collapse into one row */}
                 <YAxis
                   type="category"
                   dataKey="id"
@@ -1110,7 +1062,6 @@ const ClaimsView = () => (
       </Box>
     </Box>
 
-    {/* TOTAL BILLED & COLLECTED */}
     <Box sx={{ minWidth: 0 }}>
       <SectionTitle>Total Billed & Collected</SectionTitle>
 
@@ -1203,10 +1154,6 @@ const ClaimsView = () => (
   </>
 );
 
-// -----------------------------------------------------------------------------
-// MAIN COMPONENT
-// -----------------------------------------------------------------------------
-
 export default function PerformanceOverview() {
   const [activeTab, setActiveTab] = useState("overview");
   const [viewMode, setViewMode] = useState("chart");
@@ -1214,37 +1161,33 @@ export default function PerformanceOverview() {
   return (
     <Box
       sx={{
-        width: "100%",
         minHeight: "100vh",
-        backgroundColor: "#F7F8FA",
-        px: { xs: "12px", sm: "16px", md: "24px" },
-        pt: { xs: "12px", md: "9px" },
-        pb: "24px",
+        width: "100%",
+        backgroundColor: "#F5F6F8",
+        p: 2.25,
         boxSizing: "border-box",
+        "& *": {
+          boxSizing: "border-box",
+        },
       }}
     >
-      {/* Figma: frames are 1224px wide, header → content gap 24px */}
       <Box
         sx={{
-          maxWidth: 1224,
-          mx: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: "24px",
+          gap: 1.75,
         }}
       >
-        {/* ------------------------------------------------------------- */}
-        {/* HEADER  (Figma: padding 16px 24px, gap 10px, white)            */}
-        {/* ------------------------------------------------------------- */}
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
             gap: "10px",
-            p: { xs: "12px", md: "16px 24px" },
+            p: 1.75,
             backgroundColor: "#FFFFFF",
-            borderRadius: "8px",
+            border: `1px solid ${border}`,
+            borderRadius: "7px",
           }}
         >
           <Typography
@@ -1263,7 +1206,6 @@ export default function PerformanceOverview() {
             alignItems="center"
             sx={{ flexWrap: "wrap", gap: "12px", width: "100%" }}
           >
-            {/* OVERVIEW / CLAIMS */}
             <Box sx={segmentWrap}>
               <Button
                 onClick={() => setActiveTab("overview")}
@@ -1288,7 +1230,6 @@ export default function PerformanceOverview() {
               </Button>
             </Box>
 
-            {/* LIST / CHART */}
             <Box sx={segmentWrap}>
               <Button
                 aria-label="List view"
@@ -1307,7 +1248,6 @@ export default function PerformanceOverview() {
               </Button>
             </Box>
 
-            {/* FILTERS */}
             <FilterSelect label="YTD" width={92} />
             <FilterSelect label="Practice" width={112} />
             <FilterSelect label="Insurance" width={120} />
@@ -1317,14 +1257,11 @@ export default function PerformanceOverview() {
           </Stack>
         </Box>
 
-        {/* ------------------------------------------------------------- */}
-        {/* CONTENT  (Figma: column, gap 20px)                             */}
-        {/* ------------------------------------------------------------- */}
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
+            gap: 1.75,
             minWidth: 0,
           }}
         >
