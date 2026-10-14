@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -2387,6 +2387,27 @@ const TABS = [
   "Patient Statement",
 ];
 
+/* Table fills the window from its top edge down to the bottom (minus any box below it) */
+function useFillHeight(bottomRef, extra, deps) {
+  const areaRef = useRef(null);
+  const [height, setHeight] = useState(null);
+
+  useLayoutEffect(() => {
+    const calc = () => {
+      if (!areaRef.current) return;
+      const top = areaRef.current.getBoundingClientRect().top;
+      const below = bottomRef.current ? bottomRef.current.offsetHeight : 0;
+      setHeight(Math.max(window.innerHeight - top - below - extra, 200));
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return [areaRef, height];
+}
+
 function PreBillingClaim() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -3077,6 +3098,26 @@ function PreBillingClaim() {
   const activeFilterCount = Object.values(appliedFilters || {}).filter(
     hasVal,
   ).length;
+
+  const bottomRef = useRef(null);
+  const [tableAreaRef, tableH] = useFillHeight(
+    bottomRef,
+    currentTab === 3 ? 28 : currentTab === 1 ? 8 : 16, // gap under the table
+    [
+      currentTab,
+      viewMode,
+      statementSubTab,
+      showAdvancedFilters,
+      hideTabsAndBanner,
+    ],
+  );
+
+  const fillSx = {
+    ...listContainerSx,
+    maxHeight: "none",
+    height: tableH ?? "calc(100vh - 300px)", // fallback on the first render
+    minHeight: 200,
+  };
 
   return (
     <Box
@@ -3885,7 +3926,7 @@ function PreBillingClaim() {
           </Box>
 
           {viewMode === "list" ? (
-            <Box sx={{ pb: 0, px: 2 }}>
+            <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
               <ListTable
                 columns={filterColumns(PRE_COLUMNS, visibleColumnsPreBilling)}
                 rows={preBillingFiltered}
@@ -3896,7 +3937,8 @@ function PreBillingClaim() {
                 }}
                 minWidth={900}
                 stickyHeader
-                containerSx={listContainerTallSx} // was listContainerSx
+                // containerSx={listContainerTallSx} // was listContainerSx
+                containerSx={fillSx}
                 headSx={listHeadSx}
                 cellSx={listCellSx}
                 rowSx={(row, index) => ({
@@ -3907,13 +3949,14 @@ function PreBillingClaim() {
             </Box>
           ) : (
             <Box
+              ref={tableAreaRef}
               sx={{
                 width: "100%",
                 pb: 2,
                 px: 2,
-                maxHeight: "calc(100vh - 280px)",
-
+                height: tableH ?? "calc(100vh - 300px)",
                 overflowY: "auto",
+                ...thinScroll,
               }}
             >
               <Box
@@ -3947,13 +3990,6 @@ function PreBillingClaim() {
                       }}
                     >
                       <Box
-                        // sx={{
-                        //   display: "flex",
-                        //   gap: 2,
-                        //   alignItems: "flex-start",
-                        //   width: "100%",
-                        //   flexWrap: { xs: "wrap", xl: "nowrap" },
-                        // }}
                         sx={{
                           display: "flex",
                           columnGap: "28px",
@@ -4362,7 +4398,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Post-billing table */}
-          <Box sx={{ pb: 0, px: 2 }}>
+          <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
             <ListTable
               columns={filterColumns(POST_COLUMNS, visibleColumnsPostBilling)}
               rows={postBillingFiltered}
@@ -4371,11 +4407,12 @@ function PreBillingClaim() {
               onRowClick={handlePostBillingRowClick}
               minWidth={1100}
               stickyHeader
-              containerSx={{
-                ...listContainerSx,
-                maxHeight: "calc(100vh - 640px)",
-                minHeight: 190,
-              }}
+              // containerSx={{
+              //   ...listContainerSx,
+              //   maxHeight: "calc(100vh - 640px)",
+              //   minHeight: 190,
+              // }}
+              containerSx={fillSx}
               headSx={listHeadSx}
               cellSx={listCellSx}
               rowSx={(row, index) => ({
@@ -4387,7 +4424,7 @@ function PreBillingClaim() {
 
           {/* Additional Details */}
 
-          <Box sx={{ px: 2, pb: 0.25 }}>
+          <Box ref={bottomRef} sx={{ px: 2, pb: 0.25 }}>
             <Box
               sx={{
                 backgroundColor: "#FFFFFF",
@@ -4772,7 +4809,7 @@ function PreBillingClaim() {
             </Box>
           </Box>
 
-          <Box sx={{ pb: 0, px: 2 }}>
+          <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
             <ListTable
               columns={filterColumns(REMIT_COLUMNS, visibleColumnsRemittance)}
               rows={remittanceFiltered}
@@ -4789,9 +4826,8 @@ function PreBillingClaim() {
               filterActive={!eraEobFilter.ERA || !eraEobFilter.EOB}
               minWidth={1000}
               stickyHeader
-              // containerSx={listContainerSx}
-
-              containerSx={listContainerTallSx} // was listContainerSx
+              // containerSx={listContainerTallSx} // was listContainerSx
+              containerSx={fillSx}
               headSx={{ ...listHeadSx, whiteSpace: "nowrap" }}
               cellSx={listCellSx}
               rowSx={(row, index) => ({
@@ -4960,7 +4996,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Tables */}
-          <Box sx={{ pb: 0, px: 2 }}>
+          <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
                 columns={filterColumns(
@@ -4979,11 +5015,12 @@ function PreBillingClaim() {
                 ctx={{ selectedIds: statementSelectedRows }}
                 minWidth={1100}
                 stickyHeader
-                containerSx={{
-                  ...listContainerSx,
-                  maxHeight: "calc(100vh - 440px)",
-                  minHeight: 290,
-                }}
+                // containerSx={{
+                //   ...listContainerSx,
+                //   maxHeight: "calc(100vh - 440px)",
+                //   minHeight: 290,
+                // }}
+                containerSx={fillSx}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
@@ -5012,11 +5049,12 @@ function PreBillingClaim() {
                 }}
                 minWidth={1000}
                 stickyHeader
-                containerSx={{
-                  ...listContainerSx,
-                  maxHeight: "calc(100vh - 440px)",
-                  minHeight: 220,
-                }}
+                // containerSx={{
+                //   ...listContainerSx,
+                //   maxHeight: "calc(100vh - 440px)",
+                //   minHeight: 220,
+                // }}
+                containerSx={fillSx}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
@@ -5039,6 +5077,7 @@ function PreBillingClaim() {
 
           {/* Footer */}
           <Box
+            ref={bottomRef}
             sx={{
               mx: 2,
               mb: 1.5,
