@@ -204,6 +204,12 @@ const listContainerSx = {
   ...thinScroll,
 };
 
+const listContainerTallSx = {
+  ...listContainerSx,
+  maxHeight: "calc(100vh - 300px)",
+  minHeight: 350,
+};
+
 const stmtContainerSx = {
   boxShadow: "none",
   border: "1px solid #E5E7EB",
@@ -331,7 +337,14 @@ function useSortedRows(rows, columns) {
 }
 
 /* Header cell with the sort arrow (shared by all 4 tabs) */
-function SortHeadCell({ column, sortDir, onSort, onFilterClick, filterActive, sx }) {
+function SortHeadCell({
+  column,
+  sortDir,
+  onSort,
+  onFilterClick,
+  filterActive,
+  sx,
+}) {
   const active = !!sortDir;
   const titles = column.sort ? SORT_TITLES[column.sort] : null;
   const plainLabel =
@@ -349,9 +362,9 @@ function SortHeadCell({ column, sortDir, onSort, onFilterClick, filterActive, sx
           gap: 0.15,
         }}
       >
-        <Box 
+        <Box
           component="span"
-          sx={{ 
+          sx={{
             lineHeight: 1.15,
           }}
         >
@@ -465,7 +478,11 @@ function ListTable({
                 column={col}
                 sortDir={sort.columnId === col.id ? sort.dir : null}
                 onSort={handleSort}
-                onFilterClick={col.hasFilter ? (e) => onFilterClick && onFilterClick(e, col.id) : undefined}
+                onFilterClick={
+                  col.hasFilter
+                    ? (e) => onFilterClick && onFilterClick(e, col.id)
+                    : undefined
+                }
                 filterActive={col.hasFilter && filterActive}
                 sx={{
                   ...headSx,
@@ -501,7 +518,7 @@ function ListTable({
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 sx={{
                   ...(rowSx ? rowSx(row, index) : {}),
-                  ...(onRowClick ? { cursor: 'pointer' } : {}),
+                  ...(onRowClick ? { cursor: "pointer" } : {}),
                 }}
               >
                 {selection && (
@@ -572,27 +589,35 @@ function RowActionIcons({ onEdit, onCheck }) {
     ["Document", Icon5, undefined],
     ["Check", Icon6, onCheck],
   ];
-  
+
   const handleEditClick = (e) => {
     e.stopPropagation(); // Prevent row click
     if (onEdit) onEdit();
   };
-  
+
   const handleIconClick = (handler) => (e) => {
     e.stopPropagation(); // Prevent row click
     if (handler) handler();
   };
-  
+
   return (
     <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
       <Tooltip title="Edit" placement="top">
-        <IconButton size="small" sx={{ padding: "4px" }} onClick={handleEditClick}>
+        <IconButton
+          size="small"
+          sx={{ padding: "4px" }}
+          onClick={handleEditClick}
+        >
           <EditIconClaim />
         </IconButton>
       </Tooltip>
       {items.map(([title, Icon, handler]) => (
         <Tooltip key={title} title={title} placement="top">
-          <IconButton size="small" sx={{ padding: "4px" }} onClick={handleIconClick(handler)}>
+          <IconButton
+            size="small"
+            sx={{ padding: "4px" }}
+            onClick={handleIconClick(handler)}
+          >
             <Icon />
           </IconButton>
         </Tooltip>
@@ -654,33 +679,51 @@ function IconHead({ Icon, title }) {
 }
 
 const HEAD_LABEL_SX = {
-  fontSize: 12,
+  fontSize: 10,
   fontWeight: 600,
   color: "#374151",
-  mb: 0.8,
+  mb: 0.3,
 };
 
 const filterFieldSx = {
-  fontSize: 13,
+  fontSize: 11,
   "& .MuiOutlinedInput-root": {
-    fontSize: 13,
-    borderRadius: "8px",
-    "& fieldset": { borderColor: "#E5E7EB", borderRadius: "8px" },
+    fontSize: 11,
+    borderRadius: "6px",
+    height: 32,
+    minHeight: 32,
+    "& fieldset": { borderColor: "#E5E7EB", borderRadius: "6px" },
+    "& input": {
+      py: 0,
+      px: 0.8,
+      height: 32,
+    },
+  },
+  "& .MuiInputAdornment-root": {
+    ml: 0,
+    mr: 0.3,
   },
 };
 
 const filterSelectSx = {
-  fontSize: 13,
-  borderRadius: "8px",
+  fontSize: 11,
+  borderRadius: "6px",
+  height: 32,
+  minHeight: 32,
   "& .MuiOutlinedInput-notchedOutline": {
     borderColor: "#E5E7EB",
-    borderRadius: "8px",
+    borderRadius: "6px",
   },
-  "& .MuiSelect-icon": { color: "#6B7280" },
+  "& .MuiSelect-icon": { color: "#6B7280", fontSize: 18 },
   "& .MuiSelect-select": {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+    py: 0,
+    px: 0.8,
+    height: 32,
+    display: "flex",
+    alignItems: "center",
   },
 };
 
@@ -729,10 +772,8 @@ function FilterText({ label, value, onChange }) {
         sx={filterFieldSx}
         InputProps={{
           endAdornment: (
-            <InputAdornment position="end">
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Search style={{ width: 16, height: 16 }} />
-              </Box>
+            <InputAdornment position="end" sx={{ m: 0 }}>
+              <Search style={{ width: 13, height: 13 }} />
             </InputAdornment>
           ),
         }}
@@ -742,9 +783,10 @@ function FilterText({ label, value, onChange }) {
 }
 
 function FilterDate({ label, value, onChange }) {
-  const parsed = value && dayjs(value, "MM/DD/YYYY", true).isValid()
-    ? dayjs(value, "MM/DD/YYYY", true)
-    : null;
+  const parsed =
+    value && dayjs(value, "MM/DD/YYYY", true).isValid()
+      ? dayjs(value, "MM/DD/YYYY", true)
+      : null;
 
   return (
     <Box>
@@ -761,15 +803,51 @@ function FilterDate({ label, value, onChange }) {
           }}
           format="MM/DD/YYYY"
           slots={{
-            openPickerIcon: () => <BlueCalendarIcon width={16} height={17} />,
+            openPickerIcon: () => <BlueCalendarIcon width={13} height={13} />,
           }}
           slotProps={{
             textField: {
               fullWidth: true,
               size: "small",
-              sx: filterFieldSx,
+              sx: {
+                "& .MuiPickersInputBase-root, & .MuiPickersOutlinedInput-root, & .MuiOutlinedInput-root":
+                  {
+                    height: 32,
+                    minHeight: 32,
+                    fontSize: 11,
+                    borderRadius: "6px",
+                    paddingRight: "8px",
+                  },
+                "& .MuiPickersOutlinedInput-notchedOutline, & .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#E5E7EB",
+                    borderRadius: "6px",
+                  },
+                // inner typed text: "MM/DD/YYYY" sections
+                "& .MuiPickersInputBase-sectionsContainer": {
+                  padding: 0,
+                  paddingLeft: "6px",
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  fontSize: 11,
+                  lineHeight: 1,
+                },
+                "& .MuiPickersSectionList-root": {
+                  padding: 0,
+                  fontSize: 11,
+                },
+                // older MUI X versions (v6) use a real <input>
+                "& .MuiInputBase-input": {
+                  padding: "0 0 0 6px",
+                  height: 32,
+                  fontSize: 11,
+                  boxSizing: "border-box",
+                },
+                "& .MuiInputAdornment-root": { ml: 0, mr: 0 },
+              },
             },
-            openPickerButton: { sx: { p: 0.5, mr: 0.2 } },
+            openPickerButton: { sx: { p: 0, mr: 0 } },
           }}
         />
       </LocalizationProvider>
@@ -869,7 +947,13 @@ function AdjText({ label, value, onChange, placeholder, type, endIcon }) {
 /* Grid-view helpers */
 function GridSection({ title, flex, children, sx }) {
   return (
-    <Box sx={{ flex: { xs: "1 1 auto", md: flex }, minWidth: { xs: "100%", sm: "45%", md: "auto" }, ...sx }}>
+    <Box
+      sx={{
+        flex: { xs: "1 1 auto", md: flex },
+        minWidth: { xs: "100%", sm: "45%", md: "auto" },
+        ...sx,
+      }}
+    >
       <Typography
         variant="caption"
         sx={{
@@ -1793,7 +1877,14 @@ const REMIT_COLUMNS = [
     label: "Action",
     center: true,
     render: (r, ctx) => (
-      <Box sx={{ display: "flex", gap: 0.5, alignItems: "center", justifyContent: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 0.5,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Tooltip title="Refresh/Sync" placement="top">
           <IconButton
             size="small"
@@ -1829,7 +1920,13 @@ const NEW_STMT_COLUMNS = [
     center: true,
     cellSx: { fontWeight: 600 },
   },
-  { id: "pid", label: "ID", sort: "number", center: true, cellSx: { color: "#4B5563" } },
+  {
+    id: "pid",
+    label: "ID",
+    sort: "number",
+    center: true,
+    cellSx: { color: "#4B5563" },
+  },
   { id: "dob", label: "DOB", center: true, cellSx: { color: "#4B5563" } },
   {
     id: "category",
@@ -1941,7 +2038,14 @@ const NEW_STMT_COLUMNS = [
     cellSx: { fontSize: 10.5, color: "#A16207", maxWidth: 130 },
     render: (r) =>
       r.alert ? (
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.6, justifyContent: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 0.6,
+            justifyContent: "center",
+          }}
+        >
           <Box
             sx={{
               width: 5,
@@ -2017,7 +2121,12 @@ const HISTORY_COLUMNS = [
     center: true,
     cellSx: { color: "#9CA3AF" },
   },
-  { id: "noOfStatement", label: "No. of Statement", sort: "number", center: true },
+  {
+    id: "noOfStatement",
+    label: "No. of Statement",
+    sort: "number",
+    center: true,
+  },
   {
     id: "totalBalance",
     label: "Total Balance",
@@ -2199,14 +2308,18 @@ const HISTORY_COLUMN_OPTIONS = [
 // Helper to get column options based on current tab and subtab
 const getColumnOptions = (tabIndex, statementSubTab = "new") => {
   switch (tabIndex) {
-    case 0: return PRE_BILLING_COLUMN_OPTIONS;
-    case 1: return POST_BILLING_COLUMN_OPTIONS;
-    case 2: return REMITTANCE_COLUMN_OPTIONS;
-    case 3: 
-      return statementSubTab === "history" 
-        ? HISTORY_COLUMN_OPTIONS 
+    case 0:
+      return PRE_BILLING_COLUMN_OPTIONS;
+    case 1:
+      return POST_BILLING_COLUMN_OPTIONS;
+    case 2:
+      return REMITTANCE_COLUMN_OPTIONS;
+    case 3:
+      return statementSubTab === "history"
+        ? HISTORY_COLUMN_OPTIONS
         : PATIENT_STATEMENT_COLUMN_OPTIONS;
-    default: return PRE_BILLING_COLUMN_OPTIONS;
+    default:
+      return PRE_BILLING_COLUMN_OPTIONS;
   }
 };
 
@@ -2216,9 +2329,9 @@ const setAllColumns = (columnOptions, value) => ({
 
 // Helper function to filter columns based on visibility
 const filterColumns = (columns, visibleColumns) => {
-  return columns.filter(col => {
+  return columns.filter((col) => {
     // Always show actions/action column
-    if (col.id === 'actions' || col.id === 'action') return true;
+    if (col.id === "actions" || col.id === "action") return true;
     // Show column if it's visible
     return visibleColumns[col.id] !== false;
   });
@@ -2281,12 +2394,12 @@ function PreBillingClaim() {
   // Determine initial tab based on URL path
   const getInitialTab = () => {
     const path = location.pathname;
-    if (path.includes('/claims/pre-billing')) return 0;
-    if (path.includes('/claims/post-billing')) return 1;
-    if (path.includes('/claims/remittance-era')) return 2;
-    if (path.includes('/claims/patient-statement')) return 3;
+    if (path.includes("/claims/pre-billing")) return 0;
+    if (path.includes("/claims/post-billing")) return 1;
+    if (path.includes("/claims/remittance-era")) return 2;
+    if (path.includes("/claims/patient-statement")) return 3;
     // For /encounters route, check if there's a stored tab in state, otherwise default to 0
-    if (path === '/encounters') {
+    if (path === "/encounters") {
       return location.state?.activeTab ?? 0;
     }
     return location.state?.activeTab ?? 0;
@@ -2311,34 +2424,33 @@ function PreBillingClaim() {
   });
 
   // Check if we're on a claims submenu route (not encounters)
-  const isClaimsSubmenu = location.pathname.startsWith('/claims/');
+  const isClaimsSubmenu = location.pathname.startsWith("/claims/");
   // Determine if tabs and banner should be hidden
   const hideTabsAndBanner = isClaimsSubmenu;
   const [showColumnSettings, setShowColumnSettings] = useState(false);
-  
+
   // OCR Upload state (only for Remittance/ERA tab)
   const [showOCRDialog, setShowOCRDialog] = useState(false);
   const [ocrFiles, setOcrFiles] = useState([]);
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrResults, setOcrResults] = useState([]);
-  
+
   // Separate column visibility for each tab
   const [visibleColumnsPreBilling, setVisibleColumnsPreBilling] = useState(
-    setAllColumns(PRE_BILLING_COLUMN_OPTIONS, true)
+    setAllColumns(PRE_BILLING_COLUMN_OPTIONS, true),
   );
   const [visibleColumnsPostBilling, setVisibleColumnsPostBilling] = useState(
-    setAllColumns(POST_BILLING_COLUMN_OPTIONS, true)
+    setAllColumns(POST_BILLING_COLUMN_OPTIONS, true),
   );
   const [visibleColumnsRemittance, setVisibleColumnsRemittance] = useState(
-    setAllColumns(REMITTANCE_COLUMN_OPTIONS, true)
+    setAllColumns(REMITTANCE_COLUMN_OPTIONS, true),
   );
-  const [visibleColumnsPatientStatement, setVisibleColumnsPatientStatement] = useState(
-    setAllColumns(PATIENT_STATEMENT_COLUMN_OPTIONS, true)
-  );
+  const [visibleColumnsPatientStatement, setVisibleColumnsPatientStatement] =
+    useState(setAllColumns(PATIENT_STATEMENT_COLUMN_OPTIONS, true));
   const [visibleColumnsHistory, setVisibleColumnsHistory] = useState(
-    setAllColumns(HISTORY_COLUMN_OPTIONS, true)
+    setAllColumns(HISTORY_COLUMN_OPTIONS, true),
   );
-  
+
   // Temporary state for column dialog (only apply on Save View)
   const [tempVisibleColumns, setTempVisibleColumns] = useState({});
 
@@ -2356,24 +2468,34 @@ function PreBillingClaim() {
   // Helper to get current visible columns based on tab
   const getCurrentVisibleColumns = () => {
     switch (currentTab) {
-      case 0: return visibleColumnsPreBilling;
-      case 1: return visibleColumnsPostBilling;
-      case 2: return visibleColumnsRemittance;
-      case 3: 
-        return statementSubTab === "history" 
-          ? visibleColumnsHistory 
+      case 0:
+        return visibleColumnsPreBilling;
+      case 1:
+        return visibleColumnsPostBilling;
+      case 2:
+        return visibleColumnsRemittance;
+      case 3:
+        return statementSubTab === "history"
+          ? visibleColumnsHistory
           : visibleColumnsPatientStatement;
-      default: return visibleColumnsPreBilling;
+      default:
+        return visibleColumnsPreBilling;
     }
   };
 
   // Helper to set visible columns for current tab
   const setCurrentVisibleColumns = (columns) => {
     switch (currentTab) {
-      case 0: setVisibleColumnsPreBilling(columns); break;
-      case 1: setVisibleColumnsPostBilling(columns); break;
-      case 2: setVisibleColumnsRemittance(columns); break;
-      case 3: 
+      case 0:
+        setVisibleColumnsPreBilling(columns);
+        break;
+      case 1:
+        setVisibleColumnsPostBilling(columns);
+        break;
+      case 2:
+        setVisibleColumnsRemittance(columns);
+        break;
+      case 3:
         if (statementSubTab === "history") {
           setVisibleColumnsHistory(columns);
         } else {
@@ -2382,19 +2504,19 @@ function PreBillingClaim() {
         break;
     }
   };
-  
+
   // Open dialog - initialize temp state with current tab's visibility
   const handleOpenColumnSettings = () => {
     setTempVisibleColumns(getCurrentVisibleColumns());
     setShowColumnSettings(true);
   };
-  
+
   // Save View - apply temp state to actual state
   const handleSaveColumnSettings = () => {
     setCurrentVisibleColumns(tempVisibleColumns);
     setShowColumnSettings(false);
   };
-  
+
   // Cancel - discard changes
   const handleCancelColumnSettings = () => {
     setShowColumnSettings(false);
@@ -2432,59 +2554,61 @@ function PreBillingClaim() {
 
   const handleProcessOCR = async () => {
     setOcrProcessing(true);
-    
+
     // Only process files that are still "pending"
-    const filesToProcess = ocrFiles.filter(f => f.status === "pending");
-    
+    const filesToProcess = ocrFiles.filter((f) => f.status === "pending");
+
     if (filesToProcess.length === 0) {
       setOcrProcessing(false);
       return;
     }
-    
+
     // Keep existing results and add new ones
     const newResults = [];
     let recordIndex = ocrResults.length; // Continue from existing count
-    
+
     for (let i = 0; i < filesToProcess.length; i++) {
       const file = filesToProcess[i];
-      
+
       // Update status to processing
       setOcrFiles((prev) =>
         prev.map((f) =>
-          f.id === file.id ? { ...f, status: "processing" } : f
-        )
+          f.id === file.id ? { ...f, status: "processing" } : f,
+        ),
       );
-      
+
       // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
       // Simulate success/failure (90% success rate)
       const success = Math.random() > 0.1;
-      
+
       setOcrFiles((prev) =>
         prev.map((f) =>
           f.id === file.id
             ? { ...f, status: success ? "success" : "error" }
-            : f
-        )
+            : f,
+        ),
       );
-      
+
       if (success) {
         // Simulate multiple records per PDF (1-3 records per file)
         const recordsInFile = Math.floor(Math.random() * 3) + 1; // 1 to 3 records
-        
+
         for (let j = 0; j < recordsInFile; j++) {
           const claimAmount = BILLED_LIST[recordIndex % BILLED_LIST.length];
           const paidAmount = Math.round(claimAmount * 0.85);
           const adjustmentAmount = claimAmount - paidAmount;
-          
+
           newResults.push({
             id: `${file.id}-${j}`,
-            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ''}`,
+            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ""}`,
             claimNumber: `${12345670 + recordIndex}`,
             payerName: INSURERS[recordIndex % INSURERS.length],
             checkNumber: `${14315316146 + recordIndex}`,
-            checkDate: dayjs().subtract(recordIndex, "day").format("MM/DD/YYYY"),
+            checkDate: dayjs()
+              .subtract(recordIndex, "day")
+              .format("MM/DD/YYYY"),
             claimedAmount: claimAmount,
             paidAmount: paidAmount,
             adjustmentAmount: adjustmentAmount,
@@ -2493,12 +2617,12 @@ function PreBillingClaim() {
             paymentMethod: recordIndex % 2 === 0 ? "Cheque" : "EFT",
             status: "Posted",
           });
-          
+
           recordIndex++;
         }
       }
     }
-    
+
     // Append new results to existing ones
     setOcrResults((prev) => [...prev, ...newResults]);
     setOcrProcessing(false);
@@ -2507,7 +2631,8 @@ function PreBillingClaim() {
   const handleSaveERA = () => {
     // Convert OCR results to remittance format and add to the top of the table
     const newRemittanceRecords = ocrResults.map((result, index) => {
-      const newId = Math.max(...remittanceRecords.map(r => r.id), 0) + index + 1;
+      const newId =
+        Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
       return {
         id: newId,
         remittanceId: result.claimNumber,
@@ -2527,10 +2652,12 @@ function PreBillingClaim() {
 
     // Add new records to the top of the table
     setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
-    
+
     // Show success message
-    alert(`${ocrResults.length} EOB records converted and added to Remittance table successfully!`);
-    
+    alert(
+      `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
+    );
+
     // Close dialog and reset
     handleCloseOCR();
   };
@@ -2580,13 +2707,13 @@ function PreBillingClaim() {
   /* Reopen the correct tab when returning from an edit page */
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/claims/pre-billing')) {
+    if (path.includes("/claims/pre-billing")) {
       setCurrentTab(0);
-    } else if (path.includes('/claims/post-billing')) {
+    } else if (path.includes("/claims/post-billing")) {
       setCurrentTab(1);
-    } else if (path.includes('/claims/remittance-era')) {
+    } else if (path.includes("/claims/remittance-era")) {
       setCurrentTab(2);
-    } else if (path.includes('/claims/patient-statement')) {
+    } else if (path.includes("/claims/patient-statement")) {
       setCurrentTab(3);
     } else if (location.state?.activeTab !== undefined) {
       setCurrentTab(location.state.activeTab);
@@ -2603,7 +2730,7 @@ function PreBillingClaim() {
   const [remittanceSelected, setRemittanceSelected] = useState([]);
   const [remittanceRecords, setRemittanceRecords] = useState(() => {
     // Load from localStorage if available
-    const saved = localStorage.getItem('remittanceRecords');
+    const saved = localStorage.getItem("remittanceRecords");
     return saved ? JSON.parse(saved) : remittanceData;
   });
   const [eraEobFilter, setEraEobFilter] = useState({ ERA: true, EOB: true });
@@ -2611,7 +2738,10 @@ function PreBillingClaim() {
 
   // Save remittance records to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('remittanceRecords', JSON.stringify(remittanceRecords));
+    localStorage.setItem(
+      "remittanceRecords",
+      JSON.stringify(remittanceRecords),
+    );
   }, [remittanceRecords]);
 
   /* Patient Statement */
@@ -2622,19 +2752,19 @@ function PreBillingClaim() {
   const [historySelectedRows, setHistorySelectedRows] = useState([]);
 
   const handleEditClick = (claim) =>
-    navigate(`/claims/post-billing-edit/${claim.id}`, { 
-      state: { claim, activeTab: currentTab } 
+    navigate(`/claims/post-billing-edit/${claim.id}`, {
+      state: { claim, activeTab: currentTab },
     });
-  
+
   // Handler for clicking on post-billing row (anywhere in the row) - opens detail view
   const handlePostBillingRowClick = (claim) =>
-    navigate(`/claims/post-billing-detail/${claim.id}`, { 
-      state: { claim, activeTab: currentTab } 
+    navigate(`/claims/post-billing-detail/${claim.id}`, {
+      state: { claim, activeTab: currentTab },
     });
 
   const handleEditPreBilling = (claim) =>
-    navigate(`/pre-billing-edit/${claim.id}`, { 
-      state: { claim, activeTab: currentTab } 
+    navigate(`/pre-billing-edit/${claim.id}`, {
+      state: { claim, activeTab: currentTab },
     });
 
   const handleShowEobDetails = (remittance) =>
@@ -2654,15 +2784,15 @@ function PreBillingClaim() {
     setSearchQuery("");
     handleResetFilters();
     setSelectedRows([]);
-    
+
     // Only update URL if we're on a claims submenu route, not on /encounters
     const currentPath = location.pathname;
-    if (currentPath.startsWith('/claims/')) {
+    if (currentPath.startsWith("/claims/")) {
       const tabRoutes = [
-        '/claims/pre-billing',
-        '/claims/post-billing',
-        '/claims/remittance-era',
-        '/claims/patient-statement'
+        "/claims/pre-billing",
+        "/claims/post-billing",
+        "/claims/remittance-era",
+        "/claims/patient-statement",
       ];
       navigate(tabRoutes[newValue], { replace: true });
     }
@@ -2829,7 +2959,7 @@ function PreBillingClaim() {
   const remittanceStatusFiltered = remitChipStatus
     ? remittanceSearched.filter((r) => r.status === remitChipStatus)
     : remittanceSearched;
-  
+
   // Apply ERA/EOB type filter
   const remittanceFiltered = remittanceStatusFiltered.filter((r) => {
     if (eraEobFilter.ERA && eraEobFilter.EOB) return true;
@@ -2960,243 +3090,293 @@ function PreBillingClaim() {
     >
       {/* Main Tabs and Search Bar in Same Row (never wraps) - Hidden for Claims Submenu */}
       {!hideTabsAndBanner && (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: { xs: "wrap", md: "nowrap" },
-          borderBottom: "1px solid #e0e0e0",
-          backgroundColor: "white",
-          px: { xs: 0.75, sm: 1.5 },
-          gap: 0.75,
-          minWidth: 0,
-        }}
-      >
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            minHeight: 36,
-            flex: { xs: "1 1 100%", md: "0 0 auto" },
-            flexShrink: 0,
-            "& .MuiTabs-flexContainer": { gap: 0 },
-            "& .MuiTab-root": {
-              minHeight: 36,
-              textTransform: "none",
-              fontSize: { xs: 10, sm: 11 },
-              fontWeight: 500,
-              color: "#000000",
-              px: { xs: 0.6, sm: 1 },
-              minWidth: "auto",
-              whiteSpace: "nowrap",
-            },
-            "& .Mui-selected": { color: "#0066ff", fontWeight: 600 },
-            "& .MuiTabs-indicator": { backgroundColor: "#0066ff", height: 2.5 },
-            "& .MuiTabs-scroller": { overflow: "visible !important" },
-          }}
-        >
-          {TABS.map((label) => (
-            <Tab key={label} label={label} />
-          ))}
-        </Tabs>
-
-        {/* Right-hand group takes the leftover space; only the search shrinks */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: { xs: 0.4, sm: 0.6 },
-            flex: { xs: "1 1 100%", md: "1 1 0" },
+            justifyContent: "space-between",
+            flexWrap: { xs: "wrap", md: "nowrap" },
+            borderBottom: "1px solid #e0e0e0",
+            backgroundColor: "white",
+            px: { xs: 0.75, sm: 1.5 },
+            gap: 0.75,
             minWidth: 0,
-            justifyContent: "flex-end",
-            mt: { xs: 1, md: 0 },
           }}
         >
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              minHeight: 36,
+              flex: { xs: "1 1 100%", md: "0 0 auto" },
+              flexShrink: 0,
+              "& .MuiTabs-flexContainer": { gap: 0 },
+              "& .MuiTab-root": {
+                minHeight: 36,
+                textTransform: "none",
+                fontSize: { xs: 10, sm: 11 },
+                fontWeight: 500,
+                color: "#000000",
+                px: { xs: 0.6, sm: 1 },
+                minWidth: "auto",
+                whiteSpace: "nowrap",
+              },
+              "& .Mui-selected": { color: "#0066ff", fontWeight: 600 },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#0066ff",
+                height: 2.5,
+              },
+              "& .MuiTabs-scroller": { overflow: "visible !important" },
+            }}
+          >
+            {TABS.map((label) => (
+              <Tab key={label} label={label} />
+            ))}
+          </Tabs>
+
+          {/* Right-hand group takes the leftover space; only the search shrinks */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 0.6,
-              flex: "1 1 100px",
-              maxWidth: { xs: "100%", md: 240 },
-              minWidth: { xs: 0, sm: 80 },
-              height: 28,
-              px: 1,
-              borderRadius: "14px",
-              backgroundColor: "#F5F7FA",
-              border: "1px solid #E5E7EB",
-              transition: "border-color 0.2s ease",
-              "&:hover": { borderColor: "#0066FF" },
-              "&:focus-within": { borderColor: "#0066FF" },
-            }}
-          >
-            <SearchIcon width={14} height={14} color="#9CA3AF" />
-
-            <InputBase
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              inputProps={{ "aria-label": "Search" }}
-              sx={{
-                flex: 1,
-                minWidth: 0,
-                fontSize: 11,
-                color: "#4B5563",
-                "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
-              }}
-            />
-
-            {searchQuery && (
-              <IconButton
-                size="small"
-                onClick={() => setSearchQuery("")}
-                sx={{ p: 0.25 }}
-              >
-                <Close sx={{ fontSize: 14 }} />
-              </IconButton>
-            )}
-          </Box>
-
-          {/* Advanced Filters */}
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              const tabKeys = ['preBilling', 'postBilling', 'remittance', 'statement'];
-              const currentKey = tabKeys[currentTab];
-              setShowAdvancedFilters(prev => ({
-                ...prev,
-                [currentKey]: !prev[currentKey]
-              }));
-            }}
-            sx={{
-              height: 28,
-              minHeight: 28,
-              width: { xs: "auto", sm: activeFilterCount > 0 ? 140 : 115 },
-              minWidth: { xs: 28, sm: activeFilterCount > 0 ? 140 : 115 },
-              borderRadius: "14px",
-              textTransform: "none",
-              color: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#374151",
-              borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0066FF" : "#E5E7EB",
-              backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#EFF6FF" : "#FFFFFF",
-              fontWeight: 500,
-              fontSize: { xs: 0, sm: 10.5 },
-              px: { xs: 0, sm: 1.25 },
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: { xs: 0, sm: "6px" },
-              "&:hover": {
-                borderColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#0052CC" : "#D1D5DB",
-                backgroundColor: showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? "#DBEAFE" : "#F9FAFB",
-              },
+              gap: { xs: 0.4, sm: 0.6 },
+              flex: { xs: "1 1 100%", md: "1 1 0" },
+              minWidth: 0,
+              justifyContent: "flex-end",
+              mt: { xs: 1, md: 0 },
             }}
           >
             <Box
               sx={{
-                width: 16,
-                height: 16,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                gap: 0.6,
+                flex: "1 1 100px",
+                maxWidth: { xs: "100%", md: 240 },
+                minWidth: { xs: 0, sm: 80 },
+                height: 28,
+                px: 1,
+                borderRadius: "14px",
+                backgroundColor: "#F5F7FA",
+                border: "1px solid #E5E7EB",
+                transition: "border-color 0.2s ease",
+                "&:hover": { borderColor: "#0066FF" },
+                "&:focus-within": { borderColor: "#0066FF" },
               }}
             >
-              {showAdvancedFilters[['preBilling', 'postBilling', 'remittance', 'statement'][currentTab]] ? (
-                <Close sx={{ fontSize: 16 }} />
-              ) : (
-                <FilterIcon1 width={16} height={16} />
+              <SearchIcon width={14} height={14} color="#9CA3AF" />
+
+              <InputBase
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                inputProps={{ "aria-label": "Search" }}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 11,
+                  color: "#4B5563",
+                  "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+                }}
+              />
+
+              {searchQuery && (
+                <IconButton
+                  size="small"
+                  onClick={() => setSearchQuery("")}
+                  sx={{ p: 0.25 }}
+                >
+                  <Close sx={{ fontSize: 14 }} />
+                </IconButton>
               )}
             </Box>
 
-            <Box component="span" sx={{ lineHeight: 1, whiteSpace: "nowrap", display: { xs: "none", sm: "block" } }}>
-              Advanced Filters
-            </Box>
-
-            {activeFilterCount > 0 && (
+            {/* Advanced Filters */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                const tabKeys = [
+                  "preBilling",
+                  "postBilling",
+                  "remittance",
+                  "statement",
+                ];
+                const currentKey = tabKeys[currentTab];
+                setShowAdvancedFilters((prev) => ({
+                  ...prev,
+                  [currentKey]: !prev[currentKey],
+                }));
+              }}
+              sx={{
+                height: 28,
+                minHeight: 28,
+                width: { xs: "auto", sm: activeFilterCount > 0 ? 140 : 115 },
+                minWidth: { xs: 28, sm: activeFilterCount > 0 ? 140 : 115 },
+                borderRadius: "14px",
+                textTransform: "none",
+                color: showAdvancedFilters[
+                  ["preBilling", "postBilling", "remittance", "statement"][
+                    currentTab
+                  ]
+                ]
+                  ? "#0066FF"
+                  : "#374151",
+                borderColor: showAdvancedFilters[
+                  ["preBilling", "postBilling", "remittance", "statement"][
+                    currentTab
+                  ]
+                ]
+                  ? "#0066FF"
+                  : "#E5E7EB",
+                backgroundColor: showAdvancedFilters[
+                  ["preBilling", "postBilling", "remittance", "statement"][
+                    currentTab
+                  ]
+                ]
+                  ? "#EFF6FF"
+                  : "#FFFFFF",
+                fontWeight: 500,
+                fontSize: { xs: 0, sm: 10.5 },
+                px: { xs: 0, sm: 1.25 },
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: { xs: 0, sm: "6px" },
+                "&:hover": {
+                  borderColor: showAdvancedFilters[
+                    ["preBilling", "postBilling", "remittance", "statement"][
+                      currentTab
+                    ]
+                  ]
+                    ? "#0052CC"
+                    : "#D1D5DB",
+                  backgroundColor: showAdvancedFilters[
+                    ["preBilling", "postBilling", "remittance", "statement"][
+                      currentTab
+                    ]
+                  ]
+                    ? "#DBEAFE"
+                    : "#F9FAFB",
+                },
+              }}
+            >
               <Box
-                component="span"
                 sx={{
-                  minWidth: 18,
-                  height: 18,
-                  px: "5px",
-                  borderRadius: "9px",
-                  backgroundColor: "#0057E7",
-                  color: "#FFFFFF",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  lineHeight: 1,
+                  width: 16,
+                  height: 16,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
                 }}
               >
-                {activeFilterCount}
+                {showAdvancedFilters[
+                  ["preBilling", "postBilling", "remittance", "statement"][
+                    currentTab
+                  ]
+                ] ? (
+                  <Close sx={{ fontSize: 16 }} />
+                ) : (
+                  <FilterIcon1 width={16} height={16} />
+                )}
               </Box>
-            )}
-          </Button>
 
-          {/* List / Grid toggle - only for Pre-billing tab */}
-          {currentTab === 0 && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexShrink: 0,
-                height: 28,
-                border: "1px solid #E5E7EB",
-                borderRadius: "6px",
-                overflow: "hidden",
-                backgroundColor: "#FFFFFF",
-              }}
-            >
-              {[
-                ["list", ViewList],
-                ["grid", ViewModule],
-              ].map(([mode, Icon]) => (
-                <IconButton
-                  key={mode}
-                  size="small"
-                  onClick={() => setViewMode(mode)}
+              <Box
+                component="span"
+                sx={{
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+                Advanced Filters
+              </Box>
+
+              {activeFilterCount > 0 && (
+                <Box
+                  component="span"
                   sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 0,
-                    backgroundColor: viewMode === mode ? "#0066FF" : "#FFFFFF",
-                    color: viewMode === mode ? "#FFFFFF" : "#6B7280",
-                    "&:hover": {
-                      backgroundColor:
-                        viewMode === mode ? "#0052CC" : "#F3F4F6",
-                    },
+                    minWidth: 18,
+                    height: 18,
+                    px: "5px",
+                    borderRadius: "9px",
+                    backgroundColor: "#0057E7",
+                    color: "#FFFFFF",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    lineHeight: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
                   }}
                 >
-                  <Icon sx={{ fontSize: 15 }} />
-                </IconButton>
-              ))}
-            </Box>
-          )}
+                  {activeFilterCount}
+                </Box>
+              )}
+            </Button>
+
+            {/* List / Grid toggle - only for Pre-billing tab */}
+            {currentTab === 0 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  height: 28,
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "6px",
+                  overflow: "hidden",
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                {[
+                  ["list", ViewList],
+                  ["grid", ViewModule],
+                ].map(([mode, Icon]) => (
+                  <IconButton
+                    key={mode}
+                    size="small"
+                    onClick={() => setViewMode(mode)}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 0,
+                      backgroundColor:
+                        viewMode === mode ? "#0066FF" : "#FFFFFF",
+                      color: viewMode === mode ? "#FFFFFF" : "#6B7280",
+                      "&:hover": {
+                        backgroundColor:
+                          viewMode === mode ? "#0052CC" : "#F3F4F6",
+                      },
+                    }}
+                  >
+                    <Icon sx={{ fontSize: 15 }} />
+                  </IconButton>
+                ))}
+              </Box>
+            )}
+          </Box>
         </Box>
-      </Box>
       )}
 
       {/* Advanced Filters Panel */}
       {(showAdvancedFilters.preBilling && currentTab === 0) ||
-       (showAdvancedFilters.postBilling && currentTab === 1) ||
-       (showAdvancedFilters.remittance && currentTab === 2) ||
-       (showAdvancedFilters.statement && currentTab === 3) ? (
-        <Box sx={{ backgroundColor: "#F5F7FA", px: 1.5, py: 1 }}>
+      (showAdvancedFilters.postBilling && currentTab === 1) ||
+      (showAdvancedFilters.remittance && currentTab === 2) ||
+      (showAdvancedFilters.statement && currentTab === 3) ? (
+        <Box sx={{ backgroundColor: "#F5F7FA", px: 1.2, py: 0.5 }}>
           <Box
             sx={{
               backgroundColor: "#FFFFFF",
-              borderRadius: "10px",
+              borderRadius: "6px",
               border: "1px solid #E5E7EB",
-              p: "12px 12px 14px",
+              p: "6px 8px 8px",
             }}
           >
             {/* PRE-BILLING FILTERS */}
@@ -3204,15 +3384,15 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: { 
+                  gridTemplateColumns: {
                     xs: "repeat(1, minmax(0, 1fr))",
-                    sm: "repeat(2, minmax(0, 1fr))", 
+                    sm: "repeat(2, minmax(0, 1fr))",
                     md: "repeat(3, minmax(0, 1fr))",
-                    lg: "repeat(6, minmax(0, 1fr))"
+                    lg: "repeat(6, minmax(0, 1fr))",
                   },
-                  columnGap: "14px",
-                  rowGap: "19px",
-                  mb: "20px",
+                  columnGap: "8px",
+                  rowGap: "10px",
+                  mb: "10px",
                 }}
               >
                 {/* Row 1 */}
@@ -3291,15 +3471,15 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: { 
+                  gridTemplateColumns: {
                     xs: "repeat(1, minmax(0, 1fr))",
-                    sm: "repeat(2, minmax(0, 1fr))", 
+                    sm: "repeat(2, minmax(0, 1fr))",
                     md: "repeat(3, minmax(0, 1fr))",
-                    lg: "repeat(6, minmax(0, 1fr))"
+                    lg: "repeat(6, minmax(0, 1fr))",
                   },
-                  columnGap: "14px",
-                  rowGap: "19px",
-                  mb: "20px",
+                  columnGap: "8px",
+                  rowGap: "10px",
+                  mb: "10px",
                 }}
               >
                 {/* Row 1 */}
@@ -3335,7 +3515,6 @@ function PreBillingClaim() {
                   value={filterForm.batchNumber}
                   onChange={setFilterField("batchNumber")}
                 />
-
                 {/* Row 2 */}
                 <FilterText
                   label="Claim Number"
@@ -3370,7 +3549,6 @@ function PreBillingClaim() {
                   onChange={setFilterField("insurancePlan")}
                   options={PLAN_OPTIONS}
                 />
-
                 {/* Row 3 */}
                 <FilterSelect
                   label="Select Rendering Provider"
@@ -3396,15 +3574,15 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: { 
+                  gridTemplateColumns: {
                     xs: "repeat(1, minmax(0, 1fr))",
-                    sm: "repeat(2, minmax(0, 1fr))", 
+                    sm: "repeat(2, minmax(0, 1fr))",
                     md: "repeat(3, minmax(0, 1fr))",
-                    lg: "repeat(6, minmax(0, 1fr))"
+                    lg: "repeat(6, minmax(0, 1fr))",
                   },
-                  columnGap: "14px",
-                  rowGap: "19px",
-                  mb: "20px",
+                  columnGap: "8px",
+                  rowGap: "10px",
+                  mb: "10px",
                 }}
               >
                 {/* Row 1 */}
@@ -3439,7 +3617,6 @@ function PreBillingClaim() {
                   value={filterForm.eraId}
                   onChange={setFilterField("eraId")}
                 />
-
                 {/* Row 2 */}
                 <FilterSelect
                   label="Status"
@@ -3474,7 +3651,6 @@ function PreBillingClaim() {
                   value={filterForm.totalPostedAmount}
                   onChange={setFilterField("totalPostedAmount")}
                 />
-
                 {/* Row 3 */}
                 <FilterText
                   label="Total Unposted Amount"
@@ -3494,15 +3670,15 @@ function PreBillingClaim() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: { 
+                  gridTemplateColumns: {
                     xs: "repeat(1, minmax(0, 1fr))",
-                    sm: "repeat(2, minmax(0, 1fr))", 
+                    sm: "repeat(2, minmax(0, 1fr))",
                     md: "repeat(3, minmax(0, 1fr))",
-                    lg: "repeat(6, minmax(0, 1fr))"
+                    lg: "repeat(6, minmax(0, 1fr))",
                   },
-                  columnGap: "14px",
-                  rowGap: "19px",
-                  mb: "20px",
+                  columnGap: "8px",
+                  rowGap: "10px",
+                  mb: "10px",
                 }}
               >
                 {statementSubTab === "new" ? (
@@ -3562,7 +3738,13 @@ function PreBillingClaim() {
                       label="Batch Status"
                       value={filterForm.status}
                       onChange={setFilterField("status")}
-                      options={["Draft", "Email sent", "Partially sent", "Failure", "Queued for email"]}
+                      options={[
+                        "Draft",
+                        "Email sent",
+                        "Partially sent",
+                        "Failure",
+                        "Queued for email",
+                      ]}
                     />
                     <FilterText
                       label="Global Patient ID"
@@ -3574,7 +3756,7 @@ function PreBillingClaim() {
               </Box>
             )}
 
-            <Box sx={{ display: "flex", gap: "16px", alignItems: "center" }}>
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <Button
                 variant="contained"
                 disableElevation
@@ -3584,10 +3766,10 @@ function PreBillingClaim() {
                   backgroundColor: "#0057E7",
                   color: "#FFFFFF",
                   fontWeight: 500,
-                  fontSize: 12,
-                  height: 28,
-                  minWidth: 64,
-                  px: 1.5,
+                  fontSize: 10.5,
+                  height: 24,
+                  minWidth: 54,
+                  px: 1,
                   borderRadius: "4px",
                   "&:hover": { backgroundColor: "#0049C2" },
                 }}
@@ -3602,10 +3784,10 @@ function PreBillingClaim() {
                   color: "#0057E7",
                   borderColor: "#0057E7",
                   fontWeight: 500,
-                  fontSize: 12,
-                  height: 30,
-                  minWidth: 60,
-                  px: 1.5,
+                  fontSize: 10.5,
+                  height: 24,
+                  minWidth: 50,
+                  px: 1,
                   borderRadius: "4px",
                   backgroundColor: "#FFFFFF",
                   "&:hover": {
@@ -3623,13 +3805,7 @@ function PreBillingClaim() {
 
       {/* ================= PRE-BILLING TAB ================= */}
       {currentTab === 0 && (
-        <Box
-          sx={{
-            height: "calc(100vh - 160px)",
-            overflowY: "auto",
-            ...thinScroll,
-          }}
-        >
+        <Box>
           {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Status chips + actions */}
@@ -3720,7 +3896,7 @@ function PreBillingClaim() {
                 }}
                 minWidth={900}
                 stickyHeader
-                containerSx={listContainerSx}
+                containerSx={listContainerTallSx} // was listContainerSx
                 headSx={listHeadSx}
                 cellSx={listCellSx}
                 rowSx={(row, index) => ({
@@ -3736,6 +3912,7 @@ function PreBillingClaim() {
                 pb: 2,
                 px: 2,
                 maxHeight: "calc(100vh - 280px)",
+
                 overflowY: "auto",
               }}
             >
@@ -3765,7 +3942,7 @@ function PreBillingClaim() {
                         borderRadius: 1,
                         px: 1.5,
                         py: 0.8,
-                         mb: "14px",
+                        mb: "14px",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
                       }}
                     >
@@ -3778,13 +3955,13 @@ function PreBillingClaim() {
                         //   flexWrap: { xs: "wrap", xl: "nowrap" },
                         // }}
                         sx={{
-    display: "flex",
-    columnGap: "28px",
-    rowGap: 2,
-    alignItems: "flex-start",
-    width: "100%",
-    flexWrap: { xs: "wrap", xl: "nowrap" },
-  }}
+                          display: "flex",
+                          columnGap: "28px",
+                          rowGap: 2,
+                          alignItems: "flex-start",
+                          width: "100%",
+                          flexWrap: { xs: "wrap", xl: "nowrap" },
+                        }}
                       >
                         {/* Checkbox */}
                         <Box sx={{ flex: "0 0 auto", pt: 0.3 }}>
@@ -3795,7 +3972,7 @@ function PreBillingClaim() {
                               setSelectedRows((prev) =>
                                 prev.includes(row.id)
                                   ? prev.filter((id) => id !== row.id)
-                                  : [...prev, row.id]
+                                  : [...prev, row.id],
                               );
                             }}
                             sx={{
@@ -3823,11 +4000,15 @@ function PreBillingClaim() {
                           >
                             Encounter Details
                           </Typography>
-                          <GridLine label="Encounter ID:">{row.encounterId}</GridLine>
+                          <GridLine label="Encounter ID:">
+                            {row.encounterId}
+                          </GridLine>
                           <GridLine label="Claim ID:">{row.claimId}</GridLine>
                           <GridLine label="DOS:">{row.dos}</GridLine>
                           <GridLine label="POS:">{row.pos}</GridLine>
-                          <GridLine label="Rendering Prov.:" last>JohnJohn</GridLine>
+                          <GridLine label="Rendering Prov.:" last>
+                            JohnJohn
+                          </GridLine>
                         </Box>
 
                         {/* Patient Details */}
@@ -3839,7 +4020,7 @@ function PreBillingClaim() {
                               color: "rgba(0, 0, 0, 0.87)",
                               textTransform: "uppercase",
                               letterSpacing: "0.3px",
-                               mb: 2,
+                              mb: 2,
                               mt: 1,
                               lineHeight: 1,
                             }}
@@ -3863,7 +4044,9 @@ function PreBillingClaim() {
                           <GridLine label="FIN:">{row.fin}</GridLine>
                           <GridLine label="MRN:">{row.mrn}</GridLine>
                           <GridLine label="DOB:">{row.dob}</GridLine>
-                          <GridLine label="Referring Prov.:" last>JohnJohn</GridLine>
+                          <GridLine label="Referring Prov.:" last>
+                            JohnJohn
+                          </GridLine>
                         </Box>
 
                         {/* Admit & Authorization */}
@@ -3875,7 +4058,7 @@ function PreBillingClaim() {
                               color: "rgba(0, 0, 0, 0.87)",
                               textTransform: "uppercase",
                               letterSpacing: "0.3px",
-                               mb: 2,
+                              mb: 2,
                               mt: 1,
                               lineHeight: 1,
                             }}
@@ -3885,7 +4068,9 @@ function PreBillingClaim() {
                           <GridLine label="DOA:">{row.doa}</GridLine>
                           <GridLine label="Referral#:">{row.referral}</GridLine>
                           <GridLine label="Authir:">{row.author}</GridLine>
-                          <GridLine label="Subscriber ID:" last>{row.subscriber}</GridLine>
+                          <GridLine label="Subscriber ID:" last>
+                            {row.subscriber}
+                          </GridLine>
                         </Box>
 
                         {/* Audit & Authorization */}
@@ -3897,7 +4082,7 @@ function PreBillingClaim() {
                               color: "rgba(0, 0, 0, 0.87)",
                               textTransform: "uppercase",
                               letterSpacing: "0.3px",
-                               mb: 2,
+                              mb: 2,
                               mt: 1,
                               lineHeight: 1,
                             }}
@@ -3907,7 +4092,9 @@ function PreBillingClaim() {
                           <GridLine label="CPT:">{row.cpt2}</GridLine>
                           <GridLine label="Modifier:">{row.modifier2}</GridLine>
                           <GridLine label="ICD:">{row.icd2}</GridLine>
-                          <GridLine label="Place of Service:" last>{row.placeOfService}</GridLine>
+                          <GridLine label="Place of Service:" last>
+                            {row.placeOfService}
+                          </GridLine>
                         </Box>
 
                         {/* Insurance & Payment */}
@@ -3919,17 +4106,23 @@ function PreBillingClaim() {
                               color: "rgba(0, 0, 0, 0.87)",
                               textTransform: "uppercase",
                               letterSpacing: "0.3px",
-                             mb: 2,
+                              mb: 2,
                               mt: 1,
                               lineHeight: 1,
                             }}
                           >
                             Insurance & Payment Details
                           </Typography>
-                          <GridLine label="Insurance:">{row.primaryInsurance}</GridLine>
+                          <GridLine label="Insurance:">
+                            {row.primaryInsurance}
+                          </GridLine>
                           <GridLine label="Plan:">{row.plan}</GridLine>
-                          <GridLine label="Billed amount:">{row.billedAmount}</GridLine>
-                          <GridLine label="Patient paymemt:" last>{row.patientPayment}</GridLine>
+                          <GridLine label="Billed amount:">
+                            {row.billedAmount}
+                          </GridLine>
+                          <GridLine label="Patient paymemt:" last>
+                            {row.patientPayment}
+                          </GridLine>
                         </Box>
 
                         {/* Status & Remarks */}
@@ -4010,13 +4203,7 @@ function PreBillingClaim() {
 
       {/* ================= POST-BILLING TAB ================= */}
       {currentTab === 1 && (
-        <Box
-          sx={{
-            height: "calc(100vh - 160px)",
-            overflowY: "auto",
-            ...thinScroll,
-          }}
-        >
+        <Box>
           {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Action buttons row */}
@@ -4184,7 +4371,11 @@ function PreBillingClaim() {
               onRowClick={handlePostBillingRowClick}
               minWidth={1100}
               stickyHeader
-              containerSx={listContainerSx}
+              containerSx={{
+                ...listContainerSx,
+                maxHeight: "calc(100vh - 640px)",
+                minHeight: 190,
+              }}
               headSx={listHeadSx}
               cellSx={listCellSx}
               rowSx={(row, index) => ({
@@ -4195,191 +4386,251 @@ function PreBillingClaim() {
           </Box>
 
           {/* Additional Details */}
-         
-<Box sx={{ px: 1, pb: 1 }}>
-  <Box
-    sx={{
-      backgroundColor: "#FFFFFF",
-      borderRadius: "10px",
-      border: "1px solid #E5E7EB",
-      p: 0.75,
-      mt: 0.5,
-    }}
-  >
-    <Typography
-      sx={{
-        fontSize: 13,
-        fontWeight: 600,
-        color: "#1E293B",
-        mb: 1,
-      }}
-    >
-      Additional Details
-    </Typography>
 
-    <Box
-      sx={{
-        backgroundColor: "#F5F6FA",
-        borderRadius: "8px",
-        p: 1,
-      }}
-    >
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 1,
-          mb: 1,
-        }}
-      >
-        <AdjSelect
-          label="Type"
-          value={adj.type}
-          onChange={setAdjField("type")}
-          options={[
-            ["adjustment1", "Adjustment Type 1"],
-            ["adjustment2", "Adjustment Type 2"],
-          ]}
-        />
+          <Box sx={{ px: 2, pb: 0.25 }}>
+            <Box
+              sx={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: "8px",
+                border: "1px solid #E5E7EB",
+                p: 1,
+                mt: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#1E293B",
+                  mb: 0.5,
+                  lineHeight: 1.2,
+                }}
+              >
+                Additional Details
+              </Typography>
 
-        <AdjText
-          label="Posting Date"
-          type="date"
-          value={adj.postingDate}
-          onChange={setAdjField("postingDate")}
-        />
+              <Box
+                sx={{
+                  backgroundColor: "#F5F6FA",
+                  borderRadius: "6px",
+                  p: 0.5,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gap: 0.5,
+                    mb: 0.5,
+                    "& .MuiFormControl-root": {
+                      minWidth: 0,
+                      m: 0,
+                    },
+                    "& .MuiInputBase-root": {
+                      height: 28,
+                      minHeight: 28,
+                      fontSize: 10,
+                      borderRadius: "5px",
+                      backgroundColor: "#FFFFFF",
+                    },
+                    "& .MuiInputBase-input": {
+                      padding: "4px 6px",
+                      fontSize: 10,
+                      boxSizing: "border-box",
+                    },
+                    "& .MuiSelect-select": {
+                      padding: "4px 22px 4px 6px !important",
+                      fontSize: 10,
+                      minHeight: "unset !important",
+                      display: "flex",
+                      alignItems: "center",
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontSize: 10,
+                    },
+                    "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+                      fontSize: 10,
+                    },
+                    "& .MuiSvgIcon-root": {
+                      fontSize: 15,
+                    },
+                  }}
+                >
+                  <AdjSelect
+                    label="Type"
+                    value={adj.type}
+                    onChange={setAdjField("type")}
+                    options={[
+                      ["adjustment1", "Adjustment Type 1"],
+                      ["adjustment2", "Adjustment Type 2"],
+                    ]}
+                  />
 
-        <AdjText
-          label="Adjustment"
-          placeholder="Type here"
-          value={adj.adjustment}
-          onChange={setAdjField("adjustment")}
-        />
+                  <AdjText
+                    label="Posting Date"
+                    type="date"
+                    value={adj.postingDate}
+                    onChange={setAdjField("postingDate")}
+                  />
 
-        <AdjText
-          label="Adjustment Code"
-          placeholder="Type here"
-          value={adj.code}
-          onChange={setAdjField("code")}
-        />
-      </Box>
+                  <AdjText
+                    label="Adjustment"
+                    placeholder="Type here"
+                    value={adj.adjustment}
+                    onChange={setAdjField("adjustment")}
+                  />
 
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 1,
-          mb: 0.5,
-        }}
-      >
-        <AdjSelect
-          label="Reason Code"
-          value={adj.reasonCode}
-          onChange={setAdjField("reasonCode")}
-          options={[
-            ["reason1", "Reason Code 1"],
-            ["reason2", "Reason Code 2"],
-          ]}
-        />
+                  <AdjText
+                    label="Adjustment Code"
+                    placeholder="Type here"
+                    value={adj.code}
+                    onChange={setAdjField("code")}
+                  />
+                </Box>
 
-        <AdjText
-          label="Related payment"
-          placeholder="Search"
-          value={adj.relatedPayment}
-          onChange={setAdjField("relatedPayment")}
-          endIcon={<Search sx={{ fontSize: 14, color: "#111827" }} />}
-        />
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gap: 0.5,
+                    mb: 0,
+                    "& .MuiFormControl-root": {
+                      minWidth: 0,
+                      m: 0,
+                    },
+                    "& .MuiInputBase-root": {
+                      height: 28,
+                      minHeight: 28,
+                      fontSize: 10,
+                      borderRadius: "5px",
+                      backgroundColor: "#FFFFFF",
+                    },
+                    "& .MuiInputBase-input": {
+                      padding: "4px 6px",
+                      fontSize: 10,
+                      boxSizing: "border-box",
+                    },
+                    "& .MuiSelect-select": {
+                      padding: "4px 22px 4px 6px !important",
+                      fontSize: 10,
+                      minHeight: "unset !important",
+                      display: "flex",
+                      alignItems: "center",
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontSize: 10,
+                    },
+                    "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+                      fontSize: 10,
+                    },
+                    "& .MuiSvgIcon-root": {
+                      fontSize: 15,
+                    },
+                  }}
+                >
+                  <AdjSelect
+                    label="Reason Code"
+                    value={adj.reasonCode}
+                    onChange={setAdjField("reasonCode")}
+                    options={[
+                      ["reason1", "Reason Code 1"],
+                      ["reason2", "Reason Code 2"],
+                    ]}
+                  />
 
-        <AdjSelect
-          label="Status"
-          value={adj.changeStatus}
-          onChange={setAdjField("changeStatus")}
-          options={[
-            ["submitted", "Submitted"],
-            ["ready", "Ready for statement"],
-            ["settled", "Settled"],
-          ]}
-        />
+                  <AdjText
+                    label="Related payment"
+                    placeholder="Search"
+                    value={adj.relatedPayment}
+                    onChange={setAdjField("relatedPayment")}
+                    endIcon={<Search sx={{ fontSize: 12, color: "#111827" }} />}
+                  />
 
-        <AdjText
-          label="Notes"
-          placeholder="Type here"
-          value={adj.notes}
-          onChange={setAdjField("notes")}
-        />
-      </Box>
+                  <AdjSelect
+                    label="Status"
+                    value={adj.changeStatus}
+                    onChange={setAdjField("changeStatus")}
+                    options={[
+                      ["submitted", "Submitted"],
+                      ["ready", "Ready for statement"],
+                      ["settled", "Settled"],
+                    ]}
+                  />
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 0.75,
-          mt: 0.5,
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#0066FF",
-            color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: 11,
-            px: 1.5,
-            py: 0.4,
-            minWidth: 58,
-            minHeight: 28,
-            borderRadius: "6px",
-            boxShadow: "none",
-            "&:hover": {
-              backgroundColor: "#0052CC",
-              boxShadow: "none",
-            },
-          }}
-        >
-          Apply
-        </Button>
+                  <AdjText
+                    label="Notes"
+                    placeholder="Type here"
+                    value={adj.notes}
+                    onChange={setAdjField("notes")}
+                  />
+                </Box>
 
-        <Button
-          variant="outlined"
-          onClick={() => setAdj(EMPTY_ADJ)}
-          sx={{
-            textTransform: "none",
-            color: "#0066FF",
-            borderColor: "#0066FF",
-            fontWeight: 600,
-            fontSize: 11,
-            px: 1.5,
-            py: 0.4,
-            minWidth: 58,
-            minHeight: 28,
-            borderRadius: "6px",
-            backgroundColor: "#FFFFFF",
-            "&:hover": {
-              borderColor: "#0052CC",
-              backgroundColor: "#F5F9FF",
-            },
-          }}
-        >
-          Cancel
-        </Button>
-      </Box>
-    </Box>
-  </Box>
-</Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 0.5,
+                    mt: 0.5,
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    sx={{
+                      textTransform: "none",
+                      backgroundColor: "#0066FF",
+                      color: "#FFFFFF",
+                      fontWeight: 600,
+                      fontSize: 10,
+                      px: 1,
+                      py: 0.2,
+                      minWidth: 48,
+                      minHeight: 24,
+                      borderRadius: "5px",
+                      lineHeight: 1.2,
+                      boxShadow: "none",
+                      "&:hover": {
+                        backgroundColor: "#0052CC",
+                        boxShadow: "none",
+                      },
+                    }}
+                  >
+                    Apply
+                  </Button>
 
+                  <Button
+                    variant="outlined"
+                    onClick={() => setAdj(EMPTY_ADJ)}
+                    sx={{
+                      textTransform: "none",
+                      color: "#0066FF",
+                      borderColor: "#0066FF",
+                      fontWeight: 600,
+                      fontSize: 10,
+                      px: 1,
+                      py: 0.2,
+                      minWidth: 48,
+                      minHeight: 24,
+                      borderRadius: "5px",
+                      lineHeight: 1.2,
+                      backgroundColor: "#FFFFFF",
+                      "&:hover": {
+                        borderColor: "#0052CC",
+                        backgroundColor: "#F5F9FF",
+                      },
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       )}
 
       {/* ================= REMITTANCE ERA/EOB TAB ================= */}
       {currentTab === 2 && (
-        <Box
-          sx={{
-            height: "calc(100vh - 160px)",
-            overflowY: "auto",
-            ...thinScroll,
-          }}
-        >
+        <Box>
           {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           <Box
@@ -4421,7 +4672,14 @@ function PreBillingClaim() {
               }}
             >
               <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 1,
+                  }}
+                >
                   Filter by Type
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -4434,7 +4692,9 @@ function PreBillingClaim() {
                       p: 0.5,
                       borderRadius: "6px",
                     }}
-                    onClick={() => setEraEobFilter(prev => ({ ...prev, ERA: !prev.ERA }))}
+                    onClick={() =>
+                      setEraEobFilter((prev) => ({ ...prev, ERA: !prev.ERA }))
+                    }
                   >
                     <Checkbox
                       size="small"
@@ -4442,7 +4702,12 @@ function PreBillingClaim() {
                       sx={checkboxSx}
                     />
                     <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                      ERA ({remittanceSearched.filter(r => r.eraEobType === "ERA").length})
+                      ERA (
+                      {
+                        remittanceSearched.filter((r) => r.eraEobType === "ERA")
+                          .length
+                      }
+                      )
                     </Typography>
                   </Box>
                   <Box
@@ -4454,7 +4719,9 @@ function PreBillingClaim() {
                       p: 0.5,
                       borderRadius: "6px",
                     }}
-                    onClick={() => setEraEobFilter(prev => ({ ...prev, EOB: !prev.EOB }))}
+                    onClick={() =>
+                      setEraEobFilter((prev) => ({ ...prev, EOB: !prev.EOB }))
+                    }
                   >
                     <Checkbox
                       size="small"
@@ -4462,7 +4729,12 @@ function PreBillingClaim() {
                       sx={checkboxSx}
                     />
                     <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                      EOB ({remittanceSearched.filter(r => r.eraEobType === "EOB").length})
+                      EOB (
+                      {
+                        remittanceSearched.filter((r) => r.eraEobType === "EOB")
+                          .length
+                      }
+                      )
                     </Typography>
                   </Box>
                 </Box>
@@ -4517,7 +4789,9 @@ function PreBillingClaim() {
               filterActive={!eraEobFilter.ERA || !eraEobFilter.EOB}
               minWidth={1000}
               stickyHeader
-              containerSx={listContainerSx}
+              // containerSx={listContainerSx}
+
+              containerSx={listContainerTallSx} // was listContainerSx
               headSx={{ ...listHeadSx, whiteSpace: "nowrap" }}
               cellSx={listCellSx}
               rowSx={(row, index) => ({
@@ -4542,7 +4816,14 @@ function PreBillingClaim() {
             }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1.5 }}>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#374151",
+                  mb: 1.5,
+                }}
+              >
                 Filter by Type
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -4555,7 +4836,9 @@ function PreBillingClaim() {
                     p: 0.5,
                     borderRadius: "6px",
                   }}
-                  onClick={() => setEraEobFilter(prev => ({ ...prev, ERA: !prev.ERA }))}
+                  onClick={() =>
+                    setEraEobFilter((prev) => ({ ...prev, ERA: !prev.ERA }))
+                  }
                 >
                   <Checkbox
                     size="small"
@@ -4563,7 +4846,12 @@ function PreBillingClaim() {
                     sx={checkboxSx}
                   />
                   <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                    ERA ({remittanceSearched.filter(r => r.eraEobType === "ERA").length})
+                    ERA (
+                    {
+                      remittanceSearched.filter((r) => r.eraEobType === "ERA")
+                        .length
+                    }
+                    )
                   </Typography>
                 </Box>
                 <Box
@@ -4575,7 +4863,9 @@ function PreBillingClaim() {
                     p: 0.5,
                     borderRadius: "6px",
                   }}
-                  onClick={() => setEraEobFilter(prev => ({ ...prev, EOB: !prev.EOB }))}
+                  onClick={() =>
+                    setEraEobFilter((prev) => ({ ...prev, EOB: !prev.EOB }))
+                  }
                 >
                   <Checkbox
                     size="small"
@@ -4583,7 +4873,12 @@ function PreBillingClaim() {
                     sx={checkboxSx}
                   />
                   <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                    EOB ({remittanceSearched.filter(r => r.eraEobType === "EOB").length})
+                    EOB (
+                    {
+                      remittanceSearched.filter((r) => r.eraEobType === "EOB")
+                        .length
+                    }
+                    )
                   </Typography>
                 </Box>
               </Box>
@@ -4594,13 +4889,7 @@ function PreBillingClaim() {
 
       {/* ================= PATIENT STATEMENT TAB ================= */}
       {currentTab === 3 && (
-        <Box
-          sx={{
-            height: "calc(100vh - 160px)",
-            overflowY: "auto",
-            ...thinScroll,
-          }}
-        >
+        <Box>
           {!hideTabsAndBanner && <ChargeCaptureBanner />}
 
           {/* Toolbar */}
@@ -4623,7 +4912,10 @@ function PreBillingClaim() {
                 sx={pillBtnSx(statementSubTab === "new")}
               >
                 New
-                <Box component="span" sx={{ fontWeight: 400, opacity: 0.85, ml: 0.5 }}>
+                <Box
+                  component="span"
+                  sx={{ fontWeight: 400, opacity: 0.85, ml: 0.5 }}
+                >
                   {newStatementFiltered.length}
                 </Box>
               </Button>
@@ -4671,7 +4963,10 @@ function PreBillingClaim() {
           <Box sx={{ pb: 0, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
-                columns={filterColumns(NEW_STMT_COLUMNS, visibleColumnsPatientStatement)}
+                columns={filterColumns(
+                  NEW_STMT_COLUMNS,
+                  visibleColumnsPatientStatement,
+                )}
                 rows={newStatementFiltered}
                 selection={{
                   selected: statementSelectedRows,
@@ -4684,7 +4979,11 @@ function PreBillingClaim() {
                 ctx={{ selectedIds: statementSelectedRows }}
                 minWidth={1100}
                 stickyHeader
-                containerSx={listContainerSx}
+                containerSx={{
+                  ...listContainerSx,
+                  maxHeight: "calc(100vh - 440px)",
+                  minHeight: 290,
+                }}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
@@ -4713,7 +5012,11 @@ function PreBillingClaim() {
                 }}
                 minWidth={1000}
                 stickyHeader
-                containerSx={listContainerSx}
+                containerSx={{
+                  ...listContainerSx,
+                  maxHeight: "calc(100vh - 440px)",
+                  minHeight: 220,
+                }}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
@@ -4732,7 +5035,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Gap between table and footer */}
-          <Box sx={{ height: 42, flexShrink: 0 }} />
+          <Box sx={{ height: 4, flexShrink: 0 }} />
 
           {/* Footer */}
           <Box
@@ -4965,11 +5268,18 @@ function PreBillingClaim() {
                 ["Select all", true],
                 ["Clear All", false],
               ].map(([label, value]) => {
-                const currentColumnOptions = getColumnOptions(currentTab, statementSubTab);
+                const currentColumnOptions = getColumnOptions(
+                  currentTab,
+                  statementSubTab,
+                );
                 return (
                   <Typography
                     key={label}
-                    onClick={() => setTempVisibleColumns(setAllColumns(currentColumnOptions, value))}
+                    onClick={() =>
+                      setTempVisibleColumns(
+                        setAllColumns(currentColumnOptions, value),
+                      )
+                    }
                     sx={{
                       fontSize: 11.5,
                       fontWeight: 600,
@@ -4984,18 +5294,21 @@ function PreBillingClaim() {
             </Box>
 
             <Typography sx={{ fontSize: 11, color: "#171923" }}>
-              {Object.values(tempVisibleColumns).filter(Boolean).length} of {getColumnOptions(currentTab, statementSubTab).length} shown
+              {Object.values(tempVisibleColumns).filter(Boolean).length} of{" "}
+              {getColumnOptions(currentTab, statementSubTab).length} shown
             </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ 
-          px: 2.5, 
-          flex: 1, 
-          overflow: "auto",
-          maxHeight: 400,
-          minHeight: 300,
-        }}>
+        <Box
+          sx={{
+            px: 2.5,
+            flex: 1,
+            overflow: "auto",
+            maxHeight: 400,
+            minHeight: 300,
+          }}
+        >
           {getColumnOptions(currentTab, statementSubTab).map((col) => (
             <Box
               key={col.key}
@@ -5084,7 +5397,10 @@ function PreBillingClaim() {
           <Button
             variant="outlined"
             onClick={() => {
-              const currentColumnOptions = getColumnOptions(currentTab, statementSubTab);
+              const currentColumnOptions = getColumnOptions(
+                currentTab,
+                statementSubTab,
+              );
               setTempVisibleColumns(setAllColumns(currentColumnOptions, true));
             }}
             sx={{
@@ -5418,7 +5734,8 @@ function PreBillingClaim() {
               EOB to ERA Converter
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
-              Upload EOB documents to automatically extract and convert to ERA format
+              Upload EOB documents to automatically extract and convert to ERA
+              format
             </Typography>
           </Box>
           <IconButton
@@ -5435,7 +5752,15 @@ function PreBillingClaim() {
         </Box>
 
         {/* Content */}
-        <Box sx={{ px: 3, py: 3, maxHeight: "60vh", overflow: "auto", ...thinScroll }}>
+        <Box
+          sx={{
+            px: 3,
+            py: 3,
+            maxHeight: "60vh",
+            overflow: "auto",
+            ...thinScroll,
+          }}
+        >
           {/* Upload Area */}
           <Box
             sx={{
@@ -5454,9 +5779,7 @@ function PreBillingClaim() {
             }}
             onClick={() => document.getElementById("ocr-file-input").click()}
           >
-            <CloudUpload
-              sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }}
-            />
+            <CloudUpload sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }} />
             <Typography
               sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 1 }}
             >
@@ -5506,10 +5829,10 @@ function PreBillingClaim() {
                           file.status === "success"
                             ? "#DFF5EA"
                             : file.status === "error"
-                            ? "#FCE4E4"
-                            : file.status === "processing"
-                            ? "#FDF1DC"
-                            : "#E3EEFB",
+                              ? "#FCE4E4"
+                              : file.status === "processing"
+                                ? "#FDF1DC"
+                                : "#E3EEFB",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -5550,10 +5873,10 @@ function PreBillingClaim() {
                         {file.status === "success"
                           ? "Converted successfully"
                           : file.status === "error"
-                          ? "Failed to process"
-                          : file.status === "processing"
-                          ? "Processing..."
-                          : "Ready to process"}
+                            ? "Failed to process"
+                            : file.status === "processing"
+                              ? "Processing..."
+                              : "Ready to process"}
                       </Typography>
                     </Box>
                     {file.status === "pending" && (
@@ -5644,7 +5967,13 @@ function PreBillingClaim() {
                         <TableCell sx={{ fontSize: 11 }}>
                           ${money(result.claimedAmount)}
                         </TableCell>
-                        <TableCell sx={{ fontSize: 11, color: "#1E7F55", fontWeight: 600 }}>
+                        <TableCell
+                          sx={{
+                            fontSize: 11,
+                            color: "#1E7F55",
+                            fontWeight: 600,
+                          }}
+                        >
                           ${money(result.paidAmount)}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
@@ -5673,10 +6002,14 @@ function PreBillingClaim() {
         >
           <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
             {(() => {
-              const processedCount = ocrFiles.filter(f => f.status === "success").length;
-              const pendingCount = ocrFiles.filter(f => f.status === "pending").length;
+              const processedCount = ocrFiles.filter(
+                (f) => f.status === "success",
+              ).length;
+              const pendingCount = ocrFiles.filter(
+                (f) => f.status === "pending",
+              ).length;
               const totalRecords = ocrResults.length;
-              
+
               if (totalRecords > 0 && pendingCount === 0) {
                 return `${totalRecords} record(s) converted from ${processedCount} file(s)`;
               } else if (pendingCount > 0 && totalRecords > 0) {
@@ -5709,7 +6042,7 @@ function PreBillingClaim() {
             </Button>
             {ocrResults.length > 0 ? (
               <>
-                {ocrFiles.filter(f => f.status === "pending").length > 0 && (
+                {ocrFiles.filter((f) => f.status === "pending").length > 0 && (
                   <Button
                     variant="outlined"
                     onClick={handleProcessOCR}
@@ -5721,9 +6054,9 @@ function PreBillingClaim() {
                       color: "#0066FF",
                       borderColor: "#0066FF",
                       px: 2.5,
-                      "&:hover": { 
+                      "&:hover": {
                         borderColor: "#0052CC",
-                        backgroundColor: "rgba(0, 102, 255, 0.04)"
+                        backgroundColor: "rgba(0, 102, 255, 0.04)",
                       },
                     }}
                   >
@@ -5740,7 +6073,10 @@ function PreBillingClaim() {
                     backgroundColor: "#0066FF",
                     px: 2.5,
                     boxShadow: "none",
-                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                    "&:hover": {
+                      backgroundColor: "#0052CC",
+                      boxShadow: "none",
+                    },
                   }}
                 >
                   Save ERA Data
@@ -5750,7 +6086,10 @@ function PreBillingClaim() {
               <Button
                 variant="contained"
                 onClick={handleProcessOCR}
-                disabled={ocrFiles.filter(f => f.status === "pending").length === 0 || ocrProcessing}
+                disabled={
+                  ocrFiles.filter((f) => f.status === "pending").length === 0 ||
+                  ocrProcessing
+                }
                 sx={{
                   textTransform: "none",
                   fontSize: 13,
