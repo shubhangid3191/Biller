@@ -208,7 +208,7 @@ const stmtContainerSx = {
   boxShadow: "none",
   border: "1px solid #E5E7EB",
   borderRadius: "10px",
-  maxHeight: "400px",
+  maxHeight: "calc(100vh - 280px)",
   overflow: "auto",
   ...thinScroll,
 };
@@ -3709,7 +3709,7 @@ function PreBillingClaim() {
           </Box>
 
           {viewMode === "list" ? (
-            <Box sx={{ pb: 2, px: 2 }}>
+            <Box sx={{ pb: 0, px: 2 }}>
               <ListTable
                 columns={filterColumns(PRE_COLUMNS, visibleColumnsPreBilling)}
                 rows={preBillingFiltered}
@@ -4175,7 +4175,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Post-billing table */}
-          <Box sx={{ pb: 2, px: 2 }}>
+          <Box sx={{ pb: 0, px: 2 }}>
             <ListTable
               columns={filterColumns(POST_COLUMNS, visibleColumnsPostBilling)}
               rows={postBillingFiltered}
@@ -4195,158 +4195,179 @@ function PreBillingClaim() {
           </Box>
 
           {/* Additional Details */}
-          <Box sx={{ px: 2, pb: 2 }}>
-            <Box
-              sx={{
-                backgroundColor: "#FFFFFF",
-                borderRadius: "12px",
-                border: "1px solid #E5E7EB",
-                p: 3,
-              }}
-            >
-              <Typography
-                sx={{ fontSize: 15, fontWeight: 600, color: "#1E293B", mb: 2 }}
-              >
-                Additional Details
-              </Typography>
+         
+<Box sx={{ px: 1, pb: 1 }}>
+  <Box
+    sx={{
+      backgroundColor: "#FFFFFF",
+      borderRadius: "10px",
+      border: "1px solid #E5E7EB",
+      p: 0.75,
+      mt: 0.5,
+    }}
+  >
+    <Typography
+      sx={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: "#1E293B",
+        mb: 1,
+      }}
+    >
+      Additional Details
+    </Typography>
 
-              <Box
-                sx={{ backgroundColor: "#F5F6FA", borderRadius: "10px", p: 2 }}
-              >
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <AdjSelect
-                    label="Type"
-                    value={adj.type}
-                    onChange={setAdjField("type")}
-                    options={[
-                      ["adjustment1", "Adjustment Type 1"],
-                      ["adjustment2", "Adjustment Type 2"],
-                    ]}
-                  />
-                  <AdjText
-                    label="Posting Date"
-                    type="date"
-                    value={adj.postingDate}
-                    onChange={setAdjField("postingDate")}
-                  />
-                  <AdjText
-                    label="Adjustment"
-                    placeholder="Type here"
-                    value={adj.adjustment}
-                    onChange={setAdjField("adjustment")}
-                  />
-                  <AdjText
-                    label="Adjustment Code"
-                    placeholder="Type here"
-                    value={adj.code}
-                    onChange={setAdjField("code")}
-                  />
-                </Box>
+    <Box
+      sx={{
+        backgroundColor: "#F5F6FA",
+        borderRadius: "8px",
+        p: 1,
+      }}
+    >
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          gap: 1,
+          mb: 1,
+        }}
+      >
+        <AdjSelect
+          label="Type"
+          value={adj.type}
+          onChange={setAdjField("type")}
+          options={[
+            ["adjustment1", "Adjustment Type 1"],
+            ["adjustment2", "Adjustment Type 2"],
+          ]}
+        />
 
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <AdjSelect
-                    label="Reason Code"
-                    value={adj.reasonCode}
-                    onChange={setAdjField("reasonCode")}
-                    options={[
-                      ["reason1", "Reason Code 1"],
-                      ["reason2", "Reason Code 2"],
-                    ]}
-                  />
-                  <AdjText
-                    label="Related payment"
-                    placeholder="Search"
-                    value={adj.relatedPayment}
-                    onChange={setAdjField("relatedPayment")}
-                    endIcon={<Search sx={{ fontSize: 16, color: "#111827" }} />}
-                  />
-                  <AdjSelect
-                    label="Status"
-                    value={adj.changeStatus}
-                    onChange={setAdjField("changeStatus")}
-                    options={[
-                      ["submitted", "Submitted"],
-                      ["ready", "Ready for statement"],
-                      ["settled", "Settled"],
-                    ]}
-                  />
-                  <AdjText
-                    label="Notes"
-                    placeholder="Type here"
-                    value={adj.notes}
-                    onChange={setAdjField("notes")}
-                  />
-                </Box>
+        <AdjText
+          label="Posting Date"
+          type="date"
+          value={adj.postingDate}
+          onChange={setAdjField("postingDate")}
+        />
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: 1,
-                    mt: 1,
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    sx={{
-                      textTransform: "none",
-                      backgroundColor: "#0066FF",
-                      color: "#FFFFFF",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      px: 2.5,
-                      py: 0.65,
-                      minWidth: 70,
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                      "&:hover": {
-                        backgroundColor: "#0052CC",
-                        boxShadow: "none",
-                      },
-                    }}
-                  >
-                    Apply
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setAdj(EMPTY_ADJ)}
-                    sx={{
-                      textTransform: "none",
-                      color: "#0066FF",
-                      borderColor: "#0066FF",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      px: 2.5,
-                      py: 0.65,
-                      minWidth: 70,
-                      borderRadius: "8px",
-                      backgroundColor: "#FFFFFF",
-                      "&:hover": {
-                        borderColor: "#0052CC",
-                        backgroundColor: "#F5F9FF",
-                      },
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+        <AdjText
+          label="Adjustment"
+          placeholder="Type here"
+          value={adj.adjustment}
+          onChange={setAdjField("adjustment")}
+        />
+
+        <AdjText
+          label="Adjustment Code"
+          placeholder="Type here"
+          value={adj.code}
+          onChange={setAdjField("code")}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          gap: 1,
+          mb: 0.5,
+        }}
+      >
+        <AdjSelect
+          label="Reason Code"
+          value={adj.reasonCode}
+          onChange={setAdjField("reasonCode")}
+          options={[
+            ["reason1", "Reason Code 1"],
+            ["reason2", "Reason Code 2"],
+          ]}
+        />
+
+        <AdjText
+          label="Related payment"
+          placeholder="Search"
+          value={adj.relatedPayment}
+          onChange={setAdjField("relatedPayment")}
+          endIcon={<Search sx={{ fontSize: 14, color: "#111827" }} />}
+        />
+
+        <AdjSelect
+          label="Status"
+          value={adj.changeStatus}
+          onChange={setAdjField("changeStatus")}
+          options={[
+            ["submitted", "Submitted"],
+            ["ready", "Ready for statement"],
+            ["settled", "Settled"],
+          ]}
+        />
+
+        <AdjText
+          label="Notes"
+          placeholder="Type here"
+          value={adj.notes}
+          onChange={setAdjField("notes")}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 0.75,
+          mt: 0.5,
+        }}
+      >
+        <Button
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            backgroundColor: "#0066FF",
+            color: "#FFFFFF",
+            fontWeight: 600,
+            fontSize: 11,
+            px: 1.5,
+            py: 0.4,
+            minWidth: 58,
+            minHeight: 28,
+            borderRadius: "6px",
+            boxShadow: "none",
+            "&:hover": {
+              backgroundColor: "#0052CC",
+              boxShadow: "none",
+            },
+          }}
+        >
+          Apply
+        </Button>
+
+        <Button
+          variant="outlined"
+          onClick={() => setAdj(EMPTY_ADJ)}
+          sx={{
+            textTransform: "none",
+            color: "#0066FF",
+            borderColor: "#0066FF",
+            fontWeight: 600,
+            fontSize: 11,
+            px: 1.5,
+            py: 0.4,
+            minWidth: 58,
+            minHeight: 28,
+            borderRadius: "6px",
+            backgroundColor: "#FFFFFF",
+            "&:hover": {
+              borderColor: "#0052CC",
+              backgroundColor: "#F5F9FF",
+            },
+          }}
+        >
+          Cancel
+        </Button>
+      </Box>
+    </Box>
+  </Box>
+</Box>
+
         </Box>
       )}
 
@@ -4479,7 +4500,7 @@ function PreBillingClaim() {
             </Box>
           </Box>
 
-          <Box sx={{ pb: 2, px: 2 }}>
+          <Box sx={{ pb: 0, px: 2 }}>
             <ListTable
               columns={filterColumns(REMIT_COLUMNS, visibleColumnsRemittance)}
               rows={remittanceFiltered}
@@ -4647,7 +4668,7 @@ function PreBillingClaim() {
           </Box>
 
           {/* Tables */}
-          <Box sx={{ pb: 2, px: 2 }}>
+          <Box sx={{ pb: 0, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
                 columns={filterColumns(NEW_STMT_COLUMNS, visibleColumnsPatientStatement)}
