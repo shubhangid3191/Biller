@@ -31,22 +31,23 @@ const T = {
 const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
-const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+const EMAIL_REGEX =
+  /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
 const REQUIRED_TEXT = {
-  payorName:    "Payor Name",
-  payorCode:    "Payor Code",
-  payorEmail:   "Payor E-mail",
-  payorPhone:   "Payor Phone",
-  payorFax:     "Payor Fax",
+  payorName: "Payor Name",
+  payorCode: "Payor Code",
+  payorEmail: "Payor E-mail",
+  payorPhone: "Payor Phone",
+  payorFax: "Payor Fax",
   payorAddress: "Payor Address",
-  payorCity:    "Payor City",
-  payorZip:     "Zip Code",
+  payorCity: "Payor City",
+  payorZip: "Zip Code",
 };
 
 const REQUIRED_SELECT = {
-  state:            "State",
-  country:          "Country",
+  state: "State",
+  country: "Country",
   submissionMethod: "Submission Method",
 };
 
@@ -93,7 +94,12 @@ const inputSx = {
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
   "& .MuiInputBase-root": { height: "42px" },
-  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = (error = false) => ({
@@ -132,15 +138,25 @@ function Label({ children, required }) {
     <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
       {children}
       {required && (
-        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
+          *
+        </Box>
       )}
     </Typography>
   );
 }
 
 function InputField({
-  label, placeholder = "Type here", required,
-  endIcon, value, onChange, onBlur, error, inputMode, maxLength,
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
 }) {
   return (
     <Box>
@@ -156,7 +172,11 @@ function InputField({
         inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
-            ? { endAdornment: <InputAdornment position="end">{endIcon}</InputAdornment> }
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                ),
+              }
             : undefined
         }
         sx={inputSx}
@@ -166,8 +186,14 @@ function InputField({
 }
 
 function SelectField({
-  label, placeholder = "Select", options = [],
-  required, value, onChange, onClose, error,
+  label,
+  placeholder = "Select",
+  options = [],
+  required,
+  value,
+  onChange,
+  onClose,
+  error,
 }) {
   return (
     <Box>
@@ -184,17 +210,25 @@ function SelectField({
             val ? (
               <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
             ) : (
-              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+              <span style={{ fontSize: 13, color: "#8F9098" }}>
+                {placeholder}
+              </span>
             )
           }
         >
-          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</MenuItem>
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
+            {placeholder}
+          </MenuItem>
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>{o}</MenuItem>
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
+              {o}
+            </MenuItem>
           ))}
         </Select>
         {error && (
-          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+          <FormHelperText
+            sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}
+          >
             {error}
           </FormHelperText>
         )}
@@ -230,19 +264,19 @@ export default function InsuranceProviderEdit() {
   const [mandatoryCode, setMandatoryCode] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    payorName:        row?.payorName  ?? "",
-    payorCode:        row?.payorCode  ?? "",
-    payorEmail:       "",
-    payorPhone:       "",
-    payorFax:         row?.fax        ?? "",
-    payorAddress:     row?.address    ?? "",
-    payorStreet:      "",
-    payorStreet2:     "",
-    payorCity:        "",
-    payorZip:         "",
-    state:            "",
-    country:          "",
-    submissionMethod: "",
+    payorName: row?.payorName ?? "",
+    payorCode: row?.payorCode ?? "",
+    payorEmail: row?.payorEmail ?? "",
+    payorPhone: row?.payorPhone ?? "",
+    payorFax: row?.payorFax ?? "",
+    payorAddress: row?.payorAddress ?? "",
+    payorStreet: row?.payorStreet ?? "",
+    payorStreet2: row?.payorStreet2 ?? "",
+    payorCity: row?.payorCity ?? "",
+    payorZip: row?.payorZip ?? "",
+    state: row?.state ?? "",
+    country: row?.country ?? "",
+    submissionMethod: row?.submissionMethod ?? "",
   });
 
   const [touched, setTouched] = React.useState({});
@@ -263,9 +297,8 @@ export default function InsuranceProviderEdit() {
 
   const tx = (name) => ({
     value: form[name],
-    onChange: name === "payorPhone" || name === "payorFax"
-      ? setPhone(name)
-      : set(name),
+    onChange:
+      name === "payorPhone" || name === "payorFax" ? setPhone(name) : set(name),
     onBlur: () => touch(name),
     error: errorOf(name),
   });
@@ -294,7 +327,16 @@ export default function InsuranceProviderEdit() {
       }, 50);
       return;
     }
-    console.log("Insurance data:", form);
+
+    if (isEdit) {
+      navigate("/insurance-provider", {
+        state: { result: { action: "edit", data: { id: row.id, ...form } } },
+      });
+    } else {
+      navigate("/insurance-provider", {
+        state: { result: { action: "add", data: form } },
+      });
+    }
   };
 
   return (
@@ -334,7 +376,11 @@ export default function InsuranceProviderEdit() {
             <ArrowBackIcon sx={{ fontSize: 20 }} />
           </IconButton>
           <Typography
-            sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, fontWeight: 700, color: "#111827" }}
+            sx={{
+              fontSize: { xs: 16, sm: 18, md: 20 },
+              fontWeight: 700,
+              color: "#111827",
+            }}
           >
             {isEdit ? "Edit Insurance" : "Add New Insurance"}
           </Typography>
@@ -380,7 +426,11 @@ export default function InsuranceProviderEdit() {
               placeholder="10-digit number"
               {...tx("payorFax")}
             />
-            <InputField label="Payor Address" required {...tx("payorAddress")} />
+            <InputField
+              label="Payor Address"
+              required
+              {...tx("payorAddress")}
+            />
             <InputField
               label="Payor Street"
               value={form.payorStreet}
@@ -415,7 +465,11 @@ export default function InsuranceProviderEdit() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "repeat(4, 1fr)",
+              },
               gap: 2,
               mb: 1,
             }}

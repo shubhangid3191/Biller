@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -148,12 +148,12 @@ const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
 /* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
 /* ------------------------------------------------------------------ */
 const COLUMNS = [
-  { id: "payorName", label: "Payor Name", sort: "alpha" },
-  { id: "payorCode", label: "Payor Code", sort: "number" },
-  { id: "address", label: "Address", sort: "alpha" },
-  { id: "fax", label: "Fax", sort: "number" },
-  { id: "active", label: "Active", center: true },
-  { id: "actions", label: "Action", center: true, last: true },
+  { id: "payorName", label: "Payor Name", sort: "alpha", width: 160 },
+  { id: "payorCode", label: "Payor Code", sort: "number", width: 130 },
+  { id: "address", label: "Address", sort: "alpha", width: 240 },
+  { id: "fax", label: "Fax", sort: "number", width: 130 },
+  { id: "active", label: "Active", center: true, width: 80 },
+  { id: "actions", label: "Action", center: true, last: true, width: 100 },
 ];
 
 const SORTABLE_COLUMNS = COLUMNS.filter((c) => c.sort);
@@ -229,14 +229,15 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 44;
+const HEAD_H = 32;
 
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
-  color: "#2E2E2E",
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
+  color: "#1e293b",
+  height: 32,
   textAlign: "center",
 };
 
@@ -246,12 +247,16 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "nowrap",
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
+  lineHeight: 1.15,
 };
 
 /* ------------------------------------------------------------------ */
@@ -266,6 +271,7 @@ function HeaderCell({ column, sortDir, onSort }) {
       sx={{
         ...headCellSx,
         borderRight: column.last ? "none" : `1px solid ${T.border}`,
+        ...(column.width && { width: column.width, minWidth: column.width }),
       }}
     >
       <Box
@@ -940,7 +946,73 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* ------------------------------------------------------------------ */
 export default function InsuranceProvider() {
   const navigate = useNavigate();
-  const [data, setData] = React.useState(ROWS);
+  const location = useLocation();
+
+  /* ── rows — persisted in localStorage ── */
+  const [data, setData] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem("insuranceProviderRows");
+      return saved ? JSON.parse(saved) : ROWS;
+    } catch {
+      return ROWS;
+    }
+  });
+  const nextId = React.useRef(
+    data.length > 0 ? Math.max(...data.map((r) => r.id)) + 1 : ROWS.length + 1,
+  );
+
+  React.useEffect(() => {
+    localStorage.setItem("insuranceProviderRows", JSON.stringify(data));
+  }, [data]);
+
+  /* ── handle result from InsuranceProviderEdit ── */
+  const processedResult = React.useRef(null);
+
+  React.useEffect(() => {
+    const result = location.state?.result;
+    if (!result) return;
+    const key = JSON.stringify(result);
+    if (processedResult.current === key) return;
+    processedResult.current = key;
+
+    if (result.action === "add") {
+      setData((prev) => [
+        ...prev,
+        {
+          id: nextId.current++,
+          payorName: result.data.payorName ?? "",
+          payorCode: result.data.payorCode ?? "",
+          address: result.data.payorAddress ?? "",
+          fax: result.data.payorFax ?? "",
+          active: true,
+          ...result.data,
+        },
+      ]);
+    } else if (result.action === "edit") {
+      setData((prev) =>
+        prev.map((r) =>
+          r.id === result.data.id
+            ? {
+                ...r,
+                payorName: result.data.payorName ?? r.payorName,
+                payorCode: result.data.payorCode ?? r.payorCode,
+                address: result.data.payorAddress ?? r.address,
+                fax: result.data.payorFax ?? r.fax,
+                ...result.data,
+              }
+            : r,
+        ),
+      );
+    }
+    navigate("/insurance-provider", { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.result]);
+
+  /* ── toggle active ── */
+  const toggleActive = (id) =>
+    setData((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
+    );
 
   // search
   const [query, setQuery] = React.useState("");
@@ -959,7 +1031,6 @@ export default function InsuranceProvider() {
     COLUMNS,
   );
 
-  // badge count = active sort
   const activeFilterCount = sort.columnId && sort.dir ? 1 : 0;
 
   const handleFilterApply = (draft) => {
@@ -981,12 +1052,6 @@ export default function InsuranceProvider() {
     sortDir: sort.dir || "asc",
   };
 
-  const toggleActive = (id) => {
-    setData((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
-    );
-  };
-
   return (
     <Box
       sx={{
@@ -997,8 +1062,8 @@ export default function InsuranceProvider() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -1010,11 +1075,11 @@ export default function InsuranceProvider() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           flexShrink: 0,
-          gap: 2,
-          mb: 3,
+          gap: 1,
+          mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Insurance Provider
         </Typography>
 
@@ -1045,7 +1110,7 @@ export default function InsuranceProvider() {
                 "aria-label": "Search by payor name or payor code",
               }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
@@ -1072,7 +1137,7 @@ export default function InsuranceProvider() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -1091,7 +1156,7 @@ export default function InsuranceProvider() {
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -1111,7 +1176,7 @@ export default function InsuranceProvider() {
             }
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -1154,7 +1219,8 @@ export default function InsuranceProvider() {
           stickyHeader
           size="small"
           sx={{
-            tableLayout: "auto",
+            tableLayout: "fixed",
+            width: "100%",
             borderCollapse: "separate",
             borderSpacing: 0,
             "& .MuiTableCell-stickyHeader": {
@@ -1176,11 +1242,16 @@ export default function InsuranceProvider() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
-                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                //onClick={() => navigate("/insurance-provider/edit", { state: { row } })}
+                sx={{
+                  //cursor: "pointer",
+                  backgroundColor: "#fff",
+                  "&:hover": { bgcolor: "#F0F5FF" },
+                }}
               >
                 <TableCell sx={cellSx}>{row.payorName}</TableCell>
                 <TableCell sx={cellSx}>{row.payorCode}</TableCell>
@@ -1202,9 +1273,10 @@ export default function InsuranceProvider() {
                     onChange={() => toggleActive(row.id)}
                     size="small"
                     sx={{
+                      p: 0,
                       color: T.blue,
                       "&.Mui-checked": { color: T.blue },
-                      "& .MuiSvgIcon-root": { fontSize: 20 },
+                      "& .MuiSvgIcon-root": { fontSize: 16 },
                     }}
                   />
                 </TableCell>
@@ -1221,28 +1293,32 @@ export default function InsuranceProvider() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigate("/insurance-provider/edit", {
                             state: { row },
-                          })
-                        }
+                          });
+                        }}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
+                          p: 0.3,
                         }}
                       >
-                        <RPEditIcon width={20} height={20} color={T.blue} />
+                        <RPEditIcon width={16} height={16} color={T.blue} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Settings" arrow>
                       <IconButton
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
+                          p: 0.3,
                         }}
                       >
-                        <SettingsIcon2 width={20} height={20} color={T.blue} />
+                        <SettingsIcon2 width={16} height={16} color={T.blue} />
                       </IconButton>
                     </Tooltip>
                   </Stack>

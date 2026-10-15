@@ -255,15 +255,16 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 44; // header row height (px)
+const HEAD_H = 32; // header row height (px)
 
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
   fontWeight: 500,
-  color: "#2E2E2E",
+  color: "#1e293b",
+  height: 32,
   textAlign: "center",
 };
 
@@ -273,12 +274,16 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "nowrap",
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
+  lineHeight: 1.15,
 };
 
 /* ------------------------------------------------------------------ */
@@ -765,7 +770,7 @@ export default function Practice() {
         flexDirection: "column",
         overflow: "hidden",
         py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -777,11 +782,11 @@ export default function Practice() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           flexShrink: 0,
-          gap: 2,
-          mb: 3,
+          gap: 1,
+          mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Practice Information
         </Typography>
 
@@ -812,7 +817,7 @@ export default function Practice() {
                 "aria-label": "Search by practice, NPI, contact number or fax",
               }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
@@ -839,7 +844,7 @@ export default function Practice() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -858,7 +863,7 @@ export default function Practice() {
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -876,7 +881,7 @@ export default function Practice() {
             onClick={() => navigate("/practice/edit", { state: { row: null } })}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -945,11 +950,16 @@ export default function Practice() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
-                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                //onClick={() => navigate("/practice/edit", { state: { row } })}
+                sx={{
+                  //cursor: "pointer",
+                  backgroundColor: "#fff",
+                  "&:hover": { bgcolor: "#F0F5FF" },
+                }}
               >
                 <TableCell sx={cellSx}>{row.practice}</TableCell>
                 <TableCell sx={cellSx}>{row.address}</TableCell>
@@ -980,9 +990,10 @@ export default function Practice() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() =>
-                          navigate("/practice/edit", { state: { row } })
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("/practice/edit", { state: { row } });
+                        }}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
@@ -994,6 +1005,7 @@ export default function Practice() {
                     <Tooltip title="Settings" arrow>
                       <IconButton
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },

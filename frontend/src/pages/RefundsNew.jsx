@@ -46,26 +46,202 @@ const T = {
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const NEW_SAMPLE = [
-  ["Lisha Cook", "863", "24/08/1965", "864", "9759402598", "$200", "12/05/2026", "-", "Draft", "Mode 1"],
-  ["Aamir Pathan", "864", "13/05/1984", "865", "9370937902", "$20", "03/06/2026", "-", "Approved", "Mode 2"],
-  ["Rahul Sharma", "865", "14/03/1973", "866", "9812345670", "$75", "21/04/2026", "-", "Pending", "Mode 3"],
-  ["Priya Patel", "866", "02/07/1991", "867", "9898989898", "$310", "09/01/2026", "-", "Draft", "Mode 1"],
-  ["John Miller", "867", "29/01/1964", "868", "9123456780", "$45", "30/03/2026", "-", "Rejected", "Mode 2"],
-  ["Anita Desai", "868", "18/09/1997", "869", "9345678123", "$500", "17/07/2026", "-", "Approved", "Mode 3"],
-  ["Mark Wilson", "869", "06/05/1978", "870", "9456781234", "$90", "05/02/2026", "-", "Pending", "Mode 1"],
-  ["Sneha Kulkarni", "870", "11/12/1986", "871", "9567812345", "$60", "28/05/2026", "-", "Draft", "Mode 2"],
-  ["David Brown", "871", "23/08/1955", "872", "9678123456", "$240", "11/11/2025", "-", "Approved", "Mode 3"],
-  ["Meera Nair", "872", "17/02/1970", "873", "9781234567", "$35", "19/08/2026", "-", "Rejected", "Mode 1"],
-  ["Kevin Zhang", "873", "09/10/1995", "874", "9892345678", "$150", "03/09/2026", "-", "Pending", "Mode 2"],
-  ["Fatima Khan", "874", "25/04/1983", "875", "9903456781", "$410", "14/12/2025", "-", "Draft", "Mode 3"],
-  ["Robert King", "875", "30/06/1959", "876", "9014567812", "$25", "26/04/2026", "-", "Approved", "Mode 1"],
-  ["Nisha Verma", "876", "09/02/1989", "877", "9125678123", "$130", "07/10/2026", "-", "Pending", "Mode 2"],
-  ["Omar Ali", "877", "30/10/1967", "878", "9236781234", "$95", "12/03/2026", "-", "Rejected", "Mode 3"],
+  [
+    "Lisha Cook",
+    "863",
+    "24/08/1965",
+    "864",
+    "9759402598",
+    "$200",
+    "12/05/2026",
+    "-",
+    "Draft",
+    "Mode 1",
+  ],
+  [
+    "Aamir Pathan",
+    "864",
+    "13/05/1984",
+    "865",
+    "9370937902",
+    "$20",
+    "03/06/2026",
+    "-",
+    "Approved",
+    "Mode 2",
+  ],
+  [
+    "Rahul Sharma",
+    "865",
+    "14/03/1973",
+    "866",
+    "9812345670",
+    "$75",
+    "21/04/2026",
+    "-",
+    "Pending",
+    "Mode 3",
+  ],
+  [
+    "Priya Patel",
+    "866",
+    "02/07/1991",
+    "867",
+    "9898989898",
+    "$310",
+    "09/01/2026",
+    "-",
+    "Draft",
+    "Mode 1",
+  ],
+  [
+    "John Miller",
+    "867",
+    "29/01/1964",
+    "868",
+    "9123456780",
+    "$45",
+    "30/03/2026",
+    "-",
+    "Rejected",
+    "Mode 2",
+  ],
+  [
+    "Anita Desai",
+    "868",
+    "18/09/1997",
+    "869",
+    "9345678123",
+    "$500",
+    "17/07/2026",
+    "-",
+    "Approved",
+    "Mode 3",
+  ],
+  [
+    "Mark Wilson",
+    "869",
+    "06/05/1978",
+    "870",
+    "9456781234",
+    "$90",
+    "05/02/2026",
+    "-",
+    "Pending",
+    "Mode 1",
+  ],
+  [
+    "Sneha Kulkarni",
+    "870",
+    "11/12/1986",
+    "871",
+    "9567812345",
+    "$60",
+    "28/05/2026",
+    "-",
+    "Draft",
+    "Mode 2",
+  ],
+  [
+    "David Brown",
+    "871",
+    "23/08/1955",
+    "872",
+    "9678123456",
+    "$240",
+    "11/11/2025",
+    "-",
+    "Approved",
+    "Mode 3",
+  ],
+  [
+    "Meera Nair",
+    "872",
+    "17/02/1970",
+    "873",
+    "9781234567",
+    "$35",
+    "19/08/2026",
+    "-",
+    "Rejected",
+    "Mode 1",
+  ],
+  [
+    "Kevin Zhang",
+    "873",
+    "09/10/1995",
+    "874",
+    "9892345678",
+    "$150",
+    "03/09/2026",
+    "-",
+    "Pending",
+    "Mode 2",
+  ],
+  [
+    "Fatima Khan",
+    "874",
+    "25/04/1983",
+    "875",
+    "9903456781",
+    "$410",
+    "14/12/2025",
+    "-",
+    "Draft",
+    "Mode 3",
+  ],
+  [
+    "Robert King",
+    "875",
+    "30/06/1959",
+    "876",
+    "9014567812",
+    "$25",
+    "26/04/2026",
+    "-",
+    "Approved",
+    "Mode 1",
+  ],
+  [
+    "Nisha Verma",
+    "876",
+    "09/02/1989",
+    "877",
+    "9125678123",
+    "$130",
+    "07/10/2026",
+    "-",
+    "Pending",
+    "Mode 2",
+  ],
+  [
+    "Omar Ali",
+    "877",
+    "30/10/1967",
+    "878",
+    "9236781234",
+    "$95",
+    "12/03/2026",
+    "-",
+    "Rejected",
+    "Mode 3",
+  ],
 ];
 
 const NEW_ROWS = NEW_SAMPLE.map(
   (
-    [patientName, patientId, dob, refundId, phone, refundAmount, lastUpdated, description, status, refundMode],
+    [
+      patientName,
+      patientId,
+      dob,
+      refundId,
+      phone,
+      refundAmount,
+      lastUpdated,
+      description,
+      status,
+      refundMode,
+    ],
     id,
   ) => ({
     id,
@@ -83,26 +259,186 @@ const NEW_ROWS = NEW_SAMPLE.map(
 );
 
 const HISTORY_SAMPLE = [
-  ["Lisha Cook", "863", "24/08/1965", "864", "9759402598", "$200", "12/05/2026", "-", "Draft"],
-  ["Aamir Pathan", "864", "13/05/1984", "865", "9370937902", "$20", "03/06/2026", "-", "Approved"],
-  ["Rahul Sharma", "865", "14/03/1973", "866", "9812345670", "$75", "21/04/2026", "-", "Pending"],
-  ["Priya Patel", "866", "02/07/1991", "867", "9898989898", "$310", "09/01/2026", "-", "Draft"],
-  ["John Miller", "867", "29/01/1964", "868", "9123456780", "$45", "30/03/2026", "-", "Rejected"],
-  ["Anita Desai", "868", "18/09/1997", "869", "9345678123", "$500", "17/07/2026", "-", "Approved"],
-  ["Mark Wilson", "869", "06/05/1978", "870", "9456781234", "$90", "05/02/2026", "-", "Pending"],
-  ["Sneha Kulkarni", "870", "11/12/1986", "871", "9567812345", "$60", "28/05/2026", "-", "Draft"],
-  ["David Brown", "871", "23/08/1955", "872", "9678123456", "$240", "11/11/2025", "-", "Approved"],
-  ["Meera Nair", "872", "17/02/1970", "873", "9781234567", "$35", "19/08/2026", "-", "Rejected"],
-  ["Kevin Zhang", "873", "09/10/1995", "874", "9892345678", "$150", "03/09/2026", "-", "Pending"],
-  ["Fatima Khan", "874", "25/04/1983", "875", "9903456781", "$410", "14/12/2025", "-", "Draft"],
-  ["Robert King", "875", "30/06/1959", "876", "9014567812", "$25", "26/04/2026", "-", "Approved"],
-  ["Nisha Verma", "876", "09/02/1989", "877", "9125678123", "$130", "07/10/2026", "-", "Pending"],
-  ["Omar Ali", "877", "30/10/1967", "878", "9236781234", "$95", "12/03/2026", "-", "Rejected"],
+  [
+    "Lisha Cook",
+    "863",
+    "24/08/1965",
+    "864",
+    "9759402598",
+    "$200",
+    "12/05/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "Aamir Pathan",
+    "864",
+    "13/05/1984",
+    "865",
+    "9370937902",
+    "$20",
+    "03/06/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Rahul Sharma",
+    "865",
+    "14/03/1973",
+    "866",
+    "9812345670",
+    "$75",
+    "21/04/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Priya Patel",
+    "866",
+    "02/07/1991",
+    "867",
+    "9898989898",
+    "$310",
+    "09/01/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "John Miller",
+    "867",
+    "29/01/1964",
+    "868",
+    "9123456780",
+    "$45",
+    "30/03/2026",
+    "-",
+    "Rejected",
+  ],
+  [
+    "Anita Desai",
+    "868",
+    "18/09/1997",
+    "869",
+    "9345678123",
+    "$500",
+    "17/07/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Mark Wilson",
+    "869",
+    "06/05/1978",
+    "870",
+    "9456781234",
+    "$90",
+    "05/02/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Sneha Kulkarni",
+    "870",
+    "11/12/1986",
+    "871",
+    "9567812345",
+    "$60",
+    "28/05/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "David Brown",
+    "871",
+    "23/08/1955",
+    "872",
+    "9678123456",
+    "$240",
+    "11/11/2025",
+    "-",
+    "Approved",
+  ],
+  [
+    "Meera Nair",
+    "872",
+    "17/02/1970",
+    "873",
+    "9781234567",
+    "$35",
+    "19/08/2026",
+    "-",
+    "Rejected",
+  ],
+  [
+    "Kevin Zhang",
+    "873",
+    "09/10/1995",
+    "874",
+    "9892345678",
+    "$150",
+    "03/09/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Fatima Khan",
+    "874",
+    "25/04/1983",
+    "875",
+    "9903456781",
+    "$410",
+    "14/12/2025",
+    "-",
+    "Draft",
+  ],
+  [
+    "Robert King",
+    "875",
+    "30/06/1959",
+    "876",
+    "9014567812",
+    "$25",
+    "26/04/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Nisha Verma",
+    "876",
+    "09/02/1989",
+    "877",
+    "9125678123",
+    "$130",
+    "07/10/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Omar Ali",
+    "877",
+    "30/10/1967",
+    "878",
+    "9236781234",
+    "$95",
+    "12/03/2026",
+    "-",
+    "Rejected",
+  ],
 ];
 
 const HISTORY_ROWS = HISTORY_SAMPLE.map(
   (
-    [patientName, patientId, dob, refundId, phone, refundAmount, lastUpdated, description, status],
+    [
+      patientName,
+      patientId,
+      dob,
+      refundId,
+      phone,
+      refundAmount,
+      lastUpdated,
+      description,
+      status,
+    ],
     id,
   ) => ({
     id,
@@ -129,11 +465,11 @@ const NEW_COLUMNS = [
   { id: "dob", label: "DOB" },
   { id: "refundId", label: "Refund ID" },
   { id: "phone", label: "Phone Number" },
-  { id: "refundAmount", label: "Refund Amt",  },
-  { id: "lastUpdated", label: "Last Updated", },
+  { id: "refundAmount", label: "Refund Amt" },
+  { id: "lastUpdated", label: "Last Updated" },
   { id: "description", label: "Description" },
-  { id: "status", label: "Status",  },
-  { id: "refundMode", label: "Refund Mode",  },
+  { id: "status", label: "Status" },
+  { id: "refundMode", label: "Refund Mode" },
   { id: "actions", label: "Action", last: true },
 ];
 
@@ -143,10 +479,10 @@ const HISTORY_COLUMNS = [
   { id: "dob", label: "DOB" },
   { id: "refundId", label: "Refund ID" },
   { id: "phone", label: "Phone Number" },
-  { id: "refundAmount", label: "Refund Amount", },
-  { id: "lastUpdated", label: "Last Updated",  },
+  { id: "refundAmount", label: "Refund Amount" },
+  { id: "lastUpdated", label: "Last Updated" },
   { id: "description", label: "Description" },
-  { id: "status", label: "Status", },
+  { id: "status", label: "Status" },
   { id: "actions", label: "Action", last: true },
 ];
 
@@ -244,28 +580,28 @@ function exportToCSV(columns, rows, filename = "refunds.csv") {
 /* "actions" is always shown, not toggleable                            */
 /* ------------------------------------------------------------------ */
 const NEW_COLUMN_OPTIONS = [
-  { key: "patientName",  label: "Patient Name" },
-  { key: "patientId",    label: "Patient ID" },
-  { key: "dob",          label: "DOB" },
-  { key: "refundId",     label: "Refund ID" },
-  { key: "phone",        label: "Phone Number" },
+  { key: "patientName", label: "Patient Name" },
+  { key: "patientId", label: "Patient ID" },
+  { key: "dob", label: "DOB" },
+  { key: "refundId", label: "Refund ID" },
+  { key: "phone", label: "Phone Number" },
   { key: "refundAmount", label: "Refund Amt" },
-  { key: "lastUpdated",  label: "Last Updated" },
-  { key: "description",  label: "Description" },
-  { key: "status",       label: "Status" },
-  { key: "refundMode",   label: "Refund Mode" },
+  { key: "lastUpdated", label: "Last Updated" },
+  { key: "description", label: "Description" },
+  { key: "status", label: "Status" },
+  { key: "refundMode", label: "Refund Mode" },
 ];
 
 const HISTORY_COLUMN_OPTIONS = [
-  { key: "patientName",  label: "Patient Name" },
-  { key: "patientId",    label: "Patient ID" },
-  { key: "dob",          label: "DOB" },
-  { key: "refundId",     label: "Refund ID" },
-  { key: "phone",        label: "Phone Number" },
+  { key: "patientName", label: "Patient Name" },
+  { key: "patientId", label: "Patient ID" },
+  { key: "dob", label: "DOB" },
+  { key: "refundId", label: "Refund ID" },
+  { key: "phone", label: "Phone Number" },
   { key: "refundAmount", label: "Refund Amount" },
-  { key: "lastUpdated",  label: "Last Updated" },
-  { key: "description",  label: "Description" },
-  { key: "status",       label: "Status" },
+  { key: "lastUpdated", label: "Last Updated" },
+  { key: "description", label: "Description" },
+  { key: "status", label: "Status" },
 ];
 
 const buildVisibility = (options, value = true) =>
@@ -308,32 +644,66 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
       {/* ── Header ── */}
       <Box sx={{ px: 2.5, pt: 2.2, pb: 1.2 }}>
         <Box
-          sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 0.5 }}
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            mb: 0.5,
+          }}
         >
-          <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#1F2937", lineHeight: 1.25 }}>
+          <Typography
+            sx={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#1F2937",
+              lineHeight: 1.25,
+            }}
+          >
             Customise columns
           </Typography>
           <IconButton
             size="small"
             onClick={onClose}
-            sx={{ p: 0.3, color: "#111827", mt: -0.3, mr: -0.3, "&:hover": { bgcolor: "#F3F4F6" } }}
+            sx={{
+              p: 0.3,
+              color: "#111827",
+              mt: -0.3,
+              mr: -0.3,
+              "&:hover": { bgcolor: "#F3F4F6" },
+            }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Typography sx={{ fontSize: 11.5, color: "#171923", mb: 1.5, lineHeight: 1.4 }}>
+        <Typography
+          sx={{ fontSize: 11.5, color: "#171923", mb: 1.5, lineHeight: 1.4 }}
+        >
           Choose which columns to show.
         </Typography>
 
         {/* Select all / Clear all + count */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {[["Select all", true], ["Clear All", false]].map(([label, val]) => (
+            {[
+              ["Select all", true],
+              ["Clear All", false],
+            ].map(([label, val]) => (
               <Typography
                 key={label}
                 onClick={() => setDraft(buildVisibility(options, val))}
-                sx={{ fontSize: 11.5, fontWeight: 600, color: "#0066FF", cursor: "pointer" }}
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#0066FF",
+                  cursor: "pointer",
+                }}
               >
                 {label}
               </Typography>
@@ -360,7 +730,9 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
         {options.map((col) => (
           <Box
             key={col.key}
-            onClick={() => setDraft((prev) => ({ ...prev, [col.key]: !prev[col.key] }))}
+            onClick={() =>
+              setDraft((prev) => ({ ...prev, [col.key]: !prev[col.key] }))
+            }
             sx={{
               display: "flex",
               alignItems: "center",
@@ -376,10 +748,25 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
           >
             {/* 6-dot drag handle (decorative) */}
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px", mr: 0.4, flexShrink: 0, width: 10 }}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "2px",
+                mr: 0.4,
+                flexShrink: 0,
+                width: 10,
+              }}
             >
               {[...Array(6)].map((_, i) => (
-                <Box key={i} sx={{ width: 3, height: 3, borderRadius: "50%", bgcolor: "#0066FF" }} />
+                <Box
+                  key={i}
+                  sx={{
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
+                    bgcolor: "#0066FF",
+                  }}
+                />
               ))}
             </Box>
 
@@ -401,7 +788,13 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
             />
 
             <Typography
-              sx={{ fontSize: 12, fontWeight: 500, color: "#374151", lineHeight: 1, whiteSpace: "nowrap" }}
+              sx={{
+                fontSize: 12,
+                fontWeight: 500,
+                color: "#374151",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
             >
               {col.label}
             </Typography>
@@ -423,11 +816,19 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
       >
         <Button
           variant="outlined"
-          onClick={() => { setDraft(buildVisibility(options, true)); }}
+          onClick={() => {
+            setDraft(buildVisibility(options, true));
+          }}
           sx={{
-            textTransform: "none", fontSize: 11, fontWeight: 500,
-            color: "#2B2842", bgcolor: "#fff", border: "1px solid #E5E7EB",
-            borderRadius: "7px", height: 30, px: 1.5,
+            textTransform: "none",
+            fontSize: 11,
+            fontWeight: 500,
+            color: "#2B2842",
+            bgcolor: "#fff",
+            border: "1px solid #E5E7EB",
+            borderRadius: "7px",
+            height: 30,
+            px: 1.5,
             "&:hover": { bgcolor: "#F9FAFB", borderColor: "#D1D5DB" },
           }}
         >
@@ -439,9 +840,15 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
             variant="outlined"
             onClick={onClose}
             sx={{
-              textTransform: "none", fontSize: 11, fontWeight: 500,
-              color: "#2B2842", bgcolor: "#fff", border: "1px solid #E5E7EB",
-              borderRadius: "7px", height: 30, px: 1.5,
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 500,
+              color: "#2B2842",
+              bgcolor: "#fff",
+              border: "1px solid #E5E7EB",
+              borderRadius: "7px",
+              height: 30,
+              px: 1.5,
               "&:hover": { bgcolor: "#F9FAFB", borderColor: "#D1D5DB" },
             }}
           >
@@ -452,9 +859,14 @@ function ColumnSettingsDialog({ open, onClose, options, visible, setVisible }) {
             disableElevation
             onClick={handleSave}
             sx={{
-              textTransform: "none", fontSize: 11, fontWeight: 500,
-              bgcolor: "#0066FF", color: "#fff",
-              borderRadius: "7px", height: 30, px: 1.5,
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 500,
+              bgcolor: "#0066FF",
+              color: "#fff",
+              borderRadius: "7px",
+              height: 30,
+              px: 1.5,
               "&:hover": { bgcolor: "#0052CC" },
             }}
           >
@@ -689,7 +1101,8 @@ function DataTable({ columns, rows, sort, onSort }) {
 
   const allSelected =
     rows.length > 0 && rows.every((r) => selected.includes(r.id));
-  const someSelected = rows.some((r) => selected.includes(r.id)) && !allSelected;
+  const someSelected =
+    rows.some((r) => selected.includes(r.id)) && !allSelected;
 
   const handleSelectAll = (e) =>
     setSelected(e.target.checked ? rows.map((r) => r.id) : []);
@@ -1203,7 +1616,12 @@ function Toolbar({
         </Tooltip>
 
         <Tooltip title="Download CSV" arrow>
-          <IconButton size="small" aria-label="Download CSV" onClick={onDownload} sx={iconBtnSx}>
+          <IconButton
+            size="small"
+            aria-label="Download CSV"
+            onClick={onDownload}
+            sx={iconBtnSx}
+          >
             <DownloadIcon />
           </IconButton>
         </Tooltip>
@@ -1327,8 +1745,7 @@ export default function RefundsNew() {
 
   // badge count = status + (refund mode on New tab)
   const activeFilterCount =
-    (statusFilter ? 1 : 0) +
-    (isNew && modeFilter ? 1 : 0);
+    (statusFilter ? 1 : 0) + (isNew && modeFilter ? 1 : 0);
 
   const handleDownload = () => {
     const filename = `refunds-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`;

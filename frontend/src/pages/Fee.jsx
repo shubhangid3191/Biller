@@ -332,14 +332,15 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 // two-line headers ("Type of / Service") need a taller header row
 
-const HEAD_H = 44;
+const HEAD_H = 32;
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
   fontWeight: 500,
-  color: "#2E2E2E",
+  color: "#1e293b",
+  height: 32,
   whiteSpace: "nowrap",
   textAlign: "center",
 };
@@ -350,13 +351,16 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "pre-line",
   lineHeight: 1.3,
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
 };
 
 /* ------------------------------------------------------------------ */
@@ -913,8 +917,8 @@ export default function Fee() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -926,11 +930,11 @@ export default function Fee() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           flexShrink: 0,
-          gap: 2,
-          mb: 3,
+          gap: 1,
+          mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Fee Management
         </Typography>
 
@@ -961,7 +965,7 @@ export default function Fee() {
                 "aria-label": "Search by practice, program or CPT code",
               }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
@@ -988,7 +992,7 @@ export default function Fee() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -1007,7 +1011,7 @@ export default function Fee() {
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -1027,7 +1031,7 @@ export default function Fee() {
             }
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -1096,11 +1100,16 @@ export default function Fee() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
-                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                //onClick={() => navigate("/fee/configuration", { state: { row } })}
+                sx={{
+                  //cursor: "pointer",
+                  backgroundColor: "#fff",
+                  "&:hover": { bgcolor: "#F0F5FF" },
+                }}
               >
                 <TableCell sx={cellSx}>{row.practice}</TableCell>
                 <TableCell sx={cellSx}>{row.cpt}</TableCell>
@@ -1121,9 +1130,10 @@ export default function Fee() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        onClick={() =>
-                          navigate("/fee/configuration", { state: { row } })
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("/fee/configuration", { state: { row } });
+                        }}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },
@@ -1135,6 +1145,7 @@ export default function Fee() {
                     <Tooltip title="Delete" arrow>
                       <IconButton
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
                           color: T.blue,
                           "&:hover": { bgcolor: "#EEF4FF" },

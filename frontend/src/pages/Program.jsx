@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -13,11 +13,6 @@ import {
   TableRow,
   Dialog,
   DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  Select,
-  FormControl,
   Stack,
   Tooltip,
   InputBase,
@@ -48,28 +43,76 @@ const T = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Dummy rows                                                           */
+/* Initial seed data                                                    */
 /* ------------------------------------------------------------------ */
-const SAMPLE = [
-  ["Clare Jane", "Provider-Delivered Care Management.", "11980; 00934"],
-  ["Adam Ross", "Chronic Care Management.", "99490; 99439"],
-  ["Zoe Martin", "Remote Patient Monitoring.", "99453; 99454"],
-  ["Brian Cox", "Principal Care Management.", "99424; 99425"],
-  ["Maya Singh", "Transitional Care Management.", "99495; 99496"],
-  ["Liam Turner", "Behavioral Health Integration.", "99484; 99492"],
-  ["Nora Blake", "Annual Wellness Visit.", "G0438; G0439"],
-  ["Ethan Hall", "Advance Care Planning.", "99497; 99498"],
-  ["Ivy Morgan", "Home Health Certification.", "G0180; G0179"],
-  ["Owen Reed", "Telehealth Consultation.", "99441; 99442"],
-  ["Ruby Fox", "Preventive Medicine Counseling.", "99401; 99402"],
+const SEED = [
+  {
+    id: 1,
+    programName: "Clare Jane",
+    description: "Provider-Delivered Care Management.",
+    cpt: "11980; 00934",
+  },
+  {
+    id: 2,
+    programName: "Adam Ross",
+    description: "Chronic Care Management.",
+    cpt: "99490; 99439",
+  },
+  {
+    id: 3,
+    programName: "Zoe Martin",
+    description: "Remote Patient Monitoring.",
+    cpt: "99453; 99454",
+  },
+  {
+    id: 4,
+    programName: "Brian Cox",
+    description: "Principal Care Management.",
+    cpt: "99424; 99425",
+  },
+  {
+    id: 5,
+    programName: "Maya Singh",
+    description: "Transitional Care Management.",
+    cpt: "99495; 99496",
+  },
+  {
+    id: 6,
+    programName: "Liam Turner",
+    description: "Behavioral Health Integration.",
+    cpt: "99484; 99492",
+  },
+  {
+    id: 7,
+    programName: "Nora Blake",
+    description: "Annual Wellness Visit.",
+    cpt: "G0438; G0439",
+  },
+  {
+    id: 8,
+    programName: "Ethan Hall",
+    description: "Advance Care Planning.",
+    cpt: "99497; 99498",
+  },
+  {
+    id: 9,
+    programName: "Ivy Morgan",
+    description: "Home Health Certification.",
+    cpt: "G0180; G0179",
+  },
+  {
+    id: 10,
+    programName: "Owen Reed",
+    description: "Telehealth Consultation.",
+    cpt: "99441; 99442",
+  },
+  {
+    id: 11,
+    programName: "Ruby Fox",
+    description: "Preventive Medicine Counseling.",
+    cpt: "99401; 99402",
+  },
 ];
-
-const ROWS = SAMPLE.map(([programName, description, cpt], id) => ({
-  id,
-  programName,
-  description,
-  cpt,
-}));
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
@@ -84,25 +127,20 @@ const COLUMNS = [
 const SORTABLE_COLUMNS = COLUMNS.filter((c) => c.sort);
 
 /* ------------------------------------------------------------------ */
-/* Search helper (Program Name and CPT only)                           */
+/* Helpers                                                              */
 /* ------------------------------------------------------------------ */
-const SEARCH_FIELDS = ["programName", "cpt"];
-
 function filterRows(rows, query) {
   const q = query.trim().toLowerCase();
   if (!q) return rows;
-  return rows.filter((row) =>
-    SEARCH_FIELDS.some((field) =>
-      String(row[field] ?? "")
+  return rows.filter((r) =>
+    ["programName", "cpt"].some((f) =>
+      String(r[f] ?? "")
         .toLowerCase()
         .includes(q),
     ),
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Sort helpers                                                         */
-/* ------------------------------------------------------------------ */
 const COMPARERS = {
   alpha: (a, b) =>
     String(a).localeCompare(String(b), undefined, {
@@ -114,23 +152,19 @@ const COMPARERS = {
 const SORT_TITLES = {
   alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
 };
+const SORT_ORDER_LABELS = { alpha: { asc: "A to Z", desc: "Z to A" } };
 
-const SORT_ORDER_LABELS = {
-  alpha: { asc: "A to Z", desc: "Z to A" },
-};
-
-/* asc <-> desc only. setSort exposed so the dialog can control it too */
 function useSortedRows(rows, columns) {
   const [sort, setSort] = React.useState({ columnId: null, dir: null });
 
   const sortedRows = React.useMemo(() => {
     if (!sort.columnId || !sort.dir) return rows;
-    const column = columns.find((c) => c.id === sort.columnId);
-    if (!column?.sort) return rows;
+    const col = columns.find((c) => c.id === sort.columnId);
+    if (!col?.sort) return rows;
     const factor = sort.dir === "asc" ? 1 : -1;
-    const compare = COMPARERS[column.sort];
+    const cmp = COMPARERS[col.sort];
     return [...rows].sort(
-      (a, b) => compare(a[sort.columnId], b[sort.columnId]) * factor,
+      (a, b) => cmp(a[sort.columnId], b[sort.columnId]) * factor,
     );
   }, [rows, columns, sort]);
 
@@ -147,14 +181,15 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 /* Cell styles                                                          */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 44;
+const HEAD_H = 32;
 
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
-  color: "#2E2E2E",
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
+  color: "#1e293b",
+  height: 32,
   textAlign: "center",
 };
 
@@ -164,16 +199,20 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "nowrap",
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
+  lineHeight: 1.15,
 };
 
 /* ------------------------------------------------------------------ */
-/* Header cell (arrow toggles sort)                                     */
+/* Header cell                                                          */
 /* ------------------------------------------------------------------ */
 function HeaderCell({ column, sortDir, onSort }) {
   const active = !!sortDir;
@@ -200,11 +239,9 @@ function HeaderCell({ column, sortDir, onSort }) {
           <Tooltip title={titles[sortDir || "none"]} arrow>
             <IconButton
               size="small"
-              aria-label={`Sort ${column.label}`}
               onClick={() => onSort(column.id)}
               sx={{
                 p: 0.2,
-                flexShrink: 0,
                 borderRadius: "6px",
                 color: active ? T.blue : T.headSymbol,
                 bgcolor: active ? "#DCE7FD" : "transparent",
@@ -227,10 +264,105 @@ function HeaderCell({ column, sortDir, onSort }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Filter & Sort option row                                             */
+/* Delete Confirm Dialog                                                */
 /* ------------------------------------------------------------------ */
-function OptionRow({ label, checked, onToggle, minHeight = 50 }) {
+function DeleteDialog({ open, programName, onCancel, onConfirm }) {
   return (
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      PaperProps={{
+        sx: { borderRadius: "12px", minWidth: 340, p: 0, overflow: "hidden" },
+      }}
+    >
+      <Box sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>
+            Delete Program
+          </Typography>
+          <IconButton size="small" onClick={onCancel}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Typography sx={{ fontSize: 13, color: "#374151" }}>
+          Are you sure you want to delete{" "}
+          <Box component="span" sx={{ fontWeight: 700 }}>
+            {programName}
+          </Box>
+          ? This action cannot be undone.
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 1,
+          px: 3,
+          py: 2,
+        }}
+      >
+        <Button
+          variant="outlined"
+          onClick={onCancel}
+          sx={{
+            textTransform: "none",
+            fontSize: 13,
+            borderRadius: "8px",
+            borderColor: "#D1D5DB",
+            color: "#374151",
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          disableElevation
+          onClick={onConfirm}
+          sx={{
+            textTransform: "none",
+            fontSize: 13,
+            borderRadius: "8px",
+            bgcolor: "#EF4444",
+            "&:hover": { bgcolor: "#DC2626" },
+          }}
+        >
+          Delete
+        </Button>
+      </Box>
+    </Dialog>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Filter & Sort Dialog                                                 */
+/* ------------------------------------------------------------------ */
+const hideScrollSx = {
+  scrollbarWidth: "none",
+  "&::-webkit-scrollbar": { display: "none" },
+};
+const EMPTY_DRAFT = { sortBy: "", sortDir: "asc" };
+
+function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+  const [draft, setDraft] = React.useState(EMPTY_DRAFT);
+
+  React.useEffect(() => {
+    if (open) setDraft({ ...initial });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const selectedSortCol = SORTABLE_COLUMNS.find((c) => c.id === draft.sortBy);
+  const orderLabels = selectedSortCol
+    ? SORT_ORDER_LABELS[selectedSortCol.sort]
+    : SORT_ORDER_LABELS.alpha;
+
+  const OptionRow = ({ label, checked, onToggle, minHeight = 50 }) => (
     <Box
       onClick={onToggle}
       sx={{
@@ -263,38 +395,6 @@ function OptionRow({ label, checked, onToggle, minHeight = 50 }) {
       />
     </Box>
   );
-}
-
-const hideScrollSx = {
-  scrollbarWidth: "none",
-  "&::-webkit-scrollbar": { display: "none" },
-};
-
-/* ------------------------------------------------------------------ */
-/* Filter & Sort Dialog                                                 */
-/* ------------------------------------------------------------------ */
-const EMPTY_DRAFT = { sortBy: "", sortDir: "asc" };
-
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
-  const [category, setCategory] = React.useState("sort");
-  const [draft, setDraft] = React.useState(EMPTY_DRAFT);
-
-  React.useEffect(() => {
-    if (open) {
-      setDraft({ ...initial });
-      setCategory("sort");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const categories = [
-    { key: "sort", label: "Sort", hasDraft: Boolean(draft.sortBy) },
-  ];
-
-  const selectedSortCol = SORTABLE_COLUMNS.find((c) => c.id === draft.sortBy);
-  const orderLabels = selectedSortCol
-    ? SORT_ORDER_LABELS[selectedSortCol.sort]
-    : SORT_ORDER_LABELS.alpha;
 
   return (
     <Dialog
@@ -304,28 +404,10 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
       sx={{
         "& .MuiDialog-paper": {
           width: "400px !important",
-          minWidth: "400px !important",
           maxWidth: "400px !important",
-          height: "400px !important",
-          minHeight: "400px !important",
-          maxHeight: "60vh !important",
-          flexShrink: "0 !important",
-          display: "flex !important",
-          flexDirection: "column",
-          overflow: "hidden !important",
           borderRadius: "16px !important",
+          overflow: "hidden !important",
           boxShadow: "0px 8px 32px rgba(0,0,0,0.14)",
-          margin: 0,
-        },
-        "@media (max-width: 480px)": {
-          "& .MuiDialog-paper": {
-            width: "92vw !important",
-            minWidth: "92vw !important",
-            maxWidth: "92vw !important",
-            height: "50vh !important",
-            minHeight: "50vh !important",
-            borderRadius: "12px !important",
-          },
         },
       }}
     >
@@ -334,12 +416,9 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
           p: 0,
           display: "flex",
           flexDirection: "column",
-          flex: 1,
-          minHeight: 0,
           overflow: "hidden",
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -348,163 +427,73 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
             px: 2.5,
             pt: 2,
             pb: 1,
-            flexShrink: 0,
           }}
         >
           <Typography fontWeight={700} fontSize={12} color="#0f172a">
-            Filter &amp; sort
+            Filter &amp; Sort
           </Typography>
           <IconButton size="small" onClick={onClose}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        {/* Two-column layout */}
-        <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
-          {/* Left sidebar */}
-          <Box
+        <Box sx={{ px: 2.5, pb: 1 }}>
+          <Typography
             sx={{
-              width: 130,
-              bgcolor: "#F9FAFA",
-              borderRight: "1px solid #e2e8f0",
-              py: 1,
-              flexShrink: 0,
-              overflowY: "auto",
-              ...hideScrollSx,
-              "@media (max-width: 400px)": { width: 100 },
+              px: 0,
+              py: 0.75,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#94a3b8",
             }}
           >
-            <Typography
-              sx={{
-                px: 2,
-                py: 0.75,
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#94a3b8",
-              }}
-            >
-              Filter by
-            </Typography>
+            Sort By
+          </Typography>
+          {SORTABLE_COLUMNS.map((col) => {
+            const isChecked = draft.sortBy === col.id;
+            return (
+              <OptionRow
+                key={col.id}
+                label={col.label}
+                checked={isChecked}
+                onToggle={() =>
+                  setDraft((p) => ({
+                    ...p,
+                    sortBy: isChecked ? "" : col.id,
+                    sortDir: "asc",
+                  }))
+                }
+              />
+            );
+          })}
 
-            {categories.map((cat) => {
-              const isActive = category === cat.key;
-              return (
-                <Box
-                  key={cat.key}
-                  onClick={() => setCategory(cat.key)}
-                  sx={{
-                    px: 2,
-                    py: 0.9,
-                    borderLeft: isActive
-                      ? "3px solid rgba(1, 93, 255, 1)"
-                      : "3px solid transparent",
-                    bgcolor: isActive ? "#fff" : "transparent",
-                    cursor: "pointer",
-                    "&:hover": { bgcolor: isActive ? "#fff" : "#f1f5f9" },
-                    "@media (max-width: 400px)": { px: 1.5, py: 0.7 },
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      fontWeight: isActive ? 600 : 500,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                    }}
-                  >
-                    {cat.label}
-                    {cat.hasDraft && (
-                      <Box
-                        sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          bgcolor: "rgba(1,93,255,1)",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-
-          {/* Right panel */}
-          <Box
-            sx={{
-              flex: 1,
-              py: 1,
-              px: 1.5,
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0,
-              overflow: "hidden",
-            }}
-          >
-            {/* SORT */}
-            {category === "sort" && (
-              <Box
+          {draft.sortBy && (
+            <>
+              <Typography
                 sx={{
-                  flex: 1,
-                  overflowY: "auto",
-                  minHeight: 0,
-                  ...hideScrollSx,
+                  px: 0,
+                  pt: 1.5,
+                  pb: 0.5,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#94a3b8",
                 }}
               >
-                {SORTABLE_COLUMNS.map((col) => {
-                  const isChecked = draft.sortBy === col.id;
-                  return (
-                    <OptionRow
-                      key={col.id}
-                      label={col.label}
-                      checked={isChecked}
-                      onToggle={() =>
-                        setDraft((p) => ({
-                          ...p,
-                          sortBy: isChecked ? "" : col.id,
-                          sortDir: "asc",
-                        }))
-                      }
-                    />
-                  );
-                })}
-
-                {/* Order (only when a column is picked) */}
-                {draft.sortBy && (
-                  <>
-                    <Typography
-                      sx={{
-                        px: 2,
-                        pt: 1.5,
-                        pb: 0.5,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#94a3b8",
-                      }}
-                    >
-                      Order
-                    </Typography>
-                    {["asc", "desc"].map((dir) => (
-                      <OptionRow
-                        key={dir}
-                        label={orderLabels[dir]}
-                        checked={draft.sortDir === dir}
-                        onToggle={() =>
-                          setDraft((p) => ({ ...p, sortDir: dir }))
-                        }
-                        minHeight={44}
-                      />
-                    ))}
-                  </>
-                )}
-              </Box>
-            )}
-          </Box>
+                Order
+              </Typography>
+              {["asc", "desc"].map((dir) => (
+                <OptionRow
+                  key={dir}
+                  label={orderLabels[dir]}
+                  checked={draft.sortDir === dir}
+                  onToggle={() => setDraft((p) => ({ ...p, sortDir: dir }))}
+                  minHeight={44}
+                />
+              ))}
+            </>
+          )}
         </Box>
 
-        {/* Footer */}
         <Box
           sx={{
             display: "flex",
@@ -512,9 +501,6 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
             px: 2.5,
             py: 2,
             borderTop: "1px solid #f1f5f9",
-            flexShrink: 0,
-            backgroundColor: "#fff",
-            "@media (max-width: 400px)": { flexDirection: "column", gap: 1 },
           }}
         >
           <Button
@@ -526,7 +512,6 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
               color: "#015DFF",
               borderColor: "#015DFF",
               borderRadius: "100px",
-              "@media (max-width: 400px)": { fontSize: 10, py: 0.8 },
             }}
           >
             Clear all
@@ -538,10 +523,9 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
             sx={{
               borderRadius: "100px",
               textTransform: "none",
-              bgcolor: "rgba(1, 93, 255, 1)",
+              bgcolor: "rgba(1,93,255,1)",
               boxShadow: "none",
               "&:hover": { bgcolor: "#0145CC", boxShadow: "none" },
-              "@media (max-width: 400px)": { fontSize: 10, py: 0.8 },
             }}
           >
             Apply
@@ -557,22 +541,73 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* ------------------------------------------------------------------ */
 export default function Program() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // search
+  /* ── rows state — persisted in localStorage ── */
+  const [rows, setRows] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem("programRows");
+      return saved ? JSON.parse(saved) : SEED;
+    } catch {
+      return SEED;
+    }
+  });
+  const nextId = React.useRef(
+    rows.length > 0 ? Math.max(...rows.map((r) => r.id)) + 1 : SEED.length + 1,
+  );
+
+  /* keep localStorage in sync whenever rows change */
+  React.useEffect(() => {
+    localStorage.setItem("programRows", JSON.stringify(rows));
+  }, [rows]);
+
+  /* ── handle result coming back from ProgramEdit ── */
+  const processedResult = React.useRef(null);
+
+  React.useEffect(() => {
+    const result = location.state?.result;
+    if (!result) return;
+
+    // prevent double-apply (React StrictMode fires effects twice in dev)
+    const key = JSON.stringify(result);
+    if (processedResult.current === key) return;
+    processedResult.current = key;
+
+    if (result.action === "add") {
+      setRows((prev) => [...prev, { id: nextId.current++, ...result.data }]);
+    } else if (result.action === "edit") {
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === result.data.id ? { ...r, ...result.data } : r,
+        ),
+      );
+    }
+    /* clear the state so re-visits don't re-apply */
+    navigate("/program", { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.result]);
+
+  /* ── delete ── */
+  const [deleteTarget, setDeleteTarget] = React.useState(null);
+
+  const handleDeleteConfirm = () => {
+    setRows((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+    setDeleteTarget(null);
+  };
+
+  /* ── search / filter / sort ── */
   const [query, setQuery] = React.useState("");
-
-  // filter dialog
   const [filterOpen, setFilterOpen] = React.useState(false);
 
-  // filter first, then sort
-  const filteredRows = React.useMemo(() => filterRows(ROWS, query), [query]);
-
+  const filteredRows = React.useMemo(
+    () => filterRows(rows, query),
+    [rows, query],
+  );
   const { sort, setSort, sortedRows, handleSort } = useSortedRows(
     filteredRows,
     COLUMNS,
   );
 
-  // badge count = active sort
   const activeFilterCount = sort.columnId && sort.dir ? 1 : 0;
 
   const handleFilterApply = (draft) => {
@@ -589,11 +624,6 @@ export default function Program() {
     setFilterOpen(false);
   };
 
-  const dialogInitial = {
-    sortBy: sort.columnId || "",
-    sortDir: sort.dir || "asc",
-  };
-
   return (
     <Box
       sx={{
@@ -604,12 +634,12 @@ export default function Program() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
-      {/* HEADER */}
+      {/* ── HEADER ── */}
       <Box
         sx={{
           display: "flex",
@@ -617,16 +647,16 @@ export default function Program() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           flexShrink: 0,
-          gap: 2,
-          mb: 3,
+          gap: 1,
+          mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Program Management
         </Typography>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
-          {/* Search bar */}
+          {/* Search */}
           <Box
             sx={{
               display: "flex",
@@ -648,16 +678,15 @@ export default function Program() {
               placeholder="Search by Program Name or CPT..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              inputProps={{ "aria-label": "Search by program name or CPT" }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
             />
           </Box>
 
-          {/* Filter button -> opens Filter & sort dialog */}
+          {/* Filter */}
           <Badge
             badgeContent={activeFilterCount}
             color="primary"
@@ -677,7 +706,7 @@ export default function Program() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -691,12 +720,13 @@ export default function Program() {
             </Button>
           </Badge>
 
+          {/* Export */}
           <Button
             variant="outlined"
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -708,6 +738,7 @@ export default function Program() {
             Export
           </Button>
 
+          {/* Add New */}
           <Button
             variant="contained"
             disableElevation
@@ -716,7 +747,7 @@ export default function Program() {
             }
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -729,7 +760,7 @@ export default function Program() {
         </Stack>
       </Box>
 
-      {/* TABLE (sticky header, only this scrolls) */}
+      {/* ── TABLE ── */}
       <TableContainer
         sx={{
           flex: "0 1 auto",
@@ -739,12 +770,7 @@ export default function Program() {
           borderRadius: "10px",
           background: `linear-gradient(to bottom, ${T.headBg} ${HEAD_H}px, #fff ${HEAD_H}px)`,
           "&::-webkit-scrollbar": { height: 6, width: 6 },
-          "&::-webkit-scrollbar-track:vertical": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-            marginTop: `${HEAD_H}px`,
-          },
-          "&::-webkit-scrollbar-track:horizontal": {
+          "&::-webkit-scrollbar-track": {
             background: "#F1F1F1",
             borderRadius: "10px",
           },
@@ -781,17 +807,22 @@ export default function Program() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
+                //onClick={() => navigate("/program/configuration", { state: { row } })}
                 sx={{
-                  "&:hover": { bgcolor: "#FAFBFE" },
+                  // cursor: "pointer",
+                  backgroundColor: "#fff",
+                  "&:hover": { bgcolor: "#F0F5FF" },
                   "&:last-of-type td": { borderBottom: "none" },
                 }}
               >
                 <TableCell sx={cellSx}>{row.programName}</TableCell>
-                <TableCell sx={cellSx}>{row.description}</TableCell>
+                <TableCell sx={{ ...cellSx, textAlign: "left" }}>
+                  {row.description}
+                </TableCell>
                 <TableCell sx={cellSx}>{row.cpt}</TableCell>
                 <TableCell
                   align="center"
@@ -813,10 +844,12 @@ export default function Program() {
                     <Tooltip title="Edit" arrow>
                       <IconButton
                         size="small"
-                        aria-label="Edit"
-                        onClick={() =>
-                          navigate("/program/configuration", { state: { row } })
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("/program/configuration", {
+                            state: { row },
+                          });
+                        }}
                         sx={{
                           p: 0.6,
                           color: T.blue,
@@ -829,11 +862,14 @@ export default function Program() {
                     <Tooltip title="Delete" arrow>
                       <IconButton
                         size="small"
-                        aria-label="Delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(row);
+                        }}
                         sx={{
                           p: 0.6,
                           color: T.blue,
-                          "&:hover": { bgcolor: "#EEF4FF" },
+                          "&:hover": { bgcolor: "#FEE2E2" },
                         }}
                       >
                         <RPDeleteIcon width={20} height={20} color={T.blue} />
@@ -844,7 +880,6 @@ export default function Program() {
               </TableRow>
             ))}
 
-            {/* empty state */}
             {sortedRows.length === 0 && (
               <TableRow>
                 <TableCell
@@ -860,13 +895,20 @@ export default function Program() {
         </Table>
       </TableContainer>
 
-      {/* FILTER & SORT DIALOG */}
+      {/* ── DIALOGS ── */}
       <FilterSortDialog
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        initial={dialogInitial}
+        initial={{ sortBy: sort.columnId || "", sortDir: sort.dir || "asc" }}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
+      />
+
+      <DeleteDialog
+        open={Boolean(deleteTarget)}
+        programName={deleteTarget?.programName}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
       />
     </Box>
   );

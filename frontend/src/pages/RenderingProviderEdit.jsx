@@ -20,11 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
-import {
-  RPAddIcon,
-  RPDeleteIcon,
-  CalendarIcon,
-} from "../assets/Assets";
+import { RPAddIcon, RPDeleteIcon, CalendarIcon } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -55,11 +51,7 @@ const OPTIONS = {
   country: ["United States", "Canada", "India"],
   state: ["California", "Texas", "New York"],
   fax: ["8475875747", "8475875748", "8475875749"],
-  email: [
-    "lipsum@gmail.com",
-    "provider@gmail.com",
-    "info@gmail.com",
-  ],
+  email: ["lipsum@gmail.com", "provider@gmail.com", "info@gmail.com"],
   specialty: ["Cardiology", "Neurology", "Orthopedics"],
 };
 
@@ -72,22 +64,22 @@ const PHONE_ERROR = "Enter a valid 10-digit number";
 
 /* All required text/phone fields → label shown in error messages */
 const REQUIRED_TEXT_FIELDS = {
-  firstName:      "First Name",
-  lastName:       "Last Name",
-  dateOfBirth:    "Date of Birth",
-  npi:            "National Provider Identifier",
-  stateLicense:   "State License Number",
-  mobilePhone:    "Mobile Phone",
-  phone:          "Phone",
-  taxonomy:       "Taxonomy",
+  firstName: "First Name",
+  lastName: "Last Name",
+  dateOfBirth: "Date of Birth",
+  npi: "National Provider Identifier",
+  stateLicense: "State License Number",
+  mobilePhone: "Mobile Phone",
+  phone: "Phone",
+  taxonomy: "Taxonomy",
 };
 
 /* Required select fields → label shown in error messages */
 const REQUIRED_SELECT_FIELDS = {
-  sex:       "Sex",
-  practice:  "Practice",
-  fax:       "Fax",
-  email:     "E-mail",
+  sex: "Sex",
+  practice: "Practice",
+  fax: "Fax",
+  email: "E-mail",
   specialty: "Specialty",
 };
 
@@ -106,7 +98,9 @@ const validateField = (name, value) => {
 
 const ALL_REQUIRED = {
   ...Object.fromEntries(Object.keys(REQUIRED_TEXT_FIELDS).map((k) => [k, ""])),
-  ...Object.fromEntries(Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""])),
+  ...Object.fromEntries(
+    Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""]),
+  ),
 };
 
 /* ------------------------------------------------------------------ */
@@ -286,7 +280,9 @@ function SelectField({
             val ? (
               <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
             ) : (
-              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+              <span style={{ fontSize: 13, color: "#8F9098" }}>
+                {placeholder}
+              </span>
             )
           }
         >
@@ -302,7 +298,9 @@ function SelectField({
         </Select>
 
         {error && (
-          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+          <FormHelperText
+            sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}
+          >
             {error}
           </FormHelperText>
         )}
@@ -409,7 +407,9 @@ function DateField({
             disableFuture
             sx={{
               width: { xs: "280px", sm: "320px" },
-              "& .MuiPickersDay-root.Mui-selected": { backgroundColor: "#015DFF" },
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#015DFF",
+              },
               "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
@@ -505,32 +505,32 @@ export default function ReferringProviderEdit() {
   const [pcp, setPcp] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    firstName:           row?.providerName?.split(" ")[0] ?? "",
-    lastName:            row?.providerName?.split(" ").slice(1).join(" ") ?? "",
-    dateOfBirth:         "",
-    sex:                 "",
-    suffix:              "",
-    prefix:              "",
-    npi:                 row?.npi        ?? "",
-    groupNpi:            "",
-    stateLicense:        "",
+    firstName: row?.providerName?.split(" ")[0] ?? "",
+    lastName: row?.providerName?.split(" ").slice(1).join(" ") ?? "",
+    dateOfBirth: "",
+    sex: "",
+    suffix: "",
+    prefix: "",
+    npi: row?.npi ?? "",
+    groupNpi: "",
+    stateLicense: "",
     controlledSubstance: "",
-    dea:                 "",
-    practice:            row?.practice   ?? "",
-    addressType:         "",
-    address1:            row?.address    ?? "",
-    address2:            "",
-    zipCode:             "",
-    city:                "",
-    country:             "",
-    state:               "",
-    mobilePhone:         row?.mobile     ?? "",
-    workContact:         "",
-    phone:               "",
-    fax:                 row?.fax        ?? "",
-    email:               row?.email      ?? "",
-    specialty:           "",
-    taxonomy:            "",
+    dea: "",
+    practice: row?.practice ?? "",
+    addressType: "",
+    address1: row?.address ?? "",
+    address2: "",
+    zipCode: "",
+    city: "",
+    country: "",
+    state: "",
+    mobilePhone: row?.mobile ?? "",
+    workContact: "",
+    phone: "",
+    fax: row?.fax ?? "",
+    email: row?.email ?? "",
+    specialty: "",
+    taxonomy: "",
   });
 
   /* touched mirrors ALL_REQUIRED keys */
@@ -556,9 +556,10 @@ export default function ReferringProviderEdit() {
   /* props helpers */
   const tx = (name) => ({
     value: form[name],
-    onChange: name === "mobilePhone" || name === "phone" || name === "workContact"
-      ? setPhone(name)
-      : set(name),
+    onChange:
+      name === "mobilePhone" || name === "phone" || name === "workContact"
+        ? setPhone(name)
+        : set(name),
     onBlur: () => touch(name),
     error: errorOf(name),
   });
@@ -640,16 +641,16 @@ export default function ReferringProviderEdit() {
             <ArrowBackIcon sx={{ fontSize: 20 }} />
           </IconButton>
 
-        <Typography
-          sx={{
-            fontSize: { xs: 16, sm: 18, md: 20 },
-            fontWeight: 700,
-            color: "#111827",
-          }}
-        >
-          {isEdit ? "Edit Referring Provider" : "Add New Referring Provider"}
-        </Typography>
-         </Box>
+          <Typography
+            sx={{
+              fontSize: { xs: 16, sm: 18, md: 20 },
+              fontWeight: 700,
+              color: "#111827",
+            }}
+          >
+            {isEdit ? "Edit Rendering Provider" : "Add New Rendering Provider"}
+          </Typography>
+        </Box>
 
         {/* =========================================================
             BASIC DETAILS
@@ -659,23 +660,15 @@ export default function ReferringProviderEdit() {
           <SectionTitle>Basic Details</SectionTitle>
 
           <FormGrid>
-            <InputField
-              label="First Name" required
-              {...tx("firstName")}
-            />
+            <InputField label="First Name" required {...tx("firstName")} />
 
-            <InputField
-              label="Last Name" required
-              {...tx("lastName")}
-            />
+            <InputField label="Last Name" required {...tx("lastName")} />
 
-            <DateField
-              label="Date of Birth" required
-              {...tx("dateOfBirth")}
-            />
+            <DateField label="Date of Birth" required {...tx("dateOfBirth")} />
 
             <SelectField
-              label="Sex" required
+              label="Sex"
+              required
               options={OPTIONS.sex}
               {...sel("sex")}
             />
@@ -697,7 +690,8 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="National Provider Identifier" required
+              label="National Provider Identifier"
+              required
               {...tx("npi")}
             />
 
@@ -710,7 +704,8 @@ export default function ReferringProviderEdit() {
 
           <FormGrid>
             <InputField
-              label="State License Number" required
+              label="State License Number"
+              required
               {...tx("stateLicense")}
             />
 
@@ -728,7 +723,8 @@ export default function ReferringProviderEdit() {
             />
 
             <SelectField
-              label="Practice" required
+              label="Practice"
+              required
               options={OPTIONS.practice}
               {...sel("practice")}
             />
@@ -782,11 +778,10 @@ export default function ReferringProviderEdit() {
                     color: "#fff",
                   },
 
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                    {
-                      bgcolor: "#22C55E",
-                      opacity: 1,
-                    },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    bgcolor: "#22C55E",
+                    opacity: 1,
+                  },
 
                   "& .MuiSwitch-track": {
                     borderRadius: 20,
@@ -864,11 +859,7 @@ export default function ReferringProviderEdit() {
           {/* Row 2 */}
 
           <FormGrid>
-            <InputField
-              label="City"
-              value={form.city}
-              onChange={set("city")}
-            />
+            <InputField label="City" value={form.city} onChange={set("city")} />
 
             <SelectField
               label="State"
@@ -885,7 +876,8 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="Mobile Phone" required
+              label="Mobile Phone"
+              required
               inputMode="numeric"
               maxLength={10}
               {...tx("mobilePhone")}
@@ -913,20 +905,23 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="Phone" required
+              label="Phone"
+              required
               inputMode="numeric"
               maxLength={10}
               {...tx("phone")}
             />
 
             <SelectField
-              label="Fax" required
+              label="Fax"
+              required
               options={OPTIONS.fax}
               {...sel("fax")}
             />
 
             <SelectField
-              label="E-mail" required
+              label="E-mail"
+              required
               options={OPTIONS.email}
               {...sel("email")}
             />
@@ -977,7 +972,8 @@ export default function ReferringProviderEdit() {
             }}
           >
             <SelectField
-              label="Specialty" required
+              label="Specialty"
+              required
               options={OPTIONS.specialty}
               {...sel("specialty")}
             />
@@ -991,7 +987,8 @@ export default function ReferringProviderEdit() {
             >
               <Box sx={{ flex: 1 }}>
                 <InputField
-                  label="Taxonomy" required
+                  label="Taxonomy"
+                  required
                   placeholder="Type here"
                   {...tx("taxonomy")}
                 />

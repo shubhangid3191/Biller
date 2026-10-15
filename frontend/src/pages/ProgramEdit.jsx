@@ -45,8 +45,15 @@ const inputSx = {
     fontSize: 13,
     borderRadius: "8px",
     bgcolor: "#fff",
-    "& input, & textarea": { fontSize: 13, color: "#1E1E1E", padding: "8px 12px" },
-    "& input::placeholder, & textarea::placeholder": { color: "#8F9098", opacity: 1 },
+    "& input, & textarea": {
+      fontSize: 13,
+      color: "#1E1E1E",
+      padding: "8px 12px",
+    },
+    "& input::placeholder, & textarea::placeholder": {
+      color: "#8F9098",
+      opacity: 1,
+    },
     "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -56,18 +63,45 @@ const inputSx = {
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
   "& .MuiInputBase-root:not(.MuiInputBase-multiline)": { height: "42px" },
-  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 /* ------------------------------------------------------------------ */
 /* InputField component                                                  */
 /* ------------------------------------------------------------------ */
-function InputField({ label, value, onChange, onBlur, error, placeholder, required, multiline, rows }) {
+function InputField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  error,
+  placeholder,
+  required,
+  multiline,
+  rows,
+}) {
   return (
     <Box>
-      <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6, display: "block" }}>
+      <Typography
+        sx={{
+          fontSize: 12,
+          fontWeight: 700,
+          color: "#000",
+          mb: 0.6,
+          display: "block",
+        }}
+      >
         {label}
-        {required && <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>}
+        {required && (
+          <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
+            *
+          </Box>
+        )}
       </Typography>
       <TextField
         fullWidth
@@ -91,13 +125,13 @@ function InputField({ label, value, onChange, onBlur, error, placeholder, requir
 export default function ProgramEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
-  const row    = routeState?.row ?? null;
+  const row = routeState?.row ?? null;
   const isEdit = row !== null;
 
   const [form, setForm] = React.useState({
     programName: row?.programName ?? "",
     description: row?.description ?? "",
-    cpt:         row?.cpt         ?? "",
+    cpt: row?.cpt ?? "",
   });
 
   const [touched, setTouched] = React.useState({});
@@ -135,7 +169,28 @@ export default function ProgramEdit() {
       }, 50);
       return;
     }
-    navigate("/program");
+
+    if (isEdit) {
+      // pass updated row back to Program list
+      navigate("/program", {
+        state: {
+          result: {
+            action: "edit",
+            data: { id: row.id, ...form },
+          },
+        },
+      });
+    } else {
+      // pass new row back to Program list
+      navigate("/program", {
+        state: {
+          result: {
+            action: "add",
+            data: form,
+          },
+        },
+      });
+    }
   };
 
   return (
@@ -159,7 +214,7 @@ export default function ProgramEdit() {
         }}
       >
         {/* Title */}
-         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton
             onClick={() => navigate(-1)}
             sx={{
@@ -174,11 +229,15 @@ export default function ProgramEdit() {
           >
             <ArrowBackIcon sx={{ fontSize: 20 }} />
           </IconButton>
-        <Typography
-          sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, fontWeight: 700, color: "#111827" }}
-        >
-          {isEdit ? "Edit Program" : "Add New Program"}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: 18, sm: 20, md: 22 },
+              fontWeight: 700,
+              color: "#111827",
+            }}
+          >
+            {isEdit ? "Edit Program" : "Add New Program"}
+          </Typography>
         </Box>
 
         {/* Form card */}
@@ -217,10 +276,7 @@ export default function ProgramEdit() {
         </Box>
 
         {/* Action buttons */}
-        <Stack
-          direction={{ xs: "column-reverse", sm: "row" }}
-          spacing={1.5}
-        >
+        <Stack direction={{ xs: "column-reverse", sm: "row" }} spacing={1.5}>
           <Button
             variant="contained"
             disableElevation

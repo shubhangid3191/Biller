@@ -162,6 +162,114 @@ const SAMPLE = [
     "caleb@gmail...",
     "Fresh",
   ],
+  [
+    "Clare Jane",
+    "WashingtonUSe, Aleutians...",
+    "8475875747",
+    "8475875747",
+    "8475875747",
+    "lipsum@gmail...",
+    "Hitex, Balance Report, Fresh",
+  ],
+  [
+    "Adam Ross",
+    "Boston, Suffolk County...",
+    "9123456780",
+    "9123456781",
+    "9123456782",
+    "adam@gmail...",
+    "Fresh Original",
+  ],
+  [
+    "Zoe Martin",
+    "Denver, Denver County...",
+    "7345678123",
+    "7345678124",
+    "7345678125",
+    "zoe@gmail...",
+    "Balance Report",
+  ],
+  [
+    "Brian Cox",
+    "Austin, Travis County...",
+    "6456781234",
+    "6456781235",
+    "6456781236",
+    "brian@gmail...",
+    "Hitex",
+  ],
+  [
+    "Maya Singh",
+    "Chicago, Cook County...",
+    "9567812345",
+    "9567812346",
+    "9567812347",
+    "maya@gmail...",
+    "Fresh Original",
+  ],
+  [
+    "Liam Turner",
+    "Seattle, King County...",
+    "5678123456",
+    "5678123457",
+    "5678123458",
+    "liam@gmail...",
+    "Hitex, Fresh",
+  ],
+  [
+    "Nora Blake",
+    "Miami, Miami-Dade...",
+    "8781234567",
+    "8781234568",
+    "8781234569",
+    "nora@gmail...",
+    "Balance Report, Fresh",
+  ],
+  [
+    "Ethan Hall",
+    "Phoenix, Maricopa County...",
+    "4892345678",
+    "4892345679",
+    "4892345670",
+    "ethan@gmail...",
+    "Hitex",
+  ],
+  [
+    "Ivy Morgan",
+    "Portland, Multnomah...",
+    "9903456781",
+    "9903456782",
+    "9903456783",
+    "ivy@gmail...",
+    "Fresh Original",
+  ],
+  [
+    "Owen Reed",
+    "Dallas, Dallas County...",
+    "3014567812",
+    "3014567813",
+    "3014567814",
+    "owen@gmail...",
+    "Balance Report",
+  ],
+  [
+    "Ruby Fox",
+    "Atlanta, Fulton County...",
+    "7125678123",
+    "7125678124",
+    "7125678125",
+    "ruby@gmail...",
+    "Hitex, Balance Report",
+  ],
+  [
+    "Caleb Young",
+    "Houston, Harris County...",
+    "2236781234",
+    "2236781235",
+    "2236781236",
+    "caleb@gmail...",
+    "Fresh",
+  ],
 ];
 
 const ROWS = SAMPLE.map(
@@ -204,6 +312,12 @@ const splitPractices = (value) =>
 const PRACTICE_OPTIONS = [
   ...new Set(ROWS.flatMap((r) => splitPractices(r.practice))),
 ].sort((a, b) => a.localeCompare(b));
+
+/* Alternating row background — same pattern as PreBillingClaim */
+const getListColor = (index) => {
+  const groupIndex = Math.floor(index / 3) % 4;
+  //return ["#F2F6FF", "#FFFBF6", "#F1FFFD", "#F2F6FF"][groupIndex];
+};
 
 /* ------------------------------------------------------------------ */
 /* Search + filter helper                                               */
@@ -277,13 +391,14 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 /* Shared cell sx                                                       */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 44;
+const HEAD_H = 32;
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
-  color: "#2E2E2E",
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
+  color: "#1e293b",
+  height: 32,
   textAlign: "center",
 };
 
@@ -293,12 +408,16 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 13,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "nowrap",
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
+  lineHeight: 1.15,
 };
 
 /* ------------------------------------------------------------------ */
@@ -717,7 +836,7 @@ function OptionRow({ label, checked, onToggle, minHeight = 50 }) {
         py: 1.2,
         minHeight,
         borderRadius: "8px",
-        cursor: "pointer",
+        // cursor: "pointer",
         bgcolor: checked ? "#EBF1FE" : "transparent",
         "&:hover": { bgcolor: checked ? "#EBF1FE" : "#f8fafc" },
       }}
@@ -1191,8 +1310,8 @@ export default function ReferringProvider() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -1204,11 +1323,11 @@ export default function ReferringProvider() {
           justifyContent: "space-between",
           flexWrap: "wrap",
           flexShrink: 0,
-          gap: 2,
-          mb: 3,
+          gap: 0,
+          mb: 2,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Referring Provider Management
         </Typography>
 
@@ -1237,7 +1356,7 @@ export default function ReferringProvider() {
               onChange={(e) => setQuery(e.target.value)}
               inputProps={{ "aria-label": "Search referring providers" }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
@@ -1264,7 +1383,7 @@ export default function ReferringProvider() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -1283,7 +1402,7 @@ export default function ReferringProvider() {
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -1303,7 +1422,7 @@ export default function ReferringProvider() {
             }
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -1372,11 +1491,19 @@ export default function ReferringProvider() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
-                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                // onClick={() =>
+                //   navigate("/referring-provider/edit", { state: { row } })
+                // }
+                sx={{
+                  //cursor: "pointer",
+                  backgroundColor: getListColor(index),
+                  borderBottom: "none",
+                  "&:hover": { bgcolor: "#EEF4FF" },
+                }}
               >
                 <TableCell sx={cellSx}>{row.providerName}</TableCell>
                 <TableCell sx={cellSx}>{row.address}</TableCell>

@@ -277,13 +277,14 @@ function useSortedRows(rows, columns) {
 /* ------------------------------------------------------------------ */
 /* Shared cell sx                                                       */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 44;
+const HEAD_H = 32;
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1.5,
-  fontSize: 12,
-  color: "#2E2E2E",
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
+  color: "#1e293b",
+  height: 32,
   textAlign: "center",
 };
 
@@ -293,12 +294,16 @@ const headCellSx = {
   boxSizing: "border-box",
   bgcolor: T.headBg,
   fontWeight: 700,
-  fontSize: 12,
+  fontSize: 10,
   color: "#1e293b",
   borderBottom: `1px solid ${T.border}`,
   borderRight: `1px solid ${T.border}`,
   whiteSpace: "nowrap",
   textAlign: "center",
+  py: 0.4,
+  px: 0.4,
+  minHeight: 28,
+  lineHeight: 1.15,
 };
 /* ------------------------------------------------------------------ */
 /* Header cell (arrow toggles sort)                                     */
@@ -1190,8 +1195,8 @@ export default function RenderingProvider() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -1207,7 +1212,7 @@ export default function RenderingProvider() {
           mb: 3,
         }}
       >
-        <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Rendering Provider Management
         </Typography>
 
@@ -1236,7 +1241,7 @@ export default function RenderingProvider() {
               onChange={(e) => setQuery(e.target.value)}
               inputProps={{ "aria-label": "Search rendering providers" }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 flex: 1,
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
@@ -1263,7 +1268,7 @@ export default function RenderingProvider() {
               startIcon={<FilterIcon color="#2563EB" />}
               sx={{
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 borderRadius: "8px",
                 color: T.blue,
@@ -1282,7 +1287,7 @@ export default function RenderingProvider() {
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               color: T.blue,
@@ -1302,7 +1307,7 @@ export default function RenderingProvider() {
             }
             sx={{
               textTransform: "none",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               bgcolor: T.blue,
@@ -1371,11 +1376,18 @@ export default function RenderingProvider() {
           </TableHead>
 
           <TableBody>
-            {sortedRows.map((row) => (
+            {sortedRows.map((row, index) => (
               <TableRow
                 key={row.id}
                 hover
-                sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}
+                // onClick={() =>
+                //   navigate("/rendering-provider/edit", { state: { row } })
+                // }
+                sx={{
+                  //cursor: "pointer",
+                  backgroundColor: "#fff",
+                  "&:hover": { bgcolor: "#F0F5FF" },
+                }}
               >
                 <TableCell sx={cellSx}>{row.providerName}</TableCell>
                 <TableCell sx={cellSx}>{row.address}</TableCell>
@@ -1388,9 +1400,12 @@ export default function RenderingProvider() {
                   <Tooltip title="Edit" arrow>
                     <IconButton
                       size="small"
-                      onClick={() =>
-                        navigate("/rendering-provider/edit", { state: { row } })
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate("/rendering-provider/edit", {
+                          state: { row },
+                        });
+                      }}
                       sx={{
                         color: T.blue,
                         "&:hover": { bgcolor: "#EEF4FF" },

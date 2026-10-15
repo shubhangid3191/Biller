@@ -49,19 +49,19 @@ const parseDate = (v) => {
 
 /* Required text / input fields */
 const REQUIRED_TEXT = {
-  cpt:           "CPT / HCPCS Code",
-  description:   "Description",
-  modifier1:     "Modifier 1",
-  charge:        "Procedure Charge",
+  cpt: "CPT / HCPCS Code",
+  description: "Description",
+  modifier1: "Modifier 1",
+  charge: "Procedure Charge",
   effectiveDate: "Effective Date",
 };
 
 /* Required select fields */
 const REQUIRED_SELECT = {
-  practice:      "Practice",
-  specialty:     "Specialty",
+  practice: "Practice",
+  specialty: "Specialty",
   typeOfService: "Type of Service",
-  program:       "Program",
+  program: "Program",
 };
 
 const validateField = (name, value) => {
@@ -103,7 +103,12 @@ const inputSx = {
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
   "& .MuiInputBase-root": { height: "42px" },
-  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const inputWithIconSx = {
@@ -111,7 +116,12 @@ const inputWithIconSx = {
     borderRadius: "8px",
     fontSize: 13,
     bgcolor: "#fff",
-    "& input": { padding: "8px 12px", paddingRight: "36px", fontSize: 13, color: "#1E1E1E" },
+    "& input": {
+      padding: "8px 12px",
+      paddingRight: "36px",
+      fontSize: 13,
+      color: "#1E1E1E",
+    },
     "& input::placeholder": { color: "#8F9098", opacity: 1 },
     "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
     "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
@@ -122,7 +132,12 @@ const inputWithIconSx = {
     "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
   "& .MuiInputBase-root": { height: "42px" },
-  "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+  "& .MuiFormHelperText-root": {
+    fontSize: 11,
+    mx: 0,
+    mt: 0.4,
+    color: "#EF4444",
+  },
 };
 
 const selectSx = (error = false) => ({
@@ -161,15 +176,25 @@ function Label({ children, required }) {
     <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
       {children}
       {required && (
-        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>*</Box>
+        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
+          *
+        </Box>
       )}
     </Typography>
   );
 }
 
 function InputField({
-  label, placeholder = "Type here", required,
-  endIcon, value, onChange, onBlur, error, inputMode, maxLength,
+  label,
+  placeholder = "Type here",
+  required,
+  endIcon,
+  value,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
 }) {
   return (
     <Box>
@@ -185,7 +210,11 @@ function InputField({
         inputProps={{ inputMode, maxLength }}
         InputProps={
           endIcon
-            ? { endAdornment: <InputAdornment position="end">{endIcon}</InputAdornment> }
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                ),
+              }
             : undefined
         }
         sx={inputSx}
@@ -195,8 +224,14 @@ function InputField({
 }
 
 function InputFieldWithIcon({
-  label, placeholder = "Type here", required,
-  icon, value, onChange, onBlur, error,
+  label,
+  placeholder = "Type here",
+  required,
+  icon,
+  value,
+  onChange,
+  onBlur,
+  error,
 }) {
   return (
     <Box>
@@ -231,8 +266,14 @@ function InputFieldWithIcon({
 }
 
 function SelectField({
-  label, placeholder = "Select", options = [],
-  required, value, onChange, onClose, error,
+  label,
+  placeholder = "Select",
+  options = [],
+  required,
+  value,
+  onChange,
+  onClose,
+  error,
 }) {
   return (
     <Box>
@@ -249,17 +290,25 @@ function SelectField({
             val ? (
               <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
             ) : (
-              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+              <span style={{ fontSize: 13, color: "#8F9098" }}>
+                {placeholder}
+              </span>
             )
           }
         >
-          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</MenuItem>
+          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
+            {placeholder}
+          </MenuItem>
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>{o}</MenuItem>
+            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
+              {o}
+            </MenuItem>
           ))}
         </Select>
         {error && (
-          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+          <FormHelperText
+            sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}
+          >
             {error}
           </FormHelperText>
         )}
@@ -271,7 +320,16 @@ function SelectField({
 /* ------------------------------------------------------------------ */
 /* Date field — MM-DD-YYYY                                             */
 /* ------------------------------------------------------------------ */
-function DateField({ label, value, onChange, onBlur, required, error, minDate, placeholder = "MM-DD-YYYY" }) {
+function DateField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  required,
+  error,
+  minDate,
+  placeholder = "MM-DD-YYYY",
+}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClose = () => {
@@ -316,7 +374,12 @@ function DateField({ label, value, onChange, onBlur, required, error, minDate, p
         }}
         sx={{
           ...inputSx,
-          "& .MuiFormHelperText-root": { fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" },
+          "& .MuiFormHelperText-root": {
+            fontSize: 11,
+            mx: 0,
+            mt: 0.4,
+            color: "#EF4444",
+          },
         }}
       />
       <Popover
@@ -326,7 +389,11 @@ function DateField({ label, value, onChange, onBlur, required, error, minDate, p
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{
-          sx: { borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", mt: 0.5 },
+          sx: {
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+            mt: 0.5,
+          },
         }}
       >
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -336,7 +403,9 @@ function DateField({ label, value, onChange, onBlur, required, error, minDate, p
             minDate={minDate}
             sx={{
               width: { xs: "280px", sm: "320px" },
-              "& .MuiPickersDay-root.Mui-selected": { backgroundColor: "#015DFF" },
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#015DFF",
+              },
               "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
@@ -363,7 +432,9 @@ function FormGrid({ children }) {
 
 function SectionTitle({ children }) {
   return (
-    <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827", mb: 2, mt: 1 }}>
+    <Typography
+      sx={{ fontSize: 18, fontWeight: 700, color: "#111827", mb: 2, mt: 1 }}
+    >
       {children}
     </Typography>
   );
@@ -381,27 +452,27 @@ export default function FeeConfiguration() {
   const [nonCovered, setNonCovered] = React.useState(false);
 
   const [form, setForm] = React.useState({
-    cpt:           row?.cpt                              ?? "",
-    description:   row?.description                      ?? "",
-    modifier1:     row?.modifiers                        ?? "",
-    modifier2:     "",
-    modifier3:     "",
-    modifier4:     "",
-    charge:        row?.charge                           ?? "",
-    unit:          "",
-    unitType:      "",
-    ndcLabel:      "",
-    ndcUnitBasis:  "",
-    ndcDefaultUnit:"",
-    effectiveDate: row?.effectiveDate?.split(" - ")[0]   ?? "",
-    expiryDate:    row?.effectiveDate?.split(" - ")[1]   ?? "",
+    cpt: row?.cpt ?? "",
+    description: row?.description ?? "",
+    modifier1: row?.modifiers ?? "",
+    modifier2: "",
+    modifier3: "",
+    modifier4: "",
+    charge: row?.charge ?? "",
+    unit: "",
+    unitType: "",
+    ndcLabel: "",
+    ndcUnitBasis: "",
+    ndcDefaultUnit: "",
+    effectiveDate: row?.effectiveDate?.split(" - ")[0] ?? "",
+    expiryDate: row?.effectiveDate?.split(" - ")[1] ?? "",
     /* selects */
-    practice:      row?.practice                         ?? "",
-    specialty:     row?.specialty                        ?? "",
-    typeOfService: row?.typeOfService                    ?? "",
-    program:       row?.program                          ?? "",
-    posCode:       "",
-    ndcCode:       "",
+    practice: row?.practice ?? "",
+    specialty: row?.specialty ?? "",
+    typeOfService: row?.typeOfService ?? "",
+    program: row?.program ?? "",
+    posCode: "",
+    ndcCode: "",
   });
 
   const [touched, setTouched] = React.useState({});
@@ -472,7 +543,7 @@ export default function FeeConfiguration() {
           mx: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 2,
         }}
       >
         {/* ── Title + Ask Anything ── */}
@@ -493,13 +564,17 @@ export default function FeeConfiguration() {
               <ArrowBackIcon sx={{ fontSize: 20 }} />
             </IconButton>
             <Typography
-              sx={{ fontSize: { xs: 16, sm: 18, md: 20}, fontWeight: 700, color: "#111827" }}
+              sx={{
+                fontSize: { xs: 16, sm: 18, md: 20 },
+                fontWeight: 700,
+                color: "#111827",
+              }}
             >
               {isEdit ? "Fee Configuration" : "Add New Fee"}
             </Typography>
           </Box>
 
-          <Box
+          {/* <Box
             sx={{
               position: "relative",
               width: "100%",
@@ -541,7 +616,7 @@ export default function FeeConfiguration() {
                 ⌘K
               </Typography>
             </Box>
-          </Box>
+          </Box> */}
         </Box>
 
         {/* ── SINGLE BOX ── */}
@@ -602,9 +677,21 @@ export default function FeeConfiguration() {
           {/* Row 3 — Modifiers */}
           <FormGrid>
             <InputField label="Modifier 1" required {...tx("modifier1")} />
-            <InputField label="Modifier 2" value={form.modifier2} onChange={set("modifier2")} />
-            <InputField label="Modifier 3" value={form.modifier3} onChange={set("modifier3")} />
-            <InputField label="Modifier 4" value={form.modifier4} onChange={set("modifier4")} />
+            <InputField
+              label="Modifier 2"
+              value={form.modifier2}
+              onChange={set("modifier2")}
+            />
+            <InputField
+              label="Modifier 3"
+              value={form.modifier3}
+              onChange={set("modifier3")}
+            />
+            <InputField
+              label="Modifier 4"
+              value={form.modifier4}
+              onChange={set("modifier4")}
+            />
           </FormGrid>
 
           {/* Row 4 */}
@@ -616,7 +703,11 @@ export default function FeeConfiguration() {
               {...sel("specialty")}
             />
             <InputField label="Unit" value={form.unit} onChange={set("unit")} />
-            <InputField label="Unit Type" value={form.unitType} onChange={set("unitType")} />
+            <InputField
+              label="Unit Type"
+              value={form.unitType}
+              onChange={set("unitType")}
+            />
             <InputField label="Procedure Charge" required {...tx("charge")} />
           </FormGrid>
 
@@ -624,7 +715,11 @@ export default function FeeConfiguration() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "repeat(4, 1fr)",
+              },
               gap: 2,
               mb: 2.5,
             }}
@@ -655,7 +750,14 @@ export default function FeeConfiguration() {
                 }}
               >
                 <Typography
-                  sx={{ fontSize: 13, color: "#1E1E1E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", mr: 1 }}
+                  sx={{
+                    fontSize: 13,
+                    color: "#1E1E1E",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    mr: 1,
+                  }}
                 >
                   Non covered service
                 </Typography>
@@ -689,9 +791,21 @@ export default function FeeConfiguration() {
               value={form.ndcCode}
               onChange={set("ndcCode")}
             />
-            <InputField label="NDC Label" value={form.ndcLabel} onChange={set("ndcLabel")} />
-            <InputField label="Unit/Basis for measurement" value={form.ndcUnitBasis} onChange={set("ndcUnitBasis")} />
-            <InputField label="NDC Default Unit Count" value={form.ndcDefaultUnit} onChange={set("ndcDefaultUnit")} />
+            <InputField
+              label="NDC Label"
+              value={form.ndcLabel}
+              onChange={set("ndcLabel")}
+            />
+            <InputField
+              label="Unit/Basis for measurement"
+              value={form.ndcUnitBasis}
+              onChange={set("ndcUnitBasis")}
+            />
+            <InputField
+              label="NDC Default Unit Count"
+              value={form.ndcDefaultUnit}
+              onChange={set("ndcDefaultUnit")}
+            />
           </FormGrid>
         </Box>
 
