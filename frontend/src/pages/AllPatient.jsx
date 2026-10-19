@@ -2,7 +2,6 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -76,9 +75,9 @@ const COLUMNS = [
   { id: "name", label: "Name, Age (Gender)", width: "22%" },
   { id: "location", label: "Location", width: "15%", adornment: "alpha" },
   { id: "mrn", label: "MRN (Patient ID)", width: "15%" },
-  { id: "dob", label: "DOB", width: "12%", adornment: "date" },
-  { id: "physician", label: "Physician", width: "14%", adornment: "alpha" },
-  { id: "actions", label: "Actions", width: "22%", noWrap: true },
+  { id: "dob", label: "DOB", width: "14%", adornment: "date" },
+  { id: "physician", label: "Physician", width: "18%", adornment: "alpha" },
+  { id: "actions", label: "Actions", width: "16%", noWrap: true },
 ];
 
 /* Sortable columns for the dialog */
@@ -258,6 +257,56 @@ const SAMPLE = [
     "06/30/1975",
     "Bara L",
   ],
+  [
+    "David Brown",
+    70,
+    "M",
+    "GCH–IH",
+    "242657545",
+    "ID: 9942",
+    "08/23/1955",
+    "Amit K",
+  ],
+  [
+    "Meera Nair",
+    55,
+    "F",
+    "GCH–ER",
+    "232446577",
+    "ID: NA",
+    "02/17/1970",
+    "Sara L",
+  ],
+  [
+    "Kevin Zhang",
+    30,
+    "M",
+    "GCH–OP",
+    "456547677",
+    "ID: 1180",
+    "10/09/1995",
+    "Julia R",
+  ],
+  [
+    "Fatima Khan",
+    42,
+    "F",
+    "GCH–IH",
+    "565756545",
+    "ID: NA",
+    "04/25/1983",
+    "Amit K",
+  ],
+  [
+    "Robert King",
+    66,
+    "M",
+    "GCH–ICU",
+    "877876655",
+    "ID: 7754",
+    "06/30/1959",
+    "Sara L",
+  ],
 ];
 
 /* Map single-letter code → display label */
@@ -291,76 +340,6 @@ const toTime = (s) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Search Field                                                        */
-/* ------------------------------------------------------------------ */
-
-function SearchField({ value, onChange }) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1,
-        height: 36,
-        width: "100%",
-        minWidth: 0,
-        px: 1.5,
-        bgcolor: "#fff",
-        border: `1px solid ${T.fieldBorder}`,
-        borderRadius: "8px",
-        boxSizing: "border-box",
-        transition: "border-color .15s ease",
-        "&:hover": { borderColor: "#015DFF" },
-        "&:focus-within": { borderColor: "#015DFF" },
-      }}
-    >
-      <SearchGlassIcon />
-      <InputBase
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Search patients by name or MRN..."
-        inputProps={{ "aria-label": "Search patients by name or MRN" }}
-        sx={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 12,
-          color: "#171923",
-          "& input": { minWidth: 0 },
-          "& input::placeholder": { color: "#171923", opacity: 1 },
-        }}
-      />
-      {value && (
-        <IconButton
-          size="small"
-          aria-label="Clear search"
-          onClick={() => onChange("")}
-          sx={{ p: 0.3 }}
-        >
-          <ClearIcon sx={{ fontSize: 12, color: T.muted }} />
-        </IconButton>
-      )}
-    </Box>
-  );
-}
-
-const outlinedActionSx = {
-  height: 36,
-  px: 1.5,
-  gap: 0.6,
-  borderRadius: "8px",
-  textTransform: "none",
-  fontSize: 12,
-  fontWeight: 500,
-  color: T.blue,
-  border: "1.5px solid #015DFF",
-  bgcolor: "#fff",
-  whiteSpace: "nowrap",
-  flexShrink: 0,
-  "&:hover": { borderColor: "#015DFF", bgcolor: "#F4F8FF" },
-  "& .MuiButton-startIcon": { mr: 0, ml: 0 },
-};
-
-/* ------------------------------------------------------------------ */
 /* Toolbar                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -374,58 +353,68 @@ function Toolbar({
   return (
     <Box
       sx={{
-        width: "100%",
-        display: "grid",
-        gridTemplateColumns: {
-          xs: "1fr",
-          sm: "auto minmax(220px, 1fr)",
-          md: "auto minmax(240px, 1fr) auto",
-        },
+        display: "flex",
         alignItems: "center",
-        columnGap: { xs: 1.5, sm: 2, md: 4 },
-        rowGap: 1.5,
-        pb: 2,
-        boxSizing: "border-box",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        flexShrink: 0,
+        gap: 0,
+        mb: 2,
       }}
     >
       <Typography
         sx={{
-          fontSize: 20,
+          fontSize: 16,
           fontWeight: 700,
-          color: "#171923",
-          letterSpacing: "-0.2px",
+          color: "#111827",
           whiteSpace: "nowrap",
-          lineHeight: 1,
         }}
       >
         All Patients
       </Typography>
 
-      <Box
-        sx={{
-          width: "100%",
-          minWidth: 0,
-          gridColumn: { xs: "1 / -1", sm: "2 / 3", md: "2 / 3" },
-          gridRow: { xs: 2, sm: 1, md: 1 },
-        }}
-      >
-        <SearchField value={query} onChange={onQueryChange} />
-      </Box>
+      <Stack direction="row" spacing={1.5} flexWrap="wrap">
+        {/* Search bar */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.8,
+            border: "1px solid #D1D5DB",
+            borderRadius: "30px",
+            px: 1.2,
+            py: 0.5,
+            bgcolor: "#F4F8FF",
+            width: { xs: "100%", sm: 320 },
+            transition: "border-color 0.15s ease",
+            "&:hover": { borderColor: "#015DFF" },
+            "&:focus-within": { borderColor: "#015DFF" },
+          }}
+        >
+          <SearchGlassIcon />
+          <InputBase
+            placeholder="Search patients by name or MRN..."
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            inputProps={{ "aria-label": "Search patients by name or MRN" }}
+            sx={{
+              fontSize: 11,
+              flex: 1,
+              "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+            }}
+          />
+          {query && (
+            <IconButton
+              size="small"
+              aria-label="Clear search"
+              onClick={() => onQueryChange("")}
+              sx={{ p: 0.2 }}
+            >
+              <ClearIcon sx={{ fontSize: 12, color: T.muted }} />
+            </IconButton>
+          )}
+        </Box>
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        spacing={1}
-        sx={{
-          minWidth: 0,
-          flexShrink: 0,
-          gridColumn: { xs: "1 / -1", sm: "1 / -1", md: "3 / 4" },
-          gridRow: { xs: 3, sm: 2, md: 1 },
-          justifyContent: { xs: "flex-start", sm: "flex-end", md: "flex-end" },
-          flexWrap: { xs: "wrap", sm: "nowrap", md: "nowrap" },
-          rowGap: 1,
-        }}
-      >
         <Badge
           badgeContent={activeFilterCount}
           color="primary"
@@ -441,11 +430,18 @@ function Toolbar({
         >
           <Button
             variant="outlined"
-            startIcon={<FilterIcon />}
             onClick={onFilterOpen}
+            startIcon={<FilterIcon color="#2563EB" />}
             sx={{
-              ...outlinedActionSx,
-              bgcolor: activeFilterCount > 0 ? "#EFF6FF" : "#fff",
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 500,
+              borderRadius: "8px",
+              color: T.blue,
+              border: "1.5px solid #015DFF",
+              bgcolor: activeFilterCount > 0 ? "#EFF6FF" : "transparent",
+              px: 2,
+              "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
             }}
           >
             Filter
@@ -454,8 +450,17 @@ function Toolbar({
 
         <Button
           variant="outlined"
-          startIcon={<ExportIcon />}
-          sx={outlinedActionSx}
+          startIcon={<ExportIcon color="#2563EB" />}
+          sx={{
+            textTransform: "none",
+            fontSize: 11,
+            fontWeight: 500,
+            borderRadius: "8px",
+            color: T.blue,
+            border: "1.5px solid #015DFF",
+            px: 2,
+            "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
+          }}
         >
           Export
         </Button>
@@ -465,15 +470,12 @@ function Toolbar({
           disableElevation
           onClick={onAddNewPatient}
           sx={{
-            height: 36,
-            px: 2.25,
-            borderRadius: "8px",
             textTransform: "none",
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 500,
+            borderRadius: "8px",
             bgcolor: T.blue,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
+            px: 2.5,
             "&:hover": { bgcolor: "#1D4ED8" },
           }}
         >
@@ -681,7 +683,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
                 >
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: isActive ? 600 : 500,
                       display: "flex",
                       alignItems: "center",
@@ -736,7 +738,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
                     gap: 0.8,
                   }}
                 >
-                  <SearchIcon sx={{ fontSize: 14, color: "#94a3b8" }} />
+                  <SearchIcon sx={{ fontSize: 10, color: "#94a3b8" }} />
                   <input
                     value={phSearch}
                     onChange={(e) => setPhSearch(e.target.value)}
@@ -946,14 +948,15 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* Shared cell sx                                                      */
 /* ------------------------------------------------------------------ */
 
-const HEAD_H = 44;
+const HEAD_H = 32;
 
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.2,
-  px: 1,
-  fontSize: 12,
-  color: T.bodyText,
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
+  color: "#1e293b",
+  height: 32,
   boxSizing: "border-box",
   textAlign: "center",
 };
@@ -973,16 +976,20 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
         ...cellSx,
         width: column.width,
         height: HEAD_H,
+        boxSizing: "border-box",
         bgcolor: T.headBg,
         borderRight: isLast ? "none" : `1px solid ${T.border}`,
         borderBottom: `1px solid ${T.border}`,
-        fontSize: 12,
         fontWeight: 700,
+        fontSize: 10,
         color: T.headText,
         whiteSpace: "nowrap",
-        lineHeight: 1.25,
+        lineHeight: 1.15,
         overflow: "hidden",
         textAlign: "center",
+        py: 0.4,
+        px: 0.4,
+        minHeight: 28,
       }}
     >
       <Box
@@ -1024,11 +1031,11 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
             >
               {/* DOB shows the up/down icon until it is actually sorted */}
               {sortType === "date" && !active ? (
-                <UnfoldMoreIcon sx={{ fontSize: 18 }} />
+                <UnfoldMoreIcon sx={{ fontSize: 16 }} />
               ) : (
                 <KeyboardArrowDownIcon
                   sx={{
-                    fontSize: 18,
+                    fontSize: 16,
                     transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                     transition: "transform .15s ease",
                   }}
@@ -1156,7 +1163,7 @@ const checkboxSx = {
   p: 0,
   color: "#C3CBD9",
   "&.Mui-checked": { color: T.blue },
-  "& .MuiSvgIcon-root": { fontSize: 18 },
+  "& .MuiSvgIcon-root": { fontSize: 16 },
 };
 
 /* ------------------------------------------------------------------ */
@@ -1165,7 +1172,7 @@ const checkboxSx = {
 
 function PatientRow({ row, selected, onToggle }) {
   return (
-    <TableRow hover sx={{ "&:hover": { bgcolor: "#FAFBFE" } }}>
+    <TableRow hover sx={{ "&:hover": { bgcolor: "#EEF4FF" } }}>
       {/* Checkbox */}
       <TableCell
         padding="checkbox"
@@ -1270,10 +1277,10 @@ function PatientRow({ row, selected, onToggle }) {
           ...cellSx,
           width: "22%",
           whiteSpace: "nowrap",
-          pl: 0.5,
-          pr: 1,
+          px: 0.5,
           overflow: "hidden",
           borderRight: "none",
+          textAlign: "center",
         }}
       >
         <RowActions alert={row.alert} />
@@ -1308,7 +1315,7 @@ function PatientsTable({
         width: "100%",
         maxWidth: "100%",
         border: `1px solid ${T.border}`,
-        borderRadius: "8px",
+        borderRadius: "10px",
         background: `linear-gradient(to bottom, ${T.headBg} ${HEAD_H}px, #fff ${HEAD_H}px)`,
         boxSizing: "border-box",
         "&::-webkit-scrollbar": { height: 6, width: 6 },
@@ -1393,7 +1400,7 @@ function PatientsTable({
                   ...cellSx,
                   py: 4,
                   color: T.muted,
-                  fontSize: 13,
+                  fontSize: 12,
                 }}
               >
                 No Patients Found
@@ -1520,66 +1527,27 @@ export default function AllPatients() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 1.5, sm: 2, md: 2 },
-        px: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
-      <Paper
-        elevation={0}
-        sx={{
-          width: "100%",
-          maxWidth: "none",
-          mx: 0,
-          bgcolor: "transparent",
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          minHeight: 0,
-        }}
-      >
-        <Box
-          sx={{
-            width: "100%",
-            maxWidth: "100%",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            minHeight: 0,
-          }}
-        >
-          <Toolbar
-            query={query}
-            onQueryChange={setQuery}
-            onAddNewPatient={handleAddNewPatient}
-            onFilterOpen={() => setFilterOpen(true)}
-            activeFilterCount={activeFilterCount}
-          />
+      <Toolbar
+        query={query}
+        onQueryChange={setQuery}
+        onAddNewPatient={handleAddNewPatient}
+        onFilterOpen={() => setFilterOpen(true)}
+        activeFilterCount={activeFilterCount}
+      />
 
-          <Box
-            sx={{
-              width: "100%",
-              maxWidth: "100%",
-              pb: 3,
-              boxSizing: "border-box",
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <PatientsTable
-              rows={visibleRows}
-              selected={selected}
-              onToggleRow={toggleRow}
-              onToggleAll={toggleAll}
-              sort={sort}
-              onSort={handleSort}
-            />
-          </Box>
-        </Box>
-      </Paper>
+      <PatientsTable
+        rows={visibleRows}
+        selected={selected}
+        onToggleRow={toggleRow}
+        onToggleAll={toggleAll}
+        sort={sort}
+        onSort={handleSort}
+      />
 
       {/* FILTER & SORT DIALOG */}
       <FilterSortDialog

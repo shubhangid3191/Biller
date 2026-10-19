@@ -91,6 +91,14 @@ const SAMPLE = [
   ["202 - Bed A", "Grace Lee", "49y (F)", "719471359", "ID: 6612", "08/14/1976", "GCH -ICU", "David Chen", "Amit K", -1],
   ["401 - Bed A", "Vikram Joshi", "63y (M)", "719471360", "ID: NA", "05/21/1962", "GCH -IP", "Carla Mendes", "Julia R", 1],
   ["401 - Bed B", "Emma Clark", "27y (F)", "719471361", "ID: 9034", "01/05/1998", "GCH -OP", "Alex Tobar", "Sara L", 1],
+  ["306 - Bed B", "Kevin Zhang", "30y (M)", "719471354", "ID: 1180", "10/09/1995", "GCH -OP", "Neha Rao", "Julia R", 0],
+  ["307 - Bed A", "Fatima Khan", "42y (F)", "719471355", "ID: NA", "04/25/1983", "GCH -IP", "David Chen", "Amit K", 0],
+  ["307 - Bed B", "Robert King", "66y (M)", "719471356", "ID: 7754", "06/30/1959", "GCH -ICU", "Carla Mendes", "Sara L", 0],
+  ["201 - Bed A", "Nisha Verma", "36y (F)", "719471357", "ID: 2201", "02/09/1989", "GCH -IP", "Alex Tobar", "Julia R", -1],
+  ["201 - Bed B", "Omar Ali", "58y (M)", "719471358", "ID: NA", "10/30/1967", "GCH -ER", "Neha Rao", "Sara L", -1],
+  ["202 - Bed A", "Grace Lee", "49y (F)", "719471359", "ID: 6612", "08/14/1976", "GCH -ICU", "David Chen", "Amit K", -1],
+  ["401 - Bed A", "Vikram Joshi", "63y (M)", "719471360", "ID: NA", "05/21/1962", "GCH -IP", "Carla Mendes", "Julia R", 1],
+  ["401 - Bed B", "Emma Clark", "27y (F)", "719471361", "ID: 9034", "01/05/1998", "GCH -OP", "Alex Tobar", "Sara L", 1],
 ];
 
 const BASE_DATE = new Date(2025, 0, 26); // Jan 26
@@ -129,14 +137,15 @@ const isSameDay = (a, b) => a.toDateString() === b.toDateString();
 /* Shared cell style                                                   */
 /* ------------------------------------------------------------------ */
 // two-line headers ("Name / Age (Gender)") need a taller header row
-const HEAD_H = 56;
+const HEAD_H = 32;
 
 const cellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
-  py: 1.1,
-  px: 1.2,
-  fontSize: 12,
+  py: 0.5,
+  px: 0.4,
+  fontSize: 10.5,
   color: "#2E2E2E",
+  height: 32,
   boxSizing: "border-box",
   textAlign: "center",
 };
@@ -168,7 +177,7 @@ function RowCheckbox({ checked, indeterminate = false, onChange, label }) {
         p: 0.5,
         color: "#9AA5B8",
         "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: T.blue },
-        "& .MuiSvgIcon-root": { fontSize: 20 },
+        "& .MuiSvgIcon-root": { fontSize: 16 },
       }}
     />
   );
@@ -187,7 +196,7 @@ function Chip({ label }) {
         borderRadius: "4px",
         px: 1,
         py: 0.45,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: 700,
         color: T.physicianText,
         whiteSpace: "nowrap",
@@ -216,15 +225,19 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
       sx={{
         ...cellSx,
         height: HEAD_H,
+        boxSizing: "border-box",
         bgcolor: T.headBg,
         fontWeight: 700,
-        fontSize: 13,
+        fontSize: 10,
         color: T.headText,
         borderBottom: `1px solid ${T.border}`,
         borderRight: isLast ? "none" : `1px solid ${T.border}`,
         whiteSpace: "pre-line",
-        lineHeight: 1.3,
+        lineHeight: 1.15,
         textAlign: "center",
+        py: 0.4,
+        px: 0.4,
+        minHeight: 28,
         ...(column.width && { width: column.width, minWidth: column.width }),
         ...(isSticky && { ...stickyLeftSx(column.stickyLeft, 4), ...stickyEdgeSx }),
       }}
@@ -258,11 +271,11 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
             >
               {/* DOB shows the up/down icon until it is actually sorted */}
               {sortType === "date" && !active ? (
-                <UnfoldMoreIcon sx={{ fontSize: 18 }} />
+                <UnfoldMoreIcon sx={{ fontSize: 16 }} />
               ) : (
                 <KeyboardArrowDownIcon
                   sx={{
-                    fontSize: 18,
+                    fontSize: 16,
                     transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                     transition: "transform .15s ease",
                   }}
@@ -448,8 +461,8 @@ export default function ConfirmPatientList() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: { xs: 1, md: 2 },
+        px: { xs: 1, sm: 2, md: 2, lg: 2 },
         boxSizing: "border-box",
       }}
     >
@@ -462,12 +475,12 @@ export default function ConfirmPatientList() {
           flexShrink: 0,
           columnGap: 2,
           rowGap: 1.25,
-          mb: { xs: 2, md: 2.5 },
+          mb: { xs: 1, md: 2},
         }}
       >
         <Typography
           sx={{
-            fontSize: { xs: 18, sm: 20 },
+            fontSize: { xs: 14, sm: 16 },
             fontWeight: 700,
             color: T.title,
             letterSpacing: "-0.2px",
@@ -493,7 +506,7 @@ export default function ConfirmPatientList() {
           overflow: "auto",
           width: "100%",
           border: `1px solid ${T.border}`,
-          borderRadius: "8px",
+          borderRadius: "10px",
           WebkitOverflowScrolling: "touch",
           // top HEAD_H px header color, below it white,
           // so the scrollbar gap beside the header isn't blank white
@@ -575,7 +588,7 @@ export default function ConfirmPatientList() {
               <TableRow>
                 <TableCell
                   colSpan={COLUMNS.length + 1}
-                  sx={{ ...cellSx, py: 4, color: T.muted, fontSize: 13 }}
+                  sx={{ ...cellSx, py: 4, color: T.muted, fontSize: 11 }}
                 >
                   No Patients Found For This Date
                 </TableCell>
@@ -596,7 +609,7 @@ export default function ConfirmPatientList() {
                         bgcolor: "transparent",
                       },
                       "&:hover > .MuiTableCell-root": {
-                        bgcolor: isSelected ? T.rowSelectedHover : T.rowHover,
+                        bgcolor: isSelected ? T.rowSelectedHover : "#EEF4FF",
                       },
                     }}
                   >
@@ -700,7 +713,7 @@ export default function ConfirmPatientList() {
           alignItems: { xs: "stretch", sm: "center" },
           flexShrink: 0,
           gap: { xs: 1.25, sm: 2 },
-          mt: { xs: 2, sm: 3 },
+          mt: { xs: 1, sm: 2 },
           "& .MuiButton-root": { whiteSpace: "nowrap", flexShrink: 0 },
         }}
       >
@@ -708,10 +721,10 @@ export default function ConfirmPatientList() {
           variant="outlined"
           onClick={() => navigate(-1)}
           sx={{
-            height: 40,
-            px: 3.5,
+            height: 30,
+            px: 3,
             textTransform: "none",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 500,
             borderRadius: "8px",
             color: "#015DFF",
@@ -728,11 +741,11 @@ export default function ConfirmPatientList() {
           disableElevation
           onClick={handleAddPatients}
           sx={{
-            height: 40,
-            px: 3.5,
+            height: 30,
+            px: 3,
             borderRadius: "8px",
             textTransform: "none",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 500,
             bgcolor: "#015DFF",
             color: "#fff",

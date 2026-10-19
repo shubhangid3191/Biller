@@ -42,7 +42,21 @@ const FONT = "'Inter', 'Segoe UI', sans-serif";
 const DATE_FORMAT = "DD-MM-YYYY";
 
 /* ------------------------------------------------------------------ */
-/* Date helpers                                                         */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+
+const T = {
+  blue: "#2563EB",
+  page: "#F7F9FC",
+  border: "#D9DEE7",
+  labelColor: "#1E293B",
+};
+
+/* Same size for page title and section titles */
+const TITLE_FONT_SIZE = { xs: 12, sm: 14, md: 14 };
+
+/* ------------------------------------------------------------------ */
+/* Date helpers                                                        */
 /* ------------------------------------------------------------------ */
 
 // Auto-inserts dashes while typing: 25122024 -> 25-12-2024
@@ -62,7 +76,7 @@ const parseDate = (value) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Email validation                                                     */
+/* Email validation                                                    */
 /* ------------------------------------------------------------------ */
 // name@domain.tld  (no spaces, one @, domain needs a dot, TLD >= 2 letters)
 const EMAIL_REGEX =
@@ -79,8 +93,8 @@ const getEmailError = (value) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Required-field validation                                            */
-/* field name -> text used in "<label> is required"                     */
+/* Required-field validation                                           */
+/* field name -> text used in "<label> is required"                    */
 /* ------------------------------------------------------------------ */
 const REQUIRED_FIELDS = {
   provider: "Provider",
@@ -115,7 +129,7 @@ const validateField = (name, value) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Theme                                                                */
+/* Theme                                                               */
 /* ------------------------------------------------------------------ */
 const theme = createTheme({
   palette: { primary: { main: "#015DFF" } },
@@ -125,12 +139,12 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           fontFamily: FONT,
-          borderRadius: "8px",
-          fontSize: 13,
+          borderRadius: "10px",
+          fontSize: 11,
           backgroundColor: "#fff",
           color: "#1E1E1E",
-          "& fieldset": { borderColor: "#C5C6CC" },
-          "&:hover fieldset": { borderColor: "#9CA3AF" },
+          "& fieldset": { borderColor: "#D9DEE7", borderRadius: "10px" },
+          "&:hover fieldset": { borderColor: "#B8BFCF" },
           "&.Mui-focused fieldset": {
             borderColor: "#006FFD",
             borderWidth: 1.5,
@@ -138,8 +152,8 @@ const theme = createTheme({
           "&.Mui-error fieldset": { borderColor: "#EF4444" },
         },
         input: {
-          padding: "8px 12px",
-          fontSize: 13,
+          padding: "6px 10px",
+          fontSize: 11,
           "&::placeholder": { color: "#8F9098", opacity: 1 },
         },
       },
@@ -147,13 +161,15 @@ const theme = createTheme({
     MuiSelect: {
       styleOverrides: {
         select: {
-          padding: "8px 12px !important",
-          fontSize: 13,
+          padding: "6px 10px !important",
+          fontSize: 11,
           minHeight: "unset !important",
         },
       },
     },
-    MuiMenuItem: { styleOverrides: { root: { fontSize: 13, fontFamily: FONT } } },
+    MuiMenuItem: {
+      styleOverrides: { root: { fontSize: 11, fontFamily: FONT } },
+    },
     MuiFormHelperText: { styleOverrides: { root: { fontFamily: FONT } } },
     MuiPickersDay: { styleOverrides: { root: { fontFamily: FONT } } },
     MuiDialog: {
@@ -295,7 +311,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
         <Typography
           sx={{
             fontWeight: 600,
-            fontSize: { xs: 16, sm: 18 },
+            fontSize: { xs: 12, sm: 12 },
             fontFamily: FONT,
             color: "#1D1B20",
           }}
@@ -303,7 +319,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           {cfg.title}
         </Typography>
         <IconButton onClick={handleClose} sx={{ color: "#1D1B20", p: 0.5 }}>
-          <CloseIcon sx={{ fontSize: 24 }} />
+          <CloseIcon sx={{ fontSize: 20 }} />
         </IconButton>
       </Box>
 
@@ -338,7 +354,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
               fontWeight: 500,
               color: "#7B89B2",
               fontFamily: FONT,
-              fontSize: { xs: 13, sm: 14 },
+              fontSize: { xs: 12, sm: 12 },
               whiteSpace: "pre-line",
               wordBreak: "break-word",
             }}
@@ -369,7 +385,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
               fontWeight: 500,
               color: "#7B89B2",
               fontFamily: FONT,
-              fontSize: { xs: 13, sm: 14 },
+              fontSize: { xs: 12, sm: 12 },
             }}
           >
             Upload file from computer
@@ -421,7 +437,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Sub-components                                                       */
+/* Sub-components                                                      */
 /* ------------------------------------------------------------------ */
 const FieldLabel = ({ children, required }) => (
   <Typography
@@ -429,11 +445,12 @@ const FieldLabel = ({ children, required }) => (
     sx={{
       display: "block",
       fontFamily: FONT,
-      fontSize: 12,
+      fontSize: 11,
       lineHeight: "16px", // fixed height so labels stay aligned in every column
-      fontWeight: 700,
-      color: "#2F3036",
-      mb: "6px",
+      fontWeight: 600,
+      color: T.labelColor,
+      mb: "4px",
+      whiteSpace: "nowrap",
     }}
   >
     {children}
@@ -444,7 +461,7 @@ const FieldLabel = ({ children, required }) => (
           color: "#EF4444",
           ml: "2px",
           fontWeight: 700,
-          fontSize: "inherit", // default span size (16px) was making the label taller
+          fontSize: "inherit",
           lineHeight: "inherit",
           fontFamily: "inherit",
         }}
@@ -459,9 +476,9 @@ const SectionHeader = ({ title }) => (
   <Typography
     sx={{
       fontWeight: 700,
-      color: "#000",
+      color: "#111827",
       fontFamily: FONT,
-      fontSize: 15,
+      fontSize: TITLE_FONT_SIZE,
       textTransform: "uppercase",
       mb: "16px",
     }}
@@ -480,9 +497,9 @@ const ToolbarBtn = ({ icon, label, onClick }) => (
       color: "#015DFF",
       fontFamily: FONT,
       fontWeight: 600,
-      fontSize: { xs: 13, sm: 15 },
+      fontSize: 11,
       borderRadius: "8px",
-      height: "36px",
+      height: "32px",
       px: 1.5,
       minWidth: "unset",
       backgroundColor: "#fff",
@@ -518,37 +535,43 @@ const DropdownField = ({
       IconComponent={DropdownArrow}
       renderValue={(val) =>
         val ? (
-          <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+          <span style={{ fontSize: 11, color: "#1E1E1E" }}>{val}</span>
         ) : (
-          <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+          <span style={{ fontSize: 11, color: "#8F9098" }}>{placeholder}</span>
         )
       }
       sx={{
-        height: "42px",
-        borderRadius: "8px",
+        borderRadius: "10px",
         backgroundColor: "#fff",
-        "& fieldset": { borderColor: "#C5C6CC" },
-        "&:hover fieldset": { borderColor: "#9CA3AF" },
+        "& fieldset": { borderColor: "#D9DEE7", borderRadius: "10px" },
+        "&:hover fieldset": { borderColor: "#B8BFCF" },
         "&.Mui-focused fieldset": { borderColor: "#006FFD", borderWidth: 1.5 },
         "&.Mui-error fieldset": { borderColor: "#EF4444" },
         "& .MuiSelect-select": {
-          py: "0 !important",
-          px: "12px !important",
-          fontSize: 13,
+          py: "6px !important",
+          px: "10px !important",
+          fontSize: 11,
           display: "flex",
           alignItems: "center",
-          height: "42px",
           boxSizing: "border-box",
         },
       }}
     >
       <MenuItem value="" disabled>
-        <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+        <span style={{ fontSize: 11, color: "#8F9098" }}>{placeholder}</span>
       </MenuItem>
       {children}
     </Select>
     {helperText && (
-      <FormHelperText sx={{ mx: 0, mt: "3px", fontSize: 11, fontFamily: FONT }}>
+      <FormHelperText
+        sx={{
+          mx: 0,
+          mt: 0.4,
+          fontSize: 11,
+          fontFamily: FONT,
+          color: "#EF4444",
+        }}
+      >
         {helperText}
       </FormHelperText>
     )}
@@ -574,8 +597,7 @@ const TextInput = ({
     error={error}
     helperText={helperText}
     sx={{
-      "& .MuiInputBase-root": { height: "42px" },
-      "& .MuiFormHelperText-root": { mx: 0, fontSize: 11 },
+      "& .MuiFormHelperText-root": { mx: 0, mt: 0.4, fontSize: 11 },
     }}
   />
 );
@@ -641,8 +663,7 @@ const DateInput = ({
           },
         }}
         sx={{
-          "& .MuiInputBase-root": { height: "42px" },
-          "& .MuiFormHelperText-root": { mx: 0, fontSize: 11 },
+          "& .MuiFormHelperText-root": { mx: 0, mt: 0.4, fontSize: 11 },
         }}
       />
       <Popover
@@ -684,7 +705,12 @@ const DateInput = ({
 
 const FormField = ({ label, required, children }) => (
   <Box
-    sx={{ display: "flex", flexDirection: "column", width: "100%", minWidth: 0 }}
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      width: "100%",
+      minWidth: 0,
+    }}
   >
     <FieldLabel required={required}>{label}</FieldLabel>
     {children}
@@ -697,7 +723,7 @@ const FormField = ({ label, required, children }) => (
     tablet  (600-900)  -> 2 columns
     desktop (>=900)    -> 3 columns
 */
-const FieldRow = ({ children, mb = "16px" }) => (
+const FieldRow = ({ children, mb = "20px" }) => (
   <Box
     sx={{
       display: "grid",
@@ -715,13 +741,15 @@ const FieldRow = ({ children, mb = "16px" }) => (
 );
 
 /* ------------------------------------------------------------------ */
-/* Main Component                                                       */
+/* Main Component                                                      */
 /* ------------------------------------------------------------------ */
 const sectionSx = {
-  borderRadius: "16px",
-  p: { xs: "14px", sm: "20px" },
-  mb: "16px",
   bgcolor: "#fff",
+  borderRadius: "12px",
+  border: "1px solid #E5E7EB",
+  px: { xs: 2, sm: 3, md: 4 },
+  py: { xs: 2, sm: 3 },
+  mb: "8px",
 };
 
 function AddNewPatient() {
@@ -737,6 +765,7 @@ function AddNewPatient() {
       "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
     document.head.appendChild(link);
   }, []);
+
   const [form, setForm] = useState({
     provider: "",
     specialty: "",
@@ -833,9 +862,10 @@ function AddNewPatient() {
     <ThemeProvider theme={theme}>
       <Box
         sx={{
-          bgcolor: "#F3F4F6",
+          bgcolor: T.page,
           minHeight: "100vh",
-          p: { xs: 1.5, sm: 2.5 },
+          py: { xs: 1, md: 2 },
+          px: { xs: 1.5, sm: 2, md: 2.5 },
           boxSizing: "border-box",
           width: "100%",
           overflowX: "hidden",
@@ -849,7 +879,7 @@ function AddNewPatient() {
             justifyContent: "space-between",
             alignItems: { xs: "flex-start", md: "center" },
             gap: 1.5,
-            mb: "16px",
+            mb: "8px",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -874,15 +904,20 @@ function AddNewPatient() {
               <Typography
                 sx={{
                   fontWeight: 700,
-                  color: "#171923",
+                  color: "#111827",
                   fontFamily: FONT,
-                  fontSize: { xs: 18, sm: 20 },
+                  fontSize: TITLE_FONT_SIZE,
                 }}
               >
                 Add New Patient
               </Typography>
               <Typography
-                sx={{ color: "#1A1A1A", mt: 0.3, fontFamily: FONT, fontSize: { xs: 13, sm: 14 } }}
+                sx={{
+                  color: "#1A1A1A",
+                  mt: 0.2,
+                  fontFamily: FONT,
+                  fontSize: { xs: 11, sm: 12 },
+                }}
               >
                 Complete all required fields to create a new patient
               </Typography>
@@ -928,10 +963,7 @@ function AddNewPatient() {
           <SectionHeader title="ASSIGN" />
           <FieldRow>
             <FormField label="Provider" required>
-              <DropdownField
-                {...dd("provider")}
-                placeholder="Select provider"
-              >
+              <DropdownField {...dd("provider")} placeholder="Select provider">
                 <MenuItem value="Dr. Smith">Dr. Smith</MenuItem>
                 <MenuItem value="Dr. Jones">Dr. Jones</MenuItem>
               </DropdownField>
@@ -947,10 +979,7 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
             <FormField label="Location" required>
-              <DropdownField
-                {...dd("location")}
-                placeholder="Select location"
-              >
+              <DropdownField {...dd("location")} placeholder="Select location">
                 <MenuItem value="Ward A">Ward A</MenuItem>
                 <MenuItem value="Ward B">Ward B</MenuItem>
                 <MenuItem value="ICU">ICU</MenuItem>
@@ -994,16 +1023,10 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
             <FormField label="MRN" required>
-              <TextInput
-                placeholder="Medical record number"
-                {...tx("mrn")}
-              />
+              <TextInput placeholder="Medical record number" {...tx("mrn")} />
             </FormField>
             <FormField label="FIN" required>
-              <DropdownField
-                {...dd("fin")}
-                placeholder="Accession number"
-              >
+              <DropdownField {...dd("fin")} placeholder="Accession number">
                 <MenuItem value="ACC-001">ACC-001</MenuItem>
                 <MenuItem value="ACC-002">ACC-002</MenuItem>
               </DropdownField>
@@ -1011,29 +1034,18 @@ function AddNewPatient() {
           </FieldRow>
           <FieldRow>
             <FormField label="Patient First Name" required>
-              <TextInput
-                placeholder="First name"
-                {...tx("patientFirstName")}
-              />
+              <TextInput placeholder="First name" {...tx("patientFirstName")} />
             </FormField>
-            <FormField label="Patient Middle Name" >
-              <TextInput
-                placeholder="Middle name"
-              />
+            <FormField label="Patient Middle Name">
+              <TextInput placeholder="Middle name" />
             </FormField>
             <FormField label="Patient Last Name" required>
-              <TextInput
-                placeholder="Last name"
-                {...tx("patientLastName")}
-              />
+              <TextInput placeholder="Last name" {...tx("patientLastName")} />
             </FormField>
           </FieldRow>
           <FieldRow>
             <FormField label="Date of Birth" required>
-              <DateInput
-                {...tx("dateOfBirth")}
-                disableFuture
-              />
+              <DateInput {...tx("dateOfBirth")} disableFuture />
             </FormField>
             <FormField label="ZIP Code">
               <TextInput
@@ -1051,7 +1063,7 @@ function AddNewPatient() {
             </FormField>
           </FieldRow>
           <FieldRow mb="0px">
-            <FormField label="Email" >
+            <FormField label="Email">
               <TextInput
                 placeholder="Enter email"
                 type="email"
@@ -1069,15 +1081,10 @@ function AddNewPatient() {
               <DateInput {...tx("admitDate")} />
             </FormField>
             <FormField label="Date of Service" required>
-              <DateInput
-                {...tx("dateOfService")}
-              />
+              <DateInput {...tx("dateOfService")} />
             </FormField>
             <FormField label="Bed" required>
-              <TextInput
-                placeholder="Room 5 Bed 32"
-                {...tx("bed")}
-              />
+              <TextInput placeholder="Room 5 Bed 32" {...tx("bed")} />
             </FormField>
           </FieldRow>
           <FieldRow mb="0px">
@@ -1101,9 +1108,9 @@ function AddNewPatient() {
             display: "flex",
             flexDirection: { xs: "column-reverse", sm: "row" },
             justifyContent: "flex-end",
-            gap: { xs: "10px", sm: "16px" },
+            gap: { xs: "10px", sm: "12px" },
             pt: 1,
-            pb: 1,
+            pb: 3,
           }}
         >
           <Button
@@ -1112,9 +1119,8 @@ function AddNewPatient() {
             sx={{
               borderColor: "#2563EB",
               color: "#2563EB",
-              px: 4,
-              py: 1,
-              fontSize: 14,
+              px: 3,
+              fontSize: 11,
               fontWeight: 500,
               borderRadius: "8px",
               "&:hover": { borderColor: "#2563EB", background: "#EFF6FF" },
@@ -1126,14 +1132,13 @@ function AddNewPatient() {
             variant="contained"
             onClick={handleAddPatient}
             sx={{
-              bgcolor: "#015DFF",
+              bgcolor: T.blue,
               color: "#fff",
               px: 4,
-              py: 1,
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: "10px",
-              "&:hover": { bgcolor: "#0049CC" },
+              fontSize: 11,
+              fontWeight: 500,
+              borderRadius: "8px",
+              "&:hover": { bgcolor: "#1D4ED8" },
             }}
           >
             Add Patient
