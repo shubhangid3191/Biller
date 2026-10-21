@@ -44,7 +44,12 @@ import dayjs from "dayjs";
 ───────────────────────────────────────────── */
 const money = (n) => {
   if (typeof n === "string") return n;
-  return n ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
+  return n
+    ? n.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : "0.00";
 };
 
 const INSURERS = [
@@ -56,7 +61,7 @@ const INSURERS = [
   "Kaiser Permanente",
 ];
 
-const BILLED_LIST = [5573.52, 6600.72, 7800.14, 8250.00, 9100.50];
+const BILLED_LIST = [5573.52, 6600.72, 7800.14, 8250.0, 9100.5];
 
 const thinScroll = {
   "&::-webkit-scrollbar": { width: 4, height: 4 },
@@ -127,7 +132,7 @@ const cardSx = {
 };
 
 const cardTitleSx = {
-  fontSize: 13,
+  fontSize: 14,
   fontWeight: 700,
   color: "#1F2937",
   mb: 1.2,
@@ -350,59 +355,61 @@ export default function NewPayment() {
 
   const handleProcessOCR = async () => {
     setOcrProcessing(true);
-    
+
     // Only process files that are still "pending"
-    const filesToProcess = ocrFiles.filter(f => f.status === "pending");
-    
+    const filesToProcess = ocrFiles.filter((f) => f.status === "pending");
+
     if (filesToProcess.length === 0) {
       setOcrProcessing(false);
       return;
     }
-    
+
     // Keep existing results and add new ones
     const newResults = [];
     let recordIndex = ocrResults.length; // Continue from existing count
-    
+
     for (let i = 0; i < filesToProcess.length; i++) {
       const file = filesToProcess[i];
-      
+
       // Update status to processing
       setOcrFiles((prev) =>
         prev.map((f) =>
-          f.id === file.id ? { ...f, status: "processing" } : f
-        )
+          f.id === file.id ? { ...f, status: "processing" } : f,
+        ),
       );
-      
+
       // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
       // Simulate success/failure (90% success rate)
       const success = Math.random() > 0.1;
-      
+
       setOcrFiles((prev) =>
         prev.map((f) =>
           f.id === file.id
             ? { ...f, status: success ? "success" : "error" }
-            : f
-        )
+            : f,
+        ),
       );
-      
+
       if (success) {
         // Simulate multiple records per PDF (1-3 records per file)
         const recordsInFile = Math.floor(Math.random() * 3) + 1; // 1 to 3 records
-        
+
         for (let j = 0; j < recordsInFile; j++) {
           const claimAmount = BILLED_LIST[recordIndex % BILLED_LIST.length];
           const paidAmount = Math.round(claimAmount * 0.85);
           const adjustmentAmount = claimAmount - paidAmount;
-          
+
           newResults.push({
             id: `${file.id}-${j}`,
-            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ''}`,
+            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ""}`,
             claimNumber: `${12345670 + recordIndex}`,
             payerName: INSURERS[recordIndex % INSURERS.length],
             checkNumber: `${14315316146 + recordIndex}`,
-            checkDate: dayjs().subtract(recordIndex, "day").format("MM/DD/YYYY"),
+            checkDate: dayjs()
+              .subtract(recordIndex, "day")
+              .format("MM/DD/YYYY"),
             claimedAmount: claimAmount,
             paidAmount: paidAmount,
             adjustmentAmount: adjustmentAmount,
@@ -411,12 +418,12 @@ export default function NewPayment() {
             paymentMethod: recordIndex % 2 === 0 ? "Cheque" : "EFT",
             status: "Posted",
           });
-          
+
           recordIndex++;
         }
       }
     }
-    
+
     // Append new results to existing ones
     setOcrResults((prev) => [...prev, ...newResults]);
     setOcrProcessing(false);
@@ -424,8 +431,10 @@ export default function NewPayment() {
 
   const handleSaveERA = () => {
     // In a real implementation, this would add ERA data to the payment
-    alert(`${ocrResults.length} EOB records converted and ready to be added to payment!`);
-    
+    alert(
+      `${ocrResults.length} EOB records converted and ready to be added to payment!`,
+    );
+
     // Close dialog and reset
     handleCloseOCR();
   };
@@ -435,17 +444,106 @@ export default function NewPayment() {
   ───────────────────────────────────────────── */
   const summaryItems = [
     { label: "Total Amount", value: "$50.00", color: "#1F2937", bg: "#F3F4F6" },
-    { label: "Applied to Charges", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    {
+      label: "Applied to Charges",
+      value: "$0.00",
+      color: "#1F2937",
+      bg: "#F3F4F6",
+    },
     {
       label: "Applied to Capitated",
       value: "$0.00",
       color: "#1F2937",
       bg: "#F3F4F6",
     },
-    { label: "Adjustments", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
-    { label: "Refunds", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
-    { label: "Unapplied", value: "$50.00", color: "#7A4300", bg: "#FFF1DC" },
+    {
+      label: "Adjusted Charges",
+      value: "$0.00",
+      color: "#1F2937",
+      bg: "#F3F4F6",
+    },
+    {
+      label: "Refunds (If Any)",
+      value: "$0.00",
+      color: "#1F2937",
+      bg: "#F3F4F6",
+    },
+    {
+      label: "Unapplied Amount",
+      value: "$50.00",
+      color: "#7A4300",
+      bg: "#FFF1DC",
+    },
   ];
+
+  const MORE_DETAIL_FIELDS = [
+  { key: "postingDate", label: "Posting Date", type: "date" },
+  { key: "payerSeq", label: "Payer sequence", type: "select", options: ["Primary", "Secondary", "Tertiary"] },
+  { key: "payor", label: "Payor", type: "select", options: ["67342TES - ICI", "Cigna Health", "Aetna"] },
+
+  { key: "allowed", label: "Allowed", type: "text" },
+  { key: "paidAmt", label: "Paid", type: "text" },
+  { key: "contractAdj", label: "Contract Adj.", type: "readonly" },
+
+  { key: "adjCode1", label: "Adj. Code", type: "readonly" },
+  { key: "secondAdj", label: "Second Adj.", type: "readonly" },
+  { key: "adjCode2", label: "Adj. Code", type: "select", options: ["OA-9", "CO-45", "PR-1"] },
+
+  { key: "coinsurance", label: "Coinsurance", type: "readonly" },
+  { key: "copayAmt", label: "Copay", type: "readonly" },
+  { key: "deductible", label: "Deductible", type: "readonly" },
+
+  { key: "otherPrCodes", label: "Other PR Codes", type: "readonly" },
+  { key: "otherPrAmount", label: "Other PR Amount", type: "readonly" },
+  { key: "payMethod", label: "Payment Method", type: "select", options: ["EFT", "Cheque", "Credit Card"] },
+
+  { key: "actions", label: "Actions", type: "select", options: ["Settle", "Appeal", "Transfer"] },
+  { key: "remarks", label: "Remarks", type: "text", placeholder: "Lorem ipsum dum.." },
+  { key: "provAdj", label: "Prov. Adj.", type: "text", placeholder: "–" },
+
+  { key: "denialCategory", label: "Denial Category", type: "select", options: ["NA", "Medical Necessity", "Auth Required"] },
+  { key: "balance", label: "Balance", type: "readonly" },
+];
+
+const readonlySx = {
+  ...inputSx,
+  "& .MuiOutlinedInput-root": {
+    ...inputSx["& .MuiOutlinedInput-root"],
+    backgroundColor: "#EEF0F3",
+    "& input": {
+      ...inputSx["& .MuiOutlinedInput-root"]["& input"],
+      color: "#6B7280",
+      WebkitTextFillColor: "#6B7280",
+    },
+  },
+};
+
+
+const [details, setDetails] = useState({
+  postingDate: "2026-09-13",
+  payerSeq: "Primary",
+  payor: "67342TES - ICI",
+  allowed: "$73.13",
+  paidAmt: "$26.4",
+  contractAdj: "$43.22",
+  adjCode1: "CO-45, CO-253, C..",
+  secondAdj: "$113.52",
+  adjCode2: "OA-9",
+  coinsurance: "$15.49",
+  copayAmt: "$21.37",
+  deductible: "$0",
+  otherPrCodes: "–",
+  otherPrAmount: "$0",
+  payMethod: "EFT",
+  actions: "Settle",
+  remarks: "",
+  provAdj: "",
+  denialCategory: "NA",
+  balance: "$0",
+});
+
+const setDetail = (key) => (e) =>
+  setDetails((prev) => ({ ...prev, [key]: e.target.value }));
 
   /* ─────────────────────────────────────────────
      HEADER buttons
@@ -454,7 +552,7 @@ export default function NewPayment() {
     textTransform: "none",
     borderColor: "#E5E7EB",
     color: "#374151",
-    fontSize: 12,
+    fontSize: 11,
     borderRadius: "8px",
     backgroundColor: "#FFFFFF",
     fontWeight: 700,
@@ -470,8 +568,26 @@ export default function NewPayment() {
   const leftPanel = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
       {/* ── Payment Details card ── */}
-      <Box sx={cardSx}>
+      <Box
+        sx={{
+          ...cardSx,
+          pb: 1,
+        }}
+      >
         <Typography sx={cardTitleSx}>Payment Details</Typography>
+
+        {/* Horizontal line and buttons */}
+        <Box
+          sx={{
+            gridColumn: "1 / -1",
+            borderTop: "1px solid #E5E7EB",
+            mt: 1.5,
+            pt: 1.5,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        ></Box>
 
         {/* Row 1: Batch #  |  Post Date  |  Type  — 3 equal cols */}
         <Box
@@ -517,7 +633,6 @@ export default function NewPayment() {
                 <MenuItem value="Insurance" sx={{ fontSize: 12 }}>
                   Insurance
                 </MenuItem>
-               
               </Select>
             </FormControl>
           </Box>
@@ -545,14 +660,20 @@ export default function NewPayment() {
                   <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
                     Select patient
                   </MenuItem>
-                  <MenuItem value="Rivet, Stacie  ID 2522" sx={{ fontSize: 12 }}>
-                    Rivet, Stacie  ID 2522
+                  <MenuItem
+                    value="Rivet, Stacie  ID 2522"
+                    sx={{ fontSize: 12 }}
+                  >
+                    Rivet, Stacie ID 2522
                   </MenuItem>
-                  <MenuItem value="Johnson, Mark  ID 1234" sx={{ fontSize: 12 }}>
-                    Johnson, Mark  ID 1234
+                  <MenuItem
+                    value="Johnson, Mark  ID 1234"
+                    sx={{ fontSize: 12 }}
+                  >
+                    Johnson, Mark ID 1234
                   </MenuItem>
                   <MenuItem value="Smith, Jane  ID 5678" sx={{ fontSize: 12 }}>
-                    Smith, Jane  ID 5678
+                    Smith, Jane ID 5678
                   </MenuItem>
                 </Select>
               </FormControl>
@@ -632,7 +753,11 @@ export default function NewPayment() {
                   endAdornment: (
                     <InputAdornment position="end" sx={{ mr: 0.5 }}>
                       <Close
-                        sx={{ fontSize: 16, color: "#9CA3AF", cursor: "pointer" }}
+                        sx={{
+                          fontSize: 16,
+                          color: "#9CA3AF",
+                          cursor: "pointer",
+                        }}
                       />
                     </InputAdornment>
                   ),
@@ -734,15 +859,41 @@ export default function NewPayment() {
             />
           </Box>
         </Box>
+        {/* Horizontal line and buttons */}
+        <Box
+          sx={{
+            gridColumn: "1 / -1",
+            borderTop: "1px solid #E5E7EB",
+            mt: 1.5,
+            pt: 1.5,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
+          <Button
+            variant="outlined"
+            sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
+          >
+            + Add Encounter
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/add-new-patient")}
+            sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
+          >
+            + Add Patient
+          </Button>
+        </Box>
       </Box>
 
       {/* ── Summary card ── */}
       <Box sx={cardSx}>
-        <Typography sx={cardTitleSx}>Summary</Typography>
+        {/* <Typography sx={cardTitleSx}>Summary</Typography> */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
+            gridTemplateColumns: { xs: "repeat(6, 1fr)", sm: "repeat(6, 1fr)" },
             gap: 1,
           }}
         >
@@ -756,7 +907,7 @@ export default function NewPayment() {
                 backgroundColor: item.bg,
               }}
             >
-              <Typography sx={{ fontSize: 10, color: "#6B7280", mb: 0.3 }}>
+              <Typography sx={{ fontSize: 12, color: "#5A6072", mb: 0.3 }}>
                 {item.label}
               </Typography>
               <Typography
@@ -860,22 +1011,98 @@ export default function NewPayment() {
         )}
 
         {lineTab === 1 && (
-          <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
-            More details content goes here.
-          </Typography>
-        )}
+  <Box
+    sx={{
+      display: "grid",
+      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+      gap: 2,
+    }}
+  >
+    {MORE_DETAIL_FIELDS.map((f) => {
+      if (f.type === "select") {
+        return (
+          <FSelect
+            key={f.key}
+            label={f.label}
+            value={details[f.key]}
+            onChange={setDetail(f.key)}
+            options={f.options}
+          />
+        );
+      }
 
+      if (f.type === "readonly") {
+        return (
+          <Box key={f.key}>
+            <FL>{f.label}</FL>
+            <TextField
+              fullWidth
+              size="small"
+              value={details[f.key]}
+              sx={readonlySx}
+              InputProps={{ readOnly: true }}
+            />
+          </Box>
+        );
+      }
+
+      if (f.type === "date") {
+        return (
+          <Box key={f.key}>
+            <FL>{f.label}</FL>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              value={details[f.key]}
+              onChange={setDetail(f.key)}
+              sx={inputSx}
+            />
+          </Box>
+        );
+      }
+
+      return (
+        <FInput
+          key={f.key}
+          label={f.label}
+          value={details[f.key]}
+          onChange={setDetail(f.key)}
+          placeholder={f.placeholder}
+        />
+      );
+    })}
+  </Box>
+)}
         {/* Footer action buttons */}
-        <Box sx={{ display: "flex", gap: 1, mt: 10, flexWrap: "wrap" }}>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
-            Next Line
-          </Button>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
-            + Add Encounter
-          </Button>
-          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
-            + Add Patient
-          </Button>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            mt: lineTab === 0 ? 10 : 2,
+            width: "100%",
+          }}
+        >
+          {/* Horizontal line and buttons */}
+          <Box
+            sx={{
+              gridColumn: "1 / -1",
+              borderTop: "1px solid #E5E7EB",
+              mt: 1.5,
+              pt: 1.5,
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+            }}
+          >
+            <Button
+              variant="outlined"
+              sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
+            >
+              Next Line
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Box>
@@ -885,7 +1112,14 @@ export default function NewPayment() {
      RIGHT PANEL
   ───────────────────────────────────────────── */
   const rightPanel = (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 0.75,
+        minWidth: 0,
+      }}
+    >
       {/* ── Apply to charges ── */}
       <Box sx={cardSx}>
         {/* Header row */}
@@ -902,7 +1136,7 @@ export default function NewPayment() {
           <Typography sx={cardTitleSx}>Apply to charges</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography
-              sx={{ fontSize: 11.5, color: "#6B7280", whiteSpace: "nowrap" }}
+              sx={{ fontSize: 11, color: "#6B7280", whiteSpace: "nowrap" }}
             >
               Show Only
             </Typography>
@@ -911,7 +1145,7 @@ export default function NewPayment() {
                 value={showOnly}
                 onChange={(e) => setShowOnly(e.target.value)}
                 IconComponent={KeyboardArrowDown}
-                sx={{ fontSize: 12 }}
+                sx={{ fontSize: 11 }}
               >
                 <MenuItem value="All" sx={{ fontSize: 12 }}>
                   All
@@ -923,15 +1157,16 @@ export default function NewPayment() {
             </FormControl>
             <Button
               size="small"
+              onClick={() => navigate("/add-new-patient")}
               sx={{
                 textTransform: "none",
                 color: "#0066FF",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 600,
                 p: 0,
                 minWidth: "auto",
                 whiteSpace: "nowrap",
-                "&:hover": { background: "none", },
+                "&:hover": { background: "none" },
               }}
             >
               + Add Patient
@@ -1037,7 +1272,7 @@ export default function NewPayment() {
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
+                      py: 0.5,
                       px: 0.8,
                       whiteSpace: "nowrap",
                     }}
@@ -1066,13 +1301,13 @@ export default function NewPayment() {
                   >
                     {c.patResp}
                   </TableCell>
-                  <TableCell sx={{ py: 1.5, px: 0.8 }}>
+                  <TableCell sx={{ py: 0.5, px: 0.8 }}>
                     <TextField
                       size="small"
                       defaultValue={c.thisPayment}
                       sx={{
-                        width: "100%",
-                        minWidth: 70,
+                        width: 75,
+                        minWidth: 75,
                         "& .MuiOutlinedInput-root": {
                           fontSize: 11,
                           fontWeight: 600,
@@ -1080,8 +1315,14 @@ export default function NewPayment() {
                           minHeight: 28,
                           borderRadius: "6px",
                           backgroundColor: "#FFF",
-                          "& input": { textAlign: "center", px: 0.4 },
-                          "& fieldset": { borderColor: "#D1D5DB" },
+                          "& input": {
+                            textAlign: "center",
+                            px: 0.4,
+                            py: 0.5,
+                          },
+                          "& fieldset": {
+                            borderColor: "#D1D5DB",
+                          },
                         },
                       }}
                     />
@@ -1118,9 +1359,9 @@ export default function NewPayment() {
             <Add sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
-        <Typography sx={{ fontSize: 10, color: "#9CA3AF", mb: 1 }}>
+        {/* <Typography sx={{ fontSize: 10, color: "#9CA3AF", mb: 1 }}>
           EOBs, ERAs and supporting documents for this payment
-        </Typography>
+        </Typography> */}
 
         <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
           <Table
@@ -1132,7 +1373,7 @@ export default function NewPayment() {
                 {[
                   "FILE NAME",
                   "TAG",
-                  "REFERENCE ",
+                  "REFERENCE # ",
                   "COMMENTS",
                   "UPLOADED ON",
                   "ACTION",
@@ -1140,7 +1381,7 @@ export default function NewPayment() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: 600,
                       color: "#9CA3AF",
                       py: 0.6,
@@ -1173,9 +1414,9 @@ export default function NewPayment() {
                       size="small"
                       sx={{
                         backgroundColor: "#EFF6FF",
-                        color: "#0066FF",
+                        color: "#475467",
                         fontWeight: 600,
-                        fontSize: 9,
+                        fontSize: 10,
                         height: 16,
                         borderRadius: "4px",
                       }}
@@ -1218,11 +1459,11 @@ export default function NewPayment() {
                     <Box sx={{ display: "flex", gap: 0.2 }}>
                       <IconButton size="small" sx={{ p: 0.3 }}>
                         <DownloadIcon2
-                          sx={{ fontSize: 14, color: "#374151" }}
+                          sx={{ fontSize: 10, color: "#374151" }}
                         />
                       </IconButton>
                       <IconButton size="small" sx={{ p: 0.3 }}>
-                        <RPDeleteIcon sx={{ fontSize: 14, color: "#DC2626" }} />
+                        <RPDeleteIcon sx={{ fontSize: 10, color: "#DC2626" }} />
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -1367,7 +1608,7 @@ export default function NewPayment() {
       >
         <Typography
           sx={{
-            fontSize: { xs: 18, sm: 20 },
+            fontSize: { xs: 14, sm: 16 },
             fontWeight: 700,
             color: "#1F2937",
           }}
@@ -1378,7 +1619,7 @@ export default function NewPayment() {
         <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
           {/* OCR Upload Button - shown on all screen sizes */}
           <Tooltip title="Upload EOB for ERA Conversion" arrow>
-            <Button 
+            <Button
               variant="contained"
               onClick={handleOpenOCR}
               sx={{
@@ -1423,7 +1664,7 @@ export default function NewPayment() {
             sx={{
               textTransform: "none",
               backgroundColor: "#0066FF",
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 600,
               borderRadius: "8px",
               boxShadow: "none",
@@ -1496,7 +1737,8 @@ export default function NewPayment() {
               EOB to ERA Converter
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
-              Upload EOB documents to automatically extract and convert to ERA format
+              Upload EOB documents to automatically extract and convert to ERA
+              format
             </Typography>
           </Box>
           <IconButton
@@ -1513,7 +1755,15 @@ export default function NewPayment() {
         </Box>
 
         {/* Content */}
-        <Box sx={{ px: 3, py: 3, maxHeight: "60vh", overflow: "auto", ...thinScroll }}>
+        <Box
+          sx={{
+            px: 3,
+            py: 3,
+            maxHeight: "60vh",
+            overflow: "auto",
+            ...thinScroll,
+          }}
+        >
           {/* Upload Area */}
           <Box
             sx={{
@@ -1532,9 +1782,7 @@ export default function NewPayment() {
             }}
             onClick={() => document.getElementById("ocr-file-input").click()}
           >
-            <CloudUpload
-              sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }}
-            />
+            <CloudUpload sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }} />
             <Typography
               sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 1 }}
             >
@@ -1584,10 +1832,10 @@ export default function NewPayment() {
                           file.status === "success"
                             ? "#DFF5EA"
                             : file.status === "error"
-                            ? "#FCE4E4"
-                            : file.status === "processing"
-                            ? "#FDF1DC"
-                            : "#E3EEFB",
+                              ? "#FCE4E4"
+                              : file.status === "processing"
+                                ? "#FDF1DC"
+                                : "#E3EEFB",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1628,10 +1876,10 @@ export default function NewPayment() {
                         {file.status === "success"
                           ? "Converted successfully"
                           : file.status === "error"
-                          ? "Failed to process"
-                          : file.status === "processing"
-                          ? "Processing..."
-                          : "Ready to process"}
+                            ? "Failed to process"
+                            : file.status === "processing"
+                              ? "Processing..."
+                              : "Ready to process"}
                       </Typography>
                     </Box>
                     {file.status === "pending" && (
@@ -1722,7 +1970,13 @@ export default function NewPayment() {
                         <TableCell sx={{ fontSize: 11 }}>
                           ${money(result.claimedAmount)}
                         </TableCell>
-                        <TableCell sx={{ fontSize: 11, color: "#1E7F55", fontWeight: 600 }}>
+                        <TableCell
+                          sx={{
+                            fontSize: 11,
+                            color: "#1E7F55",
+                            fontWeight: 600,
+                          }}
+                        >
                           ${money(result.paidAmount)}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
@@ -1751,10 +2005,14 @@ export default function NewPayment() {
         >
           <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
             {(() => {
-              const processedCount = ocrFiles.filter(f => f.status === "success").length;
-              const pendingCount = ocrFiles.filter(f => f.status === "pending").length;
+              const processedCount = ocrFiles.filter(
+                (f) => f.status === "success",
+              ).length;
+              const pendingCount = ocrFiles.filter(
+                (f) => f.status === "pending",
+              ).length;
               const totalRecords = ocrResults.length;
-              
+
               if (totalRecords > 0 && pendingCount === 0) {
                 return `${totalRecords} record(s) converted from ${processedCount} file(s)`;
               } else if (pendingCount > 0 && totalRecords > 0) {
@@ -1787,7 +2045,7 @@ export default function NewPayment() {
             </Button>
             {ocrResults.length > 0 ? (
               <>
-                {ocrFiles.filter(f => f.status === "pending").length > 0 && (
+                {ocrFiles.filter((f) => f.status === "pending").length > 0 && (
                   <Button
                     variant="outlined"
                     onClick={handleProcessOCR}
@@ -1799,9 +2057,9 @@ export default function NewPayment() {
                       color: "#0066FF",
                       borderColor: "#0066FF",
                       px: 2.5,
-                      "&:hover": { 
+                      "&:hover": {
                         borderColor: "#0052CC",
-                        backgroundColor: "rgba(0, 102, 255, 0.04)"
+                        backgroundColor: "rgba(0, 102, 255, 0.04)",
                       },
                     }}
                   >
@@ -1818,7 +2076,10 @@ export default function NewPayment() {
                     backgroundColor: "#0066FF",
                     px: 2.5,
                     boxShadow: "none",
-                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
+                    "&:hover": {
+                      backgroundColor: "#0052CC",
+                      boxShadow: "none",
+                    },
                   }}
                 >
                   Save ERA Data
@@ -1828,7 +2089,10 @@ export default function NewPayment() {
               <Button
                 variant="contained"
                 onClick={handleProcessOCR}
-                disabled={ocrFiles.filter(f => f.status === "pending").length === 0 || ocrProcessing}
+                disabled={
+                  ocrFiles.filter((f) => f.status === "pending").length === 0 ||
+                  ocrProcessing
+                }
                 sx={{
                   textTransform: "none",
                   fontSize: 13,

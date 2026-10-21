@@ -12,9 +12,14 @@ import {
   Typography,
   Button,
   IconButton,
+  InputBase,
   Tooltip,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import {
   ChevronRightIcon,
@@ -30,18 +35,248 @@ const T = {
   title: "#1E293B",
   headBg: "#EBF1FE",
   headText: "#1e293b",
-  headSymbol: "#64748b",
+  headSymbol: "#52525B",
   muted: "#64748B",
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   bodyText: "#475569",
   physicianText: "#128584",
   physicianBg: "#E8F8F5",
-  page: "#F7F9FC",
+  page: "#F5F7FA",
   rowSelected: "#F2F7FF",
   rowSelectedHover: "#E8F1FF",
-  rowHover: "#FAFBFE",
+  rowHover: "#EEF4FF",
 };
+
+/* Same thin scrollbar as Locations / PreBillingClaim */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Pagination (same as Locations / ReferringProvider / PreBillingClaim) */
+/* rows per page | range | < 1 2 3 … 50 > | Go To Page                  */
+/* ------------------------------------------------------------------ */
+const PAGE_SIZES = [25, 50, 100];
+
+/* Which page buttons to show: 1 … 44 45 46 … 50 */
+const getPageItems = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  if (current <= 3) end = 4;
+  if (current >= total - 2) start = total - 3;
+  if (start > 2) items.push("…");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+const pageBtnSx = (active) => ({
+  minWidth: 26,
+  height: 26,
+  px: 0.75,
+  borderRadius: "6px",
+  fontSize: 11,
+  fontWeight: active ? 700 : 500,
+  textTransform: "none",
+  color: active ? "#FFFFFF" : "#374151",
+  backgroundColor: active ? "#0066FF" : "transparent",
+  "&:hover": { backgroundColor: active ? "#0052CC" : "#F3F4F6" },
+});
+
+const arrowBtnSx = {
+  width: 26,
+  height: 26,
+  borderRadius: "6px",
+  color: "#374151",
+  "&.Mui-disabled": { color: "#D1D5DB" },
+};
+
+function PaginationBar({
+  count,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}) {
+  const [goTo, setGoTo] = React.useState("");
+
+  const totalPages = Math.max(Math.ceil(count / rowsPerPage), 1);
+  const from = count === 0 ? 0 : page * rowsPerPage + 1;
+  const to = Math.min(count, (page + 1) * rowsPerPage);
+  const items = getPageItems(page + 1, totalPages);
+
+  const handleGo = () => {
+    const n = parseInt(goTo, 10);
+    if (!n) return;
+    onPageChange(Math.min(Math.max(n, 1), totalPages) - 1);
+    setGoTo("");
+  };
+
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1fr auto 1fr" },
+        justifyItems: { xs: "center", md: "stretch" },
+        alignItems: "center",
+        rowGap: 1,
+        columnGap: 2,
+        px: 1.5,
+        py: 0.75,
+        minHeight: 44,
+        borderTop: "1px solid #E5E7EB",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {/* RIGHT: rows per page + range */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          gridColumn: { md: 3 },
+          gridRow: { md: 1 },
+          justifySelf: { md: "end" },
+        }}
+      >
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          Rows per page
+        </Typography>
+        <Select
+          size="small"
+          value={rowsPerPage}
+          onChange={onRowsPerPageChange}
+          IconComponent={KeyboardArrowDownIcon}
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            borderRadius: "6px",
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: "24px !important" },
+            "& .MuiSelect-icon": { fontSize: 16 },
+          }}
+        >
+          {PAGE_SIZES.map((n) => (
+            <MenuItem key={n} value={n} sx={{ fontSize: 11 }}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          {from}–{to} of {count}
+        </Typography>
+      </Box>
+
+      {/* CENTRE: page numbers + Go To Page */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          gridColumn: { md: 2 },
+          gridRow: { md: 1 },
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => onPageChange(page - 1)}
+            sx={arrowBtnSx}
+            aria-label="Previous page"
+          >
+            <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+          </IconButton>
+
+          {items.map((item, idx) =>
+            item === "…" ? (
+              <Typography
+                key={`gap-${idx}`}
+                sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+              >
+                …
+              </Typography>
+            ) : (
+              <Button
+                key={item}
+                onClick={() => onPageChange(item - 1)}
+                sx={pageBtnSx(item === page + 1)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+
+          <IconButton
+            size="small"
+            disabled={page >= totalPages - 1}
+            onClick={() => onPageChange(page + 1)}
+            sx={arrowBtnSx}
+            aria-label="Next page"
+          >
+            <KeyboardArrowRight sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <InputBase
+            value={goTo}
+            onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleGo();
+            }}
+            placeholder={`1–${totalPages}`}
+            inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+            sx={{
+              width: 64,
+              height: 26,
+              px: 1,
+              fontSize: 11,
+              border: "1px solid #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              "&:focus-within": { borderColor: "#0066FF" },
+              "& input": { p: 0, textAlign: "center" },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleGo}
+            disabled={!goTo}
+            sx={{
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 600,
+              height: 26,
+              px: 1.25,
+              borderRadius: "6px",
+              color: "#0066FF",
+              borderColor: "#0066FF",
+              whiteSpace: "nowrap",
+              "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+            }}
+          >
+            Go To Page
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                       */
@@ -63,9 +298,9 @@ const COLUMNS = [
 const SORT_TITLES = {
   alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
   date: {
-    asc: "Sorted Oldest First",
-    desc: "Sorted Newest First",
-    none: "Sort Oldest First",
+    asc: "Sorted oldest first",
+    desc: "Sorted newest first",
+    none: "Sort oldest first",
   },
 };
 
@@ -134,20 +369,34 @@ const toTime = (s) => {
 const isSameDay = (a, b) => a.toDateString() === b.toDateString();
 
 /* ------------------------------------------------------------------ */
-/* Shared cell style                                                   */
+/* Cell styles (same as Locations / ReferringProvider / PreBillingClaim)*/
+/*   head : fontSize 10, bold, py 0.4, px 0.4, minHeight 28             */
+/*   body : fontSize 10.5, py 0.5, px 0.3, height 32                    */
 /* ------------------------------------------------------------------ */
-// two-line headers ("Name / Age (Gender)") need a taller header row
-const HEAD_H = 32;
-
-const cellSx = {
-  borderBottom: `1px solid ${T.rowLine}`,
-  py: 0.5,
+const listHeadSx = {
+  fontWeight: 700,
+  fontSize: 10,
+  color: "#1e293b",
+  py: 0.4,
   px: 0.4,
+  height: "auto",
+  minHeight: 28,
+  lineHeight: 1.15,
+  whiteSpace: "nowrap",
+  textAlign: "center",
+  bgcolor: T.headBg,
+  borderBottom: `1px solid ${T.border}`,
+  borderRight: `1px solid ${T.border}`,
+};
+
+const listCellSx = {
   fontSize: 10.5,
   color: "#2E2E2E",
+  py: 0.5,
+  px: 0.3,
   height: 32,
-  boxSizing: "border-box",
   textAlign: "center",
+  borderBottom: `1px solid ${T.rowLine}`,
 };
 
 // Sticky-left helper (used by checkbox + Room/Bed columns)
@@ -163,7 +412,7 @@ const stickyEdgeSx = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Checkbox                                                            */
+/* Checkbox (same look as Locations)                                   */
 /* ------------------------------------------------------------------ */
 function RowCheckbox({ checked, indeterminate = false, onChange, label }) {
   return (
@@ -174,10 +423,10 @@ function RowCheckbox({ checked, indeterminate = false, onChange, label }) {
       onChange={onChange}
       inputProps={{ "aria-label": label }}
       sx={{
-        p: 0.5,
-        color: "#9AA5B8",
+        p: 0,
+        color: "#C8D0DC",
         "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: T.blue },
-        "& .MuiSvgIcon-root": { fontSize: 16 },
+        "& svg": { fontSize: 18 },
       }}
     />
   );
@@ -195,8 +444,8 @@ function Chip({ label }) {
         bgcolor: T.physicianBg,
         borderRadius: "4px",
         px: 1,
-        py: 0.45,
-        fontSize: 11,
+        py: 0.25,
+        fontSize: 10.5,
         fontWeight: 700,
         color: T.physicianText,
         whiteSpace: "nowrap",
@@ -223,23 +472,13 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
   return (
     <TableCell
       sx={{
-        ...cellSx,
-        height: HEAD_H,
-        boxSizing: "border-box",
-        bgcolor: T.headBg,
-        fontWeight: 700,
-        fontSize: 10,
-        color: T.headText,
-        borderBottom: `1px solid ${T.border}`,
+        ...listHeadSx,
         borderRight: isLast ? "none" : `1px solid ${T.border}`,
-        whiteSpace: "pre-line",
-        lineHeight: 1.15,
-        textAlign: "center",
-        py: 0.4,
-        px: 0.4,
-        minHeight: 28,
         ...(column.width && { width: column.width, minWidth: column.width }),
-        ...(isSticky && { ...stickyLeftSx(column.stickyLeft, 4), ...stickyEdgeSx }),
+        ...(isSticky && {
+          ...stickyLeftSx(column.stickyLeft, 4),
+          ...stickyEdgeSx,
+        }),
       }}
     >
       <Box
@@ -247,10 +486,14 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 0.5,
+          gap: 0.15,
         }}
       >
-        <Box component="span" sx={{ whiteSpace: "pre-line" }}>
+        {/* pre-line keeps the two-line labels ("Name / Age (Gender)") */}
+        <Box
+          component="span"
+          sx={{ lineHeight: 1.15, whiteSpace: "pre-line" }}
+        >
           {column.label}
         </Box>
 
@@ -261,7 +504,7 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
               aria-label={`Sort ${column.label.replace("\n", " ")}`}
               onClick={() => onSort(column.id)}
               sx={{
-                p: 0.2,
+                p: 0.15,
                 flexShrink: 0,
                 borderRadius: "6px",
                 color: active ? T.blue : T.headSymbol,
@@ -271,11 +514,11 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
             >
               {/* DOB shows the up/down icon until it is actually sorted */}
               {sortType === "date" && !active ? (
-                <UnfoldMoreIcon sx={{ fontSize: 16 }} />
+                <UnfoldMoreIcon sx={{ fontSize: 13 }} />
               ) : (
                 <KeyboardArrowDownIcon
                   sx={{
-                    fontSize: 16,
+                    fontSize: 13,
                     transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                     transition: "transform .15s ease",
                   }}
@@ -302,8 +545,7 @@ function DOSNavigator({ date, onPrev, onNext }) {
         bgcolor: "#fff",
         borderRadius: "8px",
         px: 1,
-        py: 0.5,
-        height: 38,
+        height: 28,
         boxSizing: "border-box",
       }}
     >
@@ -313,7 +555,7 @@ function DOSNavigator({ date, onPrev, onNext }) {
           onClick={onPrev}
           aria-label="Previous date"
           sx={{
-            p: 0.3,
+            p: 0.25,
             borderRadius: "4px",
             "&:hover": { bgcolor: "#EBF1FE" },
           }}
@@ -326,7 +568,7 @@ function DOSNavigator({ date, onPrev, onNext }) {
         <DOSCalendarIcon />
         <Typography
           sx={{
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 500,
             color: "#8E8E93",
             whiteSpace: "nowrap",
@@ -342,7 +584,7 @@ function DOSNavigator({ date, onPrev, onNext }) {
           onClick={onNext}
           aria-label="Next date"
           sx={{
-            p: 0.3,
+            p: 0.25,
             borderRadius: "4px",
             "&:hover": { bgcolor: "#EBF1FE" },
           }}
@@ -364,6 +606,10 @@ export default function ConfirmPatientList() {
   const [dosDate, setDosDate] = React.useState(BASE_DATE); // Jan 26
   const [sort, setSort] = React.useState({ columnId: null, dir: null });
   const [selected, setSelected] = React.useState(() => new Set()); // selected row ids
+
+  // pagination
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
 
   const rows = React.useMemo(() => createRows(), []);
 
@@ -388,7 +634,7 @@ export default function ConfirmPatientList() {
     });
   };
 
-  /* DOS filter + alphabetical / date sort */
+  /* 1) DOS filter  2) alphabetical / date sort */
   const visibleRows = React.useMemo(() => {
     let result = rows.filter((r) => isSameDay(r.dos, dosDate));
 
@@ -406,6 +652,17 @@ export default function ConfirmPatientList() {
     return result;
   }, [rows, dosDate, sort]);
 
+  // go back to page 1 whenever the date changes the rows
+  React.useEffect(() => {
+    setPage(0);
+  }, [visibleRows.length, dosDate]);
+
+  // 3) slice for the current page
+  const pagedRows = visibleRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
   /* all sortable columns (alpha + DOB): asc <-> desc only */
   const handleSort = (columnId) =>
     setSort((prev) => {
@@ -414,14 +671,11 @@ export default function ConfirmPatientList() {
       return { columnId, dir: prev.dir === "asc" ? "desc" : "asc" };
     });
 
-  /* ---- selection ---- */
-  const selectedVisibleCount = visibleRows.filter((r) =>
-    selected.has(r.id),
-  ).length;
-  const allVisibleSelected =
-    visibleRows.length > 0 && selectedVisibleCount === visibleRows.length;
-  const someVisibleSelected =
-    selectedVisibleCount > 0 && !allVisibleSelected;
+  /* ---- selection (select-all works on the rows of the current page) ---- */
+  const selectedPageCount = pagedRows.filter((r) => selected.has(r.id)).length;
+  const allPageSelected =
+    pagedRows.length > 0 && selectedPageCount === pagedRows.length;
+  const somePageSelected = selectedPageCount > 0 && !allPageSelected;
 
   const toggleRow = (id) =>
     setSelected((prev) => {
@@ -431,42 +685,39 @@ export default function ConfirmPatientList() {
       return next;
     });
 
-  // select-all only touches the rows of the date currently shown
-  const toggleAllVisible = () =>
+  const toggleAllPage = () =>
     setSelected((prev) => {
       const next = new Set(prev);
-      if (allVisibleSelected) visibleRows.forEach((r) => next.delete(r.id));
-      else visibleRows.forEach((r) => next.add(r.id));
+      if (allPageSelected) pagedRows.forEach((r) => next.delete(r.id));
+      else pagedRows.forEach((r) => next.add(r.id));
       return next;
     });
 
   // Go to the Add New Patient page and pass the selected patients along
   const handleAddPatients = () => {
     const selectedPatients = rows.filter((r) => selected.has(r.id));
-    navigate("/add-new-patient", { state: { patients: selectedPatients } });
+    navigate(ADD_NEW_PATIENT_ROUTE, { state: { patients: selectedPatients } });
   };
 
   return (
     <Box
       sx={{
         bgcolor: T.page,
-        // page scrollbar removed: fixed height, only the table scrolls
-        // (if your layout has a top bar, use e.g. "calc(100vh - 64px)")
         height: "100%",
         maxHeight: "100vh",
         "@supports (height: 100dvh)": { maxHeight: "100dvh" }, // mobile browser bars
         width: "100%",
-        minWidth: 0, // stops the 880px table from stretching the whole page
+        minWidth: 0, // stops the wide table from stretching the whole page
         maxWidth: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 1, md: 2 },
-        px: { xs: 1, sm: 2, md: 2, lg: 2 },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
       }}
     >
-      {/* ---- HEADER (fixed) ---- */}
+      {/* ---- HEADER (fixed, never scrolls) ---- */}
       <Box
         sx={{
           display: "flex",
@@ -474,15 +725,15 @@ export default function ConfirmPatientList() {
           flexWrap: "wrap",
           flexShrink: 0,
           columnGap: 2,
-          rowGap: 1.25,
-          mb: { xs: 1, md: 2},
+          rowGap: 1,
+          mb: 1,
         }}
       >
         <Typography
           sx={{
-            fontSize: { xs: 14, sm: 16 },
+            fontSize: 16,
             fontWeight: 700,
-            color: T.title,
+            color: "#111827",
             letterSpacing: "-0.2px",
           }}
         >
@@ -496,105 +747,83 @@ export default function ConfirmPatientList() {
         />
       </Box>
 
-      {/* ---- TABLE (only this area scrolls, header row stays sticky) ---- */}
-      <TableContainer
+      {/* TABLE BOX: border box that fills the remaining height.
+          Rows scroll inside TableContainer, pagination stays pinned at the bottom. */}
+      <Box
         sx={{
-          flex: "0 1 auto",
+          flex: 1,
           minHeight: 0,
           minWidth: 0,
-          maxWidth: "100%",
-          overflow: "auto",
-          width: "100%",
-          border: `1px solid ${T.border}`,
-          borderRadius: "10px",
-          WebkitOverflowScrolling: "touch",
-          // top HEAD_H px header color, below it white,
-          // so the scrollbar gap beside the header isn't blank white
-          background: `linear-gradient(to bottom, ${T.headBg} ${HEAD_H}px, #fff ${HEAD_H}px)`,
-          "&::-webkit-scrollbar": { height: 6, width: 6 },
-          // vertical scrollbar starts below the header
-          "&::-webkit-scrollbar-track:vertical": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-            marginTop: `${HEAD_H}px`,
-          },
-          "&::-webkit-scrollbar-track:horizontal": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#C1C7CD",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": { background: "#A0AAB4" },
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          border: "1px solid #e0e0e0",
+          backgroundColor: "#FFFFFF",
+          mb: 1,
         }}
       >
-        <Table
-          stickyHeader
-          size="small"
+        <TableContainer
           sx={{
-            tableLayout: "auto",
-            // on small screens the table keeps this width and scrolls sideways
-            minWidth: 880,
-            // "separate" keeps borders visible on the sticky header while scrolling
-            borderCollapse: "separate",
-            borderSpacing: 0,
-            "& th, & td": { boxSizing: "border-box" },
-            "& .MuiTableCell-stickyHeader": {
-              backgroundColor: `${T.headBg} !important`,
-            },
+            flex: 1,
+            minHeight: 0,
+            minWidth: 0,
+            maxHeight: "100%",
+            overflow: "auto",
+            boxShadow: "none",
+            WebkitOverflowScrolling: "touch",
+            ...thinScroll,
           }}
-          aria-label="Confirm patient list"
         >
-          <TableHead>
-            <TableRow>
-              {/* Select-all checkbox */}
-              <TableCell
-                sx={{
-                  ...cellSx,
-                  ...stickyLeftSx(0, 4),
-                  height: HEAD_H,
-                  width: CHECK_W,
-                  minWidth: CHECK_W,
-                  maxWidth: CHECK_W,
-                  px: 0,
-                  bgcolor: T.headBg,
-                  borderBottom: `1px solid ${T.border}`,
-                  borderRight: `1px solid ${T.border}`,
-                }}
-              >
-                <RowCheckbox
-                  checked={allVisibleSelected}
-                  indeterminate={someVisibleSelected}
-                  onChange={toggleAllVisible}
-                  label="Select all patients"
-                />
-              </TableCell>
-
-              {COLUMNS.map((column, index) => (
-                <HeaderCell
-                  key={column.id}
-                  column={column}
-                  isLast={index === COLUMNS.length - 1}
-                  sortDir={sort.columnId === column.id ? sort.dir : null}
-                  onSort={handleSort}
-                />
-              ))}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {visibleRows.length === 0 ? (
+          <Table
+            stickyHeader
+            size="small"
+            aria-label="Confirm patient list"
+            sx={{
+              minWidth: 900,
+              tableLayout: "auto",
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              "& th, & td": { boxSizing: "border-box" },
+              "& .MuiTableCell-stickyHeader": {
+                backgroundColor: `${T.headBg} !important`,
+              },
+            }}
+          >
+            <TableHead>
               <TableRow>
+                {/* Select-all checkbox */}
                 <TableCell
-                  colSpan={COLUMNS.length + 1}
-                  sx={{ ...cellSx, py: 4, color: T.muted, fontSize: 11 }}
+                  sx={{
+                    ...listHeadSx,
+                    ...stickyLeftSx(0, 4),
+                    width: CHECK_W,
+                    minWidth: CHECK_W,
+                    maxWidth: CHECK_W,
+                    px: 0,
+                  }}
                 >
-                  No Patients Found For This Date
+                  <RowCheckbox
+                    checked={allPageSelected}
+                    indeterminate={somePageSelected}
+                    onChange={toggleAllPage}
+                    label="Select all patients"
+                  />
                 </TableCell>
+
+                {COLUMNS.map((column, index) => (
+                  <HeaderCell
+                    key={column.id}
+                    column={column}
+                    isLast={index === COLUMNS.length - 1}
+                    sortDir={sort.columnId === column.id ? sort.dir : null}
+                    onSort={handleSort}
+                  />
+                ))}
               </TableRow>
-            ) : (
-              visibleRows.map((row) => {
+            </TableHead>
+
+            <TableBody>
+              {pagedRows.map((row) => {
                 const isSelected = selected.has(row.id);
                 const rowBg = isSelected ? T.rowSelected : "#fff";
 
@@ -609,14 +838,14 @@ export default function ConfirmPatientList() {
                         bgcolor: "transparent",
                       },
                       "&:hover > .MuiTableCell-root": {
-                        bgcolor: isSelected ? T.rowSelectedHover : "#EEF4FF",
+                        bgcolor: isSelected ? T.rowSelectedHover : T.rowHover,
                       },
                     }}
                   >
                     {/* Checkbox */}
                     <TableCell
                       sx={{
-                        ...cellSx,
+                        ...listCellSx,
                         ...stickyLeftSx(0, 1),
                         width: CHECK_W,
                         minWidth: CHECK_W,
@@ -635,7 +864,7 @@ export default function ConfirmPatientList() {
                     {/* Room/Bed (sticky on small screens) */}
                     <TableCell
                       sx={{
-                        ...cellSx,
+                        ...listCellSx,
                         ...stickyLeftSx(CHECK_W, 1),
                         ...stickyEdgeSx,
                         whiteSpace: "nowrap",
@@ -646,7 +875,7 @@ export default function ConfirmPatientList() {
                     </TableCell>
 
                     {/* Name + Age */}
-                    <TableCell sx={{ ...cellSx, bgcolor: rowBg }}>
+                    <TableCell sx={{ ...listCellSx, bgcolor: rowBg }}>
                       <Box sx={{ fontWeight: 700, color: "#2E2E2E" }}>
                         {row.name}
                       </Box>
@@ -656,7 +885,7 @@ export default function ConfirmPatientList() {
                     </TableCell>
 
                     {/* MRN */}
-                    <TableCell sx={{ ...cellSx, bgcolor: rowBg }}>
+                    <TableCell sx={{ ...listCellSx, bgcolor: rowBg }}>
                       <Box>{row.mrn}</Box>
                       <Box>{row.patientId}</Box>
                     </TableCell>
@@ -664,7 +893,7 @@ export default function ConfirmPatientList() {
                     {/* DOB */}
                     <TableCell
                       sx={{
-                        ...cellSx,
+                        ...listCellSx,
                         whiteSpace: "nowrap",
                         color: "#535862",
                         bgcolor: rowBg,
@@ -676,7 +905,7 @@ export default function ConfirmPatientList() {
                     {/* Location */}
                     <TableCell
                       sx={{
-                        ...cellSx,
+                        ...listCellSx,
                         whiteSpace: "nowrap",
                         fontWeight: 700,
                         bgcolor: rowBg,
@@ -686,23 +915,59 @@ export default function ConfirmPatientList() {
                     </TableCell>
 
                     {/* Physician */}
-                    <TableCell sx={{ ...cellSx, width: 140, minWidth: 140, bgcolor: rowBg }}>
+                    <TableCell
+                      sx={{
+                        ...listCellSx,
+                        width: 140,
+                        minWidth: 140,
+                        bgcolor: rowBg,
+                      }}
+                    >
                       <Chip label={row.physician} />
                     </TableCell>
 
                     {/* Residents */}
                     <TableCell
-                      sx={{ ...cellSx, width: 140, minWidth: 140, borderRight: "none", bgcolor: rowBg }}
+                      sx={{
+                        ...listCellSx,
+                        width: 140,
+                        minWidth: 140,
+                        bgcolor: rowBg,
+                      }}
                     >
                       <Chip label={row.residents} />
                     </TableCell>
                   </TableRow>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              })}
+
+              {/* empty state */}
+              {pagedRows.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={COLUMNS.length + 1}
+                    align="center"
+                    sx={{ py: 6, color: "#6B7280", borderBottom: "none" }}
+                  >
+                    No patients found for this date
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <PaginationBar
+          count={visibleRows.length}
+          page={page}
+          onPageChange={setPage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(0);
+          }}
+        />
+      </Box>
 
       {/* ---- FOOTER BUTTONS (fixed at bottom) ---- */}
       <Box
@@ -712,8 +977,7 @@ export default function ConfirmPatientList() {
           justifyContent: "flex-end",
           alignItems: { xs: "stretch", sm: "center" },
           flexShrink: 0,
-          gap: { xs: 1.25, sm: 2 },
-          mt: { xs: 1, sm: 2 },
+          gap: { xs: 1, sm: 1.5 },
           "& .MuiButton-root": { whiteSpace: "nowrap", flexShrink: 0 },
         }}
       >
@@ -721,15 +985,14 @@ export default function ConfirmPatientList() {
           variant="outlined"
           onClick={() => navigate(-1)}
           sx={{
-            height: 30,
+            height: 28,
             px: 3,
             textTransform: "none",
-            fontSize: 13,
+            fontSize: 11,
             fontWeight: 500,
             borderRadius: "8px",
             color: "#015DFF",
             border: "1.5px solid #015DFF",
-            px: 3,
             "&:hover": { border: "1.5px solid #015DFF", bgcolor: "#F4F8FF" },
           }}
         >
@@ -741,12 +1004,12 @@ export default function ConfirmPatientList() {
           disableElevation
           onClick={handleAddPatients}
           sx={{
-            height: 30,
+            height: 28,
             px: 3,
             borderRadius: "8px",
             textTransform: "none",
-            fontSize: 13,
-            fontWeight: 500,
+            fontSize: 11,
+            fontWeight: 600,
             bgcolor: "#015DFF",
             color: "#fff",
             "&:hover": { bgcolor: "#0145CC" },

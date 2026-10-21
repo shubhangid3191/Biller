@@ -20,11 +20,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
-import {
-  RPAddIcon,
-  RPDeleteIcon,
-  CalendarIcon,
-} from "../assets/Assets";
+import { RPAddIcon, RPDeleteIcon, CalendarIcon } from "../assets/Assets";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -32,14 +28,27 @@ import {
 
 const T = {
   blue: "#2563EB",
-  page: "#F7F9FC",
-  border: "#D5DCE8",
-  labelColor: "#000",
+  page: "#F5F7FA", // same page bg as the other pages
+  border: "#E5E7EB",
+  fieldBg: "#F9FAFC",
+  label: "#6B7280",
+  error: "#EF4444",
 };
 
 const ICON_SIZE = {
-  delete: 20,
+  delete: 18,
   add: 14,
+};
+
+/* Same thin scrollbar as the other pages */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -55,11 +64,7 @@ const OPTIONS = {
   country: ["United States", "Canada", "India"],
   state: ["California", "Texas", "New York"],
   fax: ["8475875747", "8475875748", "8475875749"],
-  email: [
-    "lipsum@gmail.com",
-    "provider@gmail.com",
-    "info@gmail.com",
-  ],
+  email: ["lipsum@gmail.com", "provider@gmail.com", "info@gmail.com"],
   specialty: ["Cardiology", "Neurology", "Orthopedics"],
 };
 
@@ -72,22 +77,22 @@ const PHONE_ERROR = "Enter a valid 10-digit number";
 
 /* All required text/phone fields → label shown in error messages */
 const REQUIRED_TEXT_FIELDS = {
-  firstName:      "First Name",
-  lastName:       "Last Name",
-  dateOfBirth:    "Date of Birth",
-  npi:            "National Provider Identifier",
-  stateLicense:   "State License Number",
-  mobilePhone:    "Mobile Phone",
-  phone:          "Phone",
-  taxonomy:       "Taxonomy",
+  firstName: "First Name",
+  lastName: "Last Name",
+  dateOfBirth: "Date of Birth",
+  npi: "National Provider Identifier",
+  stateLicense: "State License Number",
+  mobilePhone: "Mobile Phone",
+  phone: "Phone",
+  taxonomy: "Taxonomy",
 };
 
 /* Required select fields → label shown in error messages */
 const REQUIRED_SELECT_FIELDS = {
-  sex:       "Sex",
-  practice:  "Practice",
-  fax:       "Fax",
-  email:     "E-mail",
+  sex: "Sex",
+  practice: "Practice",
+  fax: "Fax",
+  email: "E-mail",
   specialty: "Specialty",
 };
 
@@ -106,93 +111,84 @@ const validateField = (name, value) => {
 
 const ALL_REQUIRED = {
   ...Object.fromEntries(Object.keys(REQUIRED_TEXT_FIELDS).map((k) => [k, ""])),
-  ...Object.fromEntries(Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""])),
+  ...Object.fromEntries(
+    Object.keys(REQUIRED_SELECT_FIELDS).map((k) => [k, ""]),
+  ),
 };
 
 /* ------------------------------------------------------------------ */
-/* Input styles                                                        */
+/* Input styles (same as NewPayment: height 34, fontSize 12, radius 6)  */
 /* ------------------------------------------------------------------ */
 
 const inputSx = {
+  width: "100%",
   "& .MuiOutlinedInput-root": {
-    borderRadius: "8px",
-    fontSize: 13,
-    bgcolor: "#fff",
+    height: 34,
+    minHeight: 34,
+    boxSizing: "border-box",
+    fontSize: 12,
+    borderRadius: "6px",
+    backgroundColor: T.fieldBg,
+    color: "#1F2937",
+
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: "#D1D5DB" },
+    "&.Mui-focused fieldset": { borderColor: "#0066FF", borderWidth: "1px" },
+    "&.Mui-error fieldset": { borderColor: T.error },
 
     "& input": {
-      padding: "8px 12px",
-      fontSize: 13,
-      color: "#1E1E1E",
+      height: "100%",
+      boxSizing: "border-box",
+      padding: "0 10px",
+      fontSize: 12,
+      color: "#1F2937",
     },
-
-    "& input::placeholder": {
-      color: "#8F9098",
-      opacity: 1,
-    },
-
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#C5C6CC",
-    },
-
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#9CA3AF",
-    },
-
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#006FFD",
-      borderWidth: "1.5px",
-    },
-
-    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#EF4444",
-    },
+    "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+    "& .MuiInputAdornment-root": { marginRight: 0 },
   },
 
-  "& .MuiInputBase-root": { height: "42px" },
-
   "& .MuiFormHelperText-root": {
-    fontSize: 11,
+    fontSize: 10.5,
     mx: 0,
+    ml: 0,
     mt: 0.4,
-    color: "#EF4444",
+    color: T.error,
   },
 };
 
 const selectSx = (error = false) => ({
-  height: "42px",
-  borderRadius: "8px",
-  fontSize: 13,
-  bgcolor: "#fff",
+  height: 34,
+  borderRadius: "6px",
+  fontSize: 12,
+  backgroundColor: T.fieldBg,
+  color: "#1F2937",
 
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#C5C6CC",
+    borderColor: error ? T.error : T.border,
+    borderRadius: "6px",
   },
-
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#9CA3AF",
+    borderColor: error ? T.error : "#D1D5DB",
   },
-
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#006FFD",
-    borderWidth: "1.5px",
-  },
-
-  "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#EF4444",
+    borderColor: error ? T.error : "#0066FF",
+    borderWidth: "1px",
   },
 
   "& .MuiSelect-select": {
-    padding: "0 !important",
-    px: "12px !important",
-    fontSize: 13,
+    minHeight: "34px !important",
+    height: "34px",
+    boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
-    height: "42px",
-    boxSizing: "border-box",
+    padding: "0 32px 0 10px !important",
+    fontSize: 12,
   },
 
-  "& .MuiSvgIcon-root": {
-    color: "#8F9098",
+  "& .MuiSelect-icon": {
+    color: "#6B7280",
+    right: 6,
+    fontSize: 18,
   },
 });
 
@@ -204,22 +200,21 @@ function Label({ children, required }) {
   return (
     <Typography
       sx={{
-        fontSize: 12,
-        fontWeight: 600,
-        color: T.labelColor,
+        fontSize: 11,
+        fontWeight: 500,
+        color: T.label,
         mb: 0.5,
+        lineHeight: 1.4,
+        display: "block",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}
     >
       {children}
 
       {required && (
-        <Box
-          component="span"
-          sx={{
-            color: "#EF4444",
-            ml: 0.3,
-          }}
-        >
+        <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
           *
         </Box>
       )}
@@ -239,11 +234,12 @@ function InputField({
   maxLength,
 }) {
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
 
       <TextField
         fullWidth
+        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -271,10 +267,10 @@ function SelectField({
   error,
 }) {
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
 
-      <FormControl fullWidth error={!!error}>
+      <FormControl fullWidth size="small" error={!!error}>
         <Select
           displayEmpty
           value={value}
@@ -284,25 +280,29 @@ function SelectField({
           IconComponent={KeyboardArrowDownIcon}
           renderValue={(val) =>
             val ? (
-              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+              <span style={{ fontSize: 12, color: "#1F2937" }}>{val}</span>
             ) : (
-              <span style={{ fontSize: 13, color: "#8F9098" }}>{placeholder}</span>
+              <span style={{ fontSize: 12, color: "#9CA3AF" }}>
+                {placeholder}
+              </span>
             )
           }
         >
-          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
+          <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
             {placeholder}
           </MenuItem>
 
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
+            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
               {o}
             </MenuItem>
           ))}
         </Select>
 
         {error && (
-          <FormHelperText sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}>
+          <FormHelperText
+            sx={{ fontSize: 10.5, mx: 0, mt: 0.4, color: T.error }}
+          >
             {error}
           </FormHelperText>
         )}
@@ -347,11 +347,12 @@ function DateField({
   const parsedValue = parsed && parsed.isValid() ? parsed : null;
 
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
 
       <TextField
         fullWidth
+        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -371,21 +372,13 @@ function DateField({
                   }}
                   disableRipple
                 >
-                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
+                  <CalendarIcon width={14} height={16} color="#0066FF" />
                 </IconButton>
               </InputAdornment>
             ),
           },
         }}
-        sx={{
-          ...inputSx,
-          "& .MuiFormHelperText-root": {
-            fontSize: 11,
-            mx: 0,
-            mt: 0.4,
-            color: "#EF4444",
-          },
-        }}
+        sx={inputSx}
       />
 
       <Popover
@@ -409,7 +402,9 @@ function DateField({
             disableFuture
             sx={{
               width: { xs: "280px", sm: "320px" },
-              "& .MuiPickersDay-root.Mui-selected": { backgroundColor: "#015DFF" },
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: "#0066FF",
+              },
               "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
@@ -423,20 +418,18 @@ function DateField({
 /* Form Grid                                                           */
 /* ------------------------------------------------------------------ */
 
-function FormGrid({ children, cols = 4 }) {
+function FormGrid({ children, cols = 4, last = false }) {
   return (
     <Box
       sx={{
         display: "grid",
-
         gridTemplateColumns: {
           xs: "1fr",
           sm: "1fr 1fr",
-          md: `repeat(${cols}, 1fr)`,
+          md: `repeat(${cols}, minmax(0, 1fr))`,
         },
-
-        gap: 2,
-        mb: 2.5,
+        gap: 1.5,
+        mb: last ? 0 : 1.5,
       }}
     >
       {children}
@@ -452,12 +445,9 @@ function SectionTitle({ children }) {
   return (
     <Typography
       sx={{
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: 700,
-        letterSpacing: "0.09em",
-        color: "#111827",
-        textTransform: "uppercase",
-        mb: 2,
+        color: "#1F2937",
       }}
     >
       {children}
@@ -465,26 +455,37 @@ function SectionTitle({ children }) {
   );
 }
 
+/* Title row (title on the left, optional action icon on the right) */
+function SectionHeader({ title, action }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        minHeight: 28,
+        mb: 1.2,
+      }}
+    >
+      <SectionTitle>{title}</SectionTitle>
+      {action}
+    </Box>
+  );
+}
+
 /* ------------------------------------------------------------------ */
-/* Section Box                                                         */
+/* Section Box (same card as NewPayment: p 2, border, radius 8)         */
 /* ------------------------------------------------------------------ */
 
 function SectionBox({ children }) {
   return (
     <Box
       sx={{
-        bgcolor: "#fff",
-        borderRadius: "12px",
-        border: "1px solid #E5E7EB",
-        px: {
-          xs: 2,
-          sm: 3,
-          md: 4,
-        },
-        py: {
-          xs: 2,
-          sm: 3,
-        },
+        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        border: `1px solid ${T.border}`,
+        p: 2,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
       }}
     >
       {children}
@@ -505,32 +506,32 @@ export default function ReferringProviderEdit() {
   const [pcp, setPcp] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    firstName:           row?.providerName?.split(" ")[0] ?? "",
-    lastName:            row?.providerName?.split(" ").slice(1).join(" ") ?? "",
-    dateOfBirth:         "",
-    sex:                 "",
-    suffix:              "",
-    prefix:              "",
-    npi:                 row?.npi        ?? "",
-    groupNpi:            "",
-    stateLicense:        "",
+    firstName: row?.providerName?.split(" ")[0] ?? "",
+    lastName: row?.providerName?.split(" ").slice(1).join(" ") ?? "",
+    dateOfBirth: "",
+    sex: "",
+    suffix: "",
+    prefix: "",
+    npi: row?.npi ?? "",
+    groupNpi: "",
+    stateLicense: "",
     controlledSubstance: "",
-    dea:                 "",
-    practice:            row?.practice   ?? "",
-    addressType:         "",
-    address1:            row?.address    ?? "",
-    address2:            "",
-    zipCode:             "",
-    city:                "",
-    country:             "",
-    state:               "",
-    mobilePhone:         row?.mobile     ?? "",
-    workContact:         "",
-    phone:               "",
-    fax:                 row?.fax        ?? "",
-    email:               row?.email      ?? "",
-    specialty:           "",
-    taxonomy:            "",
+    dea: "",
+    practice: row?.practice ?? "",
+    addressType: "",
+    address1: row?.address ?? "",
+    address2: "",
+    zipCode: "",
+    city: "",
+    country: "",
+    state: "",
+    mobilePhone: row?.mobile ?? "",
+    workContact: "",
+    phone: "",
+    fax: row?.fax ?? "",
+    email: row?.email ?? "",
+    specialty: "",
+    taxonomy: "",
   });
 
   /* touched mirrors ALL_REQUIRED keys */
@@ -556,9 +557,10 @@ export default function ReferringProviderEdit() {
   /* props helpers */
   const tx = (name) => ({
     value: form[name],
-    onChange: name === "mobilePhone" || name === "phone" || name === "workContact"
-      ? setPhone(name)
-      : set(name),
+    onChange:
+      name === "mobilePhone" || name === "phone" || name === "workContact"
+        ? setPhone(name)
+        : set(name),
     onBlur: () => touch(name),
     error: errorOf(name),
   });
@@ -593,62 +595,97 @@ export default function ReferringProviderEdit() {
     console.log("Provider data:", form);
   };
 
+  /* footer / header button look (same as NewPayment buttons) */
+  const outlineBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 2.5,
+    borderRadius: "8px",
+    color: "#0066FF",
+    borderColor: "#0066FF",
+    backgroundColor: "#FFFFFF",
+    whiteSpace: "nowrap",
+    "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+  };
+
+  const primaryBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 3,
+    borderRadius: "8px",
+    bgcolor: "#0066FF",
+    boxShadow: "none",
+    whiteSpace: "nowrap",
+    "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+  };
+
   return (
     <Box
       sx={{
         bgcolor: T.page,
         minHeight: "100vh",
         width: "100%",
-        py: {
-          xs: 2,
-          md: 3,
-        },
-        px: {
-          xs: 1.5,
-          sm: 2,
-          md: 2.5,
-          lg: 2.5,
-        },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
+        overflowX: "hidden",
+        overflowY: "auto",
+        ...thinScroll,
       }}
     >
       <Box
         sx={{
-          maxWidth: 1400,
-          mx: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 1.5,
         }}
       >
         {/* =========================================================
             TITLE
         ========================================================= */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        <IconButton
-            onClick={() => navigate(-1)}
-            sx={{
-              flexShrink: 0,
-              color: "#5A6B7E",
-              border: "1.5px solid #E4E9EF",
-              borderRadius: "8px",
-              width: 36,
-              height: 36,
-              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
-            }}
-          >
-            <ArrowBackIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-
-        <Typography
+        <Box
           sx={{
-            fontSize: { xs: 16, sm: 18, md: 20 },
-            fontWeight: 700,
-            color: "#111827",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
-          {isEdit ? "Edit Referring Provider" : "Add New Referring Provider"}
-        </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              sx={{
+                flexShrink: 0,
+                color: "#5A6B7E",
+                border: "1px solid #E5E7EB",
+                bgcolor: "#FFFFFF",
+                borderRadius: "8px",
+                width: 32,
+                height: 32,
+                "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+              }}
+            >
+              <ArrowBackIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+
+            <Typography
+              sx={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
+              {isEdit
+                ? "Edit Referring Provider"
+                : "Add New Referring Provider"}
+            </Typography>
+          </Box>
         </Box>
 
         {/* =========================================================
@@ -656,26 +693,18 @@ export default function ReferringProviderEdit() {
         ========================================================= */}
 
         <SectionBox>
-          <SectionTitle>Basic Details</SectionTitle>
+          <SectionHeader title="Basic Details" />
 
           <FormGrid>
-            <InputField
-              label="First Name" required
-              {...tx("firstName")}
-            />
+            <InputField label="First Name" required {...tx("firstName")} />
 
-            <InputField
-              label="Last Name" required
-              {...tx("lastName")}
-            />
+            <InputField label="Last Name" required {...tx("lastName")} />
 
-            <DateField
-              label="Date of Birth" required
-              {...tx("dateOfBirth")}
-            />
+            <DateField label="Date of Birth" required {...tx("dateOfBirth")} />
 
             <SelectField
-              label="Sex" required
+              label="Sex"
+              required
               options={OPTIONS.sex}
               {...sel("sex")}
             />
@@ -697,7 +726,8 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="National Provider Identifier" required
+              label="National Provider Identifier"
+              required
               {...tx("npi")}
             />
 
@@ -710,7 +740,8 @@ export default function ReferringProviderEdit() {
 
           <FormGrid>
             <InputField
-              label="State License Number" required
+              label="State License Number"
+              required
               {...tx("stateLicense")}
             />
 
@@ -728,20 +759,20 @@ export default function ReferringProviderEdit() {
             />
 
             <SelectField
-              label="Practice" required
+              label="Practice"
+              required
               options={OPTIONS.practice}
               {...sel("practice")}
             />
           </FormGrid>
 
-          {/* PCP Toggle */}
-
+          {/* PCP Toggle (same width as one grid column) */}
           <Box
             sx={{
               width: {
                 xs: "100%",
-                sm: "calc((100% - 16px) / 2)",
-                md: "calc((100% - 48px) / 4)",
+                sm: "calc((100% - 12px) / 2)",
+                md: "calc((100% - 36px) / 4)",
               },
             }}
           >
@@ -751,23 +782,15 @@ export default function ReferringProviderEdit() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 border: `1px solid ${T.border}`,
-                borderRadius: "8px",
-                px: "14px",
-                height: 42,
-                bgcolor: "#fff",
+                borderRadius: "6px",
+                px: "10px",
+                height: 34,
+                bgcolor: T.fieldBg,
                 boxSizing: "border-box",
-
-                "&:hover": {
-                  borderColor: "#9CA3AF",
-                },
+                "&:hover": { borderColor: "#D1D5DB" },
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  color: "#1F2937",
-                }}
-              >
+              <Typography sx={{ fontSize: 12, color: "#1F2937" }}>
                 PCP
               </Typography>
 
@@ -777,17 +800,13 @@ export default function ReferringProviderEdit() {
                 onChange={(e) => setPcp(e.target.checked)}
                 sx={{
                   mr: -0.5,
-
                   "& .MuiSwitch-switchBase.Mui-checked": {
                     color: "#fff",
                   },
-
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                    {
-                      bgcolor: "#22C55E",
-                      opacity: 1,
-                    },
-
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    bgcolor: "#22C55E",
+                    opacity: 1,
+                  },
                   "& .MuiSwitch-track": {
                     borderRadius: 20,
                   },
@@ -802,35 +821,27 @@ export default function ReferringProviderEdit() {
         ========================================================= */}
 
         <SectionBox>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2,
-            }}
-          >
-            <SectionTitle>Address</SectionTitle>
-
-            <IconButton
-              size="small"
-              sx={{
-                p: 0.5,
-                "&:hover": {
-                  bgcolor: "transparent",
-                },
-              }}
-            >
-              <RPDeleteIcon
-                width={ICON_SIZE.delete}
-                height={ICON_SIZE.delete}
-                color="#2563EB"
-              />
-            </IconButton>
-          </Box>
+          <SectionHeader
+            title="Address"
+            action={
+              <IconButton
+                size="small"
+                aria-label="Delete address"
+                sx={{
+                  p: "4px",
+                  "&:hover": { bgcolor: "#EEF4FF" },
+                }}
+              >
+                <RPDeleteIcon
+                  width={ICON_SIZE.delete}
+                  height={ICON_SIZE.delete}
+                  color={T.blue}
+                />
+              </IconButton>
+            }
+          />
 
           {/* Row 1 */}
-
           <FormGrid>
             <InputField
               label="Address Type"
@@ -862,13 +873,8 @@ export default function ReferringProviderEdit() {
           </FormGrid>
 
           {/* Row 2 */}
-
           <FormGrid>
-            <InputField
-              label="City"
-              value={form.city}
-              onChange={set("city")}
-            />
+            <InputField label="City" value={form.city} onChange={set("city")} />
 
             <SelectField
               label="State"
@@ -885,7 +891,8 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="Mobile Phone" required
+              label="Mobile Phone"
+              required
               inputMode="numeric"
               maxLength={10}
               {...tx("mobilePhone")}
@@ -893,8 +900,7 @@ export default function ReferringProviderEdit() {
           </FormGrid>
 
           {/* Row 3 */}
-
-          <FormGrid>
+          <FormGrid last>
             <InputField
               label="Work Contact No."
               inputMode="numeric"
@@ -913,20 +919,23 @@ export default function ReferringProviderEdit() {
             />
 
             <InputField
-              label="Phone" required
+              label="Phone"
+              required
               inputMode="numeric"
               maxLength={10}
               {...tx("phone")}
             />
 
             <SelectField
-              label="Fax" required
+              label="Fax"
+              required
               options={OPTIONS.fax}
               {...sel("fax")}
             />
 
             <SelectField
-              label="E-mail" required
+              label="E-mail"
+              required
               options={OPTIONS.email}
               {...sel("email")}
             />
@@ -938,32 +947,25 @@ export default function ReferringProviderEdit() {
         ========================================================= */}
 
         <SectionBox>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2,
-            }}
-          >
-            <SectionTitle>Specialty & Taxonomy</SectionTitle>
-
-            <IconButton
-              size="small"
-              sx={{
-                p: 0.5,
-                "&:hover": {
-                  bgcolor: "transparent",
-                },
-              }}
-            >
-              <RPAddIcon
-                width={ICON_SIZE.add}
-                height={ICON_SIZE.add}
-                color={T.blue}
-              />
-            </IconButton>
-          </Box>
+          <SectionHeader
+            title="Specialty & Taxonomy"
+            action={
+              <IconButton
+                size="small"
+                aria-label="Add specialty"
+                sx={{
+                  p: "4px",
+                  "&:hover": { bgcolor: "#EEF4FF" },
+                }}
+              >
+                <RPAddIcon
+                  width={ICON_SIZE.add}
+                  height={ICON_SIZE.add}
+                  color={T.blue}
+                />
+              </IconButton>
+            }
+          />
 
           <Box
             sx={{
@@ -972,12 +974,13 @@ export default function ReferringProviderEdit() {
                 xs: "1fr",
                 sm: "1fr 1fr",
               },
-              gap: 2,
-              alignItems: "end",
+              gap: 1.5,
+              alignItems: "start",
             }}
           >
             <SelectField
-              label="Specialty" required
+              label="Specialty"
+              required
               options={OPTIONS.specialty}
               {...sel("specialty")}
             />
@@ -985,28 +988,33 @@ export default function ReferringProviderEdit() {
             <Box
               sx={{
                 display: "flex",
-                alignItems: "end",
+                alignItems: "flex-start",
                 gap: 1,
               }}
             >
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
                 <InputField
-                  label="Taxonomy" required
+                  label="Taxonomy"
+                  required
                   placeholder="Type here"
                   {...tx("taxonomy")}
                 />
               </Box>
 
+              {/* mt aligns the icon with the 34px input (label ≈ 20px) */}
               <IconButton
                 size="small"
+                aria-label="Delete taxonomy"
                 sx={{
-                  p: 0.5,
+                  p: "4px",
+                  mt: "21px",
+                  "&:hover": { bgcolor: "#EEF4FF" },
                 }}
               >
                 <RPDeleteIcon
                   width={ICON_SIZE.delete}
                   height={ICON_SIZE.delete}
-                  color="#2563EB"
+                  color={T.blue}
                 />
               </IconButton>
             </Box>
@@ -1022,27 +1030,14 @@ export default function ReferringProviderEdit() {
             display: "flex",
             flexDirection: { xs: "column-reverse", sm: "row" },
             justifyContent: { xs: "stretch", sm: "flex-end" },
-            gap: 1.5,
-            pb: 3,
+            gap: 1,
+            pb: 1.5,
           }}
         >
           <Button
             variant="outlined"
             onClick={() => navigate(-1)}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              color: "#0052E1",
-              borderColor: "#0052E1",
-              px: 3,
-
-              "&:hover": {
-                borderColor: "#0052E1",
-                bgcolor: "#F9FAFB",
-              },
-            }}
+            sx={outlineBtnSx}
           >
             Cancel
           </Button>
@@ -1051,18 +1046,7 @@ export default function ReferringProviderEdit() {
             variant="contained"
             disableElevation
             onClick={handleSave}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              bgcolor: T.blue,
-              px: 4,
-
-              "&:hover": {
-                bgcolor: "#1D4ED8",
-              },
-            }}
+            sx={primaryBtnSx}
           >
             Save
           </Button>

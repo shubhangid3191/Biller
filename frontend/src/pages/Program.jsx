@@ -18,8 +18,12 @@ import {
   InputBase,
   Checkbox,
   Badge,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   FilterIcon,
@@ -39,79 +43,252 @@ const T = {
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
-  page: "#F7F9FC",
+  page: "#F5F7FA",
 };
+
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Pagination (same as ReferringProvider / PreBillingClaim)             */
+/* ------------------------------------------------------------------ */
+const PAGE_SIZES = [25, 50, 100];
+
+/* Which page buttons to show: 1 … 44 45 46 … 50 */
+const getPageItems = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  if (current <= 3) end = 4;
+  if (current >= total - 2) start = total - 3;
+  if (start > 2) items.push("…");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+const pageBtnSx = (active) => ({
+  minWidth: 26,
+  height: 26,
+  px: 0.75,
+  borderRadius: "6px",
+  fontSize: 11,
+  fontWeight: active ? 700 : 500,
+  textTransform: "none",
+  color: active ? "#FFFFFF" : "#374151",
+  backgroundColor: active ? "#0066FF" : "transparent",
+  "&:hover": { backgroundColor: active ? "#0052CC" : "#F3F4F6" },
+});
+
+const arrowBtnSx = {
+  width: 26,
+  height: 26,
+  borderRadius: "6px",
+  color: "#374151",
+  "&.Mui-disabled": { color: "#D1D5DB" },
+};
+
+function PaginationBar({
+  count,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}) {
+  const [goTo, setGoTo] = React.useState("");
+
+  const totalPages = Math.max(Math.ceil(count / rowsPerPage), 1);
+  const from = count === 0 ? 0 : page * rowsPerPage + 1;
+  const to = Math.min(count, (page + 1) * rowsPerPage);
+  const items = getPageItems(page + 1, totalPages);
+
+  const handleGo = () => {
+    const n = parseInt(goTo, 10);
+    if (!n) return;
+    onPageChange(Math.min(Math.max(n, 1), totalPages) - 1);
+    setGoTo("");
+  };
+
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1fr auto 1fr" },
+        justifyItems: { xs: "center", md: "stretch" },
+        alignItems: "center",
+        rowGap: 1,
+        columnGap: 2,
+        px: 1.5,
+        py: 0.75,
+        minHeight: 44,
+        borderTop: "1px solid #E5E7EB",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {/* RIGHT: rows per page + range */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          gridColumn: { md: 3 },
+          gridRow: { md: 1 },
+          justifySelf: { md: "end" },
+        }}
+      >
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          Rows per page
+        </Typography>
+        <Select
+          size="small"
+          value={rowsPerPage}
+          onChange={onRowsPerPageChange}
+          IconComponent={KeyboardArrowDownIcon}
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            borderRadius: "6px",
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: "24px !important" },
+            "& .MuiSelect-icon": { fontSize: 16 },
+          }}
+        >
+          {PAGE_SIZES.map((n) => (
+            <MenuItem key={n} value={n} sx={{ fontSize: 11 }}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          {from}–{to} of {count}
+        </Typography>
+      </Box>
+
+      {/* CENTRE: page numbers + Go To Page */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          gridColumn: { md: 2 },
+          gridRow: { md: 1 },
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => onPageChange(page - 1)}
+            sx={arrowBtnSx}
+            aria-label="Previous page"
+          >
+            <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+          </IconButton>
+
+          {items.map((item, idx) =>
+            item === "…" ? (
+              <Typography
+                key={`gap-${idx}`}
+                sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+              >
+                …
+              </Typography>
+            ) : (
+              <Button
+                key={item}
+                onClick={() => onPageChange(item - 1)}
+                sx={pageBtnSx(item === page + 1)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+
+          <IconButton
+            size="small"
+            disabled={page >= totalPages - 1}
+            onClick={() => onPageChange(page + 1)}
+            sx={arrowBtnSx}
+            aria-label="Next page"
+          >
+            <KeyboardArrowRight sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <InputBase
+            value={goTo}
+            onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleGo();
+            }}
+            placeholder={`1–${totalPages}`}
+            inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+            sx={{
+              width: 64,
+              height: 26,
+              px: 1,
+              fontSize: 11,
+              border: "1px solid #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              "&:focus-within": { borderColor: "#0066FF" },
+              "& input": { p: 0, textAlign: "center" },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleGo}
+            disabled={!goTo}
+            sx={{
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 600,
+              height: 26,
+              px: 1.25,
+              borderRadius: "6px",
+              color: "#0066FF",
+              borderColor: "#0066FF",
+              whiteSpace: "nowrap",
+              "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+            }}
+          >
+            Go To Page
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Initial seed data                                                    */
 /* ------------------------------------------------------------------ */
 const SEED = [
-  {
-    id: 1,
-    programName: "Clare Jane",
-    description: "Provider-Delivered Care Management.",
-    cpt: "11980; 00934",
-  },
-  {
-    id: 2,
-    programName: "Adam Ross",
-    description: "Chronic Care Management.",
-    cpt: "99490; 99439",
-  },
-  {
-    id: 3,
-    programName: "Zoe Martin",
-    description: "Remote Patient Monitoring.",
-    cpt: "99453; 99454",
-  },
-  {
-    id: 4,
-    programName: "Brian Cox",
-    description: "Principal Care Management.",
-    cpt: "99424; 99425",
-  },
-  {
-    id: 5,
-    programName: "Maya Singh",
-    description: "Transitional Care Management.",
-    cpt: "99495; 99496",
-  },
-  {
-    id: 6,
-    programName: "Liam Turner",
-    description: "Behavioral Health Integration.",
-    cpt: "99484; 99492",
-  },
-  {
-    id: 7,
-    programName: "Nora Blake",
-    description: "Annual Wellness Visit.",
-    cpt: "G0438; G0439",
-  },
-  {
-    id: 8,
-    programName: "Ethan Hall",
-    description: "Advance Care Planning.",
-    cpt: "99497; 99498",
-  },
-  {
-    id: 9,
-    programName: "Ivy Morgan",
-    description: "Home Health Certification.",
-    cpt: "G0180; G0179",
-  },
-  {
-    id: 10,
-    programName: "Owen Reed",
-    description: "Telehealth Consultation.",
-    cpt: "99441; 99442",
-  },
-  {
-    id: 11,
-    programName: "Ruby Fox",
-    description: "Preventive Medicine Counseling.",
-    cpt: "99401; 99402",
-  },
+  { id: 1, programName: "Clare Jane", description: "Provider-Delivered Care Management.", cpt: "11980; 00934" },
+  { id: 2, programName: "Adam Ross", description: "Chronic Care Management.", cpt: "99490; 99439" },
+  { id: 3, programName: "Zoe Martin", description: "Remote Patient Monitoring.", cpt: "99453; 99454" },
+  { id: 4, programName: "Brian Cox", description: "Principal Care Management.", cpt: "99424; 99425" },
+  { id: 5, programName: "Maya Singh", description: "Transitional Care Management.", cpt: "99495; 99496" },
+  { id: 6, programName: "Liam Turner", description: "Behavioral Health Integration.", cpt: "99484; 99492" },
+  { id: 7, programName: "Nora Blake", description: "Annual Wellness Visit.", cpt: "G0438; G0439" },
+  { id: 8, programName: "Ethan Hall", description: "Advance Care Planning.", cpt: "99497; 99498" },
+  { id: 9, programName: "Ivy Morgan", description: "Home Health Certification.", cpt: "G0180; G0179" },
+  { id: 10, programName: "Owen Reed", description: "Telehealth Consultation.", cpt: "99441; 99442" },
+  { id: 11, programName: "Ruby Fox", description: "Preventive Medicine Counseling.", cpt: "99401; 99402" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -121,7 +298,7 @@ const COLUMNS = [
   { id: "programName", label: "Program Name", sort: "alpha" },
   { id: "description", label: "Description", sort: "alpha" },
   { id: "cpt", label: "CPT", sort: "alpha" },
-  { id: "actions", label: "Action", center: true, last: true, width: 140 },
+  { id: "actions", label: "Action", last: true, width: 140 },
 ];
 
 const SORTABLE_COLUMNS = COLUMNS.filter((c) => c.sort);
@@ -179,36 +356,34 @@ function useSortedRows(rows, columns) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Cell styles                                                          */
+/* Cell styles (same as ReferringProvider / PreBillingClaim)            */
+/*   head : fontSize 10, bold, py 0.4, px 0.4, minHeight 28             */
+/*   body : fontSize 10.5, py 0.5, px 0.3, height 32                    */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 32;
-
-const cellSx = {
-  borderBottom: `1px solid ${T.rowLine}`,
-  py: 0.5,
-  px: 0.4,
-  fontSize: 10.5,
-  color: "#1e293b",
-  height: 32,
-  textAlign: "center",
-};
-
-const headCellSx = {
-  ...cellSx,
-  height: HEAD_H,
-  boxSizing: "border-box",
-  bgcolor: T.headBg,
+const listHeadSx = {
   fontWeight: 700,
   fontSize: 10,
   color: "#1e293b",
-  borderBottom: `1px solid ${T.border}`,
-  borderRight: `1px solid ${T.border}`,
-  whiteSpace: "nowrap",
-  textAlign: "center",
   py: 0.4,
   px: 0.4,
+  height: "auto",
   minHeight: 28,
   lineHeight: 1.15,
+  whiteSpace: "nowrap",
+  textAlign: "center",
+  bgcolor: T.headBg,
+  borderBottom: `1px solid ${T.border}`,
+  borderRight: `1px solid ${T.border}`,
+};
+
+const listCellSx = {
+  fontSize: 10.5,
+  color: "#1e293b",
+  py: 0.5,
+  px: 0.3,
+  height: 32,
+  textAlign: "center",
+  borderBottom: `1px solid ${T.rowLine}`,
 };
 
 /* ------------------------------------------------------------------ */
@@ -221,7 +396,7 @@ function HeaderCell({ column, sortDir, onSort }) {
   return (
     <TableCell
       sx={{
-        ...headCellSx,
+        ...listHeadSx,
         borderRight: column.last ? "none" : `1px solid ${T.border}`,
         ...(column.width && { width: column.width, minWidth: column.width }),
       }}
@@ -231,17 +406,21 @@ function HeaderCell({ column, sortDir, onSort }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 0.5,
+          gap: 0.15,
         }}
       >
-        {column.label}
+        <Box component="span" sx={{ lineHeight: 1.15 }}>
+          {column.label}
+        </Box>
         {column.sort && (
           <Tooltip title={titles[sortDir || "none"]} arrow>
             <IconButton
               size="small"
+              aria-label={`Sort ${column.label}`}
               onClick={() => onSort(column.id)}
               sx={{
-                p: 0.2,
+                p: 0.15,
+                flexShrink: 0,
                 borderRadius: "6px",
                 color: active ? T.blue : T.headSymbol,
                 bgcolor: active ? "#DCE7FD" : "transparent",
@@ -250,7 +429,7 @@ function HeaderCell({ column, sortDir, onSort }) {
             >
               <KeyboardArrowDownIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: 13,
                   transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                   transition: "transform .15s ease",
                 }}
@@ -343,26 +522,8 @@ function DeleteDialog({ open, programName, onCancel, onConfirm }) {
 /* ------------------------------------------------------------------ */
 /* Filter & Sort Dialog                                                 */
 /* ------------------------------------------------------------------ */
-const hideScrollSx = {
-  scrollbarWidth: "none",
-  "&::-webkit-scrollbar": { display: "none" },
-};
-const EMPTY_DRAFT = { sortBy: "", sortDir: "asc" };
-
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
-  const [draft, setDraft] = React.useState(EMPTY_DRAFT);
-
-  React.useEffect(() => {
-    if (open) setDraft({ ...initial });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const selectedSortCol = SORTABLE_COLUMNS.find((c) => c.id === draft.sortBy);
-  const orderLabels = selectedSortCol
-    ? SORT_ORDER_LABELS[selectedSortCol.sort]
-    : SORT_ORDER_LABELS.alpha;
-
-  const OptionRow = ({ label, checked, onToggle, minHeight = 50 }) => (
+function OptionRow({ label, checked, onToggle, minHeight = 50 }) {
+  return (
     <Box
       onClick={onToggle}
       sx={{
@@ -395,6 +556,22 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
       />
     </Box>
   );
+}
+
+const EMPTY_DRAFT = { sortBy: "", sortDir: "asc" };
+
+function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+  const [draft, setDraft] = React.useState(EMPTY_DRAFT);
+
+  React.useEffect(() => {
+    if (open) setDraft({ ...initial });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const selectedSortCol = SORTABLE_COLUMNS.find((c) => c.id === draft.sortBy);
+  const orderLabels = selectedSortCol
+    ? SORT_ORDER_LABELS[selectedSortCol.sort]
+    : SORT_ORDER_LABELS.alpha;
 
   return (
     <Dialog
@@ -408,6 +585,13 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
           borderRadius: "16px !important",
           overflow: "hidden !important",
           boxShadow: "0px 8px 32px rgba(0,0,0,0.14)",
+        },
+        "@media (max-width: 480px)": {
+          "& .MuiDialog-paper": {
+            width: "92vw !important",
+            maxWidth: "92vw !important",
+            borderRadius: "12px !important",
+          },
         },
       }}
     >
@@ -595,9 +779,11 @@ export default function Program() {
     setDeleteTarget(null);
   };
 
-  /* ── search / filter / sort ── */
+  /* ── search / filter / sort / pagination ── */
   const [query, setQuery] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
 
   const filteredRows = React.useMemo(
     () => filterRows(rows, query),
@@ -606,6 +792,16 @@ export default function Program() {
   const { sort, setSort, sortedRows, handleSort } = useSortedRows(
     filteredRows,
     COLUMNS,
+  );
+
+  // go back to page 1 whenever search / delete changes the number of rows
+  React.useEffect(() => {
+    setPage(0);
+  }, [filteredRows.length]);
+
+  const pagedRows = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
   );
 
   const activeFilterCount = sort.columnId && sort.dir ? 1 : 0;
@@ -634,12 +830,12 @@ export default function Program() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 1, md: 2 },
-        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
       }}
     >
-      {/* ── HEADER ── */}
+      {/* ── HEADER (fixed, never scrolls) ── */}
       <Box
         sx={{
           display: "flex",
@@ -648,29 +844,35 @@ export default function Program() {
           flexWrap: "wrap",
           flexShrink: 0,
           gap: 1,
-          mb: 2,
+          mb: 1,
         }}
       >
         <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Program Management
         </Typography>
 
-        <Stack direction="row" spacing={1.5} flexWrap="wrap">
-          {/* Search */}
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          alignItems="center"
+          useFlexGap
+        >
+          {/* Search bar */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 0.8,
-              border: "1px solid #D1D5DB",
-              borderRadius: "30px",
-              px: 1.2,
-              py: 0.5,
-              bgcolor: "#F4F8FF",
-              width: { xs: "100%", sm: 320 },
-              transition: "border-color 0.15s ease",
-              "&:hover": { borderColor: "#015DFF" },
-              "&:focus-within": { borderColor: "#015DFF" },
+              gap: 0.6,
+              height: 28,
+              px: 1,
+              borderRadius: "14px",
+              backgroundColor: "#F5F7FA",
+              border: "1px solid #E5E7EB",
+              width: { xs: "100%", sm: 260 },
+              transition: "border-color 0.2s ease",
+              "&:hover": { borderColor: "#0066FF" },
+              "&:focus-within": { borderColor: "#0066FF" },
             }}
           >
             <SearchIcon width={14} height={14} color="#9CA3AF" />
@@ -678,12 +880,24 @@ export default function Program() {
               placeholder="Search by Program Name or CPT..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              inputProps={{ "aria-label": "Search programs" }}
               sx={{
-                fontSize: 11,
                 flex: 1,
+                minWidth: 0,
+                fontSize: 11,
+                color: "#4B5563",
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
             />
+            {query && (
+              <IconButton
+                size="small"
+                onClick={() => setQuery("")}
+                sx={{ p: 0.25 }}
+              >
+                <CloseIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            )}
           </Box>
 
           {/* Filter */}
@@ -708,11 +922,12 @@ export default function Program() {
                 textTransform: "none",
                 fontSize: 11,
                 fontWeight: 500,
+                height: 28,
                 borderRadius: "8px",
                 color: T.blue,
                 border: "1.5px solid #015DFF",
                 bgcolor: activeFilterCount > 0 ? "#EFF6FF" : "transparent",
-                px: 2,
+                px: 1.75,
                 "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
               }}
             >
@@ -728,10 +943,11 @@ export default function Program() {
               textTransform: "none",
               fontSize: 11,
               fontWeight: 500,
+              height: 28,
               borderRadius: "8px",
               color: T.blue,
               border: "1.5px solid #015DFF",
-              px: 2,
+              px: 1.75,
               "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
             }}
           >
@@ -748,10 +964,11 @@ export default function Program() {
             sx={{
               textTransform: "none",
               fontSize: 11,
-              fontWeight: 500,
+              fontWeight: 600,
+              height: 28,
               borderRadius: "8px",
               bgcolor: T.blue,
-              px: 2.5,
+              px: 1.75,
               "&:hover": { bgcolor: "#1D4ED8" },
             }}
           >
@@ -760,140 +977,156 @@ export default function Program() {
         </Stack>
       </Box>
 
-      {/* ── TABLE ── */}
-      <TableContainer
+      {/* ── TABLE BOX: fills remaining height.
+            Rows scroll inside TableContainer, pagination stays pinned at the bottom. ── */}
+      <Box
         sx={{
-          flex: "0 1 auto",
+          flex: 1,
           minHeight: 0,
-          overflow: "auto",
-          border: `1px solid ${T.border}`,
-          borderRadius: "10px",
-          background: `linear-gradient(to bottom, ${T.headBg} ${HEAD_H}px, #fff ${HEAD_H}px)`,
-          "&::-webkit-scrollbar": { height: 6, width: 6 },
-          "&::-webkit-scrollbar-track": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#C1C7CD",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": { background: "#A0AAB4" },
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          border: "1px solid #e0e0e0",
+          backgroundColor: "#FFFFFF",
+          mb: 1,
         }}
       >
-        <Table
-          stickyHeader
-          size="small"
+        <TableContainer
           sx={{
-            tableLayout: "auto",
-            borderCollapse: "separate",
-            borderSpacing: 0,
-            "& .MuiTableCell-stickyHeader": {
-              backgroundColor: `${T.headBg} !important`,
-            },
+            flex: 1,
+            minHeight: 0,
+            maxHeight: "100%",
+            overflow: "auto",
+            boxShadow: "none",
+            ...thinScroll,
           }}
         >
-          <TableHead>
-            <TableRow>
-              {COLUMNS.map((col) => (
-                <HeaderCell
-                  key={col.id}
-                  column={col}
-                  sortDir={sort.columnId === col.id ? sort.dir : null}
-                  onSort={handleSort}
-                />
-              ))}
-            </TableRow>
-          </TableHead>
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              minWidth: 700,
+              tableLayout: "auto",
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              "& .MuiTableCell-stickyHeader": {
+                backgroundColor: `${T.headBg} !important`,
+              },
+            }}
+          >
+            <TableHead>
+              <TableRow>
+                {COLUMNS.map((col) => (
+                  <HeaderCell
+                    key={col.id}
+                    column={col}
+                    sortDir={sort.columnId === col.id ? sort.dir : null}
+                    onSort={handleSort}
+                  />
+                ))}
+              </TableRow>
+            </TableHead>
 
-          <TableBody>
-            {sortedRows.map((row, index) => (
-              <TableRow
-                key={row.id}
-                hover
-                //onClick={() => navigate("/program/configuration", { state: { row } })}
-                sx={{
-                  // cursor: "pointer",
-                  backgroundColor: "#fff",
-                  "&:hover": { bgcolor: "#F0F5FF" },
-                  "&:last-of-type td": { borderBottom: "none" },
-                }}
-              >
-                <TableCell sx={cellSx}>{row.programName}</TableCell>
-                <TableCell sx={{ ...cellSx, textAlign: "left" }}>
-                  {row.description}
-                </TableCell>
-                <TableCell sx={cellSx}>{row.cpt}</TableCell>
-                <TableCell
-                  align="center"
+            <TableBody>
+              {pagedRows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  hover
                   sx={{
-                    ...cellSx,
-                    width: 140,
-                    minWidth: 140,
-                    borderRight: "none",
+                    backgroundColor: "#FFFFFF",
+                    "&:hover": { bgcolor: "#EEF4FF" },
                   }}
                 >
-                  <Box
+                  <TableCell sx={listCellSx}>{row.programName}</TableCell>
+                  <TableCell sx={{ ...listCellSx, textAlign: "left" }}>
+                    {row.description}
+                  </TableCell>
+                  <TableCell sx={listCellSx}>{row.cpt}</TableCell>
+                  <TableCell
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1.5,
+                      ...listCellSx,
+                      width: 140,
+                      minWidth: 140,
                     }}
                   >
-                    <Tooltip title="Edit" arrow>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate("/program/configuration", {
-                            state: { row },
-                          });
-                        }}
-                        sx={{
-                          p: 0.6,
-                          color: T.blue,
-                          "&:hover": { bgcolor: "#EEF4FF" },
-                        }}
-                      >
-                        <RPEditIcon width={20} height={20} color={T.blue} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete" arrow>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(row);
-                        }}
-                        sx={{
-                          p: 0.6,
-                          color: T.blue,
-                          "&:hover": { bgcolor: "#FEE2E2" },
-                        }}
-                      >
-                        <RPDeleteIcon width={20} height={20} color={T.blue} />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <Tooltip title="Edit" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/program/configuration", {
+                              state: { row },
+                            });
+                          }}
+                          sx={{
+                            p: "4px",
+                            color: T.blue,
+                            "&:hover": { bgcolor: "#EEF4FF" },
+                          }}
+                        >
+                          <RPEditIcon width={18} height={18} color={T.blue} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(row);
+                          }}
+                          sx={{
+                            p: "4px",
+                            color: T.blue,
+                            "&:hover": { bgcolor: "#FEE2E2" },
+                          }}
+                        >
+                          <RPDeleteIcon
+                            width={18}
+                            height={18}
+                            color={T.blue}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
 
-            {sortedRows.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={COLUMNS.length}
-                  align="center"
-                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
-                >
-                  No matching programs found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              {/* empty state */}
+              {pagedRows.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={COLUMNS.length}
+                    align="center"
+                    sx={{ py: 6, color: "#6B7280", borderBottom: "none" }}
+                  >
+                    No records found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <PaginationBar
+          count={sortedRows.length}
+          page={page}
+          onPageChange={setPage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(0);
+          }}
+        />
+      </Box>
 
       {/* ── DIALOGS ── */}
       <FilterSortDialog

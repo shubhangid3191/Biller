@@ -18,8 +18,12 @@ import {
   Badge,
   Dialog,
   DialogContent,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   FilterIcon,
@@ -37,112 +41,254 @@ const T = {
   border: "#BED3FC",
   rowLine: "#EEF1F7",
   blue: "#2563EB",
-  page: "#F7F9FC",
+  page: "#F5F7FA",
 };
+
+/* Same thin scrollbar as PreBillingClaim */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Pagination (same as ReferringProvider / PreBillingClaim)             */
+/* rows per page | range | < 1 2 3 … 50 > | Go To Page                  */
+/* ------------------------------------------------------------------ */
+const PAGE_SIZES = [25, 50, 100];
+
+/* Which page buttons to show: 1 … 44 45 46 … 50 */
+const getPageItems = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  if (current <= 3) end = 4;
+  if (current >= total - 2) start = total - 3;
+  if (start > 2) items.push("…");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+const pageBtnSx = (active) => ({
+  minWidth: 26,
+  height: 26,
+  px: 0.75,
+  borderRadius: "6px",
+  fontSize: 11,
+  fontWeight: active ? 700 : 500,
+  textTransform: "none",
+  color: active ? "#FFFFFF" : "#374151",
+  backgroundColor: active ? "#0066FF" : "transparent",
+  "&:hover": { backgroundColor: active ? "#0052CC" : "#F3F4F6" },
+});
+
+const arrowBtnSx = {
+  width: 26,
+  height: 26,
+  borderRadius: "6px",
+  color: "#374151",
+  "&.Mui-disabled": { color: "#D1D5DB" },
+};
+
+function PaginationBar({
+  count,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}) {
+  const [goTo, setGoTo] = React.useState("");
+
+  const totalPages = Math.max(Math.ceil(count / rowsPerPage), 1);
+  const from = count === 0 ? 0 : page * rowsPerPage + 1;
+  const to = Math.min(count, (page + 1) * rowsPerPage);
+  const items = getPageItems(page + 1, totalPages);
+
+  const handleGo = () => {
+    const n = parseInt(goTo, 10);
+    if (!n) return;
+    onPageChange(Math.min(Math.max(n, 1), totalPages) - 1);
+    setGoTo("");
+  };
+
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1fr auto 1fr" },
+        justifyItems: { xs: "center", md: "stretch" },
+        alignItems: "center",
+        rowGap: 1,
+        columnGap: 2,
+        px: 1.5,
+        py: 0.75,
+        minHeight: 44,
+        borderTop: "1px solid #E5E7EB",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {/* RIGHT: rows per page + range */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          gridColumn: { md: 3 },
+          gridRow: { md: 1 },
+          justifySelf: { md: "end" },
+        }}
+      >
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          Rows per page
+        </Typography>
+        <Select
+          size="small"
+          value={rowsPerPage}
+          onChange={onRowsPerPageChange}
+          IconComponent={KeyboardArrowDownIcon}
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            borderRadius: "6px",
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: "24px !important" },
+            "& .MuiSelect-icon": { fontSize: 16 },
+          }}
+        >
+          {PAGE_SIZES.map((n) => (
+            <MenuItem key={n} value={n} sx={{ fontSize: 11 }}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          {from}–{to} of {count}
+        </Typography>
+      </Box>
+
+      {/* CENTRE: page numbers + Go To Page */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          gridColumn: { md: 2 },
+          gridRow: { md: 1 },
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => onPageChange(page - 1)}
+            sx={arrowBtnSx}
+            aria-label="Previous page"
+          >
+            <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+          </IconButton>
+
+          {items.map((item, idx) =>
+            item === "…" ? (
+              <Typography
+                key={`gap-${idx}`}
+                sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+              >
+                …
+              </Typography>
+            ) : (
+              <Button
+                key={item}
+                onClick={() => onPageChange(item - 1)}
+                sx={pageBtnSx(item === page + 1)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+
+          <IconButton
+            size="small"
+            disabled={page >= totalPages - 1}
+            onClick={() => onPageChange(page + 1)}
+            sx={arrowBtnSx}
+            aria-label="Next page"
+          >
+            <KeyboardArrowRight sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <InputBase
+            value={goTo}
+            onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleGo();
+            }}
+            placeholder={`1–${totalPages}`}
+            inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+            sx={{
+              width: 64,
+              height: 26,
+              px: 1,
+              fontSize: 11,
+              border: "1px solid #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              "&:focus-within": { borderColor: "#0066FF" },
+              "& input": { p: 0, textAlign: "center" },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleGo}
+            disabled={!goTo}
+            sx={{
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 600,
+              height: 26,
+              px: 1.25,
+              borderRadius: "6px",
+              color: "#0066FF",
+              borderColor: "#0066FF",
+              whiteSpace: "nowrap",
+              "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+            }}
+          >
+            Go To Page
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
-  [
-    "Location 1",
-    "WashingtonUSe, Aleuti...",
-    "8475875747",
-    "8475875747",
-    "8475875747",
-    "Fresh Original",
-    true,
-  ],
-  [
-    "Location 2",
-    "Boston, Suffolk Coun...",
-    "9123456780",
-    "9123456781",
-    "9123456782",
-    "Hitex",
-    true,
-  ],
-  [
-    "Location 3",
-    "Denver, Denver Coun...",
-    "7345678123",
-    "7345678124",
-    "7345678125",
-    "Balance Report",
-    false,
-  ],
-  [
-    "Annex Clinic",
-    "Austin, Travis Count...",
-    "6456781234",
-    "6456781235",
-    "6456781236",
-    "Fresh Original",
-    true,
-  ],
-  [
-    "Central Hospital",
-    "Chicago, Cook County...",
-    "9567812345",
-    "9567812346",
-    "9567812347",
-    "Hitex",
-    true,
-  ],
-  [
-    "East Wing",
-    "Seattle, King County...",
-    "5678123456",
-    "5678123457",
-    "5678123458",
-    "Balance Report",
-    true,
-  ],
-  [
-    "Lakeside Center",
-    "Miami, Miami-Dade...",
-    "8781234567",
-    "8781234568",
-    "8781234569",
-    "Fresh",
-    false,
-  ],
-  [
-    "Northgate Care",
-    "Phoenix, Maricopa...",
-    "4892345678",
-    "4892345679",
-    "4892345670",
-    "Hitex",
-    true,
-  ],
-  [
-    "Riverside Unit",
-    "Portland, Multnomah...",
-    "9903456781",
-    "9903456782",
-    "9903456783",
-    "Fresh Original",
-    true,
-  ],
-  [
-    "South Campus",
-    "Dallas, Dallas County...",
-    "3014567812",
-    "3014567813",
-    "3014567814",
-    "Balance Report",
-    true,
-  ],
-  [
-    "West Point",
-    "Atlanta, Fulton Coun...",
-    "7125678123",
-    "7125678124",
-    "7125678125",
-    "Fresh",
-    true,
-  ],
+  ["Location 1", "WashingtonUSe, Aleuti...", "8475875747", "8475875747", "8475875747", "Fresh Original", true],
+  ["Location 2", "Boston, Suffolk Coun...", "9123456780", "9123456781", "9123456782", "Hitex", true],
+  ["Location 3", "Denver, Denver Coun...", "7345678123", "7345678124", "7345678125", "Balance Report", false],
+  ["Annex Clinic", "Austin, Travis Count...", "6456781234", "6456781235", "6456781236", "Fresh Original", true],
+  ["Central Hospital", "Chicago, Cook County...", "9567812345", "9567812346", "9567812347", "Hitex", true],
+  ["East Wing", "Seattle, King County...", "5678123456", "5678123457", "5678123458", "Balance Report", true],
+  ["Lakeside Center", "Miami, Miami-Dade...", "8781234567", "8781234568", "8781234569", "Fresh", false],
+  ["Northgate Care", "Phoenix, Maricopa...", "4892345678", "4892345679", "4892345670", "Hitex", true],
+  ["Riverside Unit", "Portland, Multnomah...", "9903456781", "9903456782", "9903456783", "Fresh Original", true],
+  ["South Campus", "Dallas, Dallas County...", "3014567812", "3014567813", "3014567814", "Balance Report", true],
+  ["West Point", "Atlanta, Fulton Coun...", "7125678123", "7125678124", "7125678125", "Fresh", true],
 ];
 
 const INITIAL_ROWS = SAMPLE.map(
@@ -257,36 +403,34 @@ function useSortedRows(rows, columns) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Cell styles                                                          */
+/* Cell styles (same as ReferringProvider / PreBillingClaim)            */
+/*   head : fontSize 10, bold, py 0.4, px 0.4, minHeight 28             */
+/*   body : fontSize 10.5, py 0.5, px 0.3, height 32                    */
 /* ------------------------------------------------------------------ */
-const HEAD_H = 32; // header row height (px)
-
-const cellSx = {
-  borderBottom: `1px solid ${T.rowLine}`,
-  py: 0.5,
-  px: 0.4,
-  fontSize: 10.5,
-  color: "#1e293b",
-  height: 32,
-  textAlign: "center",
-};
-
-const headCellSx = {
-  ...cellSx,
-  height: HEAD_H,
-  boxSizing: "border-box",
-  bgcolor: T.headBg,
+const listHeadSx = {
   fontWeight: 700,
   fontSize: 10,
   color: "#1e293b",
-  borderBottom: `1px solid ${T.border}`,
-  borderRight: `1px solid ${T.border}`,
-  whiteSpace: "nowrap",
-  textAlign: "center",
   py: 0.4,
   px: 0.4,
+  height: "auto",
   minHeight: 28,
   lineHeight: 1.15,
+  whiteSpace: "nowrap",
+  textAlign: "center",
+  bgcolor: T.headBg,
+  borderBottom: `1px solid ${T.border}`,
+  borderRight: `1px solid ${T.border}`,
+};
+
+const listCellSx = {
+  fontSize: 10.5,
+  color: "#1e293b",
+  py: 0.5,
+  px: 0.3,
+  height: 32,
+  textAlign: "center",
+  borderBottom: `1px solid ${T.rowLine}`,
 };
 
 /* ------------------------------------------------------------------ */
@@ -299,9 +443,8 @@ function HeaderCell({ column, sortDir, onSort }) {
   return (
     <TableCell
       sx={{
-        ...headCellSx,
+        ...listHeadSx,
         borderRight: column.last ? "none" : `1px solid ${T.border}`,
-        textAlign: column.center ? "center" : "left",
       }}
     >
       <Box
@@ -309,10 +452,12 @@ function HeaderCell({ column, sortDir, onSort }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 0.5,
+          gap: 0.15,
         }}
       >
-        {column.label}
+        <Box component="span" sx={{ lineHeight: 1.15 }}>
+          {column.label}
+        </Box>
         {column.sort && (
           <Tooltip title={titles[sortDir || "none"]} arrow>
             <IconButton
@@ -320,7 +465,7 @@ function HeaderCell({ column, sortDir, onSort }) {
               aria-label={`Sort ${column.label}`}
               onClick={() => onSort(column.id)}
               sx={{
-                p: 0.2,
+                p: 0.15,
                 flexShrink: 0,
                 borderRadius: "6px",
                 color: active ? T.blue : T.headSymbol,
@@ -330,7 +475,7 @@ function HeaderCell({ column, sortDir, onSort }) {
             >
               <KeyboardArrowDownIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: 13,
                   transform: sortDir === "desc" ? "rotate(180deg)" : "none",
                   transition: "transform .15s ease",
                 }}
@@ -818,7 +963,11 @@ export default function Locations() {
   const [statusFilter, setStatusFilter] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
 
-  // 1) filter (search + practice + status)  2) then sort
+  // pagination
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
+
+  // 1) filter (search + practice + status)  2) sort  3) slice for the current page
   const filteredRows = React.useMemo(
     () => filterRows(rows, query, practiceFilter, statusFilter),
     [rows, query, practiceFilter, statusFilter],
@@ -827,6 +976,16 @@ export default function Locations() {
   const { sort, setSort, sortedRows, handleSort } = useSortedRows(
     filteredRows,
     COLUMNS,
+  );
+
+  // go back to page 1 whenever search / filter changes the number of rows
+  React.useEffect(() => {
+    setPage(0);
+  }, [filteredRows.length]);
+
+  const pagedRows = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
   );
 
   // badge count = practice + status + sort
@@ -865,16 +1024,14 @@ export default function Locations() {
     <Box
       sx={{
         bgcolor: T.page,
-        // page scrollbar removed: fixed height, only the table scrolls
-        // (if your layout has a top bar, use e.g. "calc(100vh - 64px)")
         height: "100%",
         maxHeight: "100vh",
         width: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        py: { xs: 1, md: 2 },
-        px: { xs: 1, sm: 1.5, md: 2, lg: 2 },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
       }}
     >
@@ -887,29 +1044,35 @@ export default function Locations() {
           flexWrap: "wrap",
           flexShrink: 0,
           gap: 1,
-          mb: 2,
+          mb: 1,
         }}
       >
         <Typography sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
           Service Location Management
         </Typography>
 
-        <Stack direction="row" spacing={1.5} flexWrap="wrap">
-          {/* Search bar */}
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          alignItems="center"
+          useFlexGap
+        >
+          {/* Search bar (same look as PreBillingClaim search) */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 0.8,
-              border: "1px solid #D1D5DB",
-              borderRadius: "30px",
-              px: 1.2,
-              py: 0.5,
-              bgcolor: "#F4F8FF",
-              width: { xs: "100%", sm: 320 },
-              transition: "border-color 0.15s ease",
-              "&:hover": { borderColor: "#015DFF" },
-              "&:focus-within": { borderColor: "#015DFF" },
+              gap: 0.6,
+              height: 28,
+              px: 1,
+              borderRadius: "14px",
+              backgroundColor: "#F5F7FA",
+              border: "1px solid #E5E7EB",
+              width: { xs: "100%", sm: 260 },
+              transition: "border-color 0.2s ease",
+              "&:hover": { borderColor: "#0066FF" },
+              "&:focus-within": { borderColor: "#0066FF" },
             }}
           >
             <SearchIcon width={14} height={14} color="#9CA3AF" />
@@ -919,11 +1082,22 @@ export default function Locations() {
               onChange={(e) => setQuery(e.target.value)}
               inputProps={{ "aria-label": "Search service locations" }}
               sx={{
-                fontSize: 11,
                 flex: 1,
+                minWidth: 0,
+                fontSize: 11,
+                color: "#4B5563",
                 "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
               }}
             />
+            {query && (
+              <IconButton
+                size="small"
+                onClick={() => setQuery("")}
+                sx={{ p: 0.25 }}
+              >
+                <CloseIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            )}
           </Box>
 
           {/* Filter button -> opens Filter & sort dialog */}
@@ -948,11 +1122,12 @@ export default function Locations() {
                 textTransform: "none",
                 fontSize: 11,
                 fontWeight: 500,
+                height: 28,
                 borderRadius: "8px",
                 color: T.blue,
                 border: "1.5px solid #015DFF",
                 bgcolor: activeFilterCount > 0 ? "#EFF6FF" : "transparent",
-                px: 2,
+                px: 1.75,
                 "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
               }}
             >
@@ -967,10 +1142,11 @@ export default function Locations() {
               textTransform: "none",
               fontSize: 11,
               fontWeight: 500,
+              height: 28,
               borderRadius: "8px",
               color: T.blue,
               border: "1.5px solid #015DFF",
-              px: 2,
+              px: 1.75,
               "&:hover": { borderColor: T.blue, bgcolor: "#F4F8FF" },
             }}
           >
@@ -986,10 +1162,11 @@ export default function Locations() {
             sx={{
               textTransform: "none",
               fontSize: 11,
-              fontWeight: 500,
+              fontWeight: 600,
+              height: 28,
               borderRadius: "8px",
               bgcolor: T.blue,
-              px: 2.5,
+              px: 1.75,
               "&:hover": { bgcolor: "#1D4ED8" },
             }}
           >
@@ -998,124 +1175,133 @@ export default function Locations() {
         </Stack>
       </Box>
 
-      {/* ── TABLE (only this area scrolls, header row stays sticky) ── */}
-      <TableContainer
+      {/* TABLE BOX: border box that fills the remaining height.
+          Rows scroll inside TableContainer, pagination stays pinned at the bottom. */}
+      <Box
         sx={{
-          flex: "0 1 auto",
+          flex: 1,
           minHeight: 0,
-          overflow: "auto",
-          border: `1px solid ${T.border}`,
-          borderRadius: "10px",
-          // top HEAD_H px header color, below it white,
-          // so the scrollbar gap beside the header isn't blank white
-          background: `linear-gradient(to bottom, ${T.headBg} ${HEAD_H}px, #fff ${HEAD_H}px)`,
-          "&::-webkit-scrollbar": { height: 6, width: 6 },
-          // vertical scrollbar starts below the header
-          "&::-webkit-scrollbar-track:vertical": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-            marginTop: `${HEAD_H}px`,
-          },
-          "&::-webkit-scrollbar-track:horizontal": {
-            background: "#F1F1F1",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#C1C7CD",
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": { background: "#A0AAB4" },
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          border: "1px solid #e0e0e0",
+          backgroundColor: "#FFFFFF",
+          mb: 1,
         }}
       >
-        <Table
-          stickyHeader
-          size="small"
+        <TableContainer
           sx={{
-            tableLayout: "auto",
-            // "separate" keeps borders visible on the sticky header while scrolling
-            borderCollapse: "separate",
-            borderSpacing: 0,
-            "& .MuiTableCell-stickyHeader": {
-              backgroundColor: `${T.headBg} !important`,
-            },
+            flex: 1,
+            minHeight: 0,
+            maxHeight: "100%",
+            overflow: "auto",
+            boxShadow: "none",
+            ...thinScroll,
           }}
         >
-          <TableHead>
-            <TableRow>
-              {COLUMNS.map((col) => (
-                <HeaderCell
-                  key={col.id}
-                  column={col}
-                  sortDir={sort.columnId === col.id ? sort.dir : null}
-                  onSort={handleSort}
-                />
-              ))}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {sortedRows.map((row, index) => (
-              <TableRow
-                key={row.id}
-                hover
-                //onClick={() => navigate("/locations/edit", { state: { row } })}
-                sx={{
-                  //cursor: "pointer",
-                  backgroundColor: "#fff",
-                  "&:hover": { bgcolor: "#F0F5FF" },
-                }}
-              >
-                <TableCell sx={cellSx}>{row.location}</TableCell>
-                <TableCell sx={cellSx}>{row.address}</TableCell>
-                <TableCell sx={cellSx}>{row.contact}</TableCell>
-                <TableCell sx={cellSx}>{row.fax}</TableCell>
-                <TableCell sx={cellSx}>{row.npi}</TableCell>
-                <TableCell sx={cellSx}>{row.practice}</TableCell>
-                <TableCell sx={{ ...cellSx, textAlign: "center" }}>
-                  <Checkbox
-                    checked={row.active}
-                    onChange={() => toggleActive(row.id)}
-                    size="small"
-                    sx={{
-                      p: 0,
-                      color: "#C8D0DC",
-                      "&.Mui-checked": { color: T.blue },
-                      "& svg": { fontSize: 18 },
-                    }}
-                  />
-                </TableCell>
-                <TableCell sx={{ ...cellSx, borderRight: "none" }}>
-                  <Tooltip title="Edit" arrow>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/locations/edit", { state: { row } });
-                      }}
-                      sx={{ color: T.blue, "&:hover": { bgcolor: "#EEF4FF" } }}
-                    >
-                      <RPEditIcon width={20} height={20} color={T.blue} />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-
-            {/* empty state */}
-            {sortedRows.length === 0 && (
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              minWidth: 900,
+              tableLayout: "auto",
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              "& .MuiTableCell-stickyHeader": {
+                backgroundColor: `${T.headBg} !important`,
+              },
+            }}
+          >
+            <TableHead>
               <TableRow>
-                <TableCell
-                  colSpan={COLUMNS.length}
-                  align="center"
-                  sx={{ ...cellSx, py: 4, color: "#9CA3AF", fontSize: 13 }}
-                >
-                  No matching locations found
-                </TableCell>
+                {COLUMNS.map((col) => (
+                  <HeaderCell
+                    key={col.id}
+                    column={col}
+                    sortDir={sort.columnId === col.id ? sort.dir : null}
+                    onSort={handleSort}
+                  />
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+
+            <TableBody>
+              {pagedRows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  hover
+                  sx={{
+                    backgroundColor: "#FFFFFF",
+                    "&:hover": { bgcolor: "#EEF4FF" },
+                  }}
+                >
+                  <TableCell sx={listCellSx}>{row.location}</TableCell>
+                  <TableCell sx={listCellSx}>{row.address}</TableCell>
+                  <TableCell sx={listCellSx}>{row.contact}</TableCell>
+                  <TableCell sx={listCellSx}>{row.fax}</TableCell>
+                  <TableCell sx={listCellSx}>{row.npi}</TableCell>
+                  <TableCell sx={listCellSx}>{row.practice}</TableCell>
+                  <TableCell sx={listCellSx}>
+                    <Checkbox
+                      checked={row.active}
+                      onChange={() => toggleActive(row.id)}
+                      size="small"
+                      sx={{
+                        p: 0,
+                        color: "#C8D0DC",
+                        "&.Mui-checked": { color: T.blue },
+                        "& svg": { fontSize: 18 },
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell sx={listCellSx}>
+                    <Tooltip title="Edit" arrow>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("/locations/edit", { state: { row } });
+                        }}
+                        sx={{
+                          p: "4px",
+                          color: T.blue,
+                          "&:hover": { bgcolor: "#EEF4FF" },
+                        }}
+                      >
+                        <RPEditIcon width={18} height={18} color={T.blue} />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {/* empty state */}
+              {pagedRows.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={COLUMNS.length}
+                    align="center"
+                    sx={{ py: 6, color: "#6B7280", borderBottom: "none" }}
+                  >
+                    No records found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <PaginationBar
+          count={sortedRows.length}
+          page={page}
+          onPageChange={setPage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(0);
+          }}
+        />
+      </Box>
 
       {/* FILTER & SORT DIALOG */}
       <FilterSortDialog
