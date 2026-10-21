@@ -30,6 +30,8 @@ import {
   ViewList,
   ViewModule,
   KeyboardArrowDown,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
   Close,
   InfoOutlined,
   Add,
@@ -196,6 +198,228 @@ const thinScroll = {
   },
   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
 };
+
+/* ---------- Pagination ---------- */
+const PAGE_SIZES = [25, 50, 100];
+
+/* Which page buttons to show: 1 … 44 45 46 … 50 */
+const getPageItems = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  // keep the same number of buttons near the first / last pages
+  if (current <= 3) end = 4;
+  if (current >= total - 2) start = total - 3;
+  if (start > 2) items.push("…");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+const pageBtnSx = (active) => ({
+  minWidth: 26,
+  height: 26,
+  px: 0.75,
+  borderRadius: "6px",
+  fontSize: 11,
+  fontWeight: active ? 700 : 500,
+  textTransform: "none",
+  color: active ? "#FFFFFF" : "#374151",
+  backgroundColor: active ? "#0066FF" : "transparent",
+  "&:hover": { backgroundColor: active ? "#0052CC" : "#F3F4F6" },
+});
+
+const arrowBtnSx = {
+  width: 26,
+  height: 26,
+  borderRadius: "6px",
+  color: "#374151",
+  "&.Mui-disabled": { color: "#D1D5DB" },
+};
+
+/* Pagination bar: rows per page | range | < 1 2 3 … 50 > | Go To Page */
+function PaginationBar({
+  count,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}) {
+  const [goTo, setGoTo] = useState("");
+
+  const totalPages = Math.max(Math.ceil(count / rowsPerPage), 1);
+  const from = count === 0 ? 0 : page * rowsPerPage + 1;
+  const to = Math.min(count, (page + 1) * rowsPerPage);
+  const items = getPageItems(page + 1, totalPages);
+
+  const handleGo = () => {
+    const n = parseInt(goTo, 10);
+    if (!n) return;
+    // 45 -> page 45; anything above the last page goes to the last page
+    onPageChange(Math.min(Math.max(n, 1), totalPages) - 1);
+    setGoTo("");
+  };
+
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        // 3 columns: empty left | centre (pages + go to page) | right (rows per page)
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1fr auto 1fr" },
+        justifyItems: { xs: "center", md: "stretch" },
+        alignItems: "center",
+        rowGap: 1,
+        columnGap: 2,
+        px: 1.5,
+        py: 0.75,
+        minHeight: 44,
+        borderTop: "1px solid #E5E7EB",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {/* RIGHT: rows per page + range */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          gridColumn: { md: 3 },
+          gridRow: { md: 1 },
+          justifySelf: { md: "end" },
+        }}
+      >
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          Rows per page
+        </Typography>
+        <Select
+          size="small"
+          value={rowsPerPage}
+          onChange={onRowsPerPageChange}
+          IconComponent={KeyboardArrowDown}
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            borderRadius: "6px",
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: "24px !important" },
+            "& .MuiSelect-icon": { fontSize: 16 },
+          }}
+        >
+          {PAGE_SIZES.map((n) => (
+            <MenuItem key={n} value={n} sx={{ fontSize: 11 }}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          {from}–{to} of {count}
+        </Typography>
+      </Box>
+
+      {/* CENTRE: page numbers, then Go To Page right after them */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          gridColumn: { md: 2 },
+          gridRow: { md: 1 },
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+      {/* Page numbers */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+        <IconButton
+          size="small"
+          disabled={page === 0}
+          onClick={() => onPageChange(page - 1)}
+          sx={arrowBtnSx}
+          aria-label="Previous page"
+        >
+          <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+        </IconButton>
+
+        {items.map((item, idx) =>
+          item === "…" ? (
+            <Typography
+              key={`gap-${idx}`}
+              sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+            >
+              …
+            </Typography>
+          ) : (
+            <Button
+              key={item}
+              onClick={() => onPageChange(item - 1)}
+              sx={pageBtnSx(item === page + 1)}
+            >
+              {item}
+            </Button>
+          ),
+        )}
+
+        <IconButton
+          size="small"
+          disabled={page >= totalPages - 1}
+          onClick={() => onPageChange(page + 1)}
+          sx={arrowBtnSx}
+          aria-label="Next page"
+        >
+          <KeyboardArrowRight sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Box>
+
+      {/* Go to page */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <InputBase
+          value={goTo}
+          onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleGo();
+          }}
+          placeholder={`1–${totalPages}`}
+          inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+          sx={{
+            width: 64,
+            height: 26,
+            px: 1,
+            fontSize: 11,
+            border: "1px solid #D1D5DB",
+            borderRadius: "6px",
+            backgroundColor: "#FFFFFF",
+            "&:focus-within": { borderColor: "#0066FF" },
+            "& input": { p: 0, textAlign: "center" },
+          }}
+        />
+        <Button
+          variant="outlined"
+          onClick={handleGo}
+          disabled={!goTo}
+          sx={{
+            textTransform: "none",
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            px: 1.25,
+            borderRadius: "6px",
+            color: "#0066FF",
+            borderColor: "#0066FF",
+            whiteSpace: "nowrap",
+            "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+          }}
+        >
+          Go To Page
+        </Button>
+      </Box>
+      </Box>
+    </Box>
+  );
+}
 
 const listContainerSx = {
   boxShadow: "none",
@@ -429,7 +653,10 @@ function SortHeadCell({
   );
 }
 
-/* Generic sortable table used by every tab */
+/* Generic sortable + paginated table used by every tab.
+   - outer Box  : fixed height (comes from containerSx), never scrolls
+   - TableContainer : the only scrolling area (rows scroll inside it)
+   - TablePagination: pinned at the bottom (25 / 50 / 100 rows per page) */
 function ListTable({
   columns,
   rows,
@@ -451,6 +678,20 @@ function ListTable({
 }) {
   const { sort, sortedRows, handleSort } = useSortedRows(rows, columns);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZES[0]);
+
+  // go back to page 1 whenever search / filters change the number of rows
+  useEffect(() => {
+    setPage(0);
+  }, [rows.length]);
+
+  // sort first (all rows), then slice -> sorting works across every page
+  const pagedRows = sortedRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
   const selectedCount = selection
     ? rows.filter((r) => selection.selected.includes(r.id)).length
     : 0;
@@ -458,107 +699,136 @@ function ListTable({
   const someSelected = selectedCount > 0 && !allSelected;
 
   return (
-    <TableContainer component={Paper} sx={containerSx}>
-      <Table size="small" stickyHeader={stickyHeader} sx={{ minWidth }}>
-        <TableHead>
-          <TableRow>
-            {selection && (
-              <TableCell
-                padding="checkbox"
-                sx={{ ...headSx, width: 40, ...checkHeadSx }}
-              >
-                <Checkbox
-                  size="small"
-                  sx={cbSx}
-                  indeterminate={someSelected}
-                  checked={allSelected}
-                  onChange={(e) => selection.onToggleAll(e.target.checked)}
-                />
-              </TableCell>
-            )}
-            {columns.map((col) => (
-              <SortHeadCell
-                key={col.id}
-                column={col}
-                sortDir={sort.columnId === col.id ? sort.dir : null}
-                onSort={handleSort}
-                onFilterClick={
-                  col.hasFilter
-                    ? (e) => onFilterClick && onFilterClick(e, col.id)
-                    : undefined
-                }
-                filterActive={col.hasFilter && filterActive}
-                sx={{
-                  ...headSx,
-                  ...col.headSx,
-                  ...(col.width && { width: col.width, minWidth: col.width }),
-                }}
-              />
-            ))}
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {sortedRows.length === 0 && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        ...containerSx,
+        overflow: "hidden",
+      }}
+    >
+      <TableContainer
+        component={Paper}
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          boxShadow: "none",
+          ...thinScroll,
+        }}
+      >
+        <Table size="small" stickyHeader={stickyHeader} sx={{ minWidth }}>
+          <TableHead>
             <TableRow>
-              <TableCell
-                colSpan={columns.length + (selection ? 1 : 0)}
-                align="center"
-                sx={{ py: 6, color: "#6B7280", borderBottom: "none" }}
-              >
-                No records found
-              </TableCell>
+              {selection && (
+                <TableCell
+                  padding="checkbox"
+                  sx={{ ...headSx, width: 40, ...checkHeadSx }}
+                >
+                  <Checkbox
+                    size="small"
+                    sx={cbSx}
+                    indeterminate={someSelected}
+                    checked={allSelected}
+                    onChange={(e) => selection.onToggleAll(e.target.checked)}
+                  />
+                </TableCell>
+              )}
+              {columns.map((col) => (
+                <SortHeadCell
+                  key={col.id}
+                  column={col}
+                  sortDir={sort.columnId === col.id ? sort.dir : null}
+                  onSort={handleSort}
+                  onFilterClick={
+                    col.hasFilter
+                      ? (e) => onFilterClick && onFilterClick(e, col.id)
+                      : undefined
+                  }
+                  filterActive={col.hasFilter && filterActive}
+                  sx={{
+                    ...headSx,
+                    ...col.headSx,
+                    ...(col.width && { width: col.width, minWidth: col.width }),
+                  }}
+                />
+              ))}
             </TableRow>
-          )}
+          </TableHead>
 
-          {sortedRows.map((row, index) => {
-            const isSel = selection
-              ? selection.selected.includes(row.id)
-              : false;
-            return (
-              <TableRow
-                key={row.id}
-                selected={highlightSelected && isSel}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                sx={{
-                  ...(rowSx ? rowSx(row, index) : {}),
-                  ...(onRowClick ? { cursor: "pointer" } : {}),
-                }}
-              >
-                {selection && (
-                  <TableCell
-                    padding="checkbox"
-                    sx={{ ...cellSx, ...checkCellSx }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Checkbox
-                      size="small"
-                      sx={cbSx}
-                      checked={isSel}
-                      onChange={() => selection.onToggle(row.id)}
-                    />
-                  </TableCell>
-                )}
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.id}
-                    align={col.center ? "center" : "left"}
-                    sx={{
-                      ...cellSx,
-                      ...(typeof col.cellSx === "function"
-                        ? col.cellSx(row)
-                        : col.cellSx),
-                    }}
-                  >
-                    {col.render ? col.render(row, ctx) : row[col.id]}
-                  </TableCell>
-                ))}
+          <TableBody>
+            {pagedRows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + (selection ? 1 : 0)}
+                  align="center"
+                  sx={{ py: 6, color: "#6B7280", borderBottom: "none" }}
+                >
+                  No records found
+                </TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            )}
+
+            {pagedRows.map((row, index) => {
+              const isSel = selection
+                ? selection.selected.includes(row.id)
+                : false;
+              return (
+                <TableRow
+                  key={row.id}
+                  selected={highlightSelected && isSel}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  sx={{
+                    ...(rowSx ? rowSx(row, index) : {}),
+                    ...(onRowClick ? { cursor: "pointer" } : {}),
+                  }}
+                >
+                  {selection && (
+                    <TableCell
+                      padding="checkbox"
+                      sx={{ ...cellSx, ...checkCellSx }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        size="small"
+                        sx={cbSx}
+                        checked={isSel}
+                        onChange={() => selection.onToggle(row.id)}
+                      />
+                    </TableCell>
+                  )}
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.id}
+                      align={col.center ? "center" : "left"}
+                      sx={{
+                        ...cellSx,
+                        ...(typeof col.cellSx === "function"
+                          ? col.cellSx(row)
+                          : col.cellSx),
+                      }}
+                    >
+                      {col.render ? col.render(row, ctx) : row[col.id]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <PaginationBar
+        count={sortedRows.length}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(Number(e.target.value));
+          setPage(0);
+        }}
+      />
+    </Box>
   );
 }
 
@@ -3199,6 +3469,8 @@ function PreBillingClaim() {
     ],
   );
 
+  /* Fixed-size table box (height = window height - everything above/below it).
+     ListTable puts the pagination bar inside this box and scrolls the rows inside it. */
   const fillSx = {
     ...listContainerSx,
     maxHeight: "none",
@@ -5085,6 +5357,7 @@ function PreBillingClaim() {
           <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
             {statementSubTab === "new" ? (
               <ListTable
+                key="stmt-new"
                 columns={filterColumns(
                   NEW_STMT_COLUMNS,
                   visibleColumnsPatientStatement,
@@ -5118,6 +5391,7 @@ function PreBillingClaim() {
               />
             ) : (
               <ListTable
+                key="stmt-history"
                 columns={filterColumns(HISTORY_COLUMNS, visibleColumnsHistory)}
                 rows={historyFiltered}
                 selection={{
