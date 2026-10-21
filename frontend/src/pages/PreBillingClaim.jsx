@@ -72,6 +72,9 @@ import {
 
 dayjs.extend(customParseFormat);
 
+
+
+
 /* ================================================================== */
 /* Design tokens / shared styles                                        */
 /* ================================================================== */
@@ -235,7 +238,7 @@ const listCellSx = {
   fontSize: 10.5,
   color: "#1e293b",
   py: 0.5,
-  px: 0.4,
+  px: 0.3,
   height: 32,
 };
 
@@ -267,6 +270,9 @@ const selectActionBtnSx = {
     boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
   },
 };
+
+
+//POPUP - hooks and functions moved inside component
 
 const getListColor = (index) => {
   const groupIndex = Math.floor(index / 3) % 4;
@@ -885,7 +891,7 @@ const adjSelectSx = {
 };
 
 const ADJ_LABEL_SX = {
-  fontSize: 12,
+  fontSize: 10,
   fontWeight: 600,
   color: "#1E293B",
   mb: 0.7,
@@ -1321,7 +1327,7 @@ const REMIT_SAMPLE = [
     "1234567",
     "GCH-IH",
     "Aetna",
-    "Cheque",
+    "Check",
     "ERA",
     "14315316136",
     "$455",
@@ -1349,7 +1355,7 @@ const REMIT_SAMPLE = [
     "1234569",
     "GCH-IH",
     "Cigna",
-    "Cheque",
+    "Check",
     "ERA",
     "14315316138",
     "$820",
@@ -1377,7 +1383,7 @@ const REMIT_SAMPLE = [
     "1234571",
     "GCH-IH",
     "Aetna",
-    "Cheque",
+    "Check",
     "EOB",
     "14315316140",
     "$675",
@@ -1405,7 +1411,7 @@ const REMIT_SAMPLE = [
     "1234573",
     "GCH-IH",
     "BCBS",
-    "Cheque",
+    "Check",
     "ERA",
     "14315316142",
     "$1,890",
@@ -1433,7 +1439,7 @@ const REMIT_SAMPLE = [
     "1234575",
     "GCH-IH",
     "UnitedHealth",
-    "Cheque",
+    "Check",
     "ERA",
     "14315316144",
     "$1,550",
@@ -1461,7 +1467,7 @@ const REMIT_SAMPLE = [
     "1234577",
     "GCH-IH",
     "Medicare",
-    "Cheque",
+    "Check",
     "ERA",
     "14315316146",
     "$780",
@@ -1522,7 +1528,7 @@ const STMT_SAMPLE = [
     "",
   ],
   [
-    "Ashwani Srivas..",
+    "Ashwani Srivastva",
     "849",
     "06/30/2000",
     "Self pay",
@@ -1768,13 +1774,14 @@ const PRE_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
+    cellSx: { minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
     render: (r) => `${r.patientName} ${r.gender}`,
   },
   { id: "cpt", label: "CPT", center: true },
   { id: "modifier", label: "Mod", center: true },
   { id: "icd", label: "ICD", center: true },
   { id: "primaryInsurance", label: "Primary\nInsurance", center: true },
-  { id: "billed", label: "Billed\nAmount", center: true },
+  { id: "billed", label: "Billed\nAmt", center: true },
   { id: "patientCopay", label: "Patient\nCopay", center: true },
   {
     id: "status",
@@ -1814,6 +1821,7 @@ const POST_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
+    cellSx: { minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
     render: (r) => `${r.patientName} ${r.gender}`,
   },
   { id: "cpt", label: "CPT", center: true },
@@ -1821,7 +1829,7 @@ const POST_COLUMNS = [
   { id: "icd", label: "ICD", center: true },
   { id: "billedTo", label: "Billed\nTo", center: true },
   { id: "billed", label: "Billed\nAmnt", center: true },
-  { id: "adjustment", label: "Adjust\nment", center: true },
+  { id: "adjustment", label: "Adj", center: true },
   { id: "insurancePayment", label: "Insurance\nPayment", center: true },
   { id: "patientPayment", label: "Patient\nPayment", center: true },
   { id: "billedAs", label: "Billed\nAs", center: true },
@@ -1853,16 +1861,15 @@ const POST_COLUMNS = [
 
 const REMIT_COLUMNS = [
   { id: "remittanceId", label: "ID", sort: "number", center: true },
-  { id: "location", label: "Location", center: true },
   { id: "Payor", label: "Payor", center: true },
   { id: "paymentMethod", label: "Payment\nMethod", center: true },
   { id: "eraEobType", label: "ERA/\nEOB", center: true, hasFilter: true },
-  { id: "chequeNumber", label: "Check\n#", center: true },
-  { id: "amount", label: "Amount", center: true },
+  { id: "chequeNumber", label: "Check No", center: true },
+  { id: "amount", label: "Amt", center: true },
   { id: "checkDate", label: "Check\nDate", sort: "date", center: true },
   { id: "receivedDate", label: "Received\nDate", sort: "date", center: true },
   { id: "claimNumbers", label: "Claim\nNumbers", center: true },
-  { id: "unpostedAmount", label: "Unposted\nAmount", center: true },
+  { id: "unpostedAmount", label: "Unposted\nAmt", center: true },
   {
     id: "status",
     label: "Status",
@@ -1918,7 +1925,7 @@ const NEW_STMT_COLUMNS = [
     label: "Patient Name",
     sort: "alpha",
     center: true,
-    cellSx: { fontWeight: 600 },
+    cellSx: { fontWeight: 600, minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
   },
   {
     id: "pid",
@@ -2233,7 +2240,7 @@ const PRE_BILLING_COLUMN_OPTIONS = [
   { key: "modifier", label: "Modifier" },
   { key: "icd", label: "ICD" },
   { key: "primaryInsurance", label: "Primary Insurance" },
-  { key: "billed", label: "Billed Amount" },
+  { key: "billed", label: "Billed Amt" },
   { key: "patientCopay", label: "Patient Copay" },
   { key: "status", label: "Status" },
   { key: "remarks", label: "Remarks" },
@@ -2249,8 +2256,8 @@ const POST_BILLING_COLUMN_OPTIONS = [
   { key: "modifier", label: "Modifier" },
   { key: "icd", label: "ICD" },
   { key: "billedTo", label: "Billed To" },
-  { key: "billed", label: "Billed Amount" },
-  { key: "adjustment", label: "Adjustment" },
+  { key: "billed", label: "Billed Amt" },
+  { key: "adjustment", label: "Adj" },
   { key: "insurancePayment", label: "Insurance Payment" },
   { key: "patientPayment", label: "Patient Payment" },
   { key: "billedAs", label: "Billed As" },
@@ -2263,16 +2270,15 @@ const POST_BILLING_COLUMN_OPTIONS = [
 
 const REMITTANCE_COLUMN_OPTIONS = [
   { key: "remittanceId", label: "Remittance ID" },
-  { key: "location", label: "Location" },
   { key: "Payor", label: "Payor" },
   { key: "paymentMethod", label: "Payment Method" },
   { key: "eraEobType", label: "ERA/EOB" },
   { key: "chequeNumber", label: "Check Number" },
-  { key: "amount", label: "Amount" },
+  { key: "amount", label: "Amt" },
   { key: "checkDate", label: "Check Date" },
   { key: "receivedDate", label: "Received Date" },
   { key: "claimNumbers", label: "Claim Numbers" },
-  { key: "unpostedAmount", label: "Unposted Amount" },
+  { key: "unpostedAmount", label: "Unposted Amt" },
   { key: "status", label: "Status" },
 ];
 
@@ -2482,6 +2488,60 @@ function PreBillingClaim() {
   // remarks are stored per tab + row id, so Pre and Post claims with the same id don't clash
   const [remarksByClaim, setRemarksByClaim] = useState({});
   const remarkEndRef = useRef(null);
+
+  // Voice recognition hooks for microphone functionality
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  const handleMicClick = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Voice typing is not supported in this browser. Please use Chrome.");
+      return;
+    }
+
+    // Stop listening if the microphone is already active
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      setRemarkText(transcript);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (error) {
+      setIsListening(false);
+    }
+  };
 
   const remarkKey = checkPopupRow ? `${currentTab}-${checkPopupRow.id}` : null;
   const currentRemarks = remarkKey ? remarksByClaim[remarkKey] || [] : [];
@@ -2954,6 +3014,8 @@ function PreBillingClaim() {
     dateField: "dos",
   });
 
+  const [remarkFocused, setRemarkFocused] = useState(false);
+
   /* ---------- Remittance ERA/EOB ---------- */
   const remittanceSearched = applyAll(remittanceRecords, {
     searchFields: [
@@ -3080,7 +3142,7 @@ function PreBillingClaim() {
 
   const searchPlaceholder =
     currentTab === 2
-      ? "Search ID, Payor, Payment Method, Check..."
+      ? "Search ID, Payor, Payment Method..."
       : currentTab === 3
         ? statementSubTab === "new"
           ? "Search patient, ID, DOB, category..."
@@ -3688,13 +3750,13 @@ function PreBillingClaim() {
                   options={["EFT", "Check", "Wire Transfer", "Card"]}
                 />
                 <FilterText
-                  label="Total Posted Amount"
+                  label="Total Posted Amt"
                   value={filterForm.totalPostedAmount}
                   onChange={setFilterField("totalPostedAmount")}
                 />
                 {/* Row 3 */}
                 <FilterText
-                  label="Total Unposted Amount"
+                  label="Total Unposted Amt"
                   value={filterForm.totalUnpostedAmount}
                   onChange={setFilterField("totalUnpostedAmount")}
                 />
@@ -4153,7 +4215,7 @@ function PreBillingClaim() {
                             {row.primaryInsurance}
                           </GridLine>
                           <GridLine label="Plan:">{row.plan}</GridLine>
-                          <GridLine label="Billed amount:">
+                          <GridLine label="Billed amt:">
                             {row.billedAmount}
                           </GridLine>
                           <GridLine label="Patient paymemt:" last>
@@ -4407,11 +4469,7 @@ function PreBillingClaim() {
               onRowClick={handlePostBillingRowClick}
               minWidth={1100}
               stickyHeader
-              // containerSx={{
-              //   ...listContainerSx,
-              //   maxHeight: "calc(100vh - 640px)",
-              //   minHeight: 190,
-              // }}
+            
               containerSx={fillSx}
               headSx={listHeadSx}
               cellSx={listCellSx}
@@ -4431,7 +4489,7 @@ function PreBillingClaim() {
                 borderRadius: "8px",
                 border: "1px solid #E5E7EB",
                 p: 1,
-                mt: 0.5,
+                mt: 0.2,
               }}
             >
               <Typography
@@ -4511,14 +4569,14 @@ function PreBillingClaim() {
                   />
 
                   <AdjText
-                    label="Adjustment"
+                    label="Adj"
                     placeholder="Type here"
                     value={adj.adjustment}
                     onChange={setAdjField("adjustment")}
                   />
 
                   <AdjText
-                    label="Adjustment Code"
+                    label="Adj"
                     placeholder="Type here"
                     value={adj.code}
                     onChange={setAdjField("code")}
@@ -5118,7 +5176,7 @@ function PreBillingClaim() {
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: 20,
+                    fontSize: 14,
                     fontWeight: 700,
                     color: "#1F2937",
                     lineHeight: 1.2,
@@ -5147,7 +5205,7 @@ function PreBillingClaim() {
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: 20,
+                    fontSize: 14,
                     fontWeight: 700,
                     color: "#1E40AF",
                     lineHeight: 1.2,
@@ -5522,6 +5580,8 @@ function PreBillingClaim() {
       </Dialog>
 
       {/* ================= ADD REMARK POPUP ================= */}
+
+      
       <Dialog
         open={checkPopupOpen}
         onClose={handleCloseCheckPopup}
@@ -5634,7 +5694,7 @@ function PreBillingClaim() {
                 key={r.id}
                 sx={{
                   alignSelf: "flex-end",
-                  maxWidth: "88%",
+                  width: "88%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "flex-end",
@@ -5650,6 +5710,9 @@ function PreBillingClaim() {
                     py: 0.5,
                     borderRadius: "3px",
                     wordBreak: "break-word",
+                    whiteSpace: "pre-wrap",
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
                   {r.text}
@@ -5679,9 +5742,13 @@ function PreBillingClaim() {
           >
             <InputBase
               fullWidth
-              placeholder="Type your remark here..."
-              value={remarkText}
-              onChange={(e) => setRemarkText(e.target.value)}
+  placeholder={remarkFocused ? "" : "Type your remark here..."}
+  value={remarkText}
+  onChange={(e) => setRemarkText(e.target.value)}
+  onFocus={() => setRemarkFocused(true)}
+  onBlur={() => setRemarkFocused(false)}
+
+           
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -5701,7 +5768,33 @@ function PreBillingClaim() {
               }}
             />
 
-            <IconButton
+
+            {/* <InputBase
+  fullWidth
+  placeholder="Type your remark here..."
+  value={remarkText}
+  onChange={(e) => setRemarkText(e.target.value)}
+  onFocus={() => setRemarkText("")}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendRemark();
+    }
+  }}
+  sx={{
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#111827",
+    "& input": { p: 0 },
+    "& input::placeholder": {
+      color: "#111827",
+      opacity: 0.85,
+      fontWeight: 600,
+    },
+  }}
+/> */}
+
+            {/* <IconButton
               size="small"
               sx={{
                 width: 18,
@@ -5713,7 +5806,28 @@ function PreBillingClaim() {
               }}
             >
               <MicNone sx={{ fontSize: 12 }} />
-            </IconButton>
+            </IconButton> */}
+
+            <IconButton
+  size="small"
+  onClick={handleMicClick}
+  title={isListening ? "Stop voice typing" : "Start voice typing"}
+  sx={{
+    width: 26,
+    height: 26,
+    p: 0,
+    border: "1px solid #0066FF",
+    color: isListening ? "#FFFFFF" : "#0066FF",
+    backgroundColor: isListening ? "#0066FF" : "transparent",
+    flexShrink: 0,
+    "&:hover": {
+      backgroundColor: isListening ? "#0052CC" : "#D6E7FF",
+    },
+  }}
+>
+  <MicNone sx={{ fontSize: 15 }} />
+</IconButton>
+
 
             <Button
               variant="contained"
@@ -5957,15 +6071,15 @@ function PreBillingClaim() {
                   <TableHead>
                     <TableRow>
                       {[
-                        "Claim #",
+                        "Claim No",
                         "Location",
                         "Payer",
                         "Payment Method",
-                        "Check #",
+                        "Check ",
                         "Check Date",
                         "Claimed",
                         "Paid",
-                        "Adjustment",
+                        "Adj",
                       ].map((h) => (
                         <TableCell
                           key={h}
