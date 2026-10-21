@@ -72,9 +72,6 @@ import {
 
 dayjs.extend(customParseFormat);
 
-
-
-
 /* ================================================================== */
 /* Design tokens / shared styles                                        */
 /* ================================================================== */
@@ -163,13 +160,14 @@ const chipBase = {
   height: "auto",
   maxWidth: 70,
   borderRadius: "4px",
-  fontWeight: 600,
-  fontSize: 9.5,
+  fontWeight: 500,
+  fontSize: 10.5,
   "& .MuiChip-label": {
     whiteSpace: "normal",
-    px: 0.75,
-    py: 0.25,
+    px: 1,
+    py: 0.4,
     lineHeight: 1.25,
+    textAlign: "center",
   },
 };
 
@@ -271,17 +269,17 @@ const selectActionBtnSx = {
   },
 };
 
+/* Row colour = status colour (66 = ~40% opacity so the status pill still stands out).
+   Use "FF" if you want the exact chip colour. */
+const rowTint = (bg, alpha = "66") => (bg ? `${bg}${alpha}` : "transparent");
 
-//POPUP - hooks and functions moved inside component
-
-const getListColor = (index) => {
-  const groupIndex = Math.floor(index / 3) % 4;
-  return ["#F2F6FF", "#FFFBF6", "#F1FFFD", "#F2F6FF"][groupIndex];
-};
-
-const getGridColor = (index) => {
-  const groupIndex = Math.floor(index / 2) % 4;
-  return ["#F2F6FF", "#FFFBF6", "#F1FFFD", "#F2F6FF"][groupIndex];
+/* Soft row backgrounds for Post-billing, one per status */
+const POST_ROW_COLORS = {
+  Submitted: "#EEEDFB", // lavender
+  "Ready for statement": "#FEF9F2", // cream
+  Settled: "#F0FCF8", // mint
+  "ERA Received": "#EBF6FD", // light blue
+  Posted: "#F0FCF8", // mint
 };
 
 const toAmount = (s) =>
@@ -531,6 +529,7 @@ function ListTable({
                   <TableCell
                     padding="checkbox"
                     sx={{ ...cellSx, ...checkCellSx }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Checkbox
                       size="small"
@@ -566,7 +565,18 @@ function ListTable({
 /* ================================================================== */
 /* Small shared components                                              */
 /* ================================================================== */
-function StatusPill({ label, bg, fg, height = 18, mb }) {
+function StatusPill({
+  label,
+  bg,
+  fg,
+  height = 18,
+  mb,
+  radius = "4px",
+  fontSize = 10.5,
+  fontWeight = 500,
+  wrap = true,
+  maxWidth = 70,
+}) {
   return (
     <Chip
       label={label}
@@ -574,13 +584,18 @@ function StatusPill({ label, bg, fg, height = 18, mb }) {
       sx={{
         backgroundColor: bg,
         color: fg,
-        fontWeight: 600,
-        fontSize: 9,
-        height,
+        fontWeight,
+        fontSize,
+        height: wrap ? "auto" : height,
         mb,
+        ...(radius !== undefined && { borderRadius: radius }),
+        ...(maxWidth && { maxWidth }),
         "& .MuiChip-label": {
-          px: 0.75,
-          py: 0,
+          px: wrap ? 1 : 0.75,
+          py: wrap ? 0.4 : 0,
+          whiteSpace: wrap ? "normal" : "nowrap",
+          lineHeight: wrap ? 1.25 : undefined,
+          textAlign: "center",
         },
       }}
     />
@@ -1282,11 +1297,11 @@ const POST_STATUS = [
 ];
 
 const POST_STATUS_STYLES = {
-  Submitted: { bg: "#E1BEE7", fg: "#6A1B9A" },
-  "Ready for statement": { bg: "#FFF3E0", fg: "#F57C00" },
-  Settled: { bg: "#B2DFDB", fg: "#00695C" },
-  "ERA Received": { bg: "#BBDEFB", fg: "#0D47A1" },
-  Posted: { bg: "#C8E6C9", fg: "#2E7D32" },
+  Submitted: { bg: "#E9E2FA", fg: "#7C4DDB" },
+  "Ready for statement": { bg: "#FDEDD3", fg: "#E08E0B" },
+  Settled: { bg: "#D5F5E8", fg: "#1FA672" },
+  "ERA Received": { bg: "#D3E9FA", fg: "#3F8FD0" },
+  Posted: { bg: "#1D7F6A", fg: "#FFFFFF" },
 };
 
 const postBillingClaimsData = PEOPLE.map(([name, gender], i) => {
@@ -1839,7 +1854,18 @@ const POST_COLUMNS = [
     center: true,
     render: (r) => {
       const s = POST_STATUS_STYLES[r.status] || POST_STATUS_STYLES.Submitted;
-      return <StatusPill label={r.status} bg={s.bg} fg={s.fg} />;
+      return (
+        <StatusPill
+          label={r.status}
+          bg={s.bg}
+          fg={s.fg}
+          radius="4px"
+          fontSize={10.5}
+          fontWeight={500}
+          wrap
+          maxWidth={70}
+        />
+      );
     },
   },
   { id: "clearingHouse", label: "Clearing\nHouse", center: true },
@@ -2154,7 +2180,6 @@ const HISTORY_COLUMNS = [
         size="small"
         sx={{
           ...chipBase,
-          maxWidth: "none",
           ...(statusChipStyles[r.batchStatus] || statusChipStyles.Draft),
         }}
       />
@@ -3998,13 +4023,14 @@ function PreBillingClaim() {
                   onCheck: handleOpenCheckPopup,
                 }}
                 minWidth={900}
+                cbSx={checkboxSx}
+                highlightSelected={false}
                 stickyHeader
-                // containerSx={listContainerTallSx} // was listContainerSx
                 containerSx={fillSx}
                 headSx={listHeadSx}
                 cellSx={listCellSx}
-                rowSx={(row, index) => ({
-                  backgroundColor: getListColor(index),
+                rowSx={(row) => ({
+                  backgroundColor: rowTint(PRE_STATUS_STYLES[row.status]?.bg),
                   borderBottom: "none",
                 })}
               />
@@ -4042,7 +4068,7 @@ function PreBillingClaim() {
                     <Box
                       key={row.id}
                       sx={{
-                        backgroundColor: getGridColor(index),
+                        backgroundColor: rowTint(st.bg),
                         border: "1px solid #e0e0e0",
                         borderRadius: 1,
                         px: 1.5,
@@ -4467,14 +4493,15 @@ function PreBillingClaim() {
               selection={claimSelection}
               ctx={{ onEdit: handleEditClick, onCheck: handleOpenCheckPopup }}
               onRowClick={handlePostBillingRowClick}
+              cbSx={checkboxSx}
+              highlightSelected={false}
               minWidth={1100}
               stickyHeader
-            
               containerSx={fillSx}
               headSx={listHeadSx}
               cellSx={listCellSx}
-              rowSx={(row, index) => ({
-                backgroundColor: getListColor(index),
+              rowSx={(row) => ({
+                backgroundColor: POST_ROW_COLORS[row.status] || "#FFFFFF",
                 borderBottom: "none",
               })}
             />
@@ -4882,14 +4909,15 @@ function PreBillingClaim() {
               ctx={{ onShowEob: handleShowEobDetails }}
               onFilterClick={(e) => setEraEobAnchor(e.currentTarget)}
               filterActive={!eraEobFilter.ERA || !eraEobFilter.EOB}
+              cbSx={checkboxSx}
+              highlightSelected={false}
               minWidth={1000}
               stickyHeader
-              // containerSx={listContainerTallSx} // was listContainerSx
               containerSx={fillSx}
               headSx={{ ...listHeadSx, whiteSpace: "nowrap" }}
               cellSx={listCellSx}
-              rowSx={(row, index) => ({
-                backgroundColor: getListColor(index),
+              rowSx={(row) => ({
+                backgroundColor: "#FFFFFF",
                 borderBottom: "none",
               })}
             />
@@ -5073,19 +5101,14 @@ function PreBillingClaim() {
                 ctx={{ selectedIds: statementSelectedRows }}
                 minWidth={1100}
                 stickyHeader
-                // containerSx={{
-                //   ...listContainerSx,
-                //   maxHeight: "calc(100vh - 440px)",
-                //   minHeight: 290,
-                // }}
                 containerSx={fillSx}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
                 }}
                 cellSx={listCellSx}
-                rowSx={(row, index) => ({
-                  backgroundColor: getListColor(index),
+                rowSx={(row) => ({
+                  backgroundColor: "#FFFFFF",
                   borderBottom: "none",
                 })}
                 cbSx={checkboxSx}
@@ -5107,19 +5130,14 @@ function PreBillingClaim() {
                 }}
                 minWidth={1000}
                 stickyHeader
-                // containerSx={{
-                //   ...listContainerSx,
-                //   maxHeight: "calc(100vh - 440px)",
-                //   minHeight: 220,
-                // }}
                 containerSx={fillSx}
                 headSx={{
                   ...listHeadSx,
                   whiteSpace: "nowrap",
                 }}
                 cellSx={listCellSx}
-                rowSx={(row, index) => ({
-                  backgroundColor: getListColor(index),
+                rowSx={(row) => ({
+                  backgroundColor: "#FFFFFF",
                   borderBottom: "none",
                 })}
                 cbSx={checkboxSx}
@@ -5580,8 +5598,6 @@ function PreBillingClaim() {
       </Dialog>
 
       {/* ================= ADD REMARK POPUP ================= */}
-
-      
       <Dialog
         open={checkPopupOpen}
         onClose={handleCloseCheckPopup}
@@ -5742,13 +5758,11 @@ function PreBillingClaim() {
           >
             <InputBase
               fullWidth
-  placeholder={remarkFocused ? "" : "Type your remark here..."}
-  value={remarkText}
-  onChange={(e) => setRemarkText(e.target.value)}
-  onFocus={() => setRemarkFocused(true)}
-  onBlur={() => setRemarkFocused(false)}
-
-           
+              placeholder={remarkFocused ? "" : "Type your remark here..."}
+              value={remarkText}
+              onChange={(e) => setRemarkText(e.target.value)}
+              onFocus={() => setRemarkFocused(true)}
+              onBlur={() => setRemarkFocused(false)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -5768,66 +5782,25 @@ function PreBillingClaim() {
               }}
             />
 
-
-            {/* <InputBase
-  fullWidth
-  placeholder="Type your remark here..."
-  value={remarkText}
-  onChange={(e) => setRemarkText(e.target.value)}
-  onFocus={() => setRemarkText("")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendRemark();
-    }
-  }}
-  sx={{
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#111827",
-    "& input": { p: 0 },
-    "& input::placeholder": {
-      color: "#111827",
-      opacity: 0.85,
-      fontWeight: 600,
-    },
-  }}
-/> */}
-
-            {/* <IconButton
+            <IconButton
               size="small"
+              onClick={handleMicClick}
+              title={isListening ? "Stop voice typing" : "Start voice typing"}
               sx={{
-                width: 18,
-                height: 18,
+                width: 26,
+                height: 26,
                 p: 0,
                 border: "1px solid #0066FF",
-                color: "#0066FF",
+                color: isListening ? "#FFFFFF" : "#0066FF",
+                backgroundColor: isListening ? "#0066FF" : "transparent",
                 flexShrink: 0,
+                "&:hover": {
+                  backgroundColor: isListening ? "#0052CC" : "#D6E7FF",
+                },
               }}
             >
-              <MicNone sx={{ fontSize: 12 }} />
-            </IconButton> */}
-
-            <IconButton
-  size="small"
-  onClick={handleMicClick}
-  title={isListening ? "Stop voice typing" : "Start voice typing"}
-  sx={{
-    width: 26,
-    height: 26,
-    p: 0,
-    border: "1px solid #0066FF",
-    color: isListening ? "#FFFFFF" : "#0066FF",
-    backgroundColor: isListening ? "#0066FF" : "transparent",
-    flexShrink: 0,
-    "&:hover": {
-      backgroundColor: isListening ? "#0052CC" : "#D6E7FF",
-    },
-  }}
->
-  <MicNone sx={{ fontSize: 15 }} />
-</IconButton>
-
+              <MicNone sx={{ fontSize: 15 }} />
+            </IconButton>
 
             <Button
               variant="contained"
