@@ -44,12 +44,7 @@ import dayjs from "dayjs";
 ───────────────────────────────────────────── */
 const money = (n) => {
   if (typeof n === "string") return n;
-  return n
-    ? n.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    : "0.00";
+  return n ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
 };
 
 const INSURERS = [
@@ -61,7 +56,7 @@ const INSURERS = [
   "Kaiser Permanente",
 ];
 
-const BILLED_LIST = [5573.52, 6600.72, 7800.14, 8250.0, 9100.5];
+const BILLED_LIST = [5573.52, 6600.72, 7800.14, 8250.00, 9100.50];
 
 const thinScroll = {
   "&::-webkit-scrollbar": { width: 4, height: 4 },
@@ -73,7 +68,7 @@ const labelSx = {
   fontSize: 11,
   fontWeight: 500,
   color: "#6B7280",
-  mb: 0.5,
+  mb: 0.3, 
   display: "block",
 };
 
@@ -81,8 +76,8 @@ const inputSx = {
   width: "100%",
   "& .MuiOutlinedInput-root": {
     width: "100%",
-    height: 34,
-    minHeight: 34,
+    height: 32, 
+    minHeight: 32,
     boxSizing: "border-box",
     fontSize: 12,
     borderRadius: "6px",
@@ -108,8 +103,8 @@ const inputSx = {
     },
   },
   "& .MuiSelect-select": {
-    minHeight: "34px !important",
-    height: "34px",
+    minHeight: "32px !important",
+    height: "32px",
     boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
@@ -127,15 +122,15 @@ const cardSx = {
   backgroundColor: "#FFFFFF",
   borderRadius: "8px",
   border: "1px solid #E5E7EB",
-  p: 2,
+  p: 1.5, 
   boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
 };
 
 const cardTitleSx = {
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 700,
   color: "#1F2937",
-  mb: 1.2,
+  mb: 1, 
 };
 
 /* ─────────────────────────────────────────────
@@ -159,7 +154,7 @@ function FInput({
   value,
   onChange,
   placeholder,
-  calendar,
+  type = "text",
   required,
   endIcon,
 }) {
@@ -169,12 +164,13 @@ function FInput({
       <TextField
         fullWidth
         size="small"
+        type={type}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         sx={inputSx}
         InputProps={{
-          endAdornment: calendar ? (
+          endAdornment: type === "date" ? (
             <InputAdornment position="end">
               <CalendarToday sx={{ fontSize: 15, color: "#0066FF" }} />
             </InputAdornment>
@@ -283,12 +279,13 @@ const EOB_TRANSACTIONS = [
 export default function NewPayment() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // < 600
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg")); // < 1200
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); 
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg")); 
 
   /* ── form state ── */
   const [batch, setBatch] = useState("");
-  const [postDate, setPostDate] = useState("09/26/2026");
+  // Changed to YYYY-MM-DD for native date input
+  const [postDate, setPostDate] = useState("2026-09-26"); 
   const [type, setType] = useState("Patient");
   const [patient, setPatient] = useState("Rivet, Stacie  ID 2522");
   const [globalPatientId, setGlobalPatientId] = useState("");
@@ -306,6 +303,28 @@ export default function NewPayment() {
   const [status, setStatus] = useState("Default");
   const [statusReason, setStatusReason] = useState("0 - None");
   const [lineNote, setLineNote] = useState("");
+
+  /* ── more details state ── */
+  const [postingDate, setPostingDate] = useState("2026-09-13"); 
+  const [payerSequence, setPayerSequence] = useState("Primary");
+  const [payer, setPayer] = useState("67342TES - ICI");
+  const [allowed, setAllowed] = useState("$73.13");
+  const [paidDetails, setPaidDetails] = useState("$26.4");
+  const [contractAdj, setContractAdj] = useState("$43.22");
+  const [adjCode, setAdjCode] = useState("CO-45, CO-253, C..");
+  const [secondAdj, setSecondAdj] = useState("$113.52");
+  const [adjCode2, setAdjCode2] = useState("OA-9");
+  const [coinsurance, setCoinsurance] = useState("$15.49");
+  const [copay, setCopay] = useState("$21.37");
+  const [deductible, setDeductible] = useState("$0");
+  const [otherPRCodes, setOtherPRCodes] = useState("–");
+  const [otherPRAmount, setOtherPRAmount] = useState("$0");
+  const [paymentMethodDetails, setPaymentMethodDetails] = useState("EFT");
+  const [actions, setActions] = useState("Settle");
+  const [remarks, setRemarks] = useState("Lorem ipsum dum..");
+  const [provAdj, setProvAdj] = useState("–");
+  const [denialCategory, setDenialCategory] = useState("NA");
+  const [balance, setBalance] = useState("$0");
 
   /* ── other state ── */
   const [showOnly, setShowOnly] = useState("Selected");
@@ -355,61 +374,51 @@ export default function NewPayment() {
 
   const handleProcessOCR = async () => {
     setOcrProcessing(true);
-
-    // Only process files that are still "pending"
-    const filesToProcess = ocrFiles.filter((f) => f.status === "pending");
-
+    const filesToProcess = ocrFiles.filter(f => f.status === "pending");
+    
     if (filesToProcess.length === 0) {
       setOcrProcessing(false);
       return;
     }
-
-    // Keep existing results and add new ones
+    
     const newResults = [];
-    let recordIndex = ocrResults.length; // Continue from existing count
-
+    let recordIndex = ocrResults.length;
+    
     for (let i = 0; i < filesToProcess.length; i++) {
       const file = filesToProcess[i];
-
-      // Update status to processing
+      
       setOcrFiles((prev) =>
         prev.map((f) =>
-          f.id === file.id ? { ...f, status: "processing" } : f,
-        ),
+          f.id === file.id ? { ...f, status: "processing" } : f
+        )
       );
-
-      // Simulate processing delay
+      
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Simulate success/failure (90% success rate)
       const success = Math.random() > 0.1;
-
+      
       setOcrFiles((prev) =>
         prev.map((f) =>
           f.id === file.id
             ? { ...f, status: success ? "success" : "error" }
-            : f,
-        ),
+            : f
+        )
       );
-
+      
       if (success) {
-        // Simulate multiple records per PDF (1-3 records per file)
-        const recordsInFile = Math.floor(Math.random() * 3) + 1; // 1 to 3 records
-
+        const recordsInFile = Math.floor(Math.random() * 3) + 1;
+        
         for (let j = 0; j < recordsInFile; j++) {
           const claimAmount = BILLED_LIST[recordIndex % BILLED_LIST.length];
           const paidAmount = Math.round(claimAmount * 0.85);
           const adjustmentAmount = claimAmount - paidAmount;
-
+          
           newResults.push({
             id: `${file.id}-${j}`,
-            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ""}`,
+            fileName: `${file.name}${recordsInFile > 1 ? ` (Record ${j + 1}/${recordsInFile})` : ''}`,
             claimNumber: `${12345670 + recordIndex}`,
             payerName: INSURERS[recordIndex % INSURERS.length],
             checkNumber: `${14315316146 + recordIndex}`,
-            checkDate: dayjs()
-              .subtract(recordIndex, "day")
-              .format("MM/DD/YYYY"),
+            checkDate: dayjs().subtract(recordIndex, "day").format("MM/DD/YYYY"),
             claimedAmount: claimAmount,
             paidAmount: paidAmount,
             adjustmentAmount: adjustmentAmount,
@@ -418,132 +427,32 @@ export default function NewPayment() {
             paymentMethod: recordIndex % 2 === 0 ? "Cheque" : "EFT",
             status: "Posted",
           });
-
+          
           recordIndex++;
         }
       }
     }
-
-    // Append new results to existing ones
+    
     setOcrResults((prev) => [...prev, ...newResults]);
     setOcrProcessing(false);
   };
 
   const handleSaveERA = () => {
-    // In a real implementation, this would add ERA data to the payment
-    alert(
-      `${ocrResults.length} EOB records converted and ready to be added to payment!`,
-    );
-
-    // Close dialog and reset
+    alert(`${ocrResults.length} EOB records converted and ready to be added to payment!`);
     handleCloseOCR();
   };
 
   /* ─────────────────────────────────────────────
-     SUMMARY block values (derived)
+     SUMMARY block values
   ───────────────────────────────────────────── */
   const summaryItems = [
     { label: "Total Amount", value: "$50.00", color: "#1F2937", bg: "#F3F4F6" },
-    {
-      label: "Applied to Charges",
-      value: "$0.00",
-      color: "#1F2937",
-      bg: "#F3F4F6",
-    },
-    {
-      label: "Applied to Capitated",
-      value: "$0.00",
-      color: "#1F2937",
-      bg: "#F3F4F6",
-    },
-    {
-      label: "Adjusted Charges",
-      value: "$0.00",
-      color: "#1F2937",
-      bg: "#F3F4F6",
-    },
-    {
-      label: "Refunds (If Any)",
-      value: "$0.00",
-      color: "#1F2937",
-      bg: "#F3F4F6",
-    },
-    {
-      label: "Unapplied Amount",
-      value: "$50.00",
-      color: "#7A4300",
-      bg: "#FFF1DC",
-    },
+    { label: "Applied to Charges", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Applied to Capitated", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Adjusted Charges", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Refunds (If Any)", value: "$0.00", color: "#1F2937", bg: "#F3F4F6" },
+    { label: "Unapplied Amount", value: "$50.00", color: "#7A4300", bg: "#FFF1DC" },
   ];
-
-  const MORE_DETAIL_FIELDS = [
-  { key: "postingDate", label: "Posting Date", type: "date" },
-  { key: "payerSeq", label: "Payer sequence", type: "select", options: ["Primary", "Secondary", "Tertiary"] },
-  { key: "payor", label: "Payor", type: "select", options: ["67342TES - ICI", "Cigna Health", "Aetna"] },
-
-  { key: "allowed", label: "Allowed", type: "text" },
-  { key: "paidAmt", label: "Paid", type: "text" },
-  { key: "contractAdj", label: "Contract Adj.", type: "readonly" },
-
-  { key: "adjCode1", label: "Adj. Code", type: "readonly" },
-  { key: "secondAdj", label: "Second Adj.", type: "readonly" },
-  { key: "adjCode2", label: "Adj. Code", type: "select", options: ["OA-9", "CO-45", "PR-1"] },
-
-  { key: "coinsurance", label: "Coinsurance", type: "readonly" },
-  { key: "copayAmt", label: "Copay", type: "readonly" },
-  { key: "deductible", label: "Deductible", type: "readonly" },
-
-  { key: "otherPrCodes", label: "Other PR Codes", type: "readonly" },
-  { key: "otherPrAmount", label: "Other PR Amount", type: "readonly" },
-  { key: "payMethod", label: "Payment Method", type: "select", options: ["EFT", "Cheque", "Credit Card"] },
-
-  { key: "actions", label: "Actions", type: "select", options: ["Settle", "Appeal", "Transfer"] },
-  { key: "remarks", label: "Remarks", type: "text", placeholder: "Lorem ipsum dum.." },
-  { key: "provAdj", label: "Prov. Adj.", type: "text", placeholder: "–" },
-
-  { key: "denialCategory", label: "Denial Category", type: "select", options: ["NA", "Medical Necessity", "Auth Required"] },
-  { key: "balance", label: "Balance", type: "readonly" },
-];
-
-const readonlySx = {
-  ...inputSx,
-  "& .MuiOutlinedInput-root": {
-    ...inputSx["& .MuiOutlinedInput-root"],
-    backgroundColor: "#EEF0F3",
-    "& input": {
-      ...inputSx["& .MuiOutlinedInput-root"]["& input"],
-      color: "#6B7280",
-      WebkitTextFillColor: "#6B7280",
-    },
-  },
-};
-
-
-const [details, setDetails] = useState({
-  postingDate: "2026-09-13",
-  payerSeq: "Primary",
-  payor: "67342TES - ICI",
-  allowed: "$73.13",
-  paidAmt: "$26.4",
-  contractAdj: "$43.22",
-  adjCode1: "CO-45, CO-253, C..",
-  secondAdj: "$113.52",
-  adjCode2: "OA-9",
-  coinsurance: "$15.49",
-  copayAmt: "$21.37",
-  deductible: "$0",
-  otherPrCodes: "–",
-  otherPrAmount: "$0",
-  payMethod: "EFT",
-  actions: "Settle",
-  remarks: "",
-  provAdj: "",
-  denialCategory: "NA",
-  balance: "$0",
-});
-
-const setDetail = (key) => (e) =>
-  setDetails((prev) => ({ ...prev, [key]: e.target.value }));
 
   /* ─────────────────────────────────────────────
      HEADER buttons
@@ -552,7 +461,7 @@ const setDetail = (key) => (e) =>
     textTransform: "none",
     borderColor: "#E5E7EB",
     color: "#374151",
-    fontSize: 11,
+    fontSize: 12,
     borderRadius: "8px",
     backgroundColor: "#FFFFFF",
     fontWeight: 700,
@@ -568,34 +477,15 @@ const setDetail = (key) => (e) =>
   const leftPanel = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
       {/* ── Payment Details card ── */}
-      <Box
-        sx={{
-          ...cardSx,
-          pb: 1,
-        }}
-      >
+      <Box sx={cardSx}>
         <Typography sx={cardTitleSx}>Payment Details</Typography>
 
-        {/* Horizontal line and buttons */}
-        <Box
-          sx={{
-            gridColumn: "1 / -1",
-            borderTop: "1px solid #E5E7EB",
-            mt: 1.5,
-            pt: 1.5,
-            display: "flex",
-            gap: 1,
-            alignItems: "center",
-          }}
-        ></Box>
-
-        {/* Row 1: Batch #  |  Post Date  |  Type  — 3 equal cols */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-            gap: 1.5,
-            mb: 1.5,
+            gap: 1.25,
+            mb: 1.25,
           }}
         >
           <Box>
@@ -611,12 +501,21 @@ const setDetail = (key) => (e) =>
           </Box>
           <Box>
             <Typography sx={labelSx}>Post Date</Typography>
+            {/* Updated to native date input with Calendar Icon */}
             <TextField
               fullWidth
               size="small"
+              type="date"
               value={postDate}
               onChange={(e) => setPostDate(e.target.value)}
               sx={inputSx}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <CalendarToday sx={{ fontSize: 15, color: "#0066FF" }} />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
           <Box>
@@ -638,14 +537,13 @@ const setDetail = (key) => (e) =>
           </Box>
         </Box>
 
-        {/* Conditional Row: Patient Details - only when Type = "Patient" */}
         {type === "Patient" && (
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-              gap: 1.5,
-              mb: 1.5,
+              gap: 1.25,
+              mb: 1.25,
             }}
           >
             <Box>
@@ -660,20 +558,14 @@ const setDetail = (key) => (e) =>
                   <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
                     Select patient
                   </MenuItem>
-                  <MenuItem
-                    value="Rivet, Stacie  ID 2522"
-                    sx={{ fontSize: 12 }}
-                  >
-                    Rivet, Stacie ID 2522
+                  <MenuItem value="Rivet, Stacie  ID 2522" sx={{ fontSize: 12 }}>
+                    Rivet, Stacie  ID 2522
                   </MenuItem>
-                  <MenuItem
-                    value="Johnson, Mark  ID 1234"
-                    sx={{ fontSize: 12 }}
-                  >
-                    Johnson, Mark ID 1234
+                  <MenuItem value="Johnson, Mark  ID 1234" sx={{ fontSize: 12 }}>
+                    Johnson, Mark  ID 1234
                   </MenuItem>
                   <MenuItem value="Smith, Jane  ID 5678" sx={{ fontSize: 12 }}>
-                    Smith, Jane ID 5678
+                    Smith, Jane  ID 5678
                   </MenuItem>
                 </Select>
               </FormControl>
@@ -710,14 +602,13 @@ const setDetail = (key) => (e) =>
           </Box>
         )}
 
-        {/* Row 2: Patient (wider) | Appointment — 3:2 ratio - hidden when Type = "Patient" */}
         {type === "Insurance" && (
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "3fr 2fr" },
-              gap: 1.5,
-              mb: 1.5,
+              gap: 1.25,
+              mb: 1.25,
             }}
           >
             <Box>
@@ -753,11 +644,7 @@ const setDetail = (key) => (e) =>
                   endAdornment: (
                     <InputAdornment position="end" sx={{ mr: 0.5 }}>
                       <Close
-                        sx={{
-                          fontSize: 16,
-                          color: "#9CA3AF",
-                          cursor: "pointer",
-                        }}
+                        sx={{ fontSize: 16, color: "#9CA3AF", cursor: "pointer" }}
                       />
                     </InputAdornment>
                   ),
@@ -767,13 +654,12 @@ const setDetail = (key) => (e) =>
           </Box>
         )}
 
-        {/* Row 3: Category | Method | Reference # — 3 equal cols */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-            gap: 1.5,
-            mb: 1.5,
+            gap: 1.25,
+            mb: 1.25,
           }}
         >
           <Box>
@@ -823,12 +709,12 @@ const setDetail = (key) => (e) =>
           </Box>
         </Box>
 
-        {/* Row 4: Amount (narrower) | Notes (wider, multiline) */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "2fr 3fr" },
-            gap: 1.5,
+            gap: 1.25,
+            mb: 2, 
           }}
         >
           <Box>
@@ -859,29 +745,12 @@ const setDetail = (key) => (e) =>
             />
           </Box>
         </Box>
-        {/* Horizontal line and buttons */}
-        <Box
-          sx={{
-            gridColumn: "1 / -1",
-            borderTop: "1px solid #E5E7EB",
-            mt: 1.5,
-            pt: 1.5,
-            display: "flex",
-            gap: 1,
-            alignItems: "center",
-          }}
-        >
-          <Button
-            variant="outlined"
-            sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
-          >
+
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
             + Add Encounter
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/add-new-patient")}
-            sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
-          >
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
             + Add Patient
           </Button>
         </Box>
@@ -889,11 +758,10 @@ const setDetail = (key) => (e) =>
 
       {/* ── Summary card ── */}
       <Box sx={cardSx}>
-        {/* <Typography sx={cardTitleSx}>Summary</Typography> */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "repeat(6, 1fr)", sm: "repeat(6, 1fr)" },
+            gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(6, 1fr)" },
             gap: 1,
           }}
         >
@@ -907,7 +775,7 @@ const setDetail = (key) => (e) =>
                 backgroundColor: item.bg,
               }}
             >
-              <Typography sx={{ fontSize: 12, color: "#5A6072", mb: 0.3 }}>
+              <Typography sx={{ fontSize: 10, color: "#6B7280", mb: 0.3 }}>
                 {item.label}
               </Typography>
               <Typography
@@ -927,7 +795,7 @@ const setDetail = (key) => (e) =>
           onChange={(_, v) => setLineTab(v)}
           sx={{
             minHeight: 32,
-            mb: 2,
+            mb: 1.5,
             borderBottom: "2px solid #E5E7EB",
             "& .MuiTab-root": {
               textTransform: "none",
@@ -948,13 +816,12 @@ const setDetail = (key) => (e) =>
 
         {lineTab === 0 && (
           <Box>
-            {/* Row 1: Copay Due, Paid, Status */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-                gap: 2,
-                mb: 2,
+                gap: 1.5,
+                mb: 1.5,
               }}
             >
               <Box>
@@ -985,13 +852,12 @@ const setDetail = (key) => (e) =>
                 options={["Default", "Posted", "Pending", "Rejected"]}
               />
             </Box>
-            {/* Row 2: Status Reason, Line Note */}
             <Box
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                gap: 2,
-                mb: 3,
+                gap: 1.5,
+                mb: 2,
               }}
             >
               <FSelect
@@ -1011,98 +877,49 @@ const setDetail = (key) => (e) =>
         )}
 
         {lineTab === 1 && (
-  <Box
-    sx={{
-      display: "grid",
-      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-      gap: 2,
-    }}
-  >
-    {MORE_DETAIL_FIELDS.map((f) => {
-      if (f.type === "select") {
-        return (
-          <FSelect
-            key={f.key}
-            label={f.label}
-            value={details[f.key]}
-            onChange={setDetail(f.key)}
-            options={f.options}
-          />
-        );
-      }
-
-      if (f.type === "readonly") {
-        return (
-          <Box key={f.key}>
-            <FL>{f.label}</FL>
-            <TextField
-              fullWidth
-              size="small"
-              value={details[f.key]}
-              sx={readonlySx}
-              InputProps={{ readOnly: true }}
-            />
+          <Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FInput label="Posting Date" type="date" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
+              <FSelect label="Payor sequence" value={payerSequence} onChange={(e) => setPayerSequence(e.target.value)} options={["Primary", "Secondary", "Tertiary"]} />
+              <FSelect label="Payor" value={payer} onChange={(e) => setPayer(e.target.value)} options={["67342TES - ICI", "Other Payer"]} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FInput label="Allowed" value={allowed} onChange={(e) => setAllowed(e.target.value)} />
+              <FInput label="Paid" value={paidDetails} onChange={(e) => setPaidDetails(e.target.value)} />
+              <FInput label="Contract Adj." value={contractAdj} onChange={(e) => setContractAdj(e.target.value)} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FInput label="Adj. Code" value={adjCode} onChange={(e) => setAdjCode(e.target.value)} />
+              <FInput label="Second Adj." value={secondAdj} onChange={(e) => setSecondAdj(e.target.value)} />
+              <FSelect label="Adj. Code" value={adjCode2} onChange={(e) => setAdjCode2(e.target.value)} options={["OA-9", "CO-45"]} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FInput label="Coinsurance" value={coinsurance} onChange={(e) => setCoinsurance(e.target.value)} />
+              <FInput label="Copay" value={copay} onChange={(e) => setCopay(e.target.value)} />
+              <FInput label="Deductible" value={deductible} onChange={(e) => setDeductible(e.target.value)} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FInput label="Other PR Codes" value={otherPRCodes} onChange={(e) => setOtherPRCodes(e.target.value)} />
+              <FInput label="Other PR Amount" value={otherPRAmount} onChange={(e) => setOtherPRAmount(e.target.value)} />
+              <FSelect label="Payment Method" value={paymentMethodDetails} onChange={(e) => setPaymentMethodDetails(e.target.value)} options={["EFT", "Check", "Credit Card"]} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.25 }}>
+              <FSelect label="Actions" value={actions} onChange={(e) => setActions(e.target.value)} options={["Settle", "Deny", "Reverse"]} />
+              <FInput label="Remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+              <FInput label="Prov. Adj." value={provAdj} onChange={(e) => setProvAdj(e.target.value)} />
+            </Box>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" }, gap: 1.25, mb: 1.5 }}>
+              <FSelect label="Denial Category" value={denialCategory} onChange={(e) => setDenialCategory(e.target.value)} options={["NA", "CO", "PR", "OA"]} />
+              <FInput label="Balance" value={balance} onChange={(e) => setBalance(e.target.value)} />
+              <Box />
+            </Box>
           </Box>
-        );
-      }
+        )}
 
-      if (f.type === "date") {
-        return (
-          <Box key={f.key}>
-            <FL>{f.label}</FL>
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              value={details[f.key]}
-              onChange={setDetail(f.key)}
-              sx={inputSx}
-            />
-          </Box>
-        );
-      }
-
-      return (
-        <FInput
-          key={f.key}
-          label={f.label}
-          value={details[f.key]}
-          onChange={setDetail(f.key)}
-          placeholder={f.placeholder}
-        />
-      );
-    })}
-  </Box>
-)}
-        {/* Footer action buttons */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
-            mt: lineTab === 0 ? 10 : 2,
-            width: "100%",
-          }}
-        >
-          {/* Horizontal line and buttons */}
-          <Box
-            sx={{
-              gridColumn: "1 / -1",
-              borderTop: "1px solid #E5E7EB",
-              mt: 1.5,
-              pt: 1.5,
-              display: "flex",
-              gap: 1,
-              alignItems: "center",
-            }}
-          >
-            <Button
-              variant="outlined"
-              sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}
-            >
-              Next Line
-            </Button>
-          </Box>
+        <Box sx={{ display: "flex", gap: 1, mt: 1.5 }}>
+          <Button variant="outlined" sx={{ ...headerBtnSx, fontWeight: 600, height: 32, fontSize: 11 }}>
+            Next Line
+          </Button>
         </Box>
       </Box>
     </Box>
@@ -1112,17 +929,9 @@ const setDetail = (key) => (e) =>
      RIGHT PANEL
   ───────────────────────────────────────────── */
   const rightPanel = (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 0.75,
-        minWidth: 0,
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
       {/* ── Apply to charges ── */}
       <Box sx={cardSx}>
-        {/* Header row */}
         <Box
           sx={{
             display: "flex",
@@ -1136,7 +945,7 @@ const setDetail = (key) => (e) =>
           <Typography sx={cardTitleSx}>Apply to charges</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography
-              sx={{ fontSize: 11, color: "#6B7280", whiteSpace: "nowrap" }}
+              sx={{ fontSize: 11.5, color: "#6B7280", whiteSpace: "nowrap" }}
             >
               Show Only
             </Typography>
@@ -1145,7 +954,7 @@ const setDetail = (key) => (e) =>
                 value={showOnly}
                 onChange={(e) => setShowOnly(e.target.value)}
                 IconComponent={KeyboardArrowDown}
-                sx={{ fontSize: 11 }}
+                sx={{ fontSize: 12 }}
               >
                 <MenuItem value="All" sx={{ fontSize: 12 }}>
                   All
@@ -1157,23 +966,22 @@ const setDetail = (key) => (e) =>
             </FormControl>
             <Button
               size="small"
-              onClick={() => navigate("/add-new-patient")}
               sx={{
                 textTransform: "none",
                 color: "#0066FF",
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
                 p: 0,
                 minWidth: "auto",
                 whiteSpace: "nowrap",
-                "&:hover": { background: "none" },
+                "&:hover": { background: "none", },
               }}
             >
               + Add Patient
             </Button>
           </Box>
         </Box>
-        <Typography sx={{ fontSize: 11.5, color: "#9CA3AF", mb: 1.2 }}>
+        <Typography sx={{ fontSize: 11.5, color: "#9CA3AF", mb: 1 }}>
           {CHARGES.length} open charges found for River, Stacie
         </Typography>
 
@@ -1184,7 +992,7 @@ const setDetail = (key) => (e) =>
           >
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ px: 0.8, py: 1 }}>
+                <TableCell padding="checkbox" sx={{ px: 0.8, py: 0.8 }}>
                   <Checkbox
                     size="small"
                     indeterminate={
@@ -1216,7 +1024,7 @@ const setDetail = (key) => (e) =>
                       fontWeight: 600,
                       color: "#6B7280",
                       px: 0.8,
-                      py: 1,
+                      py: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1233,7 +1041,7 @@ const setDetail = (key) => (e) =>
                     backgroundColor: idx % 2 === 0 ? "#F5F5FF" : "#FFFFFF",
                   }}
                 >
-                  <TableCell padding="checkbox" sx={{ px: 0.8 }}>
+                  <TableCell padding="checkbox" sx={{ px: 0.8, py: 0.8 }}>
                     <Checkbox
                       size="small"
                       checked={selectedRows.includes(c.id)}
@@ -1245,7 +1053,7 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
+                      py: 1,
                       px: 0.8,
                       whiteSpace: "nowrap",
                     }}
@@ -1256,7 +1064,7 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
+                      py: 1,
                       px: 0.8,
                       wordBreak: "break-word",
                     }}
@@ -1264,7 +1072,7 @@ const setDetail = (key) => (e) =>
                     {c.description}
                   </TableCell>
                   <TableCell
-                    sx={{ fontSize: 11, color: "#374151", py: 1.5, px: 0.8 }}
+                    sx={{ fontSize: 11, color: "#374151", py: 1, px: 0.8 }}
                   >
                     {c.mod}
                   </TableCell>
@@ -1272,7 +1080,7 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 0.5,
+                      py: 1,
                       px: 0.8,
                       whiteSpace: "nowrap",
                     }}
@@ -1283,7 +1091,7 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
+                      py: 1,
                       px: 0.8,
                       whiteSpace: "nowrap",
                     }}
@@ -1294,35 +1102,29 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
+                      py: 1,
                       px: 0.8,
                       whiteSpace: "nowrap",
                     }}
                   >
                     {c.patResp}
                   </TableCell>
-                  <TableCell sx={{ py: 0.5, px: 0.8 }}>
+                  <TableCell sx={{ py: 1, px: 0.8 }}>
                     <TextField
                       size="small"
                       defaultValue={c.thisPayment}
                       sx={{
-                        width: 75,
-                        minWidth: 75,
+                        width: "100%",
+                        minWidth: 70,
                         "& .MuiOutlinedInput-root": {
                           fontSize: 11,
                           fontWeight: 600,
-                          height: 28,
-                          minHeight: 28,
+                          height: 26,
+                          minHeight: 26,
                           borderRadius: "6px",
                           backgroundColor: "#FFF",
-                          "& input": {
-                            textAlign: "center",
-                            px: 0.4,
-                            py: 0.5,
-                          },
-                          "& fieldset": {
-                            borderColor: "#D1D5DB",
-                          },
+                          "& input": { textAlign: "center", px: 0.4 },
+                          "& fieldset": { borderColor: "#D1D5DB" },
                         },
                       }}
                     />
@@ -1359,9 +1161,7 @@ const setDetail = (key) => (e) =>
             <Add sx={{ fontSize: 16 }} />
           </IconButton>
         </Box>
-        {/* <Typography sx={{ fontSize: 10, color: "#9CA3AF", mb: 1 }}>
-          EOBs, ERAs and supporting documents for this payment
-        </Typography> */}
+      
 
         <TableContainer sx={{ overflowX: "auto", ...thinScroll }}>
           <Table
@@ -1373,7 +1173,7 @@ const setDetail = (key) => (e) =>
                 {[
                   "FILE NAME",
                   "TAG",
-                  "REFERENCE # ",
+                  "REFERENCE ",
                   "COMMENTS",
                   "UPLOADED ON",
                   "ACTION",
@@ -1381,7 +1181,7 @@ const setDetail = (key) => (e) =>
                   <TableCell
                     key={h}
                     sx={{
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: 600,
                       color: "#9CA3AF",
                       py: 0.6,
@@ -1414,9 +1214,9 @@ const setDetail = (key) => (e) =>
                       size="small"
                       sx={{
                         backgroundColor: "#EFF6FF",
-                        color: "#475467",
+                        color: "#0066FF",
                         fontWeight: 600,
-                        fontSize: 10,
+                        fontSize: 9,
                         height: 16,
                         borderRadius: "4px",
                       }}
@@ -1459,11 +1259,11 @@ const setDetail = (key) => (e) =>
                     <Box sx={{ display: "flex", gap: 0.2 }}>
                       <IconButton size="small" sx={{ p: 0.3 }}>
                         <DownloadIcon2
-                          sx={{ fontSize: 10, color: "#374151" }}
+                          sx={{ fontSize: 14, color: "#374151" }}
                         />
                       </IconButton>
                       <IconButton size="small" sx={{ p: 0.3 }}>
-                        <RPDeleteIcon sx={{ fontSize: 10, color: "#DC2626" }} />
+                        <RPDeleteIcon sx={{ fontSize: 14, color: "#DC2626" }} />
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -1496,8 +1296,8 @@ const setDetail = (key) => (e) =>
                       fontSize: 11,
                       fontWeight: 600,
                       color: "#1F2937",
-                      py: 1.2,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                     }}
                   >
                     {h}
@@ -1517,8 +1317,8 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1528,8 +1328,8 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                       wordBreak: "break-word",
                       fontWeight: 500,
                     }}
@@ -1540,8 +1340,8 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1551,8 +1351,8 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#374151",
-                      py: 1.5,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -1562,8 +1362,8 @@ const setDetail = (key) => (e) =>
                     sx={{
                       fontSize: 11,
                       color: "#1F2937",
-                      py: 1.5,
-                      px: 1.5,
+                      py: 1,
+                      px: 1.2,
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                     }}
@@ -1603,12 +1403,12 @@ const setDetail = (key) => (e) =>
           alignItems: "center",
           flexWrap: "wrap",
           gap: 1,
-          mb: 2,
+          mb: 1.5,
         }}
       >
         <Typography
           sx={{
-            fontSize: { xs: 14, sm: 16 },
+            fontSize: { xs: 18, sm: 20 },
             fontWeight: 700,
             color: "#1F2937",
           }}
@@ -1617,9 +1417,8 @@ const setDetail = (key) => (e) =>
         </Typography>
 
         <Box sx={{ display: "flex", gap: 0.8, flexWrap: "wrap" }}>
-          {/* OCR Upload Button - shown on all screen sizes */}
           <Tooltip title="Upload EOB for ERA Conversion" arrow>
-            <Button
+            <Button 
               variant="contained"
               onClick={handleOpenOCR}
               sx={{
@@ -1640,7 +1439,6 @@ const setDetail = (key) => (e) =>
             </Button>
           </Tooltip>
 
-          {/* Process Virtual Card — shown on larger screens */}
           {!isMobile && (
             <Button variant="outlined" sx={headerBtnSx}>
               Process Virtual Card
@@ -1664,7 +1462,7 @@ const setDetail = (key) => (e) =>
             sx={{
               textTransform: "none",
               backgroundColor: "#0066FF",
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
               borderRadius: "8px",
               boxShadow: "none",
@@ -1688,7 +1486,6 @@ const setDetail = (key) => (e) =>
           alignItems: "flex-start",
         }}
       >
-        {/* Left */}
         <Box
           sx={{
             flex: "0 0 42%",
@@ -1699,7 +1496,6 @@ const setDetail = (key) => (e) =>
           {leftPanel}
         </Box>
 
-        {/* Right */}
         <Box sx={{ flex: 1, minWidth: 0, width: isTablet ? "100%" : "auto" }}>
           {rightPanel}
         </Box>
@@ -1719,7 +1515,6 @@ const setDetail = (key) => (e) =>
           },
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             px: 3,
@@ -1737,8 +1532,7 @@ const setDetail = (key) => (e) =>
               EOB to ERA Converter
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
-              Upload EOB documents to automatically extract and convert to ERA
-              format
+              Upload EOB documents to automatically extract and convert to ERA format
             </Typography>
           </Box>
           <IconButton
@@ -1754,17 +1548,7 @@ const setDetail = (key) => (e) =>
           </IconButton>
         </Box>
 
-        {/* Content */}
-        <Box
-          sx={{
-            px: 3,
-            py: 3,
-            maxHeight: "60vh",
-            overflow: "auto",
-            ...thinScroll,
-          }}
-        >
-          {/* Upload Area */}
+        <Box sx={{ px: 3, py: 3, maxHeight: "60vh", overflow: "auto", ...thinScroll }}>
           <Box
             sx={{
               border: "2px dashed #D1D5DB",
@@ -1782,7 +1566,9 @@ const setDetail = (key) => (e) =>
             }}
             onClick={() => document.getElementById("ocr-file-input").click()}
           >
-            <CloudUpload sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }} />
+            <CloudUpload
+              sx={{ fontSize: 48, color: "#9CA3AF", mb: 2 }}
+            />
             <Typography
               sx={{ fontSize: 14, fontWeight: 600, color: "#374151", mb: 1 }}
             >
@@ -1801,7 +1587,6 @@ const setDetail = (key) => (e) =>
             />
           </Box>
 
-          {/* File List */}
           {ocrFiles.length > 0 && (
             <Box sx={{ mb: 3 }}>
               <Typography
@@ -1832,10 +1617,10 @@ const setDetail = (key) => (e) =>
                           file.status === "success"
                             ? "#DFF5EA"
                             : file.status === "error"
-                              ? "#FCE4E4"
-                              : file.status === "processing"
-                                ? "#FDF1DC"
-                                : "#E3EEFB",
+                            ? "#FCE4E4"
+                            : file.status === "processing"
+                            ? "#FDF1DC"
+                            : "#E3EEFB",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1876,10 +1661,10 @@ const setDetail = (key) => (e) =>
                         {file.status === "success"
                           ? "Converted successfully"
                           : file.status === "error"
-                            ? "Failed to process"
-                            : file.status === "processing"
-                              ? "Processing..."
-                              : "Ready to process"}
+                          ? "Failed to process"
+                          : file.status === "processing"
+                          ? "Processing..."
+                          : "Ready to process"}
                       </Typography>
                     </Box>
                     {file.status === "pending" && (
@@ -1901,7 +1686,6 @@ const setDetail = (key) => (e) =>
             </Box>
           )}
 
-          {/* Results Table */}
           {ocrResults.length > 0 && (
             <Box>
               <Typography
@@ -1921,11 +1705,11 @@ const setDetail = (key) => (e) =>
                   <TableHead>
                     <TableRow>
                       {[
-                        "Claim #",
+                        "Claim No",
                         "Location",
-                        "Payer",
+                        "Payor",
                         "Payment Method",
-                        "Check #",
+                        "Check No",
                         "Check Date",
                         "Claimed",
                         "Paid",
@@ -1970,13 +1754,7 @@ const setDetail = (key) => (e) =>
                         <TableCell sx={{ fontSize: 11 }}>
                           ${money(result.claimedAmount)}
                         </TableCell>
-                        <TableCell
-                          sx={{
-                            fontSize: 11,
-                            color: "#1E7F55",
-                            fontWeight: 600,
-                          }}
-                        >
+                        <TableCell sx={{ fontSize: 11, color: "#1E7F55", fontWeight: 600 }}>
                           ${money(result.paidAmount)}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
@@ -1991,7 +1769,6 @@ const setDetail = (key) => (e) =>
           )}
         </Box>
 
-        {/* Footer */}
         <Box
           sx={{
             px: 3,
@@ -2005,14 +1782,10 @@ const setDetail = (key) => (e) =>
         >
           <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
             {(() => {
-              const processedCount = ocrFiles.filter(
-                (f) => f.status === "success",
-              ).length;
-              const pendingCount = ocrFiles.filter(
-                (f) => f.status === "pending",
-              ).length;
+              const processedCount = ocrFiles.filter(f => f.status === "success").length;
+              const pendingCount = ocrFiles.filter(f => f.status === "pending").length;
               const totalRecords = ocrResults.length;
-
+              
               if (totalRecords > 0 && pendingCount === 0) {
                 return `${totalRecords} record(s) converted from ${processedCount} file(s)`;
               } else if (pendingCount > 0 && totalRecords > 0) {
@@ -2045,7 +1818,7 @@ const setDetail = (key) => (e) =>
             </Button>
             {ocrResults.length > 0 ? (
               <>
-                {ocrFiles.filter((f) => f.status === "pending").length > 0 && (
+                {ocrFiles.filter(f => f.status === "pending").length > 0 && (
                   <Button
                     variant="outlined"
                     onClick={handleProcessOCR}
@@ -2057,9 +1830,9 @@ const setDetail = (key) => (e) =>
                       color: "#0066FF",
                       borderColor: "#0066FF",
                       px: 2.5,
-                      "&:hover": {
+                      "&:hover": { 
                         borderColor: "#0052CC",
-                        backgroundColor: "rgba(0, 102, 255, 0.04)",
+                        backgroundColor: "rgba(0, 102, 255, 0.04)"
                       },
                     }}
                   >
@@ -2076,10 +1849,7 @@ const setDetail = (key) => (e) =>
                     backgroundColor: "#0066FF",
                     px: 2.5,
                     boxShadow: "none",
-                    "&:hover": {
-                      backgroundColor: "#0052CC",
-                      boxShadow: "none",
-                    },
+                    "&:hover": { backgroundColor: "#0052CC", boxShadow: "none" },
                   }}
                 >
                   Save ERA Data
@@ -2089,10 +1859,7 @@ const setDetail = (key) => (e) =>
               <Button
                 variant="contained"
                 onClick={handleProcessOCR}
-                disabled={
-                  ocrFiles.filter((f) => f.status === "pending").length === 0 ||
-                  ocrProcessing
-                }
+                disabled={ocrFiles.filter(f => f.status === "pending").length === 0 || ocrProcessing}
                 sx={{
                   textTransform: "none",
                   fontSize: 13,

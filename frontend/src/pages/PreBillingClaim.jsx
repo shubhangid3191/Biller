@@ -2681,6 +2681,15 @@ const REMIT_CHIPS = [
   ["markReview", "Mark as Review", "Mark as review"],
 ];
 
+const POST_CHIPS = [
+  ["all", "All", null],
+  ["submitted", "Submitted", "Submitted"],
+  ["readyForStatement", "Ready for statement", "Ready for statement"],
+  ["settled", "Settled", "Settled"],
+  ["eraReceived", "ERA Received", "ERA Received"],
+  ["posted", "Posted", "Posted"],
+];
+
 const TABS = [
   "Pre-Billing Claims",
   "Post-Billing Claims",
@@ -2738,6 +2747,7 @@ function PreBillingClaim() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [postStatusFilter, setPostStatusFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState({
     preBilling: false,
     postBilling: false,
@@ -3285,7 +3295,7 @@ function PreBillingClaim() {
     : preBillingSearched;
 
   /* ---------- Post-billing ---------- */
-  const postBillingFiltered = applyAll(withMeta(postBillingClaimsData), {
+  const postBillingSearched = applyAll(withMeta(postBillingClaimsData), {
     searchFields: [
       "patientName",
       "claimId",
@@ -3308,6 +3318,11 @@ function PreBillingClaim() {
     statusField: "status",
     dateField: "dos",
   });
+
+  const postChipStatus = POST_CHIPS.find((c) => c[0] === postStatusFilter)?.[2];
+  const postBillingFiltered = postChipStatus
+    ? postBillingSearched.filter((c) => c.status === postChipStatus)
+    : postBillingSearched;
 
   const [remarkFocused, setRemarkFocused] = useState(false);
 
@@ -4101,11 +4116,7 @@ function PreBillingClaim() {
                       value={filterForm.patientName}
                       onChange={setFilterField("patientName")}
                     />
-                    <FilterText
-                      label="Global Patient ID"
-                      value={filterForm.claimNumber}
-                      onChange={setFilterField("claimNumber")}
-                    />
+                   
                     <Box /> {/* Empty cell */}
                     <Box /> {/* Empty cell */}
                   </>
@@ -4146,11 +4157,7 @@ function PreBillingClaim() {
                         "Queued for email",
                       ]}
                     />
-                    <FilterText
-                      label="Global Patient ID"
-                      value={filterForm.claimNumber}
-                      onChange={setFilterField("claimNumber")}
-                    />
+                   
                   </>
                 )}
               </Box>
@@ -4206,7 +4213,7 @@ function PreBillingClaim() {
       {/* ================= PRE-BILLING TAB ================= */}
       {currentTab === 0 && (
         <Box>
-          {!hideTabsAndBanner && <ChargeCaptureBanner />}
+          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
 
           {/* Status chips + actions */}
           <Box
@@ -4600,20 +4607,36 @@ function PreBillingClaim() {
       {/* ================= POST-BILLING TAB ================= */}
       {currentTab === 1 && (
         <Box>
-          {!hideTabsAndBanner && <ChargeCaptureBanner />}
+          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
 
-          {/* Action buttons row */}
+          {/* Status chips + action buttons row */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
               px: 2,
               py: 1,
               gap: 2,
               backgroundColor: "#f5f7fa",
             }}
           >
+            <Box sx={{ display: "flex", gap: 1 }}>
+              {POST_CHIPS.map(([id, label, match]) => (
+                <FilterChip
+                  key={id}
+                  label={`${label} ${
+                    match
+                      ? postBillingSearched.filter((c) => c.status === match)
+                          .length
+                      : postBillingSearched.length
+                  }`}
+                  active={postStatusFilter === id}
+                  onClick={() => setPostStatusFilter(id)}
+                />
+              ))}
+            </Box>
+
             <Box
               sx={{
                 display: "flex",
@@ -5025,7 +5048,7 @@ function PreBillingClaim() {
       {/* ================= REMITTANCE ERA/EOB TAB ================= */}
       {currentTab === 2 && (
         <Box>
-          {!hideTabsAndBanner && <ChargeCaptureBanner />}
+          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
 
           <Box
             sx={{
@@ -5284,7 +5307,7 @@ function PreBillingClaim() {
       {/* ================= PATIENT STATEMENT TAB ================= */}
       {currentTab === 3 && (
         <Box>
-          {!hideTabsAndBanner && <ChargeCaptureBanner />}
+          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
 
           {/* Toolbar */}
           <Box
