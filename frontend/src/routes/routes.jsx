@@ -247,14 +247,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/eob-upload"
-        element={
-          <ProtectedRoute>
-            <div style={{ padding: "24px" }}>EOB Upload Page</div>
-          </ProtectedRoute>
-        }
-      />
+
+      
+
       <Route
         path="/encounters"
         element={
@@ -343,14 +338,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/excel-access"
-        element={
-          <ProtectedRoute>
-            <div style={{ padding: "24px" }}>Excel Access Page</div>
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/reports"
         element={

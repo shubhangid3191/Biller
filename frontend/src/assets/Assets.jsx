@@ -1797,3 +1797,14 @@ export const MyRecentsArrowIcon = ({
     />
   </svg>
 );
+export const SendNew = ({
+  width = 16,
+  height = 16,
+  color = "#ffffff",
+}) => (
+ <svg width="16" height="16" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.875 12.5V2.5L13.75 7.5L1.875 12.5ZM3.125 10.625L10.5312 7.5L3.125 4.375V6.5625L6.875 7.5L3.125 8.4375V10.625Z" fill="#0052E1"/>
+</svg>
+);
+
+

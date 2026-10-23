@@ -40,6 +40,9 @@ import {
   CloudUpload,
   CheckCircle,
   Error as ErrorIcon,
+  EmailRounded,
+  Phone,
+  Check,
 } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -70,6 +73,7 @@ import {
   DeleteIcon,
   SearchIcon,
   BlueCalendarIcon,
+  SendNew,
 } from "../assets/Assets";
 
 dayjs.extend(customParseFormat);
@@ -80,6 +84,10 @@ dayjs.extend(customParseFormat);
 const BLUE = "#0B63F6";
 const SORT_BLUE = "#2563EB";
 const SORT_ARROW = "#52525B";
+
+/* Highlight colours for advanced-filter fields that are currently applied */
+const APPLIED_BORDER = "#0066FF";
+const APPLIED_BG = "#EFF6FF";
 
 const headBg = "#F1F5FC";
 const selHeadBg = "#E6EDFC";
@@ -190,11 +198,11 @@ const statusChipStyles = {
 };
 
 const thinScroll = {
-  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar": { width: "6px", height: "6px" },
   "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
   "&::-webkit-scrollbar-thumb": {
     backgroundColor: "#d1d5db",
-    borderRadius: "2px",
+    borderRadius: "4px",
   },
   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
 };
@@ -332,90 +340,90 @@ function PaginationBar({
           justifyContent: "center",
         }}
       >
-      {/* Page numbers */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-        <IconButton
-          size="small"
-          disabled={page === 0}
-          onClick={() => onPageChange(page - 1)}
-          sx={arrowBtnSx}
-          aria-label="Previous page"
-        >
-          <KeyboardArrowLeft sx={{ fontSize: 18 }} />
-        </IconButton>
+        {/* Page numbers */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => onPageChange(page - 1)}
+            sx={arrowBtnSx}
+            aria-label="Previous page"
+          >
+            <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+          </IconButton>
 
-        {items.map((item, idx) =>
-          item === "…" ? (
-            <Typography
-              key={`gap-${idx}`}
-              sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
-            >
-              …
-            </Typography>
-          ) : (
-            <Button
-              key={item}
-              onClick={() => onPageChange(item - 1)}
-              sx={pageBtnSx(item === page + 1)}
-            >
-              {item}
-            </Button>
-          ),
-        )}
+          {items.map((item, idx) =>
+            item === "…" ? (
+              <Typography
+                key={`gap-${idx}`}
+                sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+              >
+                …
+              </Typography>
+            ) : (
+              <Button
+                key={item}
+                onClick={() => onPageChange(item - 1)}
+                sx={pageBtnSx(item === page + 1)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
 
-        <IconButton
-          size="small"
-          disabled={page >= totalPages - 1}
-          onClick={() => onPageChange(page + 1)}
-          sx={arrowBtnSx}
-          aria-label="Next page"
-        >
-          <KeyboardArrowRight sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
+          <IconButton
+            size="small"
+            disabled={page >= totalPages - 1}
+            onClick={() => onPageChange(page + 1)}
+            sx={arrowBtnSx}
+            aria-label="Next page"
+          >
+            <KeyboardArrowRight sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
 
-      {/* Go to page */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-        <InputBase
-          value={goTo}
-          onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleGo();
-          }}
-          placeholder={`1–${totalPages}`}
-          inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
-          sx={{
-            width: 64,
-            height: 26,
-            px: 1,
-            fontSize: 11,
-            border: "1px solid #D1D5DB",
-            borderRadius: "6px",
-            backgroundColor: "#FFFFFF",
-            "&:focus-within": { borderColor: "#0066FF" },
-            "& input": { p: 0, textAlign: "center" },
-          }}
-        />
-        <Button
-          variant="outlined"
-          onClick={handleGo}
-          disabled={!goTo}
-          sx={{
-            textTransform: "none",
-            fontSize: 11,
-            fontWeight: 600,
-            height: 26,
-            px: 1.25,
-            borderRadius: "6px",
-            color: "#0066FF",
-            borderColor: "#0066FF",
-            whiteSpace: "nowrap",
-            "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
-          }}
-        >
-          Go To Page
-        </Button>
-      </Box>
+        {/* Go to page */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <InputBase
+            value={goTo}
+            onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleGo();
+            }}
+            placeholder={`1–${totalPages}`}
+            inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+            sx={{
+              width: 64,
+              height: 26,
+              px: 1,
+              fontSize: 11,
+              border: "1px solid #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              "&:focus-within": { borderColor: "#0066FF" },
+              "& input": { p: 0, textAlign: "center" },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleGo}
+            disabled={!goTo}
+            sx={{
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 600,
+              height: 26,
+              px: 1.25,
+              borderRadius: "6px",
+              color: "#0066FF",
+              borderColor: "#0066FF",
+              whiteSpace: "nowrap",
+              "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+            }}
+          >
+            Go To Page
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
@@ -653,10 +661,6 @@ function SortHeadCell({
   );
 }
 
-/* Generic sortable + paginated table used by every tab.
-   - outer Box  : fixed height (comes from containerSx), never scrolls
-   - TableContainer : the only scrolling area (rows scroll inside it)
-   - TablePagination: pinned at the bottom (25 / 50 / 100 rows per page) */
 function ListTable({
   columns,
   rows,
@@ -969,12 +973,16 @@ function IconHead({ Icon, title }) {
   );
 }
 
+/* ---------- Advanced filter fields (with "applied" highlight) ---------- */
 const HEAD_LABEL_SX = {
   fontSize: 10,
   fontWeight: 600,
   color: "#374151",
   mb: 0.3,
 };
+
+const appliedLabelSx = (applied) =>
+  applied ? { ...HEAD_LABEL_SX, color: APPLIED_BORDER } : HEAD_LABEL_SX;
 
 const filterFieldSx = {
   fontSize: 11,
@@ -1024,20 +1032,32 @@ function FilterSelect({
   onChange,
   options,
   placeholder = "Select",
+  applied = false,
 }) {
   return (
     <Box>
-      <Typography sx={HEAD_LABEL_SX}>{label}</Typography>
+      <Typography sx={appliedLabelSx(applied)}>{label}</Typography>
       <FormControl fullWidth size="small">
         <Select
           displayEmpty
-          value={value}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           IconComponent={KeyboardArrowDown}
           renderValue={(v) =>
             v ? v : <span style={{ color: "#9CA3AF" }}>{placeholder}</span>
           }
-          sx={filterSelectSx}
+          sx={[
+            filterSelectSx,
+            applied && {
+              backgroundColor: APPLIED_BG,
+              fontWeight: 600,
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: APPLIED_BORDER,
+                borderWidth: "1px",
+              },
+              "& .MuiSelect-icon": { color: APPLIED_BORDER },
+            },
+          ]}
         >
           {options.map((s) => (
             <MenuItem key={s} value={s}>
@@ -1050,17 +1070,29 @@ function FilterSelect({
   );
 }
 
-function FilterText({ label, value, onChange }) {
+function FilterText({ label, value, onChange, applied = false }) {
   return (
     <Box>
-      <Typography sx={HEAD_LABEL_SX}>{label}</Typography>
+      <Typography sx={appliedLabelSx(applied)}>{label}</Typography>
       <TextField
         fullWidth
         size="small"
         placeholder="Type"
-        value={value}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        sx={filterFieldSx}
+        sx={[
+          filterFieldSx,
+          applied && {
+            "& .MuiOutlinedInput-root": {
+              backgroundColor: APPLIED_BG,
+              fontWeight: 600,
+              "& fieldset": {
+                borderColor: APPLIED_BORDER,
+                borderWidth: "1px",
+              },
+            },
+          },
+        ]}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end" sx={{ m: 0 }}>
@@ -1073,7 +1105,7 @@ function FilterText({ label, value, onChange }) {
   );
 }
 
-function FilterDate({ label, value, onChange }) {
+function FilterDate({ label, value, onChange, applied = false }) {
   const parsed =
     value && dayjs(value, "MM/DD/YYYY", true).isValid()
       ? dayjs(value, "MM/DD/YYYY", true)
@@ -1081,7 +1113,7 @@ function FilterDate({ label, value, onChange }) {
 
   return (
     <Box>
-      <Typography sx={HEAD_LABEL_SX}>{label}</Typography>
+      <Typography sx={appliedLabelSx(applied)}>{label}</Typography>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePicker
           value={parsed}
@@ -1108,10 +1140,13 @@ function FilterDate({ label, value, onChange }) {
                     fontSize: 11,
                     borderRadius: "6px",
                     paddingRight: "8px",
+                    backgroundColor: applied ? APPLIED_BG : "transparent",
+                    fontWeight: applied ? 600 : 400,
                   },
                 "& .MuiPickersOutlinedInput-notchedOutline, & .MuiOutlinedInput-notchedOutline":
                   {
-                    borderColor: "#E5E7EB",
+                    borderColor: applied ? APPLIED_BORDER : "#E5E7EB",
+                    borderWidth: applied ? "1px" : "1px",
                     borderRadius: "6px",
                   },
                 // inner typed text: "MM/DD/YYYY" sections
@@ -1124,10 +1159,7 @@ function FilterDate({ label, value, onChange }) {
                   fontSize: 11,
                   lineHeight: 1,
                 },
-                "& .MuiPickersSectionList-root": {
-                  padding: 0,
-                  fontSize: 11,
-                },
+                "& .MuiPickersSectionList-root": { padding: 0, fontSize: 11 },
                 // older MUI X versions (v6) use a real <input>
                 "& .MuiInputBase-input": {
                   padding: "0 0 0 6px",
@@ -1608,160 +1640,17 @@ const REMIT_STATUS_STYLES = {
 };
 
 const REMIT_SAMPLE = [
-  [
-    "1234567",
-    "GCH-IH",
-    "Aetna",
-    "Check",
-    "ERA",
-    "14315316136",
-    "$455",
-    "11/20/2025",
-    "11/21/2025",
-    3,
-    "$0",
-    "Posted",
-  ],
-  [
-    "1234568",
-    "GCH-OH",
-    "BCBS",
-    "EFT",
-    "EOB",
-    "14315316137",
-    "$1,240",
-    "11/21/2025",
-    "11/22/2025",
-    5,
-    "$240",
-    "Partially posted",
-  ],
-  [
-    "1234569",
-    "GCH-IH",
-    "Cigna",
-    "Check",
-    "ERA",
-    "14315316138",
-    "$820",
-    "11/19/2025",
-    "11/20/2025",
-    2,
-    "$820",
-    "Not Posted",
-  ],
-  [
-    "1234570",
-    "GCH-OH",
-    "UnitedHealth",
-    "EFT",
-    "ERA",
-    "14315316139",
-    "$2,100",
-    "11/22/2025",
-    "11/23/2025",
-    7,
-    "$0",
-    "Fully posted",
-  ],
-  [
-    "1234571",
-    "GCH-IH",
-    "Aetna",
-    "Check",
-    "EOB",
-    "14315316140",
-    "$675",
-    "11/18/2025",
-    "11/19/2025",
-    4,
-    "$675",
-    "Not Posted",
-  ],
-  [
-    "1234572",
-    "GCH-OH",
-    "Medicare",
-    "EFT",
-    "ERA",
-    "14315316141",
-    "$3,450",
-    "11/23/2025",
-    "11/24/2025",
-    12,
-    "$450",
-    "Partially posted",
-  ],
-  [
-    "1234573",
-    "GCH-IH",
-    "BCBS",
-    "Check",
-    "ERA",
-    "14315316142",
-    "$1,890",
-    "11/17/2025",
-    "11/18/2025",
-    6,
-    "$0",
-    "Posted",
-  ],
-  [
-    "1234574",
-    "GCH-OH",
-    "Cigna",
-    "EFT",
-    "EOB",
-    "14315316143",
-    "$920",
-    "11/24/2025",
-    "11/25/2025",
-    3,
-    "$120",
-    "Partially posted",
-  ],
-  [
-    "1234575",
-    "GCH-IH",
-    "UnitedHealth",
-    "Check",
-    "ERA",
-    "14315316144",
-    "$1,550",
-    "11/16/2025",
-    "11/17/2025",
-    5,
-    "$1,550",
-    "Not Posted",
-  ],
-  [
-    "1234576",
-    "GCH-OH",
-    "Aetna",
-    "EFT",
-    "ERA",
-    "14315316145",
-    "$2,340",
-    "11/25/2025",
-    "11/26/2025",
-    8,
-    "$0",
-    "Fully posted",
-  ],
-  [
-    "1234577",
-    "GCH-IH",
-    "Medicare",
-    "Check",
-    "ERA",
-    "14315316146",
-    "$780",
-    "11/15/2025",
-    "11/16/2025",
-    2,
-    "$780",
-    "Mark as review",
-  ],
+  ["1234567", "GCH-IH", "Aetna", "Check", "ERA", "14315316136", "$455", "11/20/2025", "11/21/2025", 3, "$0", "Posted"],
+  ["1234568", "GCH-OH", "BCBS", "EFT", "EOB", "14315316137", "$1,240", "11/21/2025", "11/22/2025", 5, "$240", "Partially posted"],
+  ["1234569", "GCH-IH", "Cigna", "Check", "ERA", "14315316138", "$820", "11/19/2025", "11/20/2025", 2, "$820", "Not Posted"],
+  ["1234570", "GCH-OH", "UnitedHealth", "EFT", "ERA", "14315316139", "$2,100", "11/22/2025", "11/23/2025", 7, "$0", "Fully posted"],
+  ["1234571", "GCH-IH", "Aetna", "Check", "EOB", "14315316140", "$675", "11/18/2025", "11/19/2025", 4, "$675", "Not Posted"],
+  ["1234572", "GCH-OH", "Medicare", "EFT", "ERA", "14315316141", "$3,450", "11/23/2025", "11/24/2025", 12, "$450", "Partially posted"],
+  ["1234573", "GCH-IH", "BCBS", "Check", "ERA", "14315316142", "$1,890", "11/17/2025", "11/18/2025", 6, "$0", "Posted"],
+  ["1234574", "GCH-OH", "Cigna", "EFT", "EOB", "14315316143", "$920", "11/24/2025", "11/25/2025", 3, "$120", "Partially posted"],
+  ["1234575", "GCH-IH", "UnitedHealth", "Check", "ERA", "14315316144", "$1,550", "11/16/2025", "11/17/2025", 5, "$1,550", "Not Posted"],
+  ["1234576", "GCH-OH", "Aetna", "EFT", "ERA", "14315316145", "$2,340", "11/25/2025", "11/26/2025", 8, "$0", "Fully posted"],
+  ["1234577", "GCH-IH", "Medicare", "Check", "ERA", "14315316146", "$780", "11/15/2025", "11/16/2025", 2, "$780", "Mark as review"],
 ];
 
 const remittanceData = REMIT_SAMPLE.map(
@@ -1800,186 +1689,40 @@ const remittanceData = REMIT_SAMPLE.map(
 
 /* ---------- Patient Statement: New ---------- */
 const STMT_SAMPLE = [
-  [
-    "Aamir Pathan",
-    "863",
-    "05/13/1984",
-    "Self pay",
-    "Never sent",
-    0,
-    0,
-    0,
-    "$600.00",
-    "",
-  ],
-  [
-    "Ashwani Srivastva",
-    "849",
-    "06/30/2000",
-    "Self pay",
-    "11/11/2025",
-    1,
-    1,
-    0,
-    "$44.08",
-    "",
-  ],
-  [
-    "Asok Rana",
-    "852",
-    "11/27/1980",
-    "Self pay",
-    "Never sent",
-    0,
-    0,
-    0,
-    "$220.00",
-    "",
-  ],
-  [
-    "Beena Rawat",
-    "846",
-    "08/24/1965",
-    "Medicare",
-    "11/19/2025",
-    1,
-    0,
-    1,
-    "$180.00",
-    "",
-  ],
-  [
-    "Daniel Mishra",
-    "833",
-    "11/17/1999",
-    "Payment plan",
-    "11/11/2025",
-    2,
-    1,
-    1,
-    "$554.50",
-    "",
-  ],
-  [
-    "Dinesh Singh",
-    "837",
-    "06/23/1998",
-    "Self pay",
-    "12/13/2025",
-    1,
-    0,
-    0,
-    "$101.00",
-    "",
-  ],
-  [
-    "Divesh Sundriyal",
-    "830",
-    "05/18/1987",
-    "Self pay",
-    "01/14/2026",
-    2,
-    1,
-    1,
-    "$120.00",
-    "",
-  ],
-  [
-    "Divya Negi",
-    "828",
-    "01/27/1990",
-    "Self pay",
-    "07/28/2026",
-    2,
-    1,
-    0,
-    "$133.00",
-    "Bad address on file, mailing",
-  ],
-  [
-    "Govind Singh",
-    "850",
-    "05/12/2013",
-    "Commercial",
-    "Never sent",
-    0,
-    0,
-    0,
-    "$226.00",
-    "Bad address on file, mailing",
-  ],
-  [
-    "Govind Singh",
-    "850",
-    "05/12/2013",
-    "Commercial",
-    "Never sent",
-    0,
-    0,
-    0,
-    "$226.00",
-    "Bad address on file, mailing",
-  ],
-  [
-    "Preeti Bhandari",
-    "868",
-    "03/09/1972",
-    "Medicare",
-    "02/02/2026",
-    3,
-    1,
-    0,
-    "$88.25",
-    "",
-  ],
-  [
-    "Rajkumar Patwal",
-    "827",
-    "02/13/1989",
-    "Credit bal.",
-    "Never sent",
-    0,
-    1,
-    1,
-    "-$1,652.00",
-    "",
-  ],
-  [
-    "Ramesh Chopra",
-    "854",
-    "11/29/2001",
-    "Payment plan",
-    "11/25/2025",
-    1,
-    1,
-    0,
-    "$284.00",
-    "",
-  ],
-  [
-    "Salmaan Pathan",
-    "864",
-    "10/29/1979",
-    "Commercial",
-    "11/20/2025",
-    1,
-    1,
-    0,
-    "$270.00",
-    "",
-  ],
-  [
-    "Sunita Joshi",
-    "875",
-    "12/01/1958",
-    "Commercial",
-    "10/30/2025",
-    1,
-    1,
-    0,
-    "$96.40",
-    "",
-  ],
+  ["Aamir Pathan", "863", "05/13/1984", "Self pay", "Never sent", 0, 0, 0, "$600.00", ""],
+  ["Ashwani Srivastva", "849", "06/30/2000", "Self pay", "11/11/2025", 1, 1, 0, "$44.08", ""],
+  ["Asok Rana", "852", "11/27/1980", "Self pay", "Never sent", 0, 0, 0, "$220.00", ""],
+  ["Beena Rawat", "846", "08/24/1965", "Medicare", "11/19/2025", 1, 0, 1, "$180.00", ""],
+  ["Daniel Mishra", "833", "11/17/1999", "Payment plan", "11/11/2025", 2, 1, 1, "$554.50", ""],
+  ["Dinesh Singh", "837", "06/23/1998", "Self pay", "12/13/2025", 1, 0, 0, "$101.00", ""],
+  ["Divesh Sundriyal", "830", "05/18/1987", "Self pay", "01/14/2026", 2, 1, 1, "$120.00", ""],
+  ["Divya Negi", "828", "01/27/1990", "Self pay", "07/28/2026", 2, 1, 0, "$133.00", "Bad address on file, mailing"],
+  ["Govind Singh", "850", "05/12/2013", "Commercial", "Never sent", 0, 0, 0, "$226.00", "Bad address on file, mailing"],
+  ["Govind Singh", "850", "05/12/2013", "Commercial", "Never sent", 0, 0, 0, "$226.00", "Bad address on file, mailing"],
+  ["Preeti Bhandari", "868", "03/09/1972", "Medicare", "02/02/2026", 3, 1, 0, "$88.25", ""],
+  ["Rajkumar Patwal", "827", "02/13/1989", "Credit bal.", "Never sent", 0, 1, 1, "-$1,652.00", ""],
+  ["Ramesh Chopra", "854", "11/29/2001", "Payment plan", "11/25/2025", 1, 1, 0, "$284.00", ""],
+  ["Salmaan Pathan", "864", "10/29/1979", "Commercial", "11/20/2025", 1, 1, 0, "$270.00", ""],
+  ["Sunita Joshi", "875", "12/01/1958", "Commercial", "10/30/2025", 1, 1, 0, "$96.40", ""],
+];
+
+/* [hasEmail, hasPhone] for each of the 15 statement rows */
+const STMT_CONTACTS = [
+  [true, true],
+  [true, false],
+  [false, true],
+  [true, true],
+  [false, true],
+  [true, false],
+  [true, true],
+  [false, false], // neither: shows no icons, only visible when no filter is applied
+  [true, true],
+  [true, true],
+  [true, false],
+  [false, true],
+  [true, true],
+  [true, false],
+  [false, true],
 ];
 
 const newStatementData = STMT_SAMPLE.map(
@@ -2015,6 +1758,8 @@ const newStatementData = STMT_SAMPLE.map(
     alert,
     flagged: i === 5,
     negative: balance.startsWith("-"),
+    hasEmail: STMT_CONTACTS[i]?.[0] ?? false,
+    hasPhone: STMT_CONTACTS[i]?.[1] ?? false,
   }),
 );
 
@@ -2059,15 +1804,32 @@ const PRE_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
-    cellSx: { minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
+    cellSx: {
+      minWidth: 140,
+      maxWidth: 180,
+      whiteSpace: "normal",
+      wordWrap: "break-word",
+    },
     render: (r) => `${r.patientName} ${r.gender}`,
+  },
+  { 
+    id: "fin", 
+    label: "Fin ID", 
+    center: true,
+    cellSx: { minWidth: 70, color: "#4B5563" }
+  },
+  { 
+    id: "mrn", 
+    label: "MRN", 
+    center: true,
+    cellSx: { minWidth: 90, color: "#4B5563" }
   },
   { id: "cpt", label: "CPT", center: true },
   { id: "modifier", label: "Mod", center: true },
   { id: "icd", label: "ICD", center: true },
   { id: "primaryInsurance", label: "Primary\nInsurance", center: true },
   { id: "billed", label: "Billed\nAmt", center: true },
-  { id: "patientCopay", label: "Patient\nCopay", center: true },
+  { id: "patientCopay", label: "Copay", center: true },
   {
     id: "status",
     label: "Status",
@@ -2106,7 +1868,12 @@ const POST_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
-    cellSx: { minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
+    cellSx: {
+      minWidth: 140,
+      maxWidth: 180,
+      whiteSpace: "normal",
+      wordWrap: "break-word",
+    },
     render: (r) => `${r.patientName} ${r.gender}`,
   },
   { id: "cpt", label: "CPT", center: true },
@@ -2221,7 +1988,47 @@ const NEW_STMT_COLUMNS = [
     label: "Patient Name",
     sort: "alpha",
     center: true,
-    cellSx: { fontWeight: 600, minWidth: 140, maxWidth: 180, whiteSpace: "normal", wordWrap: "break-word" },
+    cellSx: {
+      fontWeight: 600,
+      minWidth: 140,
+      maxWidth: 220,
+      whiteSpace: "normal",
+      wordWrap: "break-word",
+    },
+    render: (r) => (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 0.8,
+        }}
+      >
+        {/* fixed-width slot so names line up whether a patient has 0, 1 or 2 icons */}
+        <Box
+          sx={{
+            width: 34,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 0.6,
+            flexShrink: 0,
+          }}
+        >
+          {r.hasEmail && (
+            <Tooltip title="Email available" placement="top">
+              <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
+            </Tooltip>
+          )}
+          {r.hasPhone && (
+            <Tooltip title="Phone available" placement="top">
+              <Phone sx={{ fontSize: 15, color: "#0B1560" }} />
+            </Tooltip>
+          )}
+        </Box>
+        <span>{r.name}</span>
+      </Box>
+    ),
   },
   {
     id: "pid",
@@ -2388,12 +2195,12 @@ const NEW_STMT_COLUMNS = [
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Share" placement="top">
+        <Tooltip title="Send" placement="top">
           <IconButton
             size="small"
             sx={{ p: "3px", "&:hover": { backgroundColor: "transparent" } }}
           >
-            <Share width={17} height={17} />
+            <SendNew sx={{ fontSize: 17, color: "#0066FF" }} />
           </IconButton>
         </Tooltip>
       </Box>
@@ -2506,6 +2313,17 @@ const EMPTY_FILTERS = {
   finId: "",
   mrn: "",
   status: "",
+  // Post-billing (own keys so they don't clash with Patient Name / MRN)
+  renderingProvider: "",
+  insuranceType: "",
+  // Remittance
+  receivedSince: "",
+  receivedTill: "",
+  checkNumber: "",
+  eraId: "",
+  paymentMethod: "",
+  totalPostedAmount: "",
+  totalUnpostedAmount: "",
 };
 
 const PROVIDER_OPTIONS = [
@@ -2514,7 +2332,9 @@ const PROVIDER_OPTIONS = [
   "David L. MD",
   "Emily R. MD",
 ];
-const PLAN_OPTIONS = ["PPO", "HMO", "EPO", "POS"];
+const PLAN_OPTIONS = ["E-Claim", "Paper Claim", "Patient"];
+
+const INSURANCE_OPTIONS = ["Primary", "Secondary", "Tertiary"];
 
 const EMPTY_ADJ = {
   type: "",
@@ -2531,12 +2351,14 @@ const EMPTY_ADJ = {
 const PRE_BILLING_COLUMN_OPTIONS = [
   { key: "dosShort", label: "DOS" },
   { key: "patientName", label: "Patient Name (Gender)" },
+  { key: "fin", label: "Fin ID" }, // Added
+  { key: "mrn", label: "MRN" }, // Added
   { key: "cpt", label: "CPT" },
   { key: "modifier", label: "Modifier" },
   { key: "icd", label: "ICD" },
   { key: "primaryInsurance", label: "Primary Insurance" },
   { key: "billed", label: "Billed Amt" },
-  { key: "patientCopay", label: "Patient Copay" },
+  { key: "patientCopay", label: " Copay" },
   { key: "status", label: "Status" },
   { key: "remarks", label: "Remarks" },
   { key: "encounterId", label: "Encounter ID" },
@@ -2744,6 +2566,11 @@ function PreBillingClaim() {
 
   const [currentTab, setCurrentTab] = useState(getInitialTab());
   const [anchorEl, setAnchorEl] = useState(null);
+  const [contactMenuAnchor, setContactMenuAnchor] = useState(null);
+
+  const [contactFilter, setContactFilter] = useState(null);
+  const [sendMethod, setSendMethod] = useState(null); 
+
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -2803,7 +2630,9 @@ function PreBillingClaim() {
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice typing is not supported in this browser. Please use Chrome.");
+      alert(
+        "Voice typing is not supported in this browser. Please use Chrome.",
+      );
       return;
     }
 
@@ -3165,6 +2994,79 @@ function PreBillingClaim() {
 
   const handleApplyFilters = () => setAppliedFilters({ ...filterForm });
 
+
+ const handleFilterKeyDown = (e) => {
+  if (e.key !== "Enter") return;
+
+  if (!e.currentTarget.contains(e.target)) return;
+
+  if (e.target.closest("button")) return;
+
+  e.preventDefault();
+  e.stopPropagation(); 
+  handleApplyFilters();
+};
+
+  const handleSendStatement = () => {
+    if (!sendMethod) {
+      alert("Please choose Send via SMS or Send via Email first.");
+      return;
+    }
+
+    const label = sendMethod === "sms" ? "SMS" : "Email";
+    const selected = statementSubTab === "new" ? statementNewSelected : [];
+    const total =
+      statementSubTab === "new"
+        ? statementNewSelectedCount
+        : historySelectedRows.length;
+
+    if (total === 0) {
+      alert("Please select at least one patient to send statements.");
+      return;
+    }
+
+    // Only the New tab has contact info; History just uses the count.
+    if (statementSubTab === "new") {
+      const canSend = selected.filter((r) =>
+        sendMethod === "sms" ? r.hasPhone : r.hasEmail,
+      );
+      const skipped = selected.length - canSend.length;
+
+      if (canSend.length === 0) {
+        alert(
+          `None of the selected patients have a ${sendMethod === "sms" ? "phone number" : "email"}.`,
+        );
+        return;
+      }
+
+      // Replace this alert with your real API call, using canSend
+      alert(
+        `Sending via ${label} to ${canSend.length} patient(s)` +
+          (skipped
+            ? ` (${skipped} skipped, no ${sendMethod === "sms" ? "phone" : "email"} on file)`
+            : "") +
+          ".",
+      );
+      return;
+    }
+
+    alert(`Sending via ${label} for ${total} item(s)...`);
+  };
+
+  const handleMenuAction = (action) => {
+    const selectedCount =
+      statementSubTab === "new"
+        ? statementNewSelectedCount
+        : historySelectedRows.length;
+
+    if (selectedCount === 0) {
+      alert(`Please select at least one patient to ${action.toLowerCase()}.`);
+      return;
+    }
+
+    alert(`${action} triggered for ${selectedCount} patient(s).`);
+  };
+
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
     setSearchQuery("");
@@ -3198,6 +3100,9 @@ function PreBillingClaim() {
       .trim();
   const hasVal = (v) =>
     v !== undefined && v !== null && String(v).trim() !== "";
+
+  // true only after "Search" was clicked and that field had a value
+  const isApplied = (key) => hasVal(appliedFilters?.[key]);
 
   /* <input type="date"> gives YYYY-MM-DD, but we now use MM/DD/YYYY */
   const parseInputDate = (s) => {
@@ -3362,6 +3267,7 @@ function PreBillingClaim() {
   });
 
   /* ---------- Patient Statement: New ---------- */
+
   const newStatementFiltered = applyAll(newStatementData, {
     searchFields: [
       "name",
@@ -3375,6 +3281,10 @@ function PreBillingClaim() {
     textMap: { patientName: "name", finId: "pid", mrn: "pid" },
     selectMap: {},
     statusField: "category",
+  }).filter((r) => {
+    if (contactFilter === "email") return r.hasEmail;
+    if (contactFilter === "phone") return r.hasPhone;
+    return true; // default: show everyone
   });
 
   /* ---------- Patient Statement: History ---------- */
@@ -3484,12 +3394,10 @@ function PreBillingClaim() {
     ],
   );
 
-  /* Fixed-size table box (height = window height - everything above/below it).
-     ListTable puts the pagination bar inside this box and scrolls the rows inside it. */
   const fillSx = {
     ...listContainerSx,
     maxHeight: "none",
-    height: tableH ?? "calc(100vh - 300px)", // fallback on the first render
+    height: tableH ?? "calc(100vh - 300px)",
     minHeight: 200,
   };
 
@@ -3785,7 +3693,9 @@ function PreBillingClaim() {
       (showAdvancedFilters.postBilling && currentTab === 1) ||
       (showAdvancedFilters.remittance && currentTab === 2) ||
       (showAdvancedFilters.statement && currentTab === 3) ? (
-        <Box sx={{ backgroundColor: "#F5F7FA", px: 1.2, py: 0.5 }}>
+        <Box 
+        onKeyDownCapture={handleFilterKeyDown}
+        sx={{ backgroundColor: "#F5F7FA", px: 1.2, py: 0.5 }}>
           <Box
             sx={{
               backgroundColor: "#FFFFFF",
@@ -3812,71 +3722,83 @@ function PreBillingClaim() {
               >
                 {/* Row 1 */}
                 <FilterSelect
-                  label="Select Practice"
+                  label="Practice"
                   value={filterForm.provider}
                   onChange={setFilterField("provider")}
                   options={providerOptions}
+                  applied={isApplied("provider")}
                 />
                 <FilterSelect
                   label="Service Location"
                   value={filterForm.serviceLocation}
                   onChange={setFilterField("serviceLocation")}
                   options={locationOptions}
+                  applied={isApplied("serviceLocation")}
                 />
                 <FilterText
                   label="Patient Name"
                   value={filterForm.patientName}
                   onChange={setFilterField("patientName")}
+                  applied={isApplied("patientName")}
+                />
+                <FilterText
+                  label="Batch"
+                  value={filterForm.batchNumber}
+                  onChange={setFilterField("batchNumber")}
+                  applied={isApplied("batchNumber")}
                 />
                 <FilterText
                   label="Fin ID"
                   value={filterForm.finId}
                   onChange={setFilterField("finId")}
+                  applied={isApplied("finId")}
                 />
                 <FilterText
                   label="MRN"
                   value={filterForm.mrn}
                   onChange={setFilterField("mrn")}
-                />
-                <FilterText
-                  label="Batch#"
-                  value={filterForm.batchNumber}
-                  onChange={setFilterField("batchNumber")}
+                  applied={isApplied("mrn")}
                 />
 
                 {/* Row 2 */}
                 <FilterText
-                  label="Claim Number"
+                  label="Claim ID"
                   value={filterForm.claimNumber}
                   onChange={setFilterField("claimNumber")}
+                  applied={isApplied("claimNumber")}
                 />
                 <FilterDate
                   label="DOS From"
                   value={filterForm.dosFrom}
                   onChange={setFilterField("dosFrom")}
+                  applied={isApplied("dosFrom")}
                 />
                 <FilterDate
                   label="DOS Till"
                   value={filterForm.dosTill}
                   onChange={setFilterField("dosTill")}
+                  applied={isApplied("dosTill")}
                 />
                 <FilterSelect
-                  label="Select Status"
+                  label="Status"
                   value={filterForm.status}
                   onChange={setFilterField("status")}
                   options={advStatusOptions}
+                  applied={isApplied("status")}
                 />
                 <FilterSelect
-                  label="Select Insurance"
+                  label="Insurance"
                   value={filterForm.insurance}
                   onChange={setFilterField("insurance")}
                   options={insuranceOptions}
+                  applied={isApplied("insurance")}
                 />
                 <FilterSelect
-                  label="Select Submission Method"
+                  label="Submission Method"
                   value={filterForm.insurancePlan}
                   onChange={setFilterField("insurancePlan")}
                   options={PLAN_OPTIONS}
+                  applied={isApplied("insurancePlan")}
                 />
               </Box>
             )}
@@ -3899,83 +3821,99 @@ function PreBillingClaim() {
               >
                 {/* Row 1 */}
                 <FilterSelect
-                  label="Select Practice"
+                  label="Practice"
                   value={filterForm.provider}
                   onChange={setFilterField("provider")}
                   options={providerOptions}
+                  applied={isApplied("provider")}
                 />
                 <FilterSelect
                   label="Service Location"
                   value={filterForm.serviceLocation}
                   onChange={setFilterField("serviceLocation")}
                   options={locationOptions}
+                  applied={isApplied("serviceLocation")}
                 />
                 <FilterText
                   label="Patient Name"
                   value={filterForm.patientName}
                   onChange={setFilterField("patientName")}
+                  applied={isApplied("patientName")}
+                />
+                <FilterText
+                  label="Batch"
+                  value={filterForm.batchNumber}
+                  onChange={setFilterField("batchNumber")}
+                  applied={isApplied("batchNumber")}
                 />
                 <FilterText
                   label="Fin ID"
                   value={filterForm.finId}
                   onChange={setFilterField("finId")}
+                  applied={isApplied("finId")}
                 />
                 <FilterText
                   label="MRN"
                   value={filterForm.mrn}
                   onChange={setFilterField("mrn")}
+                  applied={isApplied("mrn")}
                 />
-                <FilterText
-                  label="Batch#"
-                  value={filterForm.batchNumber}
-                  onChange={setFilterField("batchNumber")}
-                />
+
                 {/* Row 2 */}
                 <FilterText
                   label="Claim Number"
                   value={filterForm.claimNumber}
                   onChange={setFilterField("claimNumber")}
+                  applied={isApplied("claimNumber")}
                 />
                 <FilterDate
                   label="DOS From"
                   value={filterForm.dosFrom}
                   onChange={setFilterField("dosFrom")}
+                  applied={isApplied("dosFrom")}
                 />
                 <FilterDate
                   label="DOS Till"
                   value={filterForm.dosTill}
                   onChange={setFilterField("dosTill")}
+                  applied={isApplied("dosTill")}
                 />
                 <FilterSelect
-                  label="Select Status"
+                  label="Status"
                   value={filterForm.status}
                   onChange={setFilterField("status")}
                   options={advStatusOptions}
+                  applied={isApplied("status")}
                 />
                 <FilterSelect
-                  label="Select Insurance"
+                  label="Insurance"
                   value={filterForm.insurance}
                   onChange={setFilterField("insurance")}
                   options={insuranceOptions}
+                  applied={isApplied("insurance")}
                 />
                 <FilterSelect
-                  label="Select Submission Method"
+                  label="Submission Method"
                   value={filterForm.insurancePlan}
                   onChange={setFilterField("insurancePlan")}
                   options={PLAN_OPTIONS}
+                  applied={isApplied("insurancePlan")}
                 />
+
                 {/* Row 3 */}
                 <FilterSelect
-                  label="Select Rendering Provider"
-                  value={filterForm.patientName}
-                  onChange={setFilterField("patientName")}
+                  label="Rendering Provider"
+                  value={filterForm.renderingProvider}
+                  onChange={setFilterField("renderingProvider")}
                   options={providerOptions}
+                  applied={isApplied("renderingProvider")}
                 />
                 <FilterSelect
-                  label="Select Insurance Plan"
-                  value={filterForm.mrn}
-                  onChange={setFilterField("mrn")}
-                  options={PLAN_OPTIONS}
+                  label="Insurance Type"
+                  value={filterForm.insuranceType}
+                  onChange={setFilterField("insuranceType")}
+                  options={INSURANCE_OPTIONS}
+                  applied={isApplied("insuranceType")}
                 />
                 <Box /> {/* Empty cell */}
                 <Box /> {/* Empty cell */}
@@ -4002,75 +3940,90 @@ function PreBillingClaim() {
               >
                 {/* Row 1 */}
                 <FilterSelect
-                  label="Select Practice"
+                  label="Practice"
                   value={filterForm.provider}
                   onChange={setFilterField("provider")}
                   options={providerOptions}
+                  applied={isApplied("provider")}
                 />
                 <FilterDate
                   label="Received Since"
                   value={filterForm.receivedSince}
                   onChange={setFilterField("receivedSince")}
+                  applied={isApplied("receivedSince")}
                 />
                 <FilterDate
                   label="Received Till"
                   value={filterForm.receivedTill}
                   onChange={setFilterField("receivedTill")}
+                  applied={isApplied("receivedTill")}
                 />
                 <FilterText
                   label="Claim Number"
                   value={filterForm.claimNumber}
                   onChange={setFilterField("claimNumber")}
+                  applied={isApplied("claimNumber")}
                 />
                 <FilterText
                   label="Check Number"
                   value={filterForm.checkNumber}
                   onChange={setFilterField("checkNumber")}
+                  applied={isApplied("checkNumber")}
                 />
                 <FilterText
                   label="Id"
                   value={filterForm.eraId}
                   onChange={setFilterField("eraId")}
+                  applied={isApplied("eraId")}
                 />
+
                 {/* Row 2 */}
                 <FilterSelect
                   label="Status"
                   value={filterForm.status}
                   onChange={setFilterField("status")}
                   options={advStatusOptions}
+                  applied={isApplied("status")}
                 />
                 <FilterSelect
                   label="Payor"
                   value={filterForm.insurance}
                   onChange={setFilterField("insurance")}
                   options={insuranceOptions}
+                  applied={isApplied("insurance")}
                 />
                 <FilterDate
                   label="Check Date From"
                   value={filterForm.dosFrom}
                   onChange={setFilterField("dosFrom")}
+                  applied={isApplied("dosFrom")}
                 />
                 <FilterDate
                   label="Check Date Till"
                   value={filterForm.dosTill}
                   onChange={setFilterField("dosTill")}
+                  applied={isApplied("dosTill")}
                 />
                 <FilterSelect
                   label="Payment Method"
                   value={filterForm.paymentMethod}
                   onChange={setFilterField("paymentMethod")}
-                  options={["EFT", "Check", "Wire Transfer", "Card"]}
+                  options={["Credit card", "Check", "EFT", "Other"]}
+                  applied={isApplied("paymentMethod")}
                 />
                 <FilterText
                   label="Total Posted Amt"
                   value={filterForm.totalPostedAmount}
                   onChange={setFilterField("totalPostedAmount")}
+                  applied={isApplied("totalPostedAmount")}
                 />
+
                 {/* Row 3 */}
                 <FilterText
                   label="Total Unposted Amt"
                   value={filterForm.totalUnpostedAmount}
                   onChange={setFilterField("totalUnpostedAmount")}
+                  applied={isApplied("totalUnpostedAmount")}
                 />
                 <Box /> {/* Empty cell */}
                 <Box /> {/* Empty cell */}
@@ -4104,19 +4057,21 @@ function PreBillingClaim() {
                       value={filterForm.provider}
                       onChange={setFilterField("provider")}
                       options={providerOptions}
+                      applied={isApplied("provider")}
                     />
                     <FilterSelect
                       label="Service Location"
                       value={filterForm.serviceLocation}
                       onChange={setFilterField("serviceLocation")}
                       options={locationOptions}
+                      applied={isApplied("serviceLocation")}
                     />
                     <FilterText
                       label="Patient Name"
                       value={filterForm.patientName}
                       onChange={setFilterField("patientName")}
+                      applied={isApplied("patientName")}
                     />
-                   
                     <Box /> {/* Empty cell */}
                     <Box /> {/* Empty cell */}
                   </>
@@ -4128,36 +4083,47 @@ function PreBillingClaim() {
                       value={filterForm.provider}
                       onChange={setFilterField("provider")}
                       options={providerOptions}
+                      applied={isApplied("provider")}
                     />
                     <FilterSelect
                       label="Service Location"
                       value={filterForm.serviceLocation}
                       onChange={setFilterField("serviceLocation")}
                       options={locationOptions}
+                      applied={isApplied("serviceLocation")}
                     />
                     <FilterText
                       label="Patient Name"
                       value={filterForm.patientName}
                       onChange={setFilterField("patientName")}
+                      applied={isApplied("patientName")}
                     />
                     <FilterText
                       label="Batch Name"
                       value={filterForm.batchNumber}
                       onChange={setFilterField("batchNumber")}
+                      applied={isApplied("batchNumber")}
                     />
                     <FilterSelect
                       label="Batch Status"
                       value={filterForm.status}
                       onChange={setFilterField("status")}
+                      applied={isApplied("status")}
                       options={[
                         "Draft",
-                        "Email sent",
-                        "Partially sent",
+                        "Prepare Statement",
+                        "Ready to send",
+                        "Ready to Send Email",
+                        "Ready to Send SMS",
+                        "Success",
                         "Failure",
+                        "Sent",
                         "Queued for email",
+                        "Partially Sent",
+                        "Email Sent",
+                        "SMS Sent",
                       ]}
                     />
-                   
                   </>
                 )}
               </Box>
@@ -4213,8 +4179,6 @@ function PreBillingClaim() {
       {/* ================= PRE-BILLING TAB ================= */}
       {currentTab === 0 && (
         <Box>
-          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
-
           {/* Status chips + actions */}
           <Box
             sx={{
@@ -4284,9 +4248,7 @@ function PreBillingClaim() {
                 <MenuItem onClick={() => setAnchorEl(null)}>
                   Export Selected
                 </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Mark as Processed
-                </MenuItem>
+              
               </Menu>
             </Box>
           </Box>
@@ -4301,7 +4263,7 @@ function PreBillingClaim() {
                   onEdit: handleEditPreBilling,
                   onCheck: handleOpenCheckPopup,
                 }}
-                minWidth={900}
+                minWidth={1250} /* INCREASED TO ALLOW HORIZONTAL SCROLL ON SMALL SCREENS IF NEEDED */
                 cbSx={checkboxSx}
                 highlightSelected={false}
                 stickyHeader
@@ -4607,8 +4569,6 @@ function PreBillingClaim() {
       {/* ================= POST-BILLING TAB ================= */}
       {currentTab === 1 && (
         <Box>
-          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
-
           {/* Status chips + action buttons row */}
           <Box
             sx={{
@@ -4755,27 +4715,6 @@ function PreBillingClaim() {
                 sx={{ ...selectActionBtnSx, whiteSpace: "nowrap" }}
               >
                 Submit E-Claim
-              </Button>
-              <Button
-                variant="contained"
-                sx={{
-                  textTransform: "none",
-                  backgroundColor: "#0066ff",
-                  color: "white",
-                  fontWeight: 600,
-                  fontSize: 11,
-                  height: 28,
-                  px: 2,
-                  whiteSpace: "nowrap",
-                  boxShadow: "none",
-                  borderRadius: "8px",
-                  "&:hover": {
-                    backgroundColor: "#0052cc",
-                    boxShadow: "none",
-                  },
-                }}
-              >
-                Send Statement
               </Button>
             </Box>
           </Box>
@@ -5048,8 +4987,6 @@ function PreBillingClaim() {
       {/* ================= REMITTANCE ERA/EOB TAB ================= */}
       {currentTab === 2 && (
         <Box>
-          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
-
           <Box
             sx={{
               display: "flex",
@@ -5307,8 +5244,6 @@ function PreBillingClaim() {
       {/* ================= PATIENT STATEMENT TAB ================= */}
       {currentTab === 3 && (
         <Box>
-          {/* {!hideTabsAndBanner && <ChargeCaptureBanner />} */}
-
           {/* Toolbar */}
           <Box
             sx={{
@@ -5325,7 +5260,10 @@ function PreBillingClaim() {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
               <Button
-                onClick={() => setStatementSubTab("new")}
+                onClick={() => {
+                  setStatementSubTab("new");
+                  handleResetFilters(); // clear highlights when switching sub-tab
+                }}
                 sx={pillBtnSx(statementSubTab === "new")}
               >
                 New
@@ -5338,7 +5276,10 @@ function PreBillingClaim() {
               </Button>
 
               <Button
-                onClick={() => setStatementSubTab("history")}
+                onClick={() => {
+                  setStatementSubTab("history");
+                  handleResetFilters(); // clear highlights when switching sub-tab
+                }}
                 sx={pillBtnSx(statementSubTab === "history")}
               >
                 History
@@ -5373,6 +5314,57 @@ function PreBillingClaim() {
               <Button variant="outlined" sx={filterChipSx}>
                 Fewer [#] statements since last payment
               </Button>
+
+              <Button
+                variant="outlined"
+                sx={{
+                  ...filterChipSx,
+                  ...(contactFilter && {
+                    borderColor: "#0066FF",
+                    color: "#0066FF",
+                    backgroundColor: "#EFF6FF",
+                  }),
+                }}
+                endIcon={<KeyboardArrowDown sx={{ fontSize: 16 }} />}
+                onClick={(e) => setContactMenuAnchor(e.currentTarget)}
+              >
+                {contactFilter === "email"
+                  ? "Contact via email"
+                  : contactFilter === "phone"
+                    ? "Contact via SMS"
+                    : "Contact"}
+              </Button>
+              <Menu
+                anchorEl={contactMenuAnchor}
+                open={Boolean(contactMenuAnchor)}
+                onClose={() => setContactMenuAnchor(null)}
+                PaperProps={{
+                  sx: {
+                    mt: 0.5,
+                    minWidth: 160,
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                {[
+                  ["Contact via email", "email"],
+                  ["Contact via SMS", "phone"],
+                ].map(([label, value]) => (
+                  <MenuItem
+                    key={value}
+                    selected={contactFilter === value}
+                    onClick={() => {
+                      // click the selected option again to clear the filter
+                      setContactFilter((prev) => (prev === value ? null : value));
+                      setContactMenuAnchor(null);
+                    }}
+                    sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}
+                  >
+                    {label}
+                  </MenuItem>
+                ))}
+              </Menu>
             </Box>
           </Box>
 
@@ -5558,29 +5550,73 @@ function PreBillingClaim() {
                   minWidth: 0,
                   px: 1.75,
                   whiteSpace: "nowrap",
+                  ...(sendMethod && {
+                    borderColor: "#0066FF",
+                    color: "#0066FF",
+                    backgroundColor: "#EFF6FF",
+                  }),
                 }}
               >
-                Select action
+                {sendMethod === "sms"
+                  ? "Send via SMS"
+                  : sendMethod === "email"
+                    ? "Send via Email"
+                    : "Select action"}
               </Button>
 
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl) && currentTab === 3}
                 onClose={() => setAnchorEl(null)}
+                anchorOrigin={{ vertical: "top", horizontal: "left" }}
+                transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+                PaperProps={{
+                  sx: {
+                    mb: 0.5,
+                    minWidth: 170,
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  },
+                }}
               >
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Send statement
-                </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Export selected
-                </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)}>
-                  Mark as reviewed
-                </MenuItem>
+                {[
+                  ["Send via SMS", "sms"],
+                  ["Send via Email", "email"],
+                ].map(([label, value]) => (
+                  <MenuItem
+                    key={value}
+                    selected={sendMethod === value}
+                    onClick={() => {
+                      setSendMethod((prev) => (prev === value ? null : value));
+                      setAnchorEl(null);
+                    }}
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: "#374151",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 2,
+                    }}
+                  >
+                    {label}
+                    {sendMethod === value && (
+                      <Check sx={{ fontSize: 16, color: "#0066FF" }} />
+                    )}
+                  </MenuItem>
+                ))}
               </Menu>
 
               <Button
                 variant="outlined"
+                onClick={() => {
+                  setSendMethod(null);
+                  if (statementSubTab === "new") {
+                    setStatementSelectedRows([]);
+                  } else {
+                    setHistorySelectedRows([]);
+                  }
+                }}
                 sx={{ ...footerBtnSx, height: 36, minWidth: 70, px: 1.75 }}
               >
                 Cancel
@@ -5588,6 +5624,7 @@ function PreBillingClaim() {
 
               <Button
                 variant="contained"
+                onClick={handleSendStatement}
                 sx={{
                   textTransform: "none",
                   backgroundColor: BLUE,
@@ -5602,7 +5639,7 @@ function PreBillingClaim() {
                   "&:hover": { backgroundColor: "#0952CC", boxShadow: "none" },
                 }}
               >
-                Save
+                Send
               </Button>
             </Box>
           </Box>
@@ -5712,13 +5749,16 @@ function PreBillingClaim() {
           </Box>
         </Box>
 
+        {/* Added overflowX to handle long column lists and prevent breaking the dialog */}
         <Box
           sx={{
             px: 2.5,
             flex: 1,
-            overflow: "auto",
+            overflowY: "auto",
+            overflowX: "hidden", 
             maxHeight: 400,
             minHeight: 300,
+            ...thinScroll,
           }}
         >
           {getColumnOptions(currentTab, statementSubTab).map((col) => (

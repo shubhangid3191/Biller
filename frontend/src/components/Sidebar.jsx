@@ -129,9 +129,7 @@ function Sidebar() {
       "/pre-billing-claim-page": "Pre Billing Claim",
       "/post-billing-claim-page": "Post Billing Claim",
       "/era": "ERA/EOB",
-      "/eob-upload": "EOB Upload",
       "/icd-10-search": "ICD 10 Search",
-      "/excel-access": "Excel Access",
       "/reports": "Reports",
       "/documents": "Documents",
       "/new-payment": "New Payment",
@@ -160,12 +158,8 @@ function Sidebar() {
         return patientMenuItems.some((item) => isActive(item.path));
       case "claims":
         return claimsMenuItems.some((item) => isActive(item.path));
-      case "eob-upload":
-        return isActive("/eob-upload");
       case "icd-10-search":
         return isActive("/icd-10-search");
-      case "excel-access":
-        return isActive("/excel-access");
       case "reports":
         return isActive("/reports");
       case "documents":
@@ -336,10 +330,9 @@ function Sidebar() {
     },
   ];
 
+  // ✅ EOB UPLOAD and EXCEL ACCESS removed from standalone items
   const standaloneItems = [
-    { text: "EOB UPLOAD", path: "/eob-upload" },
     { text: "ICD 10 SEARCH", path: "/icd-10-search" },
-    { text: "EXCEL ACCESS", path: "/excel-access" },
     { text: "REPORTS", path: "/reports" },
     { text: "DOCUMENTS", path: "/documents" },
   ];
@@ -1174,30 +1167,8 @@ function Sidebar() {
                       justifyContent: "center",
                     }}
                   >
-                    {item.path === "/eob-upload" && (
-                      <HandIcon
-                        width={20}
-                        height={20}
-                        color={
-                          isActive(item.path)
-                            ? "#00d4ff"
-                            : "rgba(255, 255, 255, 0.7)"
-                        }
-                      />
-                    )}
                     {item.path === "/icd-10-search" && (
                       <ListCheckIcon
-                        width={20}
-                        height={20}
-                        color={
-                          isActive(item.path)
-                            ? "#00d4ff"
-                            : "rgba(255, 255, 255, 0.7)"
-                        }
-                      />
-                    )}
-                    {item.path === "/excel-access" && (
-                      <InsuranceProvider
                         width={20}
                         height={20}
                         color={
