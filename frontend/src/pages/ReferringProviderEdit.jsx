@@ -31,7 +31,7 @@ const T = {
   page: "#F5F7FA", // same page bg as the other pages
   border: "#E5E7EB",
   fieldBg: "#F9FAFC",
-  label: "#6B7280",
+  label: "#2F3036",
   error: "#EF4444",
 };
 
@@ -75,7 +75,8 @@ const OPTIONS = {
 const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
-/* All required text/phone fields → label shown in error messages */
+/* Required text/phone fields → label shown in error messages.
+   (Specialty & Taxonomy are validated per row, see specialties state.) */
 const REQUIRED_TEXT_FIELDS = {
   firstName: "First Name",
   lastName: "Last Name",
@@ -84,7 +85,6 @@ const REQUIRED_TEXT_FIELDS = {
   stateLicense: "State License Number",
   mobilePhone: "Mobile Phone",
   phone: "Phone",
-  taxonomy: "Taxonomy",
 };
 
 /* Required select fields → label shown in error messages */
@@ -93,7 +93,6 @@ const REQUIRED_SELECT_FIELDS = {
   practice: "Practice",
   fax: "Fax",
   email: "E-mail",
-  specialty: "Specialty",
 };
 
 const validateField = (name, value) => {
@@ -530,12 +529,51 @@ export default function ReferringProviderEdit() {
     phone: "",
     fax: row?.fax ?? "",
     email: row?.email ?? "",
-    specialty: "",
-    taxonomy: "",
   });
 
   /* touched mirrors ALL_REQUIRED keys */
   const [touched, setTouched] = React.useState({});
+
+  /* ---------- Specialty & Taxonomy rows ---------- */
+  const [specialties, setSpecialties] = React.useState([
+    { id: 1, specialty: "", taxonomy: "" },
+  ]);
+  const [specTouched, setSpecTouched] = React.useState({});
+  const nextSpecId = React.useRef(2);
+
+  const addSpecialty = () =>
+    setSpecialties((prev) => [
+      ...prev,
+      { id: nextSpecId.current++, specialty: "", taxonomy: "" },
+    ]);
+
+  /* delete a row; if it is the only row, just clear it (form never goes empty) */
+  const removeSpecialty = (id) => {
+    setSpecialties((prev) =>
+      prev.length > 1
+        ? prev.filter((r) => r.id !== id)
+        : [{ id, specialty: "", taxonomy: "" }],
+    );
+    setSpecTouched((prev) => {
+      const next = { ...prev };
+      delete next[`${id}-specialty`];
+      delete next[`${id}-taxonomy`];
+      return next;
+    });
+  };
+
+  const updateSpecialty = (id, field, value) =>
+    setSpecialties((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
+    );
+
+  const touchSpec = (id, field) =>
+    setSpecTouched((prev) => ({ ...prev, [`${id}-${field}`]: true }));
+
+  const specError = (r, field) =>
+    specTouched[`${r.id}-${field}`] && !String(r[field]).trim()
+      ? `${field === "specialty" ? "Specialty" : "Taxonomy"} is required`
+      : "";
 
   /* ---------- helpers ---------- */
   const set = (field) => (e) =>
@@ -580,10 +618,22 @@ export default function ReferringProviderEdit() {
     );
     setTouched(allTouched);
 
+    /* mark every specialty/taxonomy row as touched */
+    const specAllTouched = {};
+    specialties.forEach((r) => {
+      specAllTouched[`${r.id}-specialty`] = true;
+      specAllTouched[`${r.id}-taxonomy`] = true;
+    });
+    setSpecTouched(specAllTouched);
+
     const hasErrors = Object.keys(ALL_REQUIRED).some((name) =>
       validateField(name, form[name]),
     );
-    if (hasErrors) {
+    const specHasErrors = specialties.some(
+      (r) => !r.specialty.trim() || !r.taxonomy.trim(),
+    );
+
+    if (hasErrors || specHasErrors) {
       setTimeout(() => {
         document
           .querySelector(".Mui-error")
@@ -592,7 +642,7 @@ export default function ReferringProviderEdit() {
       return;
     }
     /* valid — submit form to API here */
-    console.log("Provider data:", form);
+    console.log("Provider data:", { ...form, pcp, specialties });
   };
 
   /* footer / header button look (same as NewPayment buttons) */
@@ -943,7 +993,7 @@ export default function ReferringProviderEdit() {
         </SectionBox>
 
         {/* =========================================================
-            SPECIALTY & TAXONOMY
+            SPECIALTY & TAXONOMY  (+ adds a new row)
         ========================================================= */}
 
         <SectionBox>
@@ -953,6 +1003,7 @@ export default function ReferringProviderEdit() {
               <IconButton
                 size="small"
                 aria-label="Add specialty"
+                onClick={addSpecialty}
                 sx={{
                   p: "4px",
                   "&:hover": { bgcolor: "#EEF4FF" },
@@ -967,57 +1018,64 @@ export default function ReferringProviderEdit() {
             }
           />
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-              },
-              gap: 1.5,
-              alignItems: "start",
-            }}
-          >
-            <SelectField
-              label="Specialty"
-              required
-              options={OPTIONS.specialty}
-              {...sel("specialty")}
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 1,
-              }}
-            >
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <InputField
-                  label="Taxonomy"
-                  required
-                  placeholder="Type here"
-                  {...tx("taxonomy")}
-                />
-              </Box>
-
-              {/* mt aligns the icon with the 34px input (label ≈ 20px) */}
-              <IconButton
-                size="small"
-                aria-label="Delete taxonomy"
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            {specialties.map((r) => (
+              <Box
+                key={r.id}
                 sx={{
-                  p: "4px",
-                  mt: "21px",
-                  "&:hover": { bgcolor: "#EEF4FF" },
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 1.5,
+                  alignItems: "start",
                 }}
               >
-                <RPDeleteIcon
-                  width={ICON_SIZE.delete}
-                  height={ICON_SIZE.delete}
-                  color={T.blue}
+                <SelectField
+                  label="Specialty"
+                  required
+                  options={OPTIONS.specialty}
+                  value={r.specialty}
+                  onChange={(e) =>
+                    updateSpecialty(r.id, "specialty", e.target.value)
+                  }
+                  onClose={() => touchSpec(r.id, "specialty")}
+                  error={specError(r, "specialty")}
                 />
-              </IconButton>
-            </Box>
+
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <InputField
+                      label="Taxonomy"
+                      required
+                      placeholder="Type here"
+                      value={r.taxonomy}
+                      onChange={(e) =>
+                        updateSpecialty(r.id, "taxonomy", e.target.value)
+                      }
+                      onBlur={() => touchSpec(r.id, "taxonomy")}
+                      error={specError(r, "taxonomy")}
+                    />
+                  </Box>
+
+                  {/* mt aligns the icon with the 34px input (label ≈ 20px) */}
+                  <IconButton
+                    size="small"
+                    aria-label="Delete taxonomy"
+                    onClick={() => removeSpecialty(r.id)}
+                    sx={{
+                      p: "4px",
+                      mt: "21px",
+                      "&:hover": { bgcolor: "#EEF4FF" },
+                    }}
+                  >
+                    <RPDeleteIcon
+                      width={ICON_SIZE.delete}
+                      height={ICON_SIZE.delete}
+                      color={T.blue}
+                    />
+                  </IconButton>
+                </Box>
+              </Box>
+            ))}
           </Box>
         </SectionBox>
 

@@ -278,17 +278,72 @@ function PaginationBar({
 /* Initial seed data                                                    */
 /* ------------------------------------------------------------------ */
 const SEED = [
-  { id: 1, programName: "Clare Jane", description: "Provider-Delivered Care Management.", cpt: "11980; 00934" },
-  { id: 2, programName: "Adam Ross", description: "Chronic Care Management.", cpt: "99490; 99439" },
-  { id: 3, programName: "Zoe Martin", description: "Remote Patient Monitoring.", cpt: "99453; 99454" },
-  { id: 4, programName: "Brian Cox", description: "Principal Care Management.", cpt: "99424; 99425" },
-  { id: 5, programName: "Maya Singh", description: "Transitional Care Management.", cpt: "99495; 99496" },
-  { id: 6, programName: "Liam Turner", description: "Behavioral Health Integration.", cpt: "99484; 99492" },
-  { id: 7, programName: "Nora Blake", description: "Annual Wellness Visit.", cpt: "G0438; G0439" },
-  { id: 8, programName: "Ethan Hall", description: "Advance Care Planning.", cpt: "99497; 99498" },
-  { id: 9, programName: "Ivy Morgan", description: "Home Health Certification.", cpt: "G0180; G0179" },
-  { id: 10, programName: "Owen Reed", description: "Telehealth Consultation.", cpt: "99441; 99442" },
-  { id: 11, programName: "Ruby Fox", description: "Preventive Medicine Counseling.", cpt: "99401; 99402" },
+  {
+    id: 1,
+    programName: "Clare Jane",
+    description: "Provider-Delivered Care Management.",
+    cpt: "11980; 00934",
+  },
+  {
+    id: 2,
+    programName: "Adam Ross",
+    description: "Chronic Care Management.",
+    cpt: "99490; 99439",
+  },
+  {
+    id: 3,
+    programName: "Zoe Martin",
+    description: "Remote Patient Monitoring.",
+    cpt: "99453; 99454",
+  },
+  {
+    id: 4,
+    programName: "Brian Cox",
+    description: "Principal Care Management.",
+    cpt: "99424; 99425",
+  },
+  {
+    id: 5,
+    programName: "Maya Singh",
+    description: "Transitional Care Management.",
+    cpt: "99495; 99496",
+  },
+  {
+    id: 6,
+    programName: "Liam Turner",
+    description: "Behavioral Health Integration.",
+    cpt: "99484; 99492",
+  },
+  {
+    id: 7,
+    programName: "Nora Blake",
+    description: "Annual Wellness Visit.",
+    cpt: "G0438; G0439",
+  },
+  {
+    id: 8,
+    programName: "Ethan Hall",
+    description: "Advance Care Planning.",
+    cpt: "99497; 99498",
+  },
+  {
+    id: 9,
+    programName: "Ivy Morgan",
+    description: "Home Health Certification.",
+    cpt: "G0180; G0179",
+  },
+  {
+    id: 10,
+    programName: "Owen Reed",
+    description: "Telehealth Consultation.",
+    cpt: "99441; 99442",
+  },
+  {
+    id: 11,
+    programName: "Ruby Fox",
+    description: "Preventive Medicine Counseling.",
+    cpt: "99401; 99402",
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -1038,7 +1093,7 @@ export default function Program() {
                   }}
                 >
                   <TableCell sx={listCellSx}>{row.programName}</TableCell>
-                  <TableCell sx={{ ...listCellSx, textAlign: "left" }}>
+                  <TableCell sx={{ ...listCellSx }}>
                     {row.description}
                   </TableCell>
                   <TableCell sx={listCellSx}>{row.cpt}</TableCell>
@@ -1088,11 +1143,7 @@ export default function Program() {
                             "&:hover": { bgcolor: "#FEE2E2" },
                           }}
                         >
-                          <RPDeleteIcon
-                            width={18}
-                            height={18}
-                            color={T.blue}
-                          />
+                          <RPDeleteIcon width={18} height={18} color={T.blue} />
                         </IconButton>
                       </Tooltip>
                     </Box>

@@ -1,26 +1,36 @@
 import * as React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  IconButton,
-} from "@mui/material";
+import { Box, Typography, TextField, Button, IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 /* ------------------------------------------------------------------ */
-/* Theme tokens                                                          */
+/* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
+
 const T = {
   blue: "#2563EB",
-  page: "#F7F9FC",
+  page: "#F5F7FA", // same page bg as the other pages
+  border: "#E5E7EB",
+  fieldBg: "#F9FAFC",
+  label: "#2F3036",
+  error: "#EF4444",
+};
+
+/* Same thin scrollbar as the other pages */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
 };
 
 /* ------------------------------------------------------------------ */
-/* Validation                                                            */
+/* Validation                                                          */
 /* ------------------------------------------------------------------ */
+
 const REQUIRED_FIELDS = {
   programName: "Program Name",
   description: "Description",
@@ -38,42 +48,87 @@ const ALL_REQUIRED = Object.fromEntries(
 );
 
 /* ------------------------------------------------------------------ */
-/* Input styles — matches AddNewPatient                                  */
+/* Input styles (height 34, fontSize 12, radius 6)                      */
 /* ------------------------------------------------------------------ */
+
 const inputSx = {
+  width: "100%",
   "& .MuiOutlinedInput-root": {
-    fontSize: 13,
-    borderRadius: "8px",
-    bgcolor: "#fff",
-    "& input, & textarea": {
-      fontSize: 13,
-      color: "#1E1E1E",
-      padding: "8px 12px",
+    minHeight: 34,
+    boxSizing: "border-box",
+    fontSize: 12,
+    borderRadius: "6px",
+    backgroundColor: T.fieldBg,
+    color: "#1F2937",
+
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: "#D1D5DB" },
+    "&.Mui-focused fieldset": { borderColor: "#0066FF", borderWidth: "1px" },
+    "&.Mui-error fieldset": { borderColor: T.error },
+
+    "& input": {
+      height: 34,
+      boxSizing: "border-box",
+      padding: "0 10px",
+      fontSize: 12,
+      color: "#1F2937",
     },
+
+    /* multiline description box */
+    "&.MuiInputBase-multiline": {
+      padding: "8px 10px",
+    },
+    "& textarea": {
+      fontSize: 12,
+      color: "#1F2937",
+      padding: 0,
+    },
+
     "& input::placeholder, & textarea::placeholder": {
-      color: "#8F9098",
+      color: "#9CA3AF",
       opacity: 1,
     },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#006FFD",
-      borderWidth: "1.5px",
-    },
-    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
   },
-  "& .MuiInputBase-root:not(.MuiInputBase-multiline)": { height: "42px" },
+
   "& .MuiFormHelperText-root": {
-    fontSize: 11,
+    fontSize: 10.5,
     mx: 0,
+    ml: 0,
     mt: 0.4,
-    color: "#EF4444",
+    color: T.error,
   },
 };
 
 /* ------------------------------------------------------------------ */
-/* InputField component                                                  */
+/* Shared components                                                   */
 /* ------------------------------------------------------------------ */
+
+function Label({ children, required }) {
+  return (
+    <Typography
+      sx={{
+        fontSize: 11,
+        fontWeight: 500,
+        color: T.label,
+        mb: 0.5,
+        lineHeight: 1.4,
+        display: "block",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
+      {children}
+
+      {required && (
+        <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
+          *
+        </Box>
+      )}
+    </Typography>
+  );
+}
+
 function InputField({
   label,
   value,
@@ -86,25 +141,12 @@ function InputField({
   rows,
 }) {
   return (
-    <Box>
-      <Typography
-        sx={{
-          fontSize: 12,
-          fontWeight: 700,
-          color: "#000",
-          mb: 0.6,
-          display: "block",
-        }}
-      >
-        {label}
-        {required && (
-          <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
-            *
-          </Box>
-        )}
-      </Typography>
+    <Box sx={{ minWidth: 0 }}>
+      <Label required={required}>{label}</Label>
+
       <TextField
         fullWidth
+        size="small"
         value={value}
         onChange={onChange}
         onBlur={onBlur}
@@ -120,8 +162,32 @@ function InputField({
 }
 
 /* ------------------------------------------------------------------ */
-/* Page                                                                  */
+/* Section Box (p 2, border, radius 8)                                  */
 /* ------------------------------------------------------------------ */
+
+function SectionBox({ children }) {
+  return (
+    <Box
+      sx={{
+        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        border: `1px solid ${T.border}`,
+        p: 2,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 1.5,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Main Page                                                           */
+/* ------------------------------------------------------------------ */
+
 export default function ProgramEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
@@ -136,12 +202,14 @@ export default function ProgramEdit() {
 
   const [touched, setTouched] = React.useState({});
 
+  /* ---------- helpers ---------- */
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const touch = (name) =>
     setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
 
+  /* error shows only after the user has visited the field (or pressed Save) */
   const errorOf = (name) =>
     touched[name] ? validateField(name, form[name]) : "";
 
@@ -152,6 +220,7 @@ export default function ProgramEdit() {
     error: errorOf(name),
   });
 
+  /* ---------- save ---------- */
   const handleSave = () => {
     const allTouched = Object.fromEntries(
       Object.keys(ALL_REQUIRED).map((k) => [k, true]),
@@ -193,15 +262,46 @@ export default function ProgramEdit() {
     }
   };
 
+  /* footer button look (same as the other pages) */
+  const outlineBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 2.5,
+    borderRadius: "8px",
+    color: "#0066FF",
+    borderColor: "#0066FF",
+    backgroundColor: "#FFFFFF",
+    whiteSpace: "nowrap",
+    "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+  };
+
+  const primaryBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 3,
+    borderRadius: "8px",
+    bgcolor: "#0066FF",
+    boxShadow: "none",
+    whiteSpace: "nowrap",
+    "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+  };
+
   return (
     <Box
       sx={{
         bgcolor: T.page,
         minHeight: "100vh",
         width: "100%",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
+        overflowX: "hidden",
+        overflowY: "auto",
+        ...thinScroll,
       }}
     >
       <Box
@@ -210,55 +310,62 @@ export default function ProgramEdit() {
           mx: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 1.5,
         }}
       >
-        {/* Title */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            onClick={() => navigate(-1)}
-            sx={{
-              flexShrink: 0,
-              color: "#5A6B7E",
-              border: "1.5px solid #E4E9EF",
-              borderRadius: "8px",
-              width: 36,
-              height: 36,
-              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
-            }}
-          >
-            <ArrowBackIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-          <Typography
-            sx={{
-              fontSize: { xs: 18, sm: 20, md: 22 },
-              fontWeight: 700,
-              color: "#111827",
-            }}
-          >
-            {isEdit ? "Edit Program" : "Add New Program"}
-          </Typography>
-        </Box>
-
-        {/* Form card */}
+        {/* =========================================================
+            TITLE
+        ========================================================= */}
         <Box
           sx={{
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            border: "1px solid #E5E7EB",
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, sm: 3 },
             display: "flex",
-            flexDirection: "column",
-            gap: 2.5,
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              sx={{
+                flexShrink: 0,
+                color: "#5A6B7E",
+                border: "1px solid #E5E7EB",
+                bgcolor: "#FFFFFF",
+                borderRadius: "8px",
+                width: 32,
+                height: 32,
+                "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+              }}
+            >
+              <ArrowBackIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+
+            <Typography
+              sx={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
+              {isEdit ? "Edit Program" : "Add New Program"}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* =========================================================
+            FORM CARD
+        ========================================================= */}
+        <SectionBox>
           <InputField
             label="Program Name"
             required
             placeholder="Enter program name"
             {...tx("programName")}
           />
+
           <InputField
             label="Description"
             required
@@ -267,49 +374,44 @@ export default function ProgramEdit() {
             placeholder="Enter description"
             {...tx("description")}
           />
+
           <InputField
             label="CPT"
             value={form.cpt}
             onChange={set("cpt")}
             placeholder="e.g. 11980; 00934"
           />
-        </Box>
+        </SectionBox>
 
-        {/* Action buttons */}
-        <Stack direction={{ xs: "column-reverse", sm: "row" }} spacing={1.5}>
+        {/* =========================================================
+            FOOTER BUTTONS
+        ========================================================= */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+            gap: 1,
+            pb: 1.5,
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/program")}
+            sx={outlineBtnSx}
+          >
+            Cancel
+          </Button>
+
           <Button
             variant="contained"
             disableElevation
             onClick={handleSave}
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 600,
-              borderRadius: "8px",
-              bgcolor: T.blue,
-              px: 3,
-              "&:hover": { bgcolor: "#1D4ED8" },
-            }}
+            sx={primaryBtnSx}
           >
             {isEdit ? "Save Changes" : "Add Program"}
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/program")}
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 500,
-              borderRadius: "8px",
-              color: "#374151",
-              borderColor: "#E5E7EB",
-              px: 3,
-              "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
-            }}
-          >
-            Cancel
-          </Button>
-        </Stack>
+        </Box>
       </Box>
     </Box>
   );

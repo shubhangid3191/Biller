@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-  Paper,
   Popover,
   Select,
   Stack,
@@ -19,7 +18,6 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
@@ -35,11 +33,10 @@ import {
   UploadFileIcon,
 } from "../assets/Assets";
 
-// Required so dayjs can actually parse "DD-MM-YYYY" strings
+// Required so dayjs can actually parse "MM-DD-YYYY" strings
 dayjs.extend(customParseFormat);
 
-const FONT = "'Inter', 'Segoe UI', sans-serif";
-const DATE_FORMAT = "DD-MM-YYYY";
+const DATE_FORMAT = "MM-DD-YYYY";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -47,13 +44,23 @@ const DATE_FORMAT = "DD-MM-YYYY";
 
 const T = {
   blue: "#2563EB",
-  page: "#F7F9FC",
-  border: "#D9DEE7",
-  labelColor: "#1E293B",
+  page: "#F5F7FA", // same page bg as the other pages
+  border: "#E5E7EB",
+  fieldBg: "#F9FAFC",
+  label: "#2F3036",
+  error: "#EF4444",
 };
 
-/* Same size for page title and section titles */
-const TITLE_FONT_SIZE = { xs: 12, sm: 14, md: 14 };
+/* Same thin scrollbar as the other pages */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+};
 
 /* ------------------------------------------------------------------ */
 /* Date helpers                                                        */
@@ -78,11 +85,9 @@ const parseDate = (value) => {
 /* ------------------------------------------------------------------ */
 /* Email validation                                                    */
 /* ------------------------------------------------------------------ */
-// name@domain.tld  (no spaces, one @, domain needs a dot, TLD >= 2 letters)
 const EMAIL_REGEX =
   /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
-// returns an error message, or "" when the email is valid
 const getEmailError = (value) => {
   const v = (value || "").trim();
   if (!v) return "Email is required";
@@ -94,7 +99,6 @@ const getEmailError = (value) => {
 
 /* ------------------------------------------------------------------ */
 /* Required-field validation                                           */
-/* field name -> text used in "<label> is required"                    */
 /* ------------------------------------------------------------------ */
 const REQUIRED_FIELDS = {
   provider: "Provider",
@@ -105,7 +109,6 @@ const REQUIRED_FIELDS = {
   mrn: "MRN",
   fin: "FIN",
   patientFirstName: "First name",
-  patientMiddleName: "Middle name",
   patientLastName: "Last name",
   dateOfBirth: "Date of birth",
   email: "Email",
@@ -116,7 +119,6 @@ const REQUIRED_FIELDS = {
 
 const DATE_FIELDS = ["dateOfBirth", "admitDate", "dateOfService"];
 
-// returns an error message, or "" when the field is fine
 const validateField = (name, value) => {
   const v = String(value || "").trim();
   const label = REQUIRED_FIELDS[name];
@@ -124,76 +126,113 @@ const validateField = (name, value) => {
   if (!v) return `${label} is required`;
   if (name === "email") return getEmailError(v);
   if (DATE_FIELDS.includes(name) && !parseDate(v))
-    return "Enter a valid date (DD-MM-YYYY)";
+    return "Enter a valid date (MM-DD-YYYY)";
   return "";
 };
 
 /* ------------------------------------------------------------------ */
-/* Theme                                                               */
+/* Input styles (height 34, fontSize 12, radius 6)                      */
 /* ------------------------------------------------------------------ */
-const theme = createTheme({
-  palette: { primary: { main: "#015DFF" } },
-  typography: { fontFamily: FONT },
-  components: {
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          fontFamily: FONT,
-          borderRadius: "10px",
-          fontSize: 11,
-          backgroundColor: "#fff",
-          color: "#1E1E1E",
-          "& fieldset": { borderColor: "#D9DEE7", borderRadius: "10px" },
-          "&:hover fieldset": { borderColor: "#B8BFCF" },
-          "&.Mui-focused fieldset": {
-            borderColor: "#006FFD",
-            borderWidth: 1.5,
-          },
-          "&.Mui-error fieldset": { borderColor: "#EF4444" },
-        },
-        input: {
-          padding: "6px 10px",
-          fontSize: 11,
-          "&::placeholder": { color: "#8F9098", opacity: 1 },
-        },
-      },
+
+const inputSx = {
+  width: "100%",
+  "& .MuiOutlinedInput-root": {
+    height: 34,
+    minHeight: 34,
+    boxSizing: "border-box",
+    fontSize: 12,
+    borderRadius: "6px",
+    backgroundColor: T.fieldBg,
+    color: "#1F2937",
+
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: "#D1D5DB" },
+    "&.Mui-focused fieldset": { borderColor: "#0066FF", borderWidth: "1px" },
+    "&.Mui-error fieldset": { borderColor: T.error },
+
+    "& input": {
+      height: "100%",
+      boxSizing: "border-box",
+      padding: "0 10px",
+      fontSize: 12,
+      color: "#1F2937",
     },
-    MuiSelect: {
-      styleOverrides: {
-        select: {
-          padding: "6px 10px !important",
-          fontSize: 11,
-          minHeight: "unset !important",
-        },
-      },
-    },
-    MuiMenuItem: {
-      styleOverrides: { root: { fontSize: 11, fontFamily: FONT } },
-    },
-    MuiFormHelperText: { styleOverrides: { root: { fontFamily: FONT } } },
-    MuiPickersDay: { styleOverrides: { root: { fontFamily: FONT } } },
-    MuiDialog: {
-      styleOverrides: {
-        paper: {
-          borderRadius: "20px",
-          overflow: "hidden",
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          fontFamily: FONT,
-          borderRadius: "10px",
-          textTransform: "none",
-          fontWeight: 600,
-          boxShadow: "none",
-          "&:hover": { boxShadow: "none" },
-        },
-      },
-    },
+    "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+    "& .MuiInputAdornment-root": { marginRight: 0 },
+  },
+
+  "& .MuiFormHelperText-root": {
+    fontSize: 10.5,
+    mx: 0,
+    ml: 0,
+    mt: 0.4,
+    color: T.error,
+  },
+};
+
+const selectSx = (error = false) => ({
+  height: 34,
+  borderRadius: "6px",
+  fontSize: 12,
+  backgroundColor: T.fieldBg,
+  color: "#1F2937",
+
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? T.error : T.border,
+    borderRadius: "6px",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? T.error : "#D1D5DB",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? T.error : "#0066FF",
+    borderWidth: "1px",
+  },
+
+  "& .MuiSelect-select": {
+    minHeight: "34px !important",
+    height: "34px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    padding: "0 32px 0 10px !important",
+    fontSize: 12,
+  },
+
+  "& .MuiSelect-icon": {
+    color: "#6B7280",
+    right: 6,
+    fontSize: 18,
   },
 });
+
+/* footer / toolbar button look (same as the other pages) */
+const outlineBtnSx = {
+  textTransform: "none",
+  fontSize: 12,
+  fontWeight: 600,
+  height: 34,
+  px: 2.5,
+  borderRadius: "8px",
+  color: "#0066FF",
+  borderColor: "#0066FF",
+  backgroundColor: "#FFFFFF",
+  whiteSpace: "nowrap",
+  "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+};
+
+const primaryBtnSx = {
+  textTransform: "none",
+  fontSize: 12,
+  fontWeight: 600,
+  height: 34,
+  px: 3,
+  borderRadius: "8px",
+  bgcolor: "#0066FF",
+  boxShadow: "none",
+  whiteSpace: "nowrap",
+  "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+};
 
 /* ------------------------------------------------------------------ */
 /* Upload Dialog — reusable for all 4 types                            */
@@ -269,7 +308,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: "20px",
+          borderRadius: "12px",
           p: 0,
           overflow: "hidden",
           width: { xs: "calc(100vw - 24px)", sm: "560px" },
@@ -278,15 +317,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           maxHeight: "calc(100% - 24px)",
         },
       }}
-      sx={{
-        "& .MuiDialog-paper": {
-          borderRadius: "20px !important",
-          overflow: "hidden",
-        },
-        "& .MuiDialog-container": {
-          alignItems: "center",
-        },
-      }}
+      sx={{ "& .MuiDialog-container": { alignItems: "center" } }}
     >
       {/* Hidden file input */}
       <input
@@ -308,17 +339,14 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           pb: 1.5,
         }}
       >
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: 12, sm: 12 },
-            fontFamily: FONT,
-            color: "#1D1B20",
-          }}
-        >
+        <Typography sx={{ fontWeight: 700, fontSize: 13, color: "#1F2937" }}>
           {cfg.title}
         </Typography>
-        <IconButton onClick={handleClose} sx={{ color: "#1D1B20", p: 0.5 }}>
+        <IconButton
+          onClick={handleClose}
+          aria-label="Close"
+          sx={{ color: "#1D1B20", p: 0.5 }}
+        >
           <CloseIcon sx={{ fontSize: 20 }} />
         </IconButton>
       </Box>
@@ -334,7 +362,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           onDragLeave={() => setDropActive(false)}
           sx={{
             border: "2px dashed #B4CFFC",
-            borderRadius: "16px",
+            borderRadius: "12px",
             background: dropActive ? "#F2F8FE" : "#EAF2FF",
             textAlign: "center",
             py: { xs: 2, sm: 2.5 },
@@ -353,8 +381,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
             sx={{
               fontWeight: 500,
               color: "#7B89B2",
-              fontFamily: FONT,
-              fontSize: { xs: 12, sm: 12 },
+              fontSize: 12,
               whiteSpace: "pre-line",
               wordBreak: "break-word",
             }}
@@ -367,7 +394,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
         <Box
           onClick={() => fileInputRef.current?.click()}
           sx={{
-            borderRadius: "16px",
+            borderRadius: "12px",
             background: "#EAF2FF",
             textAlign: "center",
             py: 2,
@@ -380,14 +407,7 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           <Box sx={{ display: "flex", justifyContent: "center", mb: 0.75 }}>
             <UploadFileIcon width={36} height={29} />
           </Box>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              color: "#7B89B2",
-              fontFamily: FONT,
-              fontSize: { xs: 12, sm: 12 },
-            }}
-          >
+          <Typography sx={{ fontWeight: 500, color: "#7B89B2", fontSize: 12 }}>
             Upload file from computer
           </Typography>
         </Box>
@@ -403,30 +423,17 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
           p: { xs: 1.5, sm: 2 },
         }}
       >
-        <Button
-          onClick={handleClose}
-          sx={{
-            color: "#6B7280",
-            textTransform: "none",
-            fontFamily: FONT,
-            fontWeight: 500,
-          }}
-        >
+        <Button variant="outlined" onClick={handleClose} sx={outlineBtnSx}>
           Cancel
         </Button>
         <Button
           variant="contained"
+          disableElevation
           onClick={handleOk}
           disabled={!file || loading}
           sx={{
-            background: "#015DFF",
-            borderRadius: "8px",
-            px: 3,
-            textTransform: "none",
-            fontFamily: FONT,
-            fontWeight: 600,
-            "&:hover": { background: "#0148CC" },
-            "&.Mui-disabled": { background: "#B3C9FF", color: "#fff" },
+            ...primaryBtnSx,
+            "&.Mui-disabled": { bgcolor: "#B3C9FF", color: "#fff" },
           }}
         >
           {loading ? "Processing..." : "OK"}
@@ -437,54 +444,46 @@ const UploadDialog = ({ open, type, onClose, onOk }) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Sub-components                                                      */
+/* Shared components                                                   */
 /* ------------------------------------------------------------------ */
-const FieldLabel = ({ children, required }) => (
+const Label = ({ children, required }) => (
   <Typography
     component="label"
     sx={{
-      display: "block",
-      fontFamily: FONT,
       fontSize: 11,
-      lineHeight: "16px", // fixed height so labels stay aligned in every column
-      fontWeight: 600,
-      color: T.labelColor,
-      mb: "4px",
+      fontWeight: 500,
+      color: T.label,
+      mb: 0.5,
+      lineHeight: 1.4,
+      display: "block",
       whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
     }}
   >
     {children}
     {required && (
-      <Typography
-        component="span"
-        sx={{
-          color: "#EF4444",
-          ml: "2px",
-          fontWeight: 700,
-          fontSize: "inherit",
-          lineHeight: "inherit",
-          fontFamily: "inherit",
-        }}
-      >
+      <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
         *
-      </Typography>
+      </Box>
     )}
   </Typography>
 );
 
+/* Section title (same as Fee Configuration) */
 const SectionHeader = ({ title }) => (
-  <Typography
+  <Box
     sx={{
-      fontWeight: 700,
-      color: "#111827",
-      fontFamily: FONT,
-      fontSize: TITLE_FONT_SIZE,
-      textTransform: "uppercase",
-      mb: "16px",
+      display: "flex",
+      alignItems: "center",
+      minHeight: 28,
+      mb: 1.2,
     }}
   >
-    {title}
-  </Typography>
+    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>
+      {title}
+    </Typography>
+  </Box>
 );
 
 const ToolbarBtn = ({ icon, label, onClick }) => (
@@ -493,28 +492,16 @@ const ToolbarBtn = ({ icon, label, onClick }) => (
     startIcon={icon}
     onClick={onClick}
     sx={{
-      borderColor: "#E1E1E2",
-      color: "#015DFF",
-      fontFamily: FONT,
-      fontWeight: 600,
-      fontSize: 11,
-      borderRadius: "8px",
-      height: "32px",
+      ...outlineBtnSx,
+      height: 32,
       px: 1.5,
       minWidth: "unset",
-      backgroundColor: "#fff",
       "& .MuiButton-startIcon": { mr: 0.5 },
-      "&:hover": { borderColor: "#015DFF", background: "#F5F8FF" },
-      boxShadow: "none",
+      "&:hover": { borderColor: "#0066FF", backgroundColor: "#F5F9FF" },
     }}
   >
     {label}
   </Button>
-);
-
-// Defined outside DropdownField so it isn't re-created on every render
-const DropdownArrow = (props) => (
-  <KeyboardArrowDownIcon {...props} sx={{ color: "#8F9098", fontSize: 20 }} />
 );
 
 const DropdownField = ({
@@ -526,52 +513,35 @@ const DropdownField = ({
   helperText,
   children,
 }) => (
-  <FormControl fullWidth error={error}>
+  <FormControl fullWidth size="small" error={error}>
     <Select
-      value={value}
+      value={value ?? ""}
       onChange={onChange}
       onClose={onClose}
       displayEmpty
-      IconComponent={DropdownArrow}
+      sx={selectSx(error)}
+      IconComponent={KeyboardArrowDownIcon}
       renderValue={(val) =>
         val ? (
-          <span style={{ fontSize: 11, color: "#1E1E1E" }}>{val}</span>
+          <span style={{ fontSize: 12, color: "#1F2937" }}>{val}</span>
         ) : (
-          <span style={{ fontSize: 11, color: "#8F9098" }}>{placeholder}</span>
+          <span style={{ fontSize: 12, color: "#9CA3AF" }}>{placeholder}</span>
         )
       }
-      sx={{
-        borderRadius: "10px",
-        backgroundColor: "#fff",
-        "& fieldset": { borderColor: "#D9DEE7", borderRadius: "10px" },
-        "&:hover fieldset": { borderColor: "#B8BFCF" },
-        "&.Mui-focused fieldset": { borderColor: "#006FFD", borderWidth: 1.5 },
-        "&.Mui-error fieldset": { borderColor: "#EF4444" },
-        "& .MuiSelect-select": {
-          py: "6px !important",
-          px: "10px !important",
-          fontSize: 11,
-          display: "flex",
-          alignItems: "center",
-          boxSizing: "border-box",
-        },
-      }}
     >
-      <MenuItem value="" disabled>
-        <span style={{ fontSize: 11, color: "#8F9098" }}>{placeholder}</span>
+      <MenuItem value="" disabled sx={{ fontSize: 12, color: "#9CA3AF" }}>
+        {placeholder}
       </MenuItem>
-      {children}
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, {
+              sx: { fontSize: 12, ...(child.props.sx || {}) },
+            })
+          : child,
+      )}
     </Select>
     {helperText && (
-      <FormHelperText
-        sx={{
-          mx: 0,
-          mt: 0.4,
-          fontSize: 11,
-          fontFamily: FONT,
-          color: "#EF4444",
-        }}
-      >
+      <FormHelperText sx={{ fontSize: 10.5, mx: 0, mt: 0.4, color: T.error }}>
         {helperText}
       </FormHelperText>
     )}
@@ -589,6 +559,7 @@ const TextInput = ({
 }) => (
   <TextField
     fullWidth
+    size="small"
     type={type}
     placeholder={placeholder}
     value={value}
@@ -596,14 +567,12 @@ const TextInput = ({
     onBlur={onBlur}
     error={error}
     helperText={helperText}
-    sx={{
-      "& .MuiFormHelperText-root": { mx: 0, mt: 0.4, fontSize: 11 },
-    }}
+    sx={inputSx}
   />
 );
 
 /* ------------------------------------------------------------------ */
-/* DateInput — DD-MM-YYYY (typing is auto-masked, calendar popup too)  */
+/* DateInput — MM-DD-YYYY (typing is auto-masked, calendar popup too)  */
 /* ------------------------------------------------------------------ */
 const DateInput = ({
   value,
@@ -622,7 +591,7 @@ const DateInput = ({
   const invalidFormat = isComplete && !parsedValue;
   const hasError = invalidFormat || error;
   const message = invalidFormat
-    ? "Enter a valid date (DD-MM-YYYY)"
+    ? "Enter a valid date (MM-DD-YYYY)"
     : helperText;
 
   const emit = (v) => onChange({ target: { value: v } });
@@ -638,8 +607,9 @@ const DateInput = ({
     <>
       <TextField
         fullWidth
+        size="small"
         ref={fieldRef}
-        placeholder="DD-MM-YYYY"
+        placeholder="MM-DD-YYYY"
         value={value}
         onChange={handleTyping}
         onBlur={onBlur}
@@ -656,15 +626,13 @@ const DateInput = ({
                   disableRipple
                   aria-label="Open calendar"
                 >
-                  <CalendarIcon width={14} height={16} color="#1E1E1E" />
+                  <CalendarIcon width={14} height={16} color="#0066FF" />
                 </IconButton>
               </InputAdornment>
             ),
           },
         }}
-        sx={{
-          "& .MuiFormHelperText-root": { mx: 0, mt: 0.4, fontSize: 11 },
-        }}
+        sx={inputSx}
       />
       <Popover
         open={open}
@@ -690,11 +658,9 @@ const DateInput = ({
               width: { xs: "280px", sm: "320px" },
               maxWidth: "100%",
               "& .MuiPickersDay-root.Mui-selected": {
-                backgroundColor: "#015DFF",
+                backgroundColor: "#0066FF",
               },
-              "& .MuiPickersDay-root:hover": {
-                backgroundColor: "#EEF4FF",
-              },
+              "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
         </LocalizationProvider>
@@ -704,15 +670,8 @@ const DateInput = ({
 };
 
 const FormField = ({ label, required, children }) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: "column",
-      width: "100%",
-      minWidth: 0,
-    }}
-  >
-    <FieldLabel required={required}>{label}</FieldLabel>
+  <Box sx={{ minWidth: 0 }}>
+    <Label required={required}>{label}</Label>
     {children}
   </Box>
 );
@@ -723,17 +682,32 @@ const FormField = ({ label, required, children }) => (
     tablet  (600-900)  -> 2 columns
     desktop (>=900)    -> 3 columns
 */
-const FieldRow = ({ children, mb = "20px" }) => (
+const FieldRow = ({ children, cols = 3, last = false }) => (
   <Box
     sx={{
       display: "grid",
       gridTemplateColumns: {
         xs: "minmax(0, 1fr)",
         sm: "repeat(2, minmax(0, 1fr))",
-        md: "repeat(3, minmax(0, 1fr))",
+        md: `repeat(${cols}, minmax(0, 1fr))`,
       },
-      gap: "16px",
-      mb,
+      gap: 1.5,
+      mb: last ? 0 : 1.5,
+    }}
+  >
+    {children}
+  </Box>
+);
+
+/* Section card (p 2, border, radius 8) */
+const SectionBox = ({ children }) => (
+  <Box
+    sx={{
+      backgroundColor: "#FFFFFF",
+      borderRadius: "8px",
+      border: `1px solid ${T.border}`,
+      p: 2,
+      boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
     }}
   >
     {children}
@@ -743,28 +717,8 @@ const FieldRow = ({ children, mb = "20px" }) => (
 /* ------------------------------------------------------------------ */
 /* Main Component                                                      */
 /* ------------------------------------------------------------------ */
-const sectionSx = {
-  bgcolor: "#fff",
-  borderRadius: "12px",
-  border: "1px solid #E5E7EB",
-  px: { xs: 2, sm: 3, md: 4 },
-  py: { xs: 2, sm: 3 },
-  mb: "8px",
-};
-
 function AddNewPatient() {
   const navigate = useNavigate();
-
-  // Load Inter from Google Fonts (only once)
-  useEffect(() => {
-    if (document.getElementById("inter-font")) return;
-    const link = document.createElement("link");
-    link.id = "inter-font";
-    link.rel = "stylesheet";
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
 
   const [form, setForm] = useState({
     provider: "",
@@ -859,70 +813,61 @@ function AddNewPatient() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          bgcolor: T.page,
-          minHeight: "100vh",
-          py: { xs: 1, md: 2 },
-          px: { xs: 1.5, sm: 2, md: 2.5 },
-          boxSizing: "border-box",
-          width: "100%",
-          overflowX: "hidden",
-        }}
-      >
-        {/* ---- Top Bar ---- */}
+    <Box
+      sx={{
+        bgcolor: T.page,
+        minHeight: "100vh",
+        width: "100%",
+        py: 1,
+        px: 2,
+        boxSizing: "border-box",
+        overflowX: "hidden",
+        overflowY: "auto",
+        ...thinScroll,
+      }}
+    >
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        {/* =========================================================
+            TOP BAR
+        ========================================================= */}
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
             justifyContent: "space-between",
             alignItems: { xs: "flex-start", md: "center" },
-            gap: 1.5,
-            mb: "8px",
+            gap: 1,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <IconButton
               onClick={() => navigate(-1)}
+              aria-label="Go back"
               sx={{
                 flexShrink: 0,
                 color: "#5A6B7E",
-                border: "1.5px solid #E4E9EF",
+                border: "1px solid #E5E7EB",
+                bgcolor: "#FFFFFF",
                 borderRadius: "8px",
-                width: 36,
-                height: 36,
-                "&:hover": {
-                  bgcolor: "#F3F4F6",
-                  borderColor: "#D1D5DB",
-                },
+                width: 32,
+                height: 32,
+                "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
               }}
             >
-              <ArrowBackIcon sx={{ fontSize: 20 }} />
+              <ArrowBackIcon sx={{ fontSize: 18 }} />
             </IconButton>
             <Box>
               <Typography
-                sx={{
-                  fontWeight: 700,
-                  color: "#111827",
-                  fontFamily: FONT,
-                  fontSize: TITLE_FONT_SIZE,
-                }}
+                sx={{ fontSize: 16, fontWeight: 700, color: "#111827" }}
               >
                 Add New Patient
               </Typography>
-              <Typography
-                sx={{
-                  color: "#1A1A1A",
-                  mt: 0.2,
-                  fontFamily: FONT,
-                  fontSize: { xs: 11, sm: 12 },
-                }}
-              >
+              <Typography sx={{ color: "#6B7280", mt: 0.2, fontSize: 11 }}>
                 Complete all required fields to create a new patient
               </Typography>
             </Box>
           </Box>
+
           <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
             <ToolbarBtn
               icon={<OcrIcon />}
@@ -958,9 +903,12 @@ function AddNewPatient() {
           />
         ))}
 
-        {/* ---- ASSIGN ---- */}
-        <Paper elevation={0} sx={sectionSx}>
-          <SectionHeader title="ASSIGN" />
+        {/* =========================================================
+            ASSIGN
+        ========================================================= */}
+        <SectionBox>
+          <SectionHeader title="Assign" />
+
           <FieldRow>
             <FormField label="Provider" required>
               <DropdownField {...dd("provider")} placeholder="Select provider">
@@ -968,6 +916,7 @@ function AddNewPatient() {
                 <MenuItem value="Dr. Jones">Dr. Jones</MenuItem>
               </DropdownField>
             </FormField>
+
             <FormField label="Specialty" required>
               <DropdownField
                 {...dd("specialty")}
@@ -978,6 +927,7 @@ function AddNewPatient() {
                 <MenuItem value="Orthopedics">Orthopedics</MenuItem>
               </DropdownField>
             </FormField>
+
             <FormField label="Location" required>
               <DropdownField {...dd("location")} placeholder="Select location">
                 <MenuItem value="Ward A">Ward A</MenuItem>
@@ -986,7 +936,8 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
-          <FieldRow mb="0px">
+
+          <FieldRow last>
             <FormField label="Primary Care Physician">
               <DropdownField
                 value={form.primaryCarePhysician}
@@ -997,6 +948,7 @@ function AddNewPatient() {
                 <MenuItem value="Dr. Jones">Dr. Jones</MenuItem>
               </DropdownField>
             </FormField>
+
             <FormField label="Admitting Physician" required>
               <DropdownField
                 {...dd("admittingPhysician")}
@@ -1007,11 +959,14 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
-        </Paper>
+        </SectionBox>
 
-        {/* ---- BASIC INFORMATION ---- */}
-        <Paper elevation={0} sx={sectionSx}>
-          <SectionHeader title="BASIC INFORMATION" />
+        {/* =========================================================
+            BASIC INFORMATION
+        ========================================================= */}
+        <SectionBox>
+          <SectionHeader title="Basic Information" />
+
           <FieldRow>
             <FormField label="Patient Type" required>
               <DropdownField
@@ -1022,9 +977,11 @@ function AddNewPatient() {
                 <MenuItem value="Inpatient">Inpatient</MenuItem>
               </DropdownField>
             </FormField>
+
             <FormField label="MRN" required>
               <TextInput placeholder="Medical record number" {...tx("mrn")} />
             </FormField>
+
             <FormField label="FIN" required>
               <DropdownField {...dd("fin")} placeholder="Accession number">
                 <MenuItem value="ACC-001">ACC-001</MenuItem>
@@ -1032,21 +989,30 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
+
           <FieldRow>
             <FormField label="Patient First Name" required>
               <TextInput placeholder="First name" {...tx("patientFirstName")} />
             </FormField>
+
             <FormField label="Patient Middle Name">
-              <TextInput placeholder="Middle name" />
+              <TextInput
+                placeholder="Middle name"
+                value={form.patientMiddleName}
+                onChange={set("patientMiddleName")}
+              />
             </FormField>
+
             <FormField label="Patient Last Name" required>
               <TextInput placeholder="Last name" {...tx("patientLastName")} />
             </FormField>
           </FieldRow>
+
           <FieldRow>
             <FormField label="Date of Birth" required>
               <DateInput {...tx("dateOfBirth")} disableFuture />
             </FormField>
+
             <FormField label="ZIP Code">
               <TextInput
                 placeholder="Enter zipcode"
@@ -1054,6 +1020,7 @@ function AddNewPatient() {
                 onChange={set("zipCode")}
               />
             </FormField>
+
             <FormField label="Address">
               <TextInput
                 placeholder="Enter address"
@@ -1062,32 +1029,40 @@ function AddNewPatient() {
               />
             </FormField>
           </FieldRow>
-          <FieldRow mb="0px">
-            <FormField label="Email">
+
+          <FieldRow last>
+            <FormField label="Email" required>
               <TextInput
                 placeholder="Enter email"
                 type="email"
+                {...tx("email")}
                 onBlur={handleEmailBlur}
               />
             </FormField>
           </FieldRow>
-        </Paper>
+        </SectionBox>
 
-        {/* ---- VISIT DETAILS ---- */}
-        <Paper elevation={0} sx={sectionSx}>
-          <SectionHeader title="VISIT DETAILS" />
+        {/* =========================================================
+            VISIT DETAILS
+        ========================================================= */}
+        <SectionBox>
+          <SectionHeader title="Visit Details" />
+
           <FieldRow>
             <FormField label="Admit Date" required>
               <DateInput {...tx("admitDate")} />
             </FormField>
+
             <FormField label="Date of Service" required>
               <DateInput {...tx("dateOfService")} />
             </FormField>
+
             <FormField label="Bed" required>
               <TextInput placeholder="Room 5 Bed 32" {...tx("bed")} />
             </FormField>
           </FieldRow>
-          <FieldRow mb="0px">
+
+          <FieldRow last>
             <FormField label="Status">
               <DropdownField
                 value={form.status}
@@ -1100,52 +1075,39 @@ function AddNewPatient() {
               </DropdownField>
             </FormField>
           </FieldRow>
-        </Paper>
+        </SectionBox>
 
-        {/* ---- Footer Buttons ---- */}
+        {/* =========================================================
+            FOOTER BUTTONS
+        ========================================================= */}
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column-reverse", sm: "row" },
-            justifyContent: "flex-end",
-            gap: { xs: "10px", sm: "12px" },
-            pt: 1,
-            pb: 3,
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+            gap: 1,
+            pb: 1.5,
           }}
         >
           <Button
             variant="outlined"
             onClick={() => navigate("/add-patient")}
-            sx={{
-              borderColor: "#2563EB",
-              color: "#2563EB",
-              px: 3,
-              fontSize: 11,
-              fontWeight: 500,
-              borderRadius: "8px",
-              "&:hover": { borderColor: "#2563EB", background: "#EFF6FF" },
-            }}
+            sx={outlineBtnSx}
           >
             Cancel
           </Button>
+
           <Button
             variant="contained"
+            disableElevation
             onClick={handleAddPatient}
-            sx={{
-              bgcolor: T.blue,
-              color: "#fff",
-              px: 4,
-              fontSize: 11,
-              fontWeight: 500,
-              borderRadius: "8px",
-              "&:hover": { bgcolor: "#1D4ED8" },
-            }}
+            sx={primaryBtnSx}
           >
             Add Patient
           </Button>
         </Box>
       </Box>
-    </ThemeProvider>
+    </Box>
   );
 }
 

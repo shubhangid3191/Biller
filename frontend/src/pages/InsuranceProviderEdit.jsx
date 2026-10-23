@@ -17,17 +17,33 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 /* ------------------------------------------------------------------ */
-/* Design tokens                                                        */
+/* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
+
 const T = {
   blue: "#2563EB",
-  page: "#F7F9FC",
-  border: "#C5C6CC",
+  page: "#F5F7FA", // same page bg as the other pages
+  border: "#E5E7EB",
+  fieldBg: "#F9FAFC",
+  label: "#2F3036",
+  error: "#EF4444",
+};
+
+/* Same thin scrollbar as the other pages */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
 };
 
 /* ------------------------------------------------------------------ */
-/* Validation                                                           */
+/* Validation                                                          */
 /* ------------------------------------------------------------------ */
+
 const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
@@ -76,69 +92,104 @@ const ALL_REQUIRED = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Input / Select styles — matches AddNewPatient                        */
+/* Input styles (height 34, fontSize 12, radius 6)                      */
 /* ------------------------------------------------------------------ */
+
 const inputSx = {
+  width: "100%",
   "& .MuiOutlinedInput-root": {
-    borderRadius: "8px",
-    fontSize: 13,
-    bgcolor: "#fff",
-    "& input": { padding: "8px 12px", fontSize: 13, color: "#1E1E1E" },
-    "& input::placeholder": { color: "#8F9098", opacity: 1 },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#C5C6CC" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9CA3AF" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#006FFD",
-      borderWidth: "1.5px",
+    height: 34,
+    minHeight: 34,
+    boxSizing: "border-box",
+    fontSize: 12,
+    borderRadius: "6px",
+    backgroundColor: T.fieldBg,
+    color: "#1F2937",
+
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: "#D1D5DB" },
+    "&.Mui-focused fieldset": { borderColor: "#0066FF", borderWidth: "1px" },
+    "&.Mui-error fieldset": { borderColor: T.error },
+
+    "& input": {
+      height: "100%",
+      boxSizing: "border-box",
+      padding: "0 10px",
+      fontSize: 12,
+      color: "#1F2937",
     },
-    "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
+    "& input::placeholder": { color: "#9CA3AF", opacity: 1 },
+    "& .MuiInputAdornment-root": { marginRight: 0 },
   },
-  "& .MuiInputBase-root": { height: "42px" },
+
   "& .MuiFormHelperText-root": {
-    fontSize: 11,
+    fontSize: 10.5,
     mx: 0,
+    ml: 0,
     mt: 0.4,
-    color: "#EF4444",
+    color: T.error,
   },
 };
 
 const selectSx = (error = false) => ({
-  height: "42px",
-  borderRadius: "8px",
-  fontSize: 13,
-  bgcolor: "#fff",
+  height: 34,
+  borderRadius: "6px",
+  fontSize: 12,
+  backgroundColor: T.fieldBg,
+  color: "#1F2937",
+
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#C5C6CC",
+    borderColor: error ? T.error : T.border,
+    borderRadius: "6px",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#9CA3AF",
+    borderColor: error ? T.error : "#D1D5DB",
   },
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: error ? "#EF4444" : "#006FFD",
-    borderWidth: "1.5px",
+    borderColor: error ? T.error : "#0066FF",
+    borderWidth: "1px",
   },
-  "&.Mui-error .MuiOutlinedInput-notchedOutline": { borderColor: "#EF4444" },
+
   "& .MuiSelect-select": {
-    padding: "0 !important",
-    px: "12px !important",
-    fontSize: 13,
+    minHeight: "34px !important",
+    height: "34px",
+    boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
-    height: "42px",
-    boxSizing: "border-box",
+    padding: "0 32px 0 10px !important",
+    fontSize: 12,
   },
-  "& .MuiSvgIcon-root": { color: "#8F9098" },
+
+  "& .MuiSelect-icon": {
+    color: "#6B7280",
+    right: 6,
+    fontSize: 18,
+  },
 });
 
 /* ------------------------------------------------------------------ */
-/* Shared components                                                    */
+/* Shared components                                                   */
 /* ------------------------------------------------------------------ */
+
 function Label({ children, required }) {
   return (
-    <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#000", mb: 0.6 }}>
+    <Typography
+      sx={{
+        fontSize: 11,
+        fontWeight: 500,
+        color: T.label,
+        mb: 0.5,
+        lineHeight: 1.4,
+        display: "block",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
       {children}
+
       {required && (
-        <Box component="span" sx={{ color: "#EF4444", ml: 0.3 }}>
+        <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
           *
         </Box>
       )}
@@ -159,10 +210,12 @@ function InputField({
   maxLength,
 }) {
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
+
       <TextField
         fullWidth
+        size="small"
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -174,7 +227,9 @@ function InputField({
           endIcon
             ? {
                 endAdornment: (
-                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                  <InputAdornment position="end" sx={{ pr: "2px" }}>
+                    {endIcon}
+                  </InputAdornment>
                 ),
               }
             : undefined
@@ -196,9 +251,10 @@ function SelectField({
   error,
 }) {
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
-      <FormControl fullWidth error={!!error}>
+
+      <FormControl fullWidth size="small" error={!!error}>
         <Select
           displayEmpty
           value={value ?? ""}
@@ -208,26 +264,28 @@ function SelectField({
           IconComponent={KeyboardArrowDownIcon}
           renderValue={(val) =>
             val ? (
-              <span style={{ fontSize: 13, color: "#1E1E1E" }}>{val}</span>
+              <span style={{ fontSize: 12, color: "#1F2937" }}>{val}</span>
             ) : (
-              <span style={{ fontSize: 13, color: "#8F9098" }}>
+              <span style={{ fontSize: 12, color: "#9CA3AF" }}>
                 {placeholder}
               </span>
             )
           }
         >
-          <MenuItem value="" sx={{ fontSize: 13, color: "#8F9098" }}>
+          <MenuItem value="" sx={{ fontSize: 12, color: "#9CA3AF" }}>
             {placeholder}
           </MenuItem>
+
           {options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13 }}>
+            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
               {o}
             </MenuItem>
           ))}
         </Select>
+
         {error && (
           <FormHelperText
-            sx={{ fontSize: 11, mx: 0, mt: 0.4, color: "#EF4444" }}
+            sx={{ fontSize: 10.5, mx: 0, mt: 0.4, color: T.error }}
           >
             {error}
           </FormHelperText>
@@ -237,14 +295,22 @@ function SelectField({
   );
 }
 
-function FormGrid({ children }) {
+/* ------------------------------------------------------------------ */
+/* Form Grid                                                           */
+/* ------------------------------------------------------------------ */
+
+function FormGrid({ children, cols = 4, last = false }) {
   return (
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
-        gap: 2,
-        mb: 2.5,
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "1fr 1fr",
+          md: `repeat(${cols}, minmax(0, 1fr))`,
+        },
+        gap: 1.5,
+        mb: last ? 0 : 1.5,
       }}
     >
       {children}
@@ -253,8 +319,29 @@ function FormGrid({ children }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Main Page                                                            */
+/* Section Box (p 2, border, radius 8)                                  */
 /* ------------------------------------------------------------------ */
+
+function SectionBox({ children }) {
+  return (
+    <Box
+      sx={{
+        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        border: `1px solid ${T.border}`,
+        p: 2,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Main Page                                                           */
+/* ------------------------------------------------------------------ */
+
 export default function InsuranceProviderEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
@@ -281,6 +368,7 @@ export default function InsuranceProviderEdit() {
 
   const [touched, setTouched] = React.useState({});
 
+  /* ---------- helpers ---------- */
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -292,6 +380,7 @@ export default function InsuranceProviderEdit() {
   const touch = (name) =>
     setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }));
 
+  /* error shows only after the user has visited the field (or pressed Save) */
   const errorOf = (name) =>
     touched[name] ? validateField(name, form[name]) : "";
 
@@ -310,6 +399,7 @@ export default function InsuranceProviderEdit() {
     error: errorOf(name),
   });
 
+  /* ---------- save ---------- */
   const handleSave = () => {
     const allTouched = Object.fromEntries(
       Object.keys(ALL_REQUIRED).map((k) => [k, true]),
@@ -339,73 +429,114 @@ export default function InsuranceProviderEdit() {
     }
   };
 
+  /* footer button look (same as the other pages) */
+  const outlineBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 2.5,
+    borderRadius: "8px",
+    color: "#0066FF",
+    borderColor: "#0066FF",
+    backgroundColor: "#FFFFFF",
+    whiteSpace: "nowrap",
+    "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+  };
+
+  const primaryBtnSx = {
+    textTransform: "none",
+    fontSize: 12,
+    fontWeight: 600,
+    height: 34,
+    px: 3,
+    borderRadius: "8px",
+    bgcolor: "#0066FF",
+    boxShadow: "none",
+    whiteSpace: "nowrap",
+    "&:hover": { bgcolor: "#0052CC", boxShadow: "none" },
+  };
+
   return (
     <Box
       sx={{
         bgcolor: T.page,
         minHeight: "100vh",
         width: "100%",
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, sm: 2, md: 2.5, lg: 2.5 },
+        py: 1,
+        px: 2,
         boxSizing: "border-box",
+        overflowX: "hidden",
+        overflowY: "auto",
+        ...thinScroll,
       }}
     >
       <Box
         sx={{
-          maxWidth: 1400,
-          mx: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 1.5,
         }}
       >
-        {/* Title */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            onClick={() => navigate(-1)}
-            sx={{
-              flexShrink: 0,
-              color: "#5A6B7E",
-              border: "1.5px solid #E4E9EF",
-              borderRadius: "8px",
-              width: 36,
-              height: 36,
-              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
-            }}
-          >
-            <ArrowBackIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-          <Typography
-            sx={{
-              fontSize: { xs: 16, sm: 18, md: 20 },
-              fontWeight: 700,
-              color: "#111827",
-            }}
-          >
-            {isEdit ? "Edit Insurance" : "Add New Insurance"}
-          </Typography>
-        </Box>
-
-        {/* ══ SINGLE BOX ══ */}
+        {/* =========================================================
+            TITLE
+        ========================================================= */}
         <Box
           sx={{
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            border: "1px solid #E5E7EB",
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, sm: 3 },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
           }}
         >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              sx={{
+                flexShrink: 0,
+                color: "#5A6B7E",
+                border: "1px solid #E5E7EB",
+                bgcolor: "#FFFFFF",
+                borderRadius: "8px",
+                width: 32,
+                height: 32,
+                "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+              }}
+            >
+              <ArrowBackIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+
+            <Typography
+              sx={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#111827",
+              }}
+            >
+              {isEdit ? "Edit Insurance" : "Add New Insurance"}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* =========================================================
+            MAIN BOX
+        ========================================================= */}
+        <SectionBox>
           {/* Row 1 */}
           <FormGrid>
             <InputField label="Payor Name" required {...tx("payorName")} />
+
             <InputField label="Payor Code" required {...tx("payorCode")} />
+
             <InputField
               label="Payor E-mail"
               placeholder="email@example.com"
               required
               {...tx("payorEmail")}
             />
+
             <InputField
               label="Payor Phone"
               required
@@ -426,16 +557,19 @@ export default function InsuranceProviderEdit() {
               placeholder="10-digit number"
               {...tx("payorFax")}
             />
+
             <InputField
               label="Payor Address"
               required
               {...tx("payorAddress")}
             />
+
             <InputField
               label="Payor Street"
               value={form.payorStreet}
               onChange={set("payorStreet")}
             />
+
             <InputField
               label="Payor Street 2"
               value={form.payorStreet2}
@@ -446,34 +580,26 @@ export default function InsuranceProviderEdit() {
           {/* Row 3 — City → State → Country → Zip */}
           <FormGrid>
             <InputField label="Payor City" required {...tx("payorCity")} />
+
             <SelectField
               label="State"
               required
               options={["California", "Texas", "New York", "Florida"]}
               {...sel("state")}
             />
+
             <SelectField
               label="Country"
               required
               options={["USA", "Canada", "India", "United Kingdom"]}
               {...sel("country")}
             />
+
             <InputField label="Zip Code" required {...tx("payorZip")} />
           </FormGrid>
 
           {/* Row 4 — Submission Method + Mandatory code toggle */}
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-                md: "repeat(4, 1fr)",
-              },
-              gap: 2,
-              mb: 1,
-            }}
-          >
+          <FormGrid last>
             <SelectField
               label="Submission Method"
               required
@@ -488,25 +614,28 @@ export default function InsuranceProviderEdit() {
               }}
             >
               <Label>&nbsp;</Label>
+
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: "1px solid #C5C6CC",
-                  borderRadius: "8px",
-                  px: "12px",
-                  height: 42,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: "6px",
+                  px: "10px",
+                  height: 34,
                   width: "100%",
-                  bgcolor: "#fff",
+                  bgcolor: T.fieldBg,
                   boxSizing: "border-box",
-                  "&:hover": { borderColor: "#9CA3AF" },
+                  transition: "border-color 0.15s",
+                  "&:hover": { borderColor: "#D1D5DB" },
+                  "&:focus-within": { borderColor: "#0066FF" },
                 }}
               >
                 <Typography
                   sx={{
-                    fontSize: 13,
-                    color: "#1E1E1E",
+                    fontSize: 12,
+                    color: "#1F2937",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -515,65 +644,60 @@ export default function InsuranceProviderEdit() {
                 >
                   Set mandatory insurance type code
                 </Typography>
+
                 <Switch
                   size="small"
                   checked={mandatoryCode}
                   onChange={(e) => setMandatoryCode(e.target.checked)}
+                  inputProps={{
+                    "aria-label": "Set mandatory insurance type code",
+                  }}
                   sx={{
                     mr: -0.5,
                     flexShrink: 0,
+                    "& .MuiSwitch-switchBase": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked": { color: "#fff" },
                     "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                       bgcolor: "#22C55E",
                       opacity: 1,
                     },
-                    "& .MuiSwitch-track": { borderRadius: 20 },
+                    "& .MuiSwitch-track": {
+                      borderRadius: 20,
+                      bgcolor: "#D1D5DB",
+                      opacity: 1,
+                    },
                   }}
                 />
               </Box>
             </Box>
-          </Box>
-        </Box>
+          </FormGrid>
+        </SectionBox>
 
-        {/* ══ FOOTER BUTTONS ══ */}
+        {/* =========================================================
+            FOOTER BUTTONS
+        ========================================================= */}
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column-reverse", sm: "row" },
             justifyContent: { xs: "stretch", sm: "flex-end" },
-            gap: 1.5,
-            pb: 3,
+            gap: 1,
+            pb: 1.5,
           }}
         >
           <Button
             variant="outlined"
             onClick={() => navigate(-1)}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              color: "#015DFF",
-              border: "1.5px solid #015DFF",
-              px: 3,
-              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
-            }}
+            sx={outlineBtnSx}
           >
             Cancel
           </Button>
+
           <Button
             variant="contained"
             disableElevation
             onClick={handleSave}
-            sx={{
-              textTransform: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: "8px",
-              bgcolor: T.blue,
-              px: 4,
-              "&:hover": { bgcolor: "#1D4ED8" },
-            }}
+            sx={primaryBtnSx}
           >
             Save
           </Button>

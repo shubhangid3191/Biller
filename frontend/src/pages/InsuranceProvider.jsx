@@ -287,17 +287,83 @@ function PaginationBar({
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
-  ["Clare Jane", "8475875747", "WashingtonUSe, Aleutians East, Ala...", "8475875747", true],
-  ["Aetna", "1123456780", "Hartford, Hartford County, Conn...", "1123456781", true],
-  ["Blue Cross", "7345678123", "Chicago, Cook County, Illinois...", "7345678124", false],
-  ["Cigna", "6456781234", "Bloomfield, Hartford County, C...", "6456781235", true],
-  ["Humana", "9567812345", "Louisville, Jefferson County, K...", "9567812346", true],
-  ["Kaiser", "5678123456", "Oakland, Alameda County, Cali...", "5678123457", true],
-  ["Medicare", "8781234567", "Baltimore, Baltimore County, ...", "8781234568", false],
-  ["Molina", "4892345678", "Long Beach, Los Angeles Coun...", "4892345679", true],
-  ["Oscar Health", "9903456781", "New York, New York County, ...", "9903456782", true],
-  ["Tricare", "3014567812", "Falls Church, Fairfax County, ...", "3014567813", true],
-  ["United Health", "7125678123", "Minnetonka, Hennepin County...", "7125678124", true],
+  [
+    "Clare Jane",
+    "8475875747",
+    "Washington, Aleutians East Borough, AK 99571",
+    "8475875747",
+    true,
+  ],
+  [
+    "Aetna",
+    "1123456780",
+    "Hartford, Hartford County, Connecticut 06156",
+    "1123456781",
+    true,
+  ],
+  [
+    "Blue Cross",
+    "7345678123",
+    "Chicago, Cook County, Illinois 60601",
+    "7345678124",
+    false,
+  ],
+  [
+    "Cigna",
+    "6456781234",
+    "Bloomfield, Hartford County, Connecticut 06002",
+    "6456781235",
+    true,
+  ],
+  [
+    "Humana",
+    "9567812345",
+    "Louisville, Jefferson County, Kentucky 40202",
+    "9567812346",
+    true,
+  ],
+  [
+    "Kaiser",
+    "5678123456",
+    "Oakland, Alameda County, California 94612",
+    "5678123457",
+    true,
+  ],
+  [
+    "Medicare",
+    "8781234567",
+    "Baltimore, Baltimore County, Maryland 21244",
+    "8781234568",
+    false,
+  ],
+  [
+    "Molina",
+    "4892345678",
+    "Long Beach, Los Angeles County, California 90802",
+    "4892345679",
+    true,
+  ],
+  [
+    "Oscar Health",
+    "9903456781",
+    "New York, New York County, New York 10013",
+    "9903456782",
+    true,
+  ],
+  [
+    "Tricare",
+    "3014567812",
+    "Falls Church, Fairfax County, Virginia 22042",
+    "3014567813",
+    true,
+  ],
+  [
+    "United Health",
+    "7125678123",
+    "Minnetonka, Hennepin County, Minnesota 55343",
+    "7125678124",
+    true,
+  ],
 ];
 
 const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
@@ -309,6 +375,10 @@ const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
   active,
 }));
 
+/* Change this key (v3, v4 ...) whenever you change the dummy data above,
+   so the old cached rows in localStorage are ignored. */
+const STORAGE_KEY = "insuranceProviderRows_v2";
+
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
 /* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
@@ -316,7 +386,7 @@ const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
 const COLUMNS = [
   { id: "payorName", label: "Payor Name", sort: "alpha", width: 160 },
   { id: "payorCode", label: "Payor Code", sort: "number", width: 130 },
-  { id: "address", label: "Address", sort: "alpha", width: 240 },
+  { id: "address", label: "Address", sort: "alpha", width: 340 },
   { id: "fax", label: "Fax", sort: "number", width: 130 },
   { id: "active", label: "Active", center: true, width: 80 },
   { id: "actions", label: "Action", center: true, last: true, width: 100 },
@@ -609,7 +679,9 @@ function FormRow({ fields }) {
 
 /* ------------------------------------------------------------------ */
 /* Edit Dialog                                                          */
+/* (not opened from this page right now; kept for reference)            */
 /* ------------------------------------------------------------------ */
+// eslint-disable-next-line no-unused-vars
 function EditDialog({ open, onClose }) {
   return (
     <Dialog
@@ -1120,7 +1192,7 @@ export default function InsuranceProvider() {
   /* ── rows — persisted in localStorage ── */
   const [data, setData] = React.useState(() => {
     try {
-      const saved = localStorage.getItem("insuranceProviderRows");
+      const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) : ROWS;
     } catch {
       return ROWS;
@@ -1131,7 +1203,11 @@ export default function InsuranceProvider() {
   );
 
   React.useEffect(() => {
-    localStorage.setItem("insuranceProviderRows", JSON.stringify(data));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* storage full / blocked: ignore */
+    }
   }, [data]);
 
   /* ── handle result from InsuranceProviderEdit ── */
@@ -1422,7 +1498,7 @@ export default function InsuranceProvider() {
             stickyHeader
             size="small"
             sx={{
-              minWidth: 900,
+              minWidth: 1000,
               tableLayout: "fixed",
               width: "100%",
               borderCollapse: "separate",
@@ -1457,15 +1533,7 @@ export default function InsuranceProvider() {
                 >
                   <TableCell sx={listCellSx}>{row.payorName}</TableCell>
                   <TableCell sx={listCellSx}>{row.payorCode}</TableCell>
-                  <TableCell
-                    sx={{
-                      ...listCellSx,
-                      maxWidth: 260,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <TableCell sx={{ ...listCellSx, whiteSpace: "nowrap" }}>
                     {row.address}
                   </TableCell>
                   <TableCell sx={listCellSx}>{row.fax}</TableCell>

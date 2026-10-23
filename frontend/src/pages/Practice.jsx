@@ -279,17 +279,105 @@ function PaginationBar({
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
-  ["Clare Jane", "WashingtonUSe, Aleuti...", "8475875747", "8475875747", "8475875747", "8475875747", true],
-  ["Adam Ross", "Boston, Suffolk Coun...", "9123456780", "9123456781", "9123456782", "9123456783", true],
-  ["Zoe Martin", "Denver, Denver Coun...", "7345678123", "7345678124", "7345678125", "7345678126", false],
-  ["Brian Cox", "Austin, Travis Count...", "6456781234", "6456781235", "6456781236", "6456781237", true],
-  ["Maya Singh", "Chicago, Cook County...", "9567812345", "9567812346", "9567812347", "9567812348", true],
-  ["Liam Turner", "Seattle, King County...", "5678123456", "5678123457", "5678123458", "5678123459", true],
-  ["Nora Blake", "Miami, Miami-Dade...", "8781234567", "8781234568", "8781234569", "8781234560", false],
-  ["Ethan Hall", "Phoenix, Maricopa...", "4892345678", "4892345679", "4892345670", "4892345671", true],
-  ["Ivy Morgan", "Portland, Multnomah...", "9903456781", "9903456782", "9903456783", "9903456784", true],
-  ["Owen Reed", "Dallas, Dallas County...", "3014567812", "3014567813", "3014567814", "3014567815", true],
-  ["Ruby Fox", "Atlanta, Fulton Coun...", "7125678123", "7125678124", "7125678125", "7125678126", true],
+  [
+    "Clare Jane",
+    "Washington, Aleutians East Borough, AK 99571",
+    "8475875747",
+    "8475875747",
+    "8475875747",
+    "8475875747",
+    true,
+  ],
+  [
+    "Adam Ross",
+    "Boston, Suffolk County, MA 02108",
+    "9123456780",
+    "9123456781",
+    "9123456782",
+    "9123456783",
+    true,
+  ],
+  [
+    "Zoe Martin",
+    "Denver, Denver County, CO 80202",
+    "7345678123",
+    "7345678124",
+    "7345678125",
+    "7345678126",
+    false,
+  ],
+  [
+    "Brian Cox",
+    "Austin, Travis County, TX 78701",
+    "6456781234",
+    "6456781235",
+    "6456781236",
+    "6456781237",
+    true,
+  ],
+  [
+    "Maya Singh",
+    "Chicago, Cook County, IL 60601",
+    "9567812345",
+    "9567812346",
+    "9567812347",
+    "9567812348",
+    true,
+  ],
+  [
+    "Liam Turner",
+    "Seattle, King County, WA 98101",
+    "5678123456",
+    "5678123457",
+    "5678123458",
+    "5678123459",
+    true,
+  ],
+  [
+    "Nora Blake",
+    "Miami, Miami-Dade County, FL 33101",
+    "8781234567",
+    "8781234568",
+    "8781234569",
+    "8781234560",
+    false,
+  ],
+  [
+    "Ethan Hall",
+    "Phoenix, Maricopa County, AZ 85001",
+    "4892345678",
+    "4892345679",
+    "4892345670",
+    "4892345671",
+    true,
+  ],
+  [
+    "Ivy Morgan",
+    "Portland, Multnomah County, OR 97201",
+    "9903456781",
+    "9903456782",
+    "9903456783",
+    "9903456784",
+    true,
+  ],
+  [
+    "Owen Reed",
+    "Dallas, Dallas County, TX 75201",
+    "3014567812",
+    "3014567813",
+    "3014567814",
+    "3014567815",
+    true,
+  ],
+  [
+    "Ruby Fox",
+    "Atlanta, Fulton County, GA 30301",
+    "7125678123",
+    "7125678124",
+    "7125678125",
+    "7125678126",
+    true,
+  ],
 ];
 
 const INITIAL_ROWS = SAMPLE.map(
@@ -1132,7 +1220,9 @@ export default function Practice() {
                   }}
                 >
                   <TableCell sx={listCellSx}>{row.practice}</TableCell>
-                  <TableCell sx={listCellSx}>{row.address}</TableCell>
+                  <TableCell sx={{ ...listCellSx, whiteSpace: "nowrap" }}>
+                    {row.address}
+                  </TableCell>
                   <TableCell sx={listCellSx}>{row.contact}</TableCell>
                   <TableCell sx={listCellSx}>{row.workPhone}</TableCell>
                   <TableCell sx={listCellSx}>{row.fax}</TableCell>

@@ -278,17 +278,105 @@ function PaginationBar({
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
-  ["Location 1", "WashingtonUSe, Aleuti...", "8475875747", "8475875747", "8475875747", "Fresh Original", true],
-  ["Location 2", "Boston, Suffolk Coun...", "9123456780", "9123456781", "9123456782", "Hitex", true],
-  ["Location 3", "Denver, Denver Coun...", "7345678123", "7345678124", "7345678125", "Balance Report", false],
-  ["Annex Clinic", "Austin, Travis Count...", "6456781234", "6456781235", "6456781236", "Fresh Original", true],
-  ["Central Hospital", "Chicago, Cook County...", "9567812345", "9567812346", "9567812347", "Hitex", true],
-  ["East Wing", "Seattle, King County...", "5678123456", "5678123457", "5678123458", "Balance Report", true],
-  ["Lakeside Center", "Miami, Miami-Dade...", "8781234567", "8781234568", "8781234569", "Fresh", false],
-  ["Northgate Care", "Phoenix, Maricopa...", "4892345678", "4892345679", "4892345670", "Hitex", true],
-  ["Riverside Unit", "Portland, Multnomah...", "9903456781", "9903456782", "9903456783", "Fresh Original", true],
-  ["South Campus", "Dallas, Dallas County...", "3014567812", "3014567813", "3014567814", "Balance Report", true],
-  ["West Point", "Atlanta, Fulton Coun...", "7125678123", "7125678124", "7125678125", "Fresh", true],
+  [
+    "Location 1",
+    "Washington, Aleutians East Borough, AK 99571",
+    "8475875747",
+    "8475875747",
+    "8475875747",
+    "Fresh Original",
+    true,
+  ],
+  [
+    "Location 2",
+    "Boston, Suffolk County, MA 02108",
+    "9123456780",
+    "9123456781",
+    "9123456782",
+    "Hitex",
+    true,
+  ],
+  [
+    "Location 3",
+    "Denver, Denver County, CO 80202",
+    "7345678123",
+    "7345678124",
+    "7345678125",
+    "Balance Report",
+    false,
+  ],
+  [
+    "Annex Clinic",
+    "Austin, Travis County, TX 78701",
+    "6456781234",
+    "6456781235",
+    "6456781236",
+    "Fresh Original",
+    true,
+  ],
+  [
+    "Central Hospital",
+    "Chicago, Cook County, IL 60601",
+    "9567812345",
+    "9567812346",
+    "9567812347",
+    "Hitex",
+    true,
+  ],
+  [
+    "East Wing",
+    "Seattle, King County, WA 98101",
+    "5678123456",
+    "5678123457",
+    "5678123458",
+    "Balance Report",
+    true,
+  ],
+  [
+    "Lakeside Center",
+    "Miami, Miami-Dade County, FL 33101",
+    "8781234567",
+    "8781234568",
+    "8781234569",
+    "Fresh",
+    false,
+  ],
+  [
+    "Northgate Care",
+    "Phoenix, Maricopa County, AZ 85001",
+    "4892345678",
+    "4892345679",
+    "4892345670",
+    "Hitex",
+    true,
+  ],
+  [
+    "Riverside Unit",
+    "Portland, Multnomah County, OR 97201",
+    "9903456781",
+    "9903456782",
+    "9903456783",
+    "Fresh Original",
+    true,
+  ],
+  [
+    "South Campus",
+    "Dallas, Dallas County, TX 75201",
+    "3014567812",
+    "3014567813",
+    "3014567814",
+    "Balance Report",
+    true,
+  ],
+  [
+    "West Point",
+    "Atlanta, Fulton County, GA 30301",
+    "7125678123",
+    "7125678124",
+    "7125678125",
+    "Fresh",
+    true,
+  ],
 ];
 
 const INITIAL_ROWS = SAMPLE.map(
@@ -1236,7 +1324,9 @@ export default function Locations() {
                   }}
                 >
                   <TableCell sx={listCellSx}>{row.location}</TableCell>
-                  <TableCell sx={listCellSx}>{row.address}</TableCell>
+                  <TableCell sx={{ ...listCellSx, whiteSpace: "nowrap" }}>
+                    {row.address}
+                  </TableCell>
                   <TableCell sx={listCellSx}>{row.contact}</TableCell>
                   <TableCell sx={listCellSx}>{row.fax}</TableCell>
                   <TableCell sx={listCellSx}>{row.npi}</TableCell>
