@@ -6,6 +6,8 @@ import {
   Tabs,
   Tab,
   Button,
+  IconButton,
+  InputBase,
   TextField,
   Table,
   TableBody,
@@ -23,17 +25,22 @@ import {
   useTheme,
 } from "@mui/material";
 
-import { KeyboardArrowDown, UnfoldMore } from "@mui/icons-material";
+import {
+  KeyboardArrowDown,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+} from "@mui/icons-material";
 
 /* ─────────────────────────────────────────────
    Constants
 ───────────────────────────────────────────── */
 const MODIFIER_OPTIONS = ["None", "26", "LT", "RT", "25", "59", "TC"];
 
-const LOG_ENTRIES = Array.from({ length: 12 }, (_, i) => ({
+// 60 sample rows so pagination (25 / 50 / 100 per page) is visible
+const LOG_ENTRIES = Array.from({ length: 60 }, (_, i) => ({
   id: i + 1,
-  date: "11/20/2025",
-  time: "14:19",
+  date: `11/${String((i % 28) + 1).padStart(2, "0")}/2025`,
+  time: `${String(8 + (i % 12)).padStart(2, "0")}:${String((i * 7) % 60).padStart(2, "0")}`,
   user: "Alex Tobar",
   remarks: "Marked as payment received",
 }));
@@ -64,7 +71,7 @@ const DX_COLORS = [
    Shared sx helpers
 ───────────────────────────────────────────── */
 const thinScrollSx = {
-  "&::-webkit-scrollbar": { width: "4px" },
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
   "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
   "&::-webkit-scrollbar-thumb": {
     backgroundColor: "#D1D5DB",
@@ -78,11 +85,11 @@ const outlineBtnSx = {
   borderColor: "#E1E5EA",
   backgroundColor: "#FFFFFF",
   fontWeight: 600,
-  fontSize: 12,
+  fontSize: 11,
   height: 28,
   minHeight: 28,
   px: 1.2,
-  borderRadius: "5px",
+  borderRadius: "8px",
   minWidth: "auto",
   whiteSpace: "nowrap",
   "&:hover": { borderColor: "#D1D5DB", backgroundColor: "#F9FAFB" },
@@ -90,18 +97,237 @@ const outlineBtnSx = {
 
 const readOnlyFieldSx = {
   "& .MuiInputBase-root": {
-    height: 32,
-    fontSize: 12,
+    height: 28,
+    fontSize: 10.5,
     backgroundColor: "#F3F4F6",
     borderRadius: "6px",
   },
   "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
   "& .MuiInputBase-input": {
-    padding: "5px 10px",
+    padding: "4px 10px",
     color: "#6B7280",
     fontWeight: 600,
   },
 };
+
+/* ─────────────────────────────────────────────
+   Pagination (same as RenderingProvider)
+   rows per page | range | < 1 2 3 … 50 > | Go To Page
+───────────────────────────────────────────── */
+const PAGE_SIZES = [25, 50, 100];
+
+/* Which page buttons to show: 1 … 44 45 46 … 50 */
+const getPageItems = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+  if (current <= 3) end = 4;
+  if (current >= total - 2) start = total - 3;
+  if (start > 2) items.push("…");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+const pageBtnSx = (active) => ({
+  minWidth: 26,
+  height: 26,
+  px: 0.75,
+  borderRadius: "6px",
+  fontSize: 11,
+  fontWeight: active ? 700 : 500,
+  textTransform: "none",
+  color: active ? "#FFFFFF" : "#374151",
+  backgroundColor: active ? "#0066FF" : "transparent",
+  "&:hover": { backgroundColor: active ? "#0052CC" : "#F3F4F6" },
+});
+
+const arrowBtnSx = {
+  width: 26,
+  height: 26,
+  borderRadius: "6px",
+  color: "#374151",
+  "&.Mui-disabled": { color: "#D1D5DB" },
+};
+
+function PaginationBar({
+  count,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+}) {
+  const [goTo, setGoTo] = useState("");
+
+  const totalPages = Math.max(Math.ceil(count / rowsPerPage), 1);
+  const from = count === 0 ? 0 : page * rowsPerPage + 1;
+  const to = Math.min(count, (page + 1) * rowsPerPage);
+  const items = getPageItems(page + 1, totalPages);
+
+  const handleGo = () => {
+    const n = parseInt(goTo, 10);
+    if (!n) return;
+    onPageChange(Math.min(Math.max(n, 1), totalPages) - 1);
+    setGoTo("");
+  };
+
+  return (
+    <Box
+      sx={{
+        flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1fr auto 1fr" },
+        justifyItems: { xs: "center", md: "stretch" },
+        alignItems: "center",
+        rowGap: 1,
+        columnGap: 2,
+        px: 1.5,
+        py: 0.75,
+        minHeight: 44,
+        borderTop: "1px solid #E5E7EB",
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {/* RIGHT: rows per page + range */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          gridColumn: { md: 3 },
+          gridRow: { md: 1 },
+          justifySelf: { md: "end" },
+        }}
+      >
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          Rows per page
+        </Typography>
+        <Select
+          size="small"
+          value={rowsPerPage}
+          onChange={onRowsPerPageChange}
+          IconComponent={KeyboardArrowDown}
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            height: 26,
+            borderRadius: "6px",
+            "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+            "& .MuiSelect-select": { py: 0, pl: 1, pr: "24px !important" },
+            "& .MuiSelect-icon": { fontSize: 16 },
+          }}
+        >
+          {PAGE_SIZES.map((n) => (
+            <MenuItem key={n} value={n} sx={{ fontSize: 11 }}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+        <Typography sx={{ fontSize: 11, color: "#4B5563" }}>
+          {from}–{to} of {count}
+        </Typography>
+      </Box>
+
+      {/* CENTRE: page numbers + Go To Page */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          gridColumn: { md: 2 },
+          gridRow: { md: 1 },
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            disabled={page === 0}
+            onClick={() => onPageChange(page - 1)}
+            sx={arrowBtnSx}
+            aria-label="Previous page"
+          >
+            <KeyboardArrowLeft sx={{ fontSize: 18 }} />
+          </IconButton>
+
+          {items.map((item, idx) =>
+            item === "…" ? (
+              <Typography
+                key={`gap-${idx}`}
+                sx={{ fontSize: 11, color: "#9CA3AF", px: 0.5 }}
+              >
+                …
+              </Typography>
+            ) : (
+              <Button
+                key={item}
+                onClick={() => onPageChange(item - 1)}
+                sx={pageBtnSx(item === page + 1)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+
+          <IconButton
+            size="small"
+            disabled={page >= totalPages - 1}
+            onClick={() => onPageChange(page + 1)}
+            sx={arrowBtnSx}
+            aria-label="Next page"
+          >
+            <KeyboardArrowRight sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <InputBase
+            value={goTo}
+            onChange={(e) => setGoTo(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleGo();
+            }}
+            placeholder={`1–${totalPages}`}
+            inputProps={{ inputMode: "numeric", "aria-label": "Go to page" }}
+            sx={{
+              width: 64,
+              height: 26,
+              px: 1,
+              fontSize: 11,
+              border: "1px solid #D1D5DB",
+              borderRadius: "6px",
+              backgroundColor: "#FFFFFF",
+              "&:focus-within": { borderColor: "#0066FF" },
+              "& input": { p: 0, textAlign: "center" },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleGo}
+            disabled={!goTo}
+            sx={{
+              textTransform: "none",
+              fontSize: 11,
+              fontWeight: 600,
+              height: 26,
+              px: 1.25,
+              borderRadius: "6px",
+              color: "#0066FF",
+              borderColor: "#0066FF",
+              whiteSpace: "nowrap",
+              "&:hover": { borderColor: "#0052CC", backgroundColor: "#F5F9FF" },
+            }}
+          >
+            Go To Page
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 /* ─────────────────────────────────────────────
    Sub-components
@@ -109,7 +335,7 @@ const readOnlyFieldSx = {
 function InlineField({ label, value, onChange }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
-      <Typography sx={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>
+      <Typography sx={{ fontSize: 10.5, color: "#9CA3AF", whiteSpace: "nowrap" }}>
         {label}
       </Typography>
       <TextField
@@ -120,13 +346,13 @@ function InlineField({ label, value, onChange }) {
           flex: 1,
           minWidth: 0,
           "& .MuiInputBase-root": {
-            height: 30,
-            fontSize: 12,
+            height: 28,
+            fontSize: 10.5,
             backgroundColor: "#F3F4F6",
             borderRadius: "6px",
           },
           "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-          "& .MuiInputBase-input": { padding: "5px 9px", color: "#6B7280" },
+          "& .MuiInputBase-input": { padding: "4px 9px", color: "#6B7280" },
         }}
       />
     </Box>
@@ -138,7 +364,7 @@ function ClaimSelect({ label, value, options, onChange }) {
   return (
     <Box sx={{ minWidth: 0 }}>
       <Typography
-        sx={{ fontSize: 12, color: "#8B95A5", mb: 0.5, lineHeight: 1.2 }}
+        sx={{ fontSize: 10.5, color: "#8B95A5", mb: 0.5, lineHeight: 1.2 }}
       >
         {label}
       </Typography>
@@ -148,18 +374,18 @@ function ClaimSelect({ label, value, options, onChange }) {
           onChange={(e) => onChange(e.target.value)}
           IconComponent={KeyboardArrowDown}
           sx={{
-            height: 32,
-            fontSize: 12,
+            height: 28,
+            fontSize: 10.5,
             color: "#6B7280",
             backgroundColor: "#F3F4F6",
             borderRadius: "6px",
             "& .MuiSelect-select": { py: 0.5, px: 1.1 },
             "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-            "& .MuiSelect-icon": { fontSize: 17, color: "#9CA3AF" },
+            "& .MuiSelect-icon": { fontSize: 16, color: "#9CA3AF" },
           }}
         >
           {opts.map((opt) => (
-            <MenuItem key={opt} value={opt} sx={{ fontSize: 12 }}>
+            <MenuItem key={opt} value={opt} sx={{ fontSize: 10.5 }}>
               {opt}
             </MenuItem>
           ))}
@@ -187,6 +413,10 @@ export default function PostBillingDetail({
   const [actionAnchorEl, setActionAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [logSort, setLogSort] = useState({ key: null, dir: "asc" });
+
+  // Log tab pagination
+  const [logPage, setLogPage] = useState(0);
+  const [logRowsPerPage, setLogRowsPerPage] = useState(PAGE_SIZES[0]);
 
   const [showPatientDetails, setShowPatientDetails] = useState(false);
   const [showCptDetails, setShowCptDetails] = useState(false);
@@ -359,7 +589,7 @@ export default function PostBillingDetail({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          minHeight: 24,
+          minHeight: 22,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.9 }}>
@@ -374,7 +604,7 @@ export default function PostBillingDetail({
           />
           <Typography
             sx={{
-              fontSize: 12,
+              fontSize: 10.5,
               fontWeight: bold ? 700 : 500,
               color: "#4B5563",
               lineHeight: 1.2,
@@ -385,7 +615,7 @@ export default function PostBillingDetail({
         </Box>
         <Typography
           sx={{
-            fontSize: 12,
+            fontSize: 10.5,
             fontWeight: muted ? 500 : 700,
             color: muted ? "#9CA3AF" : "#1F2937",
             lineHeight: 1.2,
@@ -403,14 +633,14 @@ export default function PostBillingDetail({
         display: "flex",
         alignItems: "baseline",
         gap: 0.8,
-        mb: 1,
+        mb: 0.75,
         minWidth: 0,
       }}
     >
       {label && (
         <Typography
           sx={{
-            fontSize: 12,
+            fontSize: 10.5,
             color: "#6B7280",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
@@ -421,7 +651,7 @@ export default function PostBillingDetail({
       )}
       <Typography
         sx={{
-          fontSize: 12,
+          fontSize: 10.5,
           fontWeight: plain ? 500 : 700,
           color: "#374151",
           textDecoration: isLink ? "underline" : "none",
@@ -450,14 +680,14 @@ export default function PostBillingDetail({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        px: 1.7,
-        py: 1.2,
+        px: 1.5,
+        py: 0.75,
         borderBottom: "1px solid #EEF0F3",
       }}
     >
       <Typography
         sx={{
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 700,
           color: "#1F2937",
           lineHeight: 1.2,
@@ -478,7 +708,7 @@ export default function PostBillingDetail({
               }
             }}
             sx={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               color: "#0066FF",
               cursor: "pointer",
@@ -500,7 +730,7 @@ export default function PostBillingDetail({
                 }
               }}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
                 color: "#0066FF",
                 cursor: "pointer",
@@ -604,7 +834,7 @@ export default function PostBillingDetail({
                   "& svg": { fontSize: 16 },
                 }}
               />
-              <Typography sx={{ fontSize: 12, color: "#374151" }}>
+              <Typography sx={{ fontSize: 10.5, color: "#374151" }}>
                 Do not send electronically
               </Typography>
             </Box>
@@ -622,7 +852,7 @@ export default function PostBillingDetail({
           () => setShowCptDetails(true),
         )}
         <Box sx={{ p: 1.5 }}>
-          <Typography sx={{ fontSize: 12, color: "#8B95A5", mb: 0.5 }}>
+          <Typography sx={{ fontSize: 10.5, color: "#8B95A5", mb: 0.5 }}>
             CPT
           </Typography>
           <TextField
@@ -671,7 +901,7 @@ export default function PostBillingDetail({
             )}
           </Box>
 
-          <Typography sx={{ fontSize: 12, color: "#8B95A5", mb: 0.6 }}>
+          <Typography sx={{ fontSize: 10.5, color: "#8B95A5", mb: 0.6 }}>
             ICD
           </Typography>
           <Box
@@ -696,12 +926,12 @@ export default function PostBillingDetail({
                     bgcolor: c.bg,
                     color: c.color,
                     fontWeight: 600,
-                    fontSize: 12,
-                    height: 24,
+                    fontSize: 10.5,
+                    height: 22,
                     borderRadius: "14px",
                     "& .MuiChip-deleteIcon": {
                       color: c.color,
-                      fontSize: 14,
+                      fontSize: 13,
                       "&:hover": { color: c.color, opacity: 0.7 },
                     },
                   }}
@@ -744,8 +974,8 @@ export default function PostBillingDetail({
                   borderColor: "#DCD6F8",
                   color: "#5443C4",
                   fontWeight: 600,
-                  fontSize: 12,
-                  height: 24,
+                  fontSize: 10.5,
+                  height: 22,
                   borderRadius: "14px",
                 }}
               />
@@ -846,15 +1076,18 @@ export default function PostBillingDetail({
                   key={h}
                   align={i >= 2 ? "right" : "left"}
                   sx={{
-                    fontSize: 13,
+                    fontSize: 10,
                     fontWeight: 700,
-                    color: "#000",
-                    backgroundColor: "#F1F3FF",
-                    borderBottom: "1px solid #E5E7EB",
+                    color: "#1e293b",
+                    backgroundColor: "#EBF1FE",
+                    borderBottom: "1px solid #BED3FC",
+                    borderRight: "1px solid #BED3FC",
+                    "&:last-of-type": { borderRight: 0 },
                     whiteSpace: "nowrap",
-                    py: 1.15,
-                    px: 1,
-                    lineHeight: 1.1,
+                    py: 0.4,
+                    px: 0.75,
+                    lineHeight: 1.15,
+                    minHeight: 28,
                   }}
                 >
                   {h}
@@ -875,14 +1108,16 @@ export default function PostBillingDetail({
                 {/* Date */}
                 <TableCell
                   sx={{
-                    fontSize: 12,
+                    fontSize: 10.5,
                     fontWeight: 600,
-                    color: "#2E2E2E",
+                    color: "#1e293b",
                     verticalAlign: "middle",
                     whiteSpace: "nowrap",
-                    py: 1.2,
-                    px: 1,
+                    py: 0.5,
+                    px: 0.75,
+                    height: 32,
                     lineHeight: 1.15,
+                    borderBottom: "1px solid #EEF1F7",
                   }}
                 >
                   26 Aug 26
@@ -892,14 +1127,16 @@ export default function PostBillingDetail({
                 <TableCell
                   sx={{
                     verticalAlign: "middle",
-                    py: 1.2,
-                    px: 1,
+                    py: 0.5,
+                    px: 0.75,
+                    height: 32,
                     overflow: "hidden",
+                    borderBottom: "1px solid #EEF1F7",
                   }}
                 >
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 10.5,
                       fontWeight: 700,
                       color: t.color,
                       lineHeight: 1.2,
@@ -910,8 +1147,8 @@ export default function PostBillingDetail({
                   </Typography>
                   <Typography
                     sx={{
-                      fontSize: 12,
-                      color: "#6B7280",
+                      fontSize: 10.5,
+                      color: "#475569",
                       lineHeight: 1.35,
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
@@ -924,7 +1161,7 @@ export default function PostBillingDetail({
                   {t.link && (
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 10.5,
                         color: "#0066FF",
                         textDecoration: "underline",
                         cursor: "pointer",
@@ -943,14 +1180,16 @@ export default function PostBillingDetail({
                     key={i}
                     align="right"
                     sx={{
-                      fontSize: 12,
-                      fontWeight: i === 2 ? 600 : 600,
-                      color: "#000",
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: "#1e293b",
                       verticalAlign: "middle",
-                      py: 1.2,
-                      px: 1,
+                      py: 0.5,
+                      px: 0.75,
+                      height: 32,
                       whiteSpace: "nowrap",
                       lineHeight: 1.15,
+                      borderBottom: "1px solid #EEF1F7",
                     }}
                   >
                     {val}
@@ -973,10 +1212,11 @@ export default function PostBillingDetail({
         width: "100%",
         height: "100%",
         backgroundColor: "#F5F7FA",
-        overflowY: "auto",
+        overflowY: activeTab === 1 ? "hidden" : "auto",
         overflowX: "hidden",
         display: "flex",
         flexDirection: "column",
+        boxSizing: "border-box",
         ...thinScrollSx,
       }}
     >
@@ -996,8 +1236,8 @@ export default function PostBillingDetail({
             flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
             gap: isMobile ? 1 : 0,
-            px: { xs: 1.2, sm: 1.5 },
-            pt: 1.3,
+            px: { xs: 1.2, sm: 2 },
+            pt: 1,
             pb: 0.7,
           }}
         >
@@ -1005,9 +1245,9 @@ export default function PostBillingDetail({
           <Box>
             <Typography
               sx={{
-                fontSize: { xs: 16, sm: 20 },
+                fontSize: { xs: 14, sm: 16 },
                 fontWeight: 700,
-                color: "#1F2937",
+                color: "#111827",
                 lineHeight: 1.2,
               }}
             >
@@ -1019,7 +1259,7 @@ export default function PostBillingDetail({
                 flexWrap: "wrap",
                 alignItems: "center",
                 gap: { xs: 0.8, sm: 1.4 },
-                mt: 0.6,
+                mt: 0.5,
               }}
             >
               {[
@@ -1028,7 +1268,7 @@ export default function PostBillingDetail({
                 ["Born", born],
                 ["Patient", patientNo],
               ].map(([label, val]) => (
-                <Typography key={label} sx={{ fontSize: 13, color: "#5C6A7D" }}>
+                <Typography key={label} sx={{ fontSize: 11, color: "#5C6A7D" }}>
                   {label}{" "}
                   <span style={{ color: "#28313F", fontWeight: 600 }}>
                     {val}
@@ -1059,7 +1299,7 @@ export default function PostBillingDetail({
                 backgroundColor: "#FEF3E2",
                 border: "1px solid #F3DDA8",
                 color: "#A16207",
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
               }}
@@ -1079,7 +1319,7 @@ export default function PostBillingDetail({
             <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
               <Typography
                 sx={{
-                  fontSize: { xs: 16, sm: 20 },
+                  fontSize: { xs: 14, sm: 16 },
                   fontWeight: 700,
                   color: "#111827",
                   lineHeight: 1,
@@ -1087,7 +1327,7 @@ export default function PostBillingDetail({
               >
                 {outstanding}
               </Typography>
-              <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+              <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
                 Outstanding
               </Typography>
             </Box>
@@ -1102,8 +1342,8 @@ export default function PostBillingDetail({
             flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
             gap: isMobile ? 1 : 0,
-            px: { xs: 1.2, sm: 1.5 },
-            pb: 0.9,
+            px: { xs: 1.2, sm: 2 },
+            pb: 0.75,
           }}
         >
           {/* General / Log tabs */}
@@ -1118,13 +1358,13 @@ export default function PostBillingDetail({
                 minHeight: 28,
                 height: 28,
                 textTransform: "none",
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 600,
                 color: "#6B7280",
                 minWidth: "auto",
                 px: 1.6,
                 py: 0,
-                borderRadius: "5px",
+                borderRadius: "8px",
               },
               "& .Mui-selected": {
                 color: "#FFFFFF !important",
@@ -1144,7 +1384,7 @@ export default function PostBillingDetail({
               flexWrap: "wrap",
               alignItems: "center",
               gap: 0.8,
-              mb: isMobile ? 0 : 1.2,
+              mb: isMobile ? 0 : 1,
               width: isMobile ? "100%" : "auto",
             }}
           >
@@ -1155,20 +1395,20 @@ export default function PostBillingDetail({
               onClick={handleSave}
               sx={{
                 textTransform: "none",
-                backgroundColor: "#0066FF",
+                backgroundColor: "#2563EB",
                 color: "#FFFFFF",
                 fontWeight: 600,
-                fontSize: 12,
+                fontSize: 11,
                 height: 28,
                 minHeight: 28,
-                px: 1.6,
-                borderRadius: "5px",
-                boxShadow: "0 2px 5px rgba(0,102,255,0.2)",
+                px: 1.75,
+                borderRadius: "8px",
+                boxShadow: "none",
                 minWidth: "auto",
                 whiteSpace: "nowrap",
                 "&:hover": {
-                  backgroundColor: "#0052CC",
-                  boxShadow: "0 2px 5px rgba(0,102,255,0.2)",
+                  backgroundColor: "#1D4ED8",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -1225,7 +1465,7 @@ export default function PostBillingDetail({
               {["Print Claim", "Rebill", "Apply Payment"].map((a) => (
                 <MenuItem
                   key={a}
-                  sx={{ fontSize: 12 }}
+                  sx={{ fontSize: 11 }}
                   onClick={() => setActionAnchorEl(null)}
                 >
                   {a}
@@ -1243,8 +1483,8 @@ export default function PostBillingDetail({
             display: "flex",
             flexDirection: isTablet ? "column" : "row",
             alignItems: isTablet ? "stretch" : "flex-start",
-            gap: 1.5,
-            p: { xs: 1, sm: 1.5 },
+            gap: 1,
+            p: { xs: 1, sm: 1 },
             flexShrink: 0,
           }}
         >
@@ -1256,159 +1496,242 @@ export default function PostBillingDetail({
       {/* ══════════════════ LOG TAB ══════════════════ */}
       {activeTab === 1 &&
         (() => {
+          // 1) sort the full list
           const rows = [...LOG_ENTRIES];
-          if (logSort.key === 'date') {
+          if (logSort.key === "date") {
             rows.sort((a, b) => {
-              const va = logSortValue(a, 'date');
-              const vb = logSortValue(b, 'date');
+              const va = logSortValue(a, "date");
+              const vb = logSortValue(b, "date");
               const r = va < vb ? -1 : va > vb ? 1 : 0;
               return logSort.dir === "asc" ? r : -r;
             });
           }
+
+          // 2) slice for the current page
+          const pagedRows = rows.slice(
+            logPage * logRowsPerPage,
+            logPage * logRowsPerPage + logRowsPerPage,
+          );
+
           const toggleSort = (key) => {
-            if (key !== 'date') return; // Only allow sorting on date column
+            if (key !== "date") return; // Only allow sorting on date column
             setLogSort((prev) =>
-              prev.key === key && prev.dir === 'asc'
+              prev.key === key && prev.dir === "asc"
                 ? { key, dir: "desc" }
                 : { key, dir: "asc" },
             );
+            setLogPage(0); // back to page 1 on sort change
           };
 
           const getSortTitle = () => {
-            if (logSort.key !== 'date') return "Sort oldest first";
-            return logSort.dir === "asc" ? "Sorted oldest first" : "Sorted newest first";
+            if (logSort.key !== "date") return "Sort oldest first";
+            return logSort.dir === "asc"
+              ? "Sorted oldest first"
+              : "Sorted newest first";
           };
 
           return (
-            <Box sx={{ p: { xs: 1, sm: 1.5 } }}>
-              <TableContainer
+            <Box
+              sx={{
+                p: { xs: 1, sm: 1 },
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Border box fills remaining height: rows scroll inside, pagination pinned at bottom */}
+              <Box
                 sx={{
+                  flex: 1,
+                  minHeight: 0,
                   backgroundColor: "#FFFFFF",
-                  border: "1px solid #D6E0F5",
-                  borderRadius: "10px",
-                  overflow: "auto",
-                  ...thinScrollSx,
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <Table
-                  size="small"
-                  sx={{ tableLayout: "fixed", width: "100%", minWidth: 480 }}
+                <TableContainer
+                  sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflow: "auto",
+                    boxShadow: "none",
+                    ...thinScrollSx,
+                  }}
                 >
-                  <TableHead>
-                    <TableRow>
-                      {LOG_COLUMNS.map((col) => (
-                        <TableCell
-                          key={col.key}
-                          onClick={() => col.sortable && toggleSort(col.key)}
-                          sx={{
-                            backgroundColor: "#E8EEFC",
-                            borderBottom: "1px solid #D6E0F5",
-                            borderRight: "1px solid #D6E0F5",
-                            "&:last-of-type": { borderRight: 0 },
-                            cursor: col.sortable ? "pointer" : "default",
-                            userSelect: "none",
-                            py: 1.4,
-                            px: 1.5,
-                            width: col.width,
-                            textAlign: "center",
-                          }}
-                        >
-                          <Box
+                  <Table
+                    stickyHeader
+                    size="small"
+                    sx={{
+                      tableLayout: "fixed",
+                      width: "100%",
+                      minWidth: 480,
+                      borderCollapse: "separate",
+                      borderSpacing: 0,
+                      "& .MuiTableCell-stickyHeader": {
+                        backgroundColor: "#EBF1FE !important",
+                      },
+                    }}
+                  >
+                    <TableHead>
+                      <TableRow>
+                        {LOG_COLUMNS.map((col) => (
+                          <TableCell
+                            key={col.key}
+                            onClick={() => col.sortable && toggleSort(col.key)}
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 0.3,
+                              backgroundColor: "#EBF1FE",
+                              borderBottom: "1px solid #BED3FC",
+                              borderRight: "1px solid #BED3FC",
+                              "&:last-of-type": { borderRight: 0 },
+                              cursor: col.sortable ? "pointer" : "default",
+                              userSelect: "none",
+                              py: 0.4,
+                              px: 0.75,
+                              minHeight: 28,
+                              width: col.width,
+                              textAlign: "center",
                             }}
                           >
-                            <Typography
+                            <Box
                               sx={{
-                                fontSize: 12,
-                                fontWeight: 700,
-                                color: "#374151",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 0.3,
                               }}
                             >
-                              {col.label}
-                            </Typography>
-                            {col.sortable && (
-                              <KeyboardArrowDown
-                                title={getSortTitle()}
+                              <Typography
                                 sx={{
-                                  fontSize: 16,
-                                  color:
-                                    logSort.key === col.key
-                                      ? "#2563EB"
-                                      : "#52525B",
-                                  transform:
-                                    logSort.key === col.key &&
-                                    logSort.dir === "desc"
-                                      ? "rotate(180deg)"
-                                      : "none",
-                                  transition: "transform .15s ease",
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: "#1e293b",
                                 }}
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {rows.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell
-                          sx={{
-                            fontSize: 12,
-                            color: "#4B5563",
-                            py: 1.6,
-                            px: 1.5,
-                            height: 41,
-                            textAlign: "center",
-                          }}
-                        >
-                          {row.date}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontSize: 12,
-                            color: "#4B5563",
-                            py: 1.6,
-                            px: 1.5,
-                            textAlign: "center",
-                          }}
-                        >
-                          {row.time}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#4B5563",
-                            py: 1.6,
-                            px: 1.5,
-                            textAlign: "center",
-                          }}
-                        >
-                          {row.user}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#4B5563",
-                            py: 1.6,
-                            px: 1.5,
-                            textAlign: "center",
-                          }}
-                        >
-                          {row.remarks}
-                        </TableCell>
+                              >
+                                {col.label}
+                              </Typography>
+                              {col.sortable && (
+                                <KeyboardArrowDown
+                                  titleAccess={getSortTitle()}
+                                  sx={{
+                                    fontSize: 13,
+                                    color:
+                                      logSort.key === col.key
+                                        ? "#2563EB"
+                                        : "#52525B",
+                                    transform:
+                                      logSort.key === col.key &&
+                                      logSort.dir === "desc"
+                                        ? "rotate(180deg)"
+                                        : "none",
+                                    transition: "transform .15s ease",
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          </TableCell>
+                        ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+
+                    <TableBody>
+                      {pagedRows.map((row) => (
+                        <TableRow
+                          key={row.id}
+                          hover
+                          sx={{ "&:hover": { bgcolor: "#EEF4FF" } }}
+                        >
+                          <TableCell
+                            sx={{
+                              fontSize: 10.5,
+                              color: "#475569",
+                              py: 0.5,
+                              px: 0.75,
+                              height: 32,
+                              textAlign: "center",
+                              borderBottom: "1px solid #EEF1F7",
+                            }}
+                          >
+                            {row.date}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 10.5,
+                              color: "#475569",
+                              py: 0.5,
+                              px: 0.75,
+                              height: 32,
+                              textAlign: "center",
+                              borderBottom: "1px solid #EEF1F7",
+                            }}
+                          >
+                            {row.time}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 10.5,
+                              fontWeight: 600,
+                              color: "#475569",
+                              py: 0.5,
+                              px: 0.75,
+                              height: 32,
+                              textAlign: "center",
+                              borderBottom: "1px solid #EEF1F7",
+                            }}
+                          >
+                            {row.user}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: 10.5,
+                              fontWeight: 600,
+                              color: "#475569",
+                              py: 0.5,
+                              px: 0.75,
+                              height: 32,
+                              textAlign: "center",
+                              borderBottom: "1px solid #EEF1F7",
+                            }}
+                          >
+                            {row.remarks}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+
+                      {/* empty state */}
+                      {pagedRows.length === 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={LOG_COLUMNS.length}
+                            align="center"
+                            sx={{
+                              py: 6,
+                              color: "#6B7280",
+                              borderBottom: "none",
+                            }}
+                          >
+                            No records found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                <PaginationBar
+                  count={rows.length}
+                  page={logPage}
+                  onPageChange={setLogPage}
+                  rowsPerPage={logRowsPerPage}
+                  onRowsPerPageChange={(e) => {
+                    setLogRowsPerPage(Number(e.target.value));
+                    setLogPage(0);
+                  }}
+                />
+              </Box>
             </Box>
           );
         })()}

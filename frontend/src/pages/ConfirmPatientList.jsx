@@ -283,7 +283,7 @@ function PaginationBar({
 /* adornment: "alpha" = A-Z / Z-A sort, "date" = date sort             */
 /* stickyLeft: column stays visible while scrolling sideways (mobile)  */
 /* ------------------------------------------------------------------ */
-const CHECK_W = 48; // width of the checkbox column
+const CHECK_W = 38; // width of the checkbox column
 
 const COLUMNS = [
   { id: "roomBed", label: "Room/Bed", stickyLeft: CHECK_W },

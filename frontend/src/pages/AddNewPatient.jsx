@@ -46,7 +46,7 @@ const T = {
   blue: "#2563EB",
   page: "#F5F7FA", // same page bg as the other pages
   border: "#E5E7EB",
-  fieldBg: "#F9FAFC",
+  fieldBg: "#fff",
   label: "#2F3036",
   error: "#EF4444",
 };

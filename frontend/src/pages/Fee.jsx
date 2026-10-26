@@ -279,17 +279,127 @@ function PaginationBar({
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
-  ["Fresh Original", "589065", "8475875747", "-", "Whole Blood", "-", "PDCM", "2024-08-06 - 2024-06-16", "$1,110"],
-  ["Hitex", "412873", "9123456780", "Cardiology", "Urine Test", "25", "CCM", "2023-03-14 - 2024-03-13", "$320"],
-  ["Balance Report", "731920", "7345678123", "Neurology", "Imaging", "59", "RPM", "2025-01-02 - 2025-12-31", "$2,450"],
-  ["Fresh", "218456", "6456781234", "Orthopedics", "Whole Blood", "-", "PDCM", "2022-11-20 - 2023-11-19", "$780"],
-  ["Hitex", "905312", "9567812345", "-", "Consultation", "26", "CCM", "2024-05-09 - 2025-05-08", "$150"],
-  ["Balance Report", "347201", "5678123456", "Cardiology", "Imaging", "-", "RPM", "2023-07-30 - 2024-07-29", "$1,980"],
-  ["Fresh Original", "660148", "8781234567", "Neurology", "Urine Test", "TC", "PDCM", "2025-02-17 - 2026-02-16", "$95"],
-  ["Fresh", "129884", "4892345678", "-", "Whole Blood", "-", "CCM", "2021-09-01 - 2022-08-31", "$610"],
-  ["Hitex", "854730", "9903456781", "Orthopedics", "Consultation", "59", "RPM", "2024-12-12 - 2025-12-11", "$430"],
-  ["Balance Report", "503917", "3014567812", "Cardiology", "Imaging", "25", "PDCM", "2022-04-25 - 2023-04-24", "$3,200"],
-  ["Fresh Original", "776205", "7125678123", "-", "Urine Test", "-", "CCM", "2023-10-08 - 2024-10-07", "$275"],
+  [
+    "Fresh Original",
+    "589065",
+    "8475875747",
+    "-",
+    "Whole Blood",
+    "-",
+    "PDCM",
+    "2024-08-06 - 2024-06-16",
+    "$1,110",
+  ],
+  [
+    "Hitex",
+    "412873",
+    "9123456780",
+    "Cardiology",
+    "Urine Test",
+    "25",
+    "CCM",
+    "2023-03-14 - 2024-03-13",
+    "$320",
+  ],
+  [
+    "Balance Report",
+    "731920",
+    "7345678123",
+    "Neurology",
+    "Imaging",
+    "59",
+    "RPM",
+    "2025-01-02 - 2025-12-31",
+    "$2,450",
+  ],
+  [
+    "Fresh",
+    "218456",
+    "6456781234",
+    "Orthopedics",
+    "Whole Blood",
+    "-",
+    "PDCM",
+    "2022-11-20 - 2023-11-19",
+    "$780",
+  ],
+  [
+    "Hitex",
+    "905312",
+    "9567812345",
+    "-",
+    "Consultation",
+    "26",
+    "CCM",
+    "2024-05-09 - 2025-05-08",
+    "$150",
+  ],
+  [
+    "Balance Report",
+    "347201",
+    "5678123456",
+    "Cardiology",
+    "Imaging",
+    "-",
+    "RPM",
+    "2023-07-30 - 2024-07-29",
+    "$1,980",
+  ],
+  [
+    "Fresh Original",
+    "660148",
+    "8781234567",
+    "Neurology",
+    "Urine Test",
+    "TC",
+    "PDCM",
+    "2025-02-17 - 2026-02-16",
+    "$95",
+  ],
+  [
+    "Fresh",
+    "129884",
+    "4892345678",
+    "-",
+    "Whole Blood",
+    "-",
+    "CCM",
+    "2021-09-01 - 2022-08-31",
+    "$610",
+  ],
+  [
+    "Hitex",
+    "854730",
+    "9903456781",
+    "Orthopedics",
+    "Consultation",
+    "59",
+    "RPM",
+    "2024-12-12 - 2025-12-11",
+    "$430",
+  ],
+  [
+    "Balance Report",
+    "503917",
+    "3014567812",
+    "Cardiology",
+    "Imaging",
+    "25",
+    "PDCM",
+    "2022-04-25 - 2023-04-24",
+    "$3,200",
+  ],
+  [
+    "Fresh Original",
+    "776205",
+    "7125678123",
+    "-",
+    "Urine Test",
+    "-",
+    "CCM",
+    "2023-10-08 - 2024-10-07",
+    "$275",
+  ],
 ];
 
 const ROWS = SAMPLE.map(
@@ -483,6 +593,28 @@ const listCellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
 };
 
+/* Action cell: forces the content to the exact center of the column */
+const actionCellSx = {
+  ...listCellSx,
+  textAlign: "center !important",
+  verticalAlign: "middle",
+  padding: "4px 0 !important",
+};
+
+/* Action icon button: fixed box, icon always exactly centered inside it */
+const actionBtnSx = {
+  width: 28,
+  height: 28,
+  p: 0,
+  borderRadius: "6px",
+  color: T.blue,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover": { bgcolor: "#EEF4FF" },
+  "& svg": { display: "block", width: 16, height: 16 },
+};
+
 /* ------------------------------------------------------------------ */
 /* Header cell (arrow toggles sort)                                     */
 /* ------------------------------------------------------------------ */
@@ -506,10 +638,7 @@ function HeaderCell({ column, sortDir, onSort }) {
         }}
       >
         {/* pre-line keeps the two-line labels ("Type of / Service") */}
-        <Box
-          component="span"
-          sx={{ lineHeight: 1.15, whiteSpace: "pre-line" }}
-        >
+        <Box component="span" sx={{ lineHeight: 1.15, whiteSpace: "pre-line" }}>
           {column.label}
         </Box>
         {column.sort && (
@@ -1271,47 +1400,43 @@ export default function Fee() {
                   <TableCell sx={listCellSx}>{row.program}</TableCell>
                   <TableCell sx={listCellSx}>{row.effectiveDate}</TableCell>
                   <TableCell sx={listCellSx}>{row.charge}</TableCell>
-                  <TableCell sx={listCellSx}>
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      alignItems="center"
-                      justifyContent="center"
+
+                  {/* ACTION: icons centered in the column */}
+                  <TableCell sx={actionCellSx}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        width: "fit-content",
+                        mx: "auto",
+                      }}
                     >
                       <Tooltip title="Edit" arrow>
                         <IconButton
                           size="small"
+                          aria-label="Edit"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate("/fee/configuration", { state: { row } });
                           }}
-                          sx={{
-                            p: "4px",
-                            color: T.blue,
-                            "&:hover": { bgcolor: "#EEF4FF" },
-                          }}
+                          sx={actionBtnSx}
                         >
-                          <RPEditIcon width={18} height={18} color={T.blue} />
+                          <RPEditIcon width={16} height={16} color={T.blue} />
                         </IconButton>
                       </Tooltip>
+
                       <Tooltip title="Delete" arrow>
                         <IconButton
                           size="small"
+                          aria-label="Delete"
                           onClick={(e) => e.stopPropagation()}
-                          sx={{
-                            p: "4px",
-                            color: T.blue,
-                            "&:hover": { bgcolor: "#EEF4FF" },
-                          }}
+                          sx={actionBtnSx}
                         >
-                          <RPDeleteIcon
-                            width={18}
-                            height={18}
-                            color={T.blue}
-                          />
+                          <RPDeleteIcon width={16} height={16} color={T.blue} />
                         </IconButton>
                       </Tooltip>
-                    </Stack>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}

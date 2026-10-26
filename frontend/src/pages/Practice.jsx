@@ -517,6 +517,28 @@ const listCellSx = {
   borderBottom: `1px solid ${T.rowLine}`,
 };
 
+/* Action cell: forces the content to the exact center of the column */
+const actionCellSx = {
+  ...listCellSx,
+  textAlign: "center !important",
+  verticalAlign: "middle",
+  padding: "4px 0 !important",
+};
+
+/* Action icon button: fixed box, icon always exactly centered inside it */
+const actionBtnSx = {
+  width: 28,
+  height: 28,
+  p: 0,
+  borderRadius: "6px",
+  color: T.blue,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover": { bgcolor: "#EEF4FF" },
+  "& svg": { display: "block", width: 16, height: 16 },
+};
+
 /* ------------------------------------------------------------------ */
 /* Header cell (arrow toggles sort)                                     */
 /* ------------------------------------------------------------------ */
@@ -1240,38 +1262,38 @@ export default function Practice() {
                       }}
                     />
                   </TableCell>
-                  <TableCell sx={listCellSx}>
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      alignItems="center"
-                      justifyContent="center"
+
+                  {/* ACTION: icons centered in the column */}
+                  <TableCell sx={actionCellSx}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        width: "fit-content",
+                        mx: "auto",
+                      }}
                     >
                       <Tooltip title="Edit" arrow>
                         <IconButton
                           size="small"
+                          aria-label="Edit"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate("/practice/edit", { state: { row } });
                           }}
-                          sx={{
-                            p: "4px",
-                            color: T.blue,
-                            "&:hover": { bgcolor: "#EEF4FF" },
-                          }}
+                          sx={actionBtnSx}
                         >
-                          <RPEditIcon width={18} height={18} color={T.blue} />
+                          <RPEditIcon width={16} height={16} color={T.blue} />
                         </IconButton>
                       </Tooltip>
+
                       <Tooltip title="Settings" arrow>
                         <IconButton
                           size="small"
+                          aria-label="Settings"
                           onClick={(e) => e.stopPropagation()}
-                          sx={{
-                            p: "4px",
-                            color: T.blue,
-                            "&:hover": { bgcolor: "#EEF4FF" },
-                          }}
+                          sx={actionBtnSx}
                         >
                           <SettingsIcon2
                             width={16}
@@ -1280,7 +1302,7 @@ export default function Practice() {
                           />
                         </IconButton>
                       </Tooltip>
-                    </Stack>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}
