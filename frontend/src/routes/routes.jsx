@@ -4,14 +4,11 @@ import AllPatient from "../pages/AllPatient";
 import AddNewPatient from "../pages/AddNewPatient";
 import NewClaim from "../pages/NewClaim";
 import PreBillingEditPage from "../pages/PreBillingEditPage";
-import Statement from "../pages/Statement";
 import RefundsNew from "../pages/RefundsNew";
-import BulkEligibility from "../pages/BulkEligibility";
 import Login from "../pages/Login";
 import ConfirmPatientList from "../pages/ConfirmPatientList";
 import PreBilling from "../pages/PreBilling";
 import PreBillingClaim from "../pages/PreBillingClaim";
-import PostBillingClaimPage from "../pages/PostBillingClaimPage";
 
 import NewPayment from "../pages/NewPayment";
 
@@ -223,14 +220,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/statement"
-        element={
-          <ProtectedRoute>
-            <Statement />
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/refunds"
         element={
@@ -239,16 +229,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/bulk-eligibility"
-        element={
-          <ProtectedRoute>
-            <BulkEligibility />
-          </ProtectedRoute>
-        }
-      />
-
-      
 
       <Route
         path="/encounters"
@@ -290,14 +270,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/post-billing-claim-page"
-        element={
-          <ProtectedRoute>
-            <PostBillingClaimPage />
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/new-payment"
         element={
@@ -419,6 +392,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PostBillingDetail />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/patient/statement"
+        element={
+          <ProtectedRoute>
+            <PreBillingClaim />
           </ProtectedRoute>
         }
       />

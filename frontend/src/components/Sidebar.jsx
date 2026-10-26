@@ -124,7 +124,8 @@ function Sidebar() {
       "/program": "Program",
       "/add-patient": "Add Patient",
       "/patient-list": "Patient List",
-      "/statement": "Patient Statement",
+      // "/statement": "Patient Statement",
+      "/patient/statement": "Patient Statement",
       "/refunds": "Refunds",
       "/pre-billing-claim-page": "Pre Billing Claim",
       "/post-billing-claim-page": "Post Billing Claim",
@@ -133,6 +134,10 @@ function Sidebar() {
       "/reports": "Reports",
       "/documents": "Documents",
       "/new-payment": "New Payment",
+      "/claims/pre-billing": "Pre Billing Claim",
+      "/claims/post-billing": "Post Billing Claim",
+      "/claims/remittance-era": "Remittance ERA/EOB",
+      "/new-claim": "New Claim",
     };
     return routes[path] || null;
   };
@@ -269,7 +274,7 @@ function Sidebar() {
     {
       text: "Statement",
       icon: <Statement width={18} height={18} color="currentColor" />,
-      path: "/statement",
+      path: "/patient/statement",
       badge: { value: 38, color: "error" },
     },
     {

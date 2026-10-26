@@ -1640,17 +1640,160 @@ const REMIT_STATUS_STYLES = {
 };
 
 const REMIT_SAMPLE = [
-  ["1234567", "GCH-IH", "Aetna", "Check", "ERA", "14315316136", "$455", "11/20/2025", "11/21/2025", 3, "$0", "Posted"],
-  ["1234568", "GCH-OH", "BCBS", "EFT", "EOB", "14315316137", "$1,240", "11/21/2025", "11/22/2025", 5, "$240", "Partially posted"],
-  ["1234569", "GCH-IH", "Cigna", "Check", "ERA", "14315316138", "$820", "11/19/2025", "11/20/2025", 2, "$820", "Not Posted"],
-  ["1234570", "GCH-OH", "UnitedHealth", "EFT", "ERA", "14315316139", "$2,100", "11/22/2025", "11/23/2025", 7, "$0", "Fully posted"],
-  ["1234571", "GCH-IH", "Aetna", "Check", "EOB", "14315316140", "$675", "11/18/2025", "11/19/2025", 4, "$675", "Not Posted"],
-  ["1234572", "GCH-OH", "Medicare", "EFT", "ERA", "14315316141", "$3,450", "11/23/2025", "11/24/2025", 12, "$450", "Partially posted"],
-  ["1234573", "GCH-IH", "BCBS", "Check", "ERA", "14315316142", "$1,890", "11/17/2025", "11/18/2025", 6, "$0", "Posted"],
-  ["1234574", "GCH-OH", "Cigna", "EFT", "EOB", "14315316143", "$920", "11/24/2025", "11/25/2025", 3, "$120", "Partially posted"],
-  ["1234575", "GCH-IH", "UnitedHealth", "Check", "ERA", "14315316144", "$1,550", "11/16/2025", "11/17/2025", 5, "$1,550", "Not Posted"],
-  ["1234576", "GCH-OH", "Aetna", "EFT", "ERA", "14315316145", "$2,340", "11/25/2025", "11/26/2025", 8, "$0", "Fully posted"],
-  ["1234577", "GCH-IH", "Medicare", "Check", "ERA", "14315316146", "$780", "11/15/2025", "11/16/2025", 2, "$780", "Mark as review"],
+  [
+    "1234567",
+    "GCH-IH",
+    "Aetna",
+    "Check",
+    "ERA",
+    "14315316136",
+    "$455",
+    "11/20/2025",
+    "11/21/2025",
+    3,
+    "$0",
+    "Posted",
+  ],
+  [
+    "1234568",
+    "GCH-OH",
+    "BCBS",
+    "EFT",
+    "EOB",
+    "14315316137",
+    "$1,240",
+    "11/21/2025",
+    "11/22/2025",
+    5,
+    "$240",
+    "Partially posted",
+  ],
+  [
+    "1234569",
+    "GCH-IH",
+    "Cigna",
+    "Check",
+    "ERA",
+    "14315316138",
+    "$820",
+    "11/19/2025",
+    "11/20/2025",
+    2,
+    "$820",
+    "Not Posted",
+  ],
+  [
+    "1234570",
+    "GCH-OH",
+    "UnitedHealth",
+    "EFT",
+    "ERA",
+    "14315316139",
+    "$2,100",
+    "11/22/2025",
+    "11/23/2025",
+    7,
+    "$0",
+    "Fully posted",
+  ],
+  [
+    "1234571",
+    "GCH-IH",
+    "Aetna",
+    "Check",
+    "EOB",
+    "14315316140",
+    "$675",
+    "11/18/2025",
+    "11/19/2025",
+    4,
+    "$675",
+    "Not Posted",
+  ],
+  [
+    "1234572",
+    "GCH-OH",
+    "Medicare",
+    "EFT",
+    "ERA",
+    "14315316141",
+    "$3,450",
+    "11/23/2025",
+    "11/24/2025",
+    12,
+    "$450",
+    "Partially posted",
+  ],
+  [
+    "1234573",
+    "GCH-IH",
+    "BCBS",
+    "Check",
+    "ERA",
+    "14315316142",
+    "$1,890",
+    "11/17/2025",
+    "11/18/2025",
+    6,
+    "$0",
+    "Posted",
+  ],
+  [
+    "1234574",
+    "GCH-OH",
+    "Cigna",
+    "EFT",
+    "EOB",
+    "14315316143",
+    "$920",
+    "11/24/2025",
+    "11/25/2025",
+    3,
+    "$120",
+    "Partially posted",
+  ],
+  [
+    "1234575",
+    "GCH-IH",
+    "UnitedHealth",
+    "Check",
+    "ERA",
+    "14315316144",
+    "$1,550",
+    "11/16/2025",
+    "11/17/2025",
+    5,
+    "$1,550",
+    "Not Posted",
+  ],
+  [
+    "1234576",
+    "GCH-OH",
+    "Aetna",
+    "EFT",
+    "ERA",
+    "14315316145",
+    "$2,340",
+    "11/25/2025",
+    "11/26/2025",
+    8,
+    "$0",
+    "Fully posted",
+  ],
+  [
+    "1234577",
+    "GCH-IH",
+    "Medicare",
+    "Check",
+    "ERA",
+    "14315316146",
+    "$780",
+    "11/15/2025",
+    "11/16/2025",
+    2,
+    "$780",
+    "Mark as review",
+  ],
 ];
 
 const remittanceData = REMIT_SAMPLE.map(
@@ -1689,21 +1832,186 @@ const remittanceData = REMIT_SAMPLE.map(
 
 /* ---------- Patient Statement: New ---------- */
 const STMT_SAMPLE = [
-  ["Aamir Pathan", "863", "05/13/1984", "Self pay", "Never sent", 0, 0, 0, "$600.00", ""],
-  ["Ashwani Srivastva", "849", "06/30/2000", "Self pay", "11/11/2025", 1, 1, 0, "$44.08", ""],
-  ["Asok Rana", "852", "11/27/1980", "Self pay", "Never sent", 0, 0, 0, "$220.00", ""],
-  ["Beena Rawat", "846", "08/24/1965", "Medicare", "11/19/2025", 1, 0, 1, "$180.00", ""],
-  ["Daniel Mishra", "833", "11/17/1999", "Payment plan", "11/11/2025", 2, 1, 1, "$554.50", ""],
-  ["Dinesh Singh", "837", "06/23/1998", "Self pay", "12/13/2025", 1, 0, 0, "$101.00", ""],
-  ["Divesh Sundriyal", "830", "05/18/1987", "Self pay", "01/14/2026", 2, 1, 1, "$120.00", ""],
-  ["Divya Negi", "828", "01/27/1990", "Self pay", "07/28/2026", 2, 1, 0, "$133.00", "Bad address on file, mailing"],
-  ["Govind Singh", "850", "05/12/2013", "Commercial", "Never sent", 0, 0, 0, "$226.00", "Bad address on file, mailing"],
-  ["Govind Singh", "850", "05/12/2013", "Commercial", "Never sent", 0, 0, 0, "$226.00", "Bad address on file, mailing"],
-  ["Preeti Bhandari", "868", "03/09/1972", "Medicare", "02/02/2026", 3, 1, 0, "$88.25", ""],
-  ["Rajkumar Patwal", "827", "02/13/1989", "Credit bal.", "Never sent", 0, 1, 1, "-$1,652.00", ""],
-  ["Ramesh Chopra", "854", "11/29/2001", "Payment plan", "11/25/2025", 1, 1, 0, "$284.00", ""],
-  ["Salmaan Pathan", "864", "10/29/1979", "Commercial", "11/20/2025", 1, 1, 0, "$270.00", ""],
-  ["Sunita Joshi", "875", "12/01/1958", "Commercial", "10/30/2025", 1, 1, 0, "$96.40", ""],
+  [
+    "Aamir Pathan",
+    "863",
+    "05/13/1984",
+    "Self pay",
+    "Never sent",
+    0,
+    0,
+    0,
+    "$600.00",
+    "",
+  ],
+  [
+    "Ashwani Srivastva",
+    "849",
+    "06/30/2000",
+    "Self pay",
+    "11/11/2025",
+    1,
+    1,
+    0,
+    "$44.08",
+    "",
+  ],
+  [
+    "Asok Rana",
+    "852",
+    "11/27/1980",
+    "Self pay",
+    "Never sent",
+    0,
+    0,
+    0,
+    "$220.00",
+    "",
+  ],
+  [
+    "Beena Rawat",
+    "846",
+    "08/24/1965",
+    "Medicare",
+    "11/19/2025",
+    1,
+    0,
+    1,
+    "$180.00",
+    "",
+  ],
+  [
+    "Daniel Mishra",
+    "833",
+    "11/17/1999",
+    "Payment plan",
+    "11/11/2025",
+    2,
+    1,
+    1,
+    "$554.50",
+    "",
+  ],
+  [
+    "Dinesh Singh",
+    "837",
+    "06/23/1998",
+    "Self pay",
+    "12/13/2025",
+    1,
+    0,
+    0,
+    "$101.00",
+    "",
+  ],
+  [
+    "Divesh Sundriyal",
+    "830",
+    "05/18/1987",
+    "Self pay",
+    "01/14/2026",
+    2,
+    1,
+    1,
+    "$120.00",
+    "",
+  ],
+  [
+    "Divya Negi",
+    "828",
+    "01/27/1990",
+    "Self pay",
+    "07/28/2026",
+    2,
+    1,
+    0,
+    "$133.00",
+    "Bad address on file, mailing",
+  ],
+  [
+    "Govind Singh",
+    "850",
+    "05/12/2013",
+    "Commercial",
+    "Never sent",
+    0,
+    0,
+    0,
+    "$226.00",
+    "Bad address on file, mailing",
+  ],
+  [
+    "Govind Singh",
+    "850",
+    "05/12/2013",
+    "Commercial",
+    "Never sent",
+    0,
+    0,
+    0,
+    "$226.00",
+    "Bad address on file, mailing",
+  ],
+  [
+    "Preeti Bhandari",
+    "868",
+    "03/09/1972",
+    "Medicare",
+    "02/02/2026",
+    3,
+    1,
+    0,
+    "$88.25",
+    "",
+  ],
+  [
+    "Rajkumar Patwal",
+    "827",
+    "02/13/1989",
+    "Credit bal.",
+    "Never sent",
+    0,
+    1,
+    1,
+    "-$1,652.00",
+    "",
+  ],
+  [
+    "Ramesh Chopra",
+    "854",
+    "11/29/2001",
+    "Payment plan",
+    "11/25/2025",
+    1,
+    1,
+    0,
+    "$284.00",
+    "",
+  ],
+  [
+    "Salmaan Pathan",
+    "864",
+    "10/29/1979",
+    "Commercial",
+    "11/20/2025",
+    1,
+    1,
+    0,
+    "$270.00",
+    "",
+  ],
+  [
+    "Sunita Joshi",
+    "875",
+    "12/01/1958",
+    "Commercial",
+    "10/30/2025",
+    1,
+    1,
+    0,
+    "$96.40",
+    "",
+  ],
 ];
 
 /* [hasEmail, hasPhone] for each of the 15 statement rows */
@@ -1804,25 +2112,46 @@ const PRE_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
-    cellSx: {
-      minWidth: 140,
-      maxWidth: 180,
+  //   cellSx: {
+  //     minWidth: 140,
+  //     maxWidth: 180,
+  //     whiteSpace: "normal",
+  //     wordWrap: "break-word",
+  //   },
+  //   render: (r) => `${r.patientName} ${r.gender}`,
+  // },
+  // {
+  //   id: "fin",
+  //   label: "Fin ID",
+  //   center: true,
+  //   cellSx: { minWidth: 70, color: "#4B5563" },
+  // },
+  // {
+  //   id: "mrn",
+  //   label: "MRN",
+  //   center: true,
+  //   cellSx: { minWidth: 90, color: "#4B5563" },
+  // },
+
+      cellSx: {
+      minWidth: 100,
+      maxWidth: 150,
       whiteSpace: "normal",
       wordWrap: "break-word",
     },
     render: (r) => `${r.patientName} ${r.gender}`,
   },
-  { 
-    id: "fin", 
-    label: "Fin ID", 
+  {
+    id: "fin",
+    label: "Fin ID",
     center: true,
-    cellSx: { minWidth: 70, color: "#4B5563" }
+    cellSx: { color: "#4B5563" },
   },
-  { 
-    id: "mrn", 
-    label: "MRN", 
+  {
+    id: "mrn",
+    label: "MRN",
     center: true,
-    cellSx: { minWidth: 90, color: "#4B5563" }
+    cellSx: { color: "#4B5563" },
   },
   { id: "cpt", label: "CPT", center: true },
   { id: "modifier", label: "Mod", center: true },
@@ -1983,36 +2312,88 @@ const iconColSx = { width: 30, minWidth: 30, px: 0, maxWidth: 30 };
 const iconCellSx = { color: "#4B5563", px: 0 };
 
 const NEW_STMT_COLUMNS = [
-  {
+  // {
+  //   id: "name",
+  //   label: "Patient Name",
+  //   sort: "alpha",
+  //   center: true,
+  //   cellSx: {
+  //     fontWeight: 600,
+  //     minWidth: 140,
+  //     maxWidth: 220,
+  //     whiteSpace: "normal",
+  //     wordWrap: "break-word",
+  //   },
+  //   render: (r) => (
+  //     <Box
+  //       sx={{
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //         gap: 0.8,
+  //       }}
+  //     >
+  //       {/* fixed-width slot so names line up whether a patient has 0, 1 or 2 icons */}
+  //       <Box
+  //         sx={{
+  //           width: 34,
+  //           display: "flex",
+  //           alignItems: "center",
+  //           justifyContent: "flex-end",
+  //           gap: 0.6,
+  //           flexShrink: 0,
+  //         }}
+  //       >
+  //         {r.hasEmail && (
+  //           <Tooltip title="Email available" placement="top">
+  //             <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
+  //           </Tooltip>
+  //         )}
+  //         {r.hasPhone && (
+  //           <Tooltip title="Phone available" placement="top">
+  //             <Phone sx={{ fontSize: 15, color: "#0B1560" }} />
+  //           </Tooltip>
+  //         )}
+  //       </Box>
+  //       <span>{r.name}</span>
+  //     </Box>
+  //   ),
+  // },
+
+    {
     id: "name",
     label: "Patient Name",
     sort: "alpha",
     center: true,
     cellSx: {
       fontWeight: 600,
-      minWidth: 140,
-      maxWidth: 220,
+      minWidth: 200,
+      maxWidth: 260,
       whiteSpace: "normal",
       wordWrap: "break-word",
     },
     render: (r) => (
       <Box
         sx={{
+          position: "relative",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 0.8,
+          minHeight: 20,
+          // equal space on both sides so the name is truly centered
+          px: "42px",
         }}
       >
-        {/* fixed-width slot so names line up whether a patient has 0, 1 or 2 icons */}
+        {/* icons packed to the left, right after the checkbox */}
         <Box
           sx={{
-            width: 34,
+            position: "absolute",
+            left: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
             gap: 0.6,
-            flexShrink: 0,
           }}
         >
           {r.hasEmail && (
@@ -2026,6 +2407,7 @@ const NEW_STMT_COLUMNS = [
             </Tooltip>
           )}
         </Box>
+
         <span>{r.name}</span>
       </Box>
     ),
@@ -2540,23 +2922,22 @@ function useFillHeight(bottomRef, extra, deps) {
   return [areaRef, height];
 }
 
+/* Route → tab index (menu pages that show a single tab of this screen) */
+const PATH_TO_TAB = {
+  "/claims/pre-billing": 0,
+  "/claims/post-billing": 1,
+  "/claims/remittance-era": 2,
+  "/claims/patient-statement": 3,
+  "/patient/statement": 3, // Patient menu → Statement
+};
+const getTabFromPath = (path) => PATH_TO_TAB[path] ?? null;
+
 function PreBillingClaim() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Determine initial tab based on URL path
-  const getInitialTab = () => {
-    const path = location.pathname;
-    if (path.includes("/claims/pre-billing")) return 0;
-    if (path.includes("/claims/post-billing")) return 1;
-    if (path.includes("/claims/remittance-era")) return 2;
-    if (path.includes("/claims/patient-statement")) return 3;
-    // For /encounters route, check if there's a stored tab in state, otherwise default to 0
-    if (path === "/encounters") {
-      return location.state?.activeTab ?? 0;
-    }
-    return location.state?.activeTab ?? 0;
-  };
+  const getInitialTab = () =>
+    getTabFromPath(location.pathname) ?? location.state?.activeTab ?? 0;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(null);
@@ -2569,7 +2950,7 @@ function PreBillingClaim() {
   const [contactMenuAnchor, setContactMenuAnchor] = useState(null);
 
   const [contactFilter, setContactFilter] = useState(null);
-  const [sendMethod, setSendMethod] = useState(null); 
+  const [sendMethod, setSendMethod] = useState(null);
 
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
@@ -2582,11 +2963,10 @@ function PreBillingClaim() {
     statement: false,
   });
 
-  // Check if we're on a claims submenu route (not encounters)
-  const isClaimsSubmenu = location.pathname.startsWith("/claims/");
-  // Determine if tabs and banner should be hidden
-  const hideTabsAndBanner = isClaimsSubmenu;
   const [showColumnSettings, setShowColumnSettings] = useState(false);
+
+  const hideTabsAndBanner = getTabFromPath(location.pathname) !== null;
+  const effectiveViewMode = hideTabsAndBanner ? "list" : viewMode;
 
   // OCR Upload state (only for Remittance/ERA tab)
   const [showOCRDialog, setShowOCRDialog] = useState(false);
@@ -2856,11 +3236,11 @@ function PreBillingClaim() {
         paymentMethod: result.paymentMethod || "Cheque",
         eraEobType: "EOB", // Keep as EOB in the main table
         chequeNumber: result.checkNumber,
-        amount: `$${money(result.paidAmount)}`,
+        amount: money(result.paidAmount),
         checkDate: result.checkDate,
         receivedDate: dayjs().format("MM/DD/YYYY"),
         claimNumbers: 1,
-        unpostedAmount: `$${money(result.adjustmentAmount)}`,
+        unpostedAmount: money(result.adjustmentAmount),
         status: result.status,
       };
     });
@@ -2919,21 +3299,31 @@ function PreBillingClaim() {
     remarkEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentRemarks.length, checkPopupOpen]);
 
-  /* Reopen the correct tab when returning from an edit page */
+ 
+
   useEffect(() => {
-    const path = location.pathname;
-    if (path.includes("/claims/pre-billing")) {
-      setCurrentTab(0);
-    } else if (path.includes("/claims/post-billing")) {
-      setCurrentTab(1);
-    } else if (path.includes("/claims/remittance-era")) {
-      setCurrentTab(2);
-    } else if (path.includes("/claims/patient-statement")) {
-      setCurrentTab(3);
+    const tab = getTabFromPath(location.pathname);
+    if (tab !== null) {
+      setCurrentTab(tab);
+      setSelectedRows([]);
+      setSearchQuery("");
+      setStatusFilter("all");
+      setPostStatusFilter("all");
+      setRemittanceFilter("all");
+      setViewMode("list");
+      setStatementSubTab("new");
+      setContactFilter(null);
+      setShowAdvancedFilters({
+        preBilling: false,
+        postBilling: false,
+        remittance: false,
+        statement: false,
+      });
+      handleResetFilters();
     } else if (location.state?.activeTab !== undefined) {
       setCurrentTab(location.state.activeTab);
     }
-  }, [location.pathname, location.state]);
+  }, [location.pathname]);
 
   /* Additional Details */
   const [adj, setAdj] = useState(EMPTY_ADJ);
@@ -2994,18 +3384,17 @@ function PreBillingClaim() {
 
   const handleApplyFilters = () => setAppliedFilters({ ...filterForm });
 
+  const handleFilterKeyDown = (e) => {
+    if (e.key !== "Enter") return;
 
- const handleFilterKeyDown = (e) => {
-  if (e.key !== "Enter") return;
+    if (!e.currentTarget.contains(e.target)) return;
 
-  if (!e.currentTarget.contains(e.target)) return;
+    if (e.target.closest("button")) return;
 
-  if (e.target.closest("button")) return;
-
-  e.preventDefault();
-  e.stopPropagation(); 
-  handleApplyFilters();
-};
+    e.preventDefault();
+    e.stopPropagation();
+    handleApplyFilters();
+  };
 
   const handleSendStatement = () => {
     if (!sendMethod) {
@@ -3067,25 +3456,14 @@ function PreBillingClaim() {
     alert(`${action} triggered for ${selectedCount} patient(s).`);
   };
 
-  const handleTabChange = (event, newValue) => {
-    setCurrentTab(newValue);
-    setSearchQuery("");
-    handleResetFilters();
-    setSelectedRows([]);
 
-    // Only update URL if we're on a claims submenu route, not on /encounters
-    const currentPath = location.pathname;
-    if (currentPath.startsWith("/claims/")) {
-      const tabRoutes = [
-        "/claims/pre-billing",
-        "/claims/post-billing",
-        "/claims/remittance-era",
-        "/claims/patient-statement",
-      ];
-      navigate(tabRoutes[newValue], { replace: true });
-    }
-    // If on /encounters, don't change the route when tabs change
-  };
+
+  const handleTabChange = (event, newValue) => {
+  setCurrentTab(newValue);
+  setSearchQuery("");
+  handleResetFilters();
+  setSelectedRows([]);
+};
 
   const toggleIn = (setter) => (id) =>
     setter((prev) =>
@@ -3387,10 +3765,12 @@ function PreBillingClaim() {
     currentTab === 3 ? 28 : currentTab === 1 ? 8 : 16, // gap under the table
     [
       currentTab,
-      viewMode,
+      effectiveViewMode,
+      // viewMode,
       statementSubTab,
       showAdvancedFilters,
       hideTabsAndBanner,
+      location.pathname,
     ],
   );
 
@@ -3693,9 +4073,10 @@ function PreBillingClaim() {
       (showAdvancedFilters.postBilling && currentTab === 1) ||
       (showAdvancedFilters.remittance && currentTab === 2) ||
       (showAdvancedFilters.statement && currentTab === 3) ? (
-        <Box 
-        onKeyDownCapture={handleFilterKeyDown}
-        sx={{ backgroundColor: "#F5F7FA", px: 1.2, py: 0.5 }}>
+        <Box
+          onKeyDownCapture={handleFilterKeyDown}
+          sx={{ backgroundColor: "#F5F7FA", px: 1.2, py: 0.5 }}
+        >
           <Box
             sx={{
               backgroundColor: "#FFFFFF",
@@ -3858,7 +4239,6 @@ function PreBillingClaim() {
                   onChange={setFilterField("mrn")}
                   applied={isApplied("mrn")}
                 />
-
                 {/* Row 2 */}
                 <FilterText
                   label="Claim Number"
@@ -3899,7 +4279,6 @@ function PreBillingClaim() {
                   options={PLAN_OPTIONS}
                   applied={isApplied("insurancePlan")}
                 />
-
                 {/* Row 3 */}
                 <FilterSelect
                   label="Rendering Provider"
@@ -3976,7 +4355,6 @@ function PreBillingClaim() {
                   onChange={setFilterField("eraId")}
                   applied={isApplied("eraId")}
                 />
-
                 {/* Row 2 */}
                 <FilterSelect
                   label="Status"
@@ -4017,7 +4395,6 @@ function PreBillingClaim() {
                   onChange={setFilterField("totalPostedAmount")}
                   applied={isApplied("totalPostedAmount")}
                 />
-
                 {/* Row 3 */}
                 <FilterText
                   label="Total Unposted Amt"
@@ -4248,12 +4625,12 @@ function PreBillingClaim() {
                 <MenuItem onClick={() => setAnchorEl(null)}>
                   Export Selected
                 </MenuItem>
-              
               </Menu>
             </Box>
           </Box>
 
-          {viewMode === "list" ? (
+          {/* {viewMode === "list" ? ( */}
+          {effectiveViewMode === "list" ? (
             <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
               <ListTable
                 columns={filterColumns(PRE_COLUMNS, visibleColumnsPreBilling)}
@@ -4263,7 +4640,9 @@ function PreBillingClaim() {
                   onEdit: handleEditPreBilling,
                   onCheck: handleOpenCheckPopup,
                 }}
-                minWidth={1250} /* INCREASED TO ALLOW HORIZONTAL SCROLL ON SMALL SCREENS IF NEEDED */
+                minWidth={
+                  0
+                } /* INCREASED TO ALLOW HORIZONTAL SCROLL ON SMALL SCREENS IF NEEDED */
                 cbSx={checkboxSx}
                 highlightSelected={false}
                 stickyHeader
@@ -5011,89 +5390,8 @@ function PreBillingClaim() {
               />
             ))}
 
-            {/* ERA/EOB Filter Dropdown */}
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl) && currentTab === 2}
-              onClose={() => setAnchorEl(null)}
-              PaperProps={{
-                sx: {
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  minWidth: 200,
-                  mt: 0.5,
-                },
-              }}
-            >
-              <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#374151",
-                    mb: 1,
-                  }}
-                >
-                  Filter by Type
-                </Typography>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      "&:hover": { backgroundColor: "#F9FAFB" },
-                      p: 0.5,
-                      borderRadius: "6px",
-                    }}
-                    onClick={() =>
-                      setEraEobFilter((prev) => ({ ...prev, ERA: !prev.ERA }))
-                    }
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={eraEobFilter.ERA}
-                      sx={checkboxSx}
-                    />
-                    <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                      ERA (
-                      {
-                        remittanceSearched.filter((r) => r.eraEobType === "ERA")
-                          .length
-                      }
-                      )
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      "&:hover": { backgroundColor: "#F9FAFB" },
-                      p: 0.5,
-                      borderRadius: "6px",
-                    }}
-                    onClick={() =>
-                      setEraEobFilter((prev) => ({ ...prev, EOB: !prev.EOB }))
-                    }
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={eraEobFilter.EOB}
-                      sx={checkboxSx}
-                    />
-                    <Typography sx={{ fontSize: 13, color: "#1F2937", ml: 1 }}>
-                      EOB (
-                      {
-                        remittanceSearched.filter((r) => r.eraEobType === "EOB")
-                          .length
-                      }
-                      )
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Menu>
+          
+
 
             <Box sx={{ flex: 1 }} />
 
@@ -5356,7 +5654,9 @@ function PreBillingClaim() {
                     selected={contactFilter === value}
                     onClick={() => {
                       // click the selected option again to clear the filter
-                      setContactFilter((prev) => (prev === value ? null : value));
+                      setContactFilter((prev) =>
+                        prev === value ? null : value,
+                      );
                       setContactMenuAnchor(null);
                     }}
                     sx={{ fontSize: 12, fontWeight: 500, color: "#374151" }}
@@ -5659,7 +5959,7 @@ function PreBillingClaim() {
             borderRadius: "22px",
             overflow: "hidden",
             boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-            m: 20,
+            m: 2,
             display: "flex",
             flexDirection: "column",
           },
@@ -5755,7 +6055,7 @@ function PreBillingClaim() {
             px: 2.5,
             flex: 1,
             overflowY: "auto",
-            overflowX: "hidden", 
+            overflowX: "hidden",
             maxHeight: 400,
             minHeight: 300,
             ...thinScroll,
@@ -6428,7 +6728,7 @@ function PreBillingClaim() {
                           {result.checkDate}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11 }}>
-                          ${money(result.claimedAmount)}
+                          {money(result.claimedAmount)}
                         </TableCell>
                         <TableCell
                           sx={{
@@ -6437,10 +6737,10 @@ function PreBillingClaim() {
                             fontWeight: 600,
                           }}
                         >
-                          ${money(result.paidAmount)}
+                          {money(result.paidAmount)}
                         </TableCell>
                         <TableCell sx={{ fontSize: 11, color: "#C0392B" }}>
-                          ${money(result.adjustmentAmount)}
+                          {money(result.adjustmentAmount)}
                         </TableCell>
                       </TableRow>
                     ))}

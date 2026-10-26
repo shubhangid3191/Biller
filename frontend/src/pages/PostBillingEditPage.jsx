@@ -629,29 +629,7 @@ function TopBar() {
         </Typography>
       </Box>
 
-      {/* <Stack
-        direction="row"
-        spacing={0.8}
-        flexWrap="wrap"
-        useFlexGap
-        alignItems="center"
-      >
-        <OutlineBtn sx={topBtn}>Cancel</OutlineBtn>
-        <OutlineBtn
-          sx={topBtn}
-          startIcon={
-            <SaveDraftFileIcon color={C.textDark} width={20} height={20} />
-          }
-        >
-          Save draft
-        </OutlineBtn>
-        <PrimaryBtn
-          sx={topBtn}
-          startIcon={<TiaChatIcon color="#fff" width={22} height={22} />}
-        >
-          Scrub &amp; approve
-        </PrimaryBtn>
-      </Stack> */}
+   
     </Box>
   );
 }
