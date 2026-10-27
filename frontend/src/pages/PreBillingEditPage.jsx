@@ -1,16 +1,19 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Paper,
-  Stack as MuiStack,
   Typography,
   TextField,
   MenuItem,
+  Select,
+  FormControl,
+  FormHelperText,
   Checkbox,
   FormControlLabel,
   Button,
   IconButton,
+  InputAdornment,
   Popover,
   Dialog,
   Chip,
@@ -21,17 +24,14 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -39,104 +39,71 @@ import {
   AlertBellIcon,
   SaveDraftFileIcon,
   PlusBlueIcon,
-  BlueCalendarIcon,
-  TiaChatIcon,
   TiaChatIcon2,
   encounterAssistCheck,
   CalendarBlueIcon,
+  CalendarIcon,
   RPEditIcon,
+  RPDeleteIcon,
 } from "../assets/Assets.jsx";
 
-import {
-  validatePhone,
-  createPhoneChangeHandler,
-  createPhoneBlurHandler,
-} from "../utils/phoneValidation.js";
+import { validatePhone } from "../utils/phoneValidation.js";
 
-// Needed so dayjs("08/15/2026", "MM/DD/YYYY") really parses with that format
+// Needed so dayjs can strictly parse "MM-DD-YYYY"
 dayjs.extend(customParseFormat);
 
-/* Your MUI version no longer turns Stack props (alignItems, flexWrap,
-   justifyContent, rowGap...) into CSS, so nothing wrapped. This wrapper moves
-   them into `sx`, so every <Stack> in the file works again. */
-const Stack = React.forwardRef(function Stack(
-  {
-    alignItems,
-    justifyContent,
-    flexWrap,
-    rowGap,
-    columnGap,
-    flexShrink,
-    sx,
-    ...rest
-  },
-  ref,
-) {
-  return (
-    <MuiStack
-      ref={ref}
-      useFlexGap
-      {...rest}
-      sx={{
-        alignItems,
-        justifyContent,
-        flexWrap,
-        rowGap,
-        columnGap,
-        flexShrink,
-        ...sx,
-      }}
-    />
-  );
-});
+const DATE_FORMAT = "MM-DD-YYYY";
 
-/* =========================================================
-   DESIGN TOKENS
-   ========================================================= */
-const C = {
-  pageBg: "#ECEEF4",
-  textDark: "#2B2842",
-  textLabel: "#5C5878",
-  textMuted: "#8294A6",
-  textBody: "#5443C4",
-  textBold: "#2B2842",
-  blue: "#006FFD",
-  blueHover: "#0056D6",
-  purple: "#5443C4",
-  purpleBg: "#F0EEF8",
-  green: "#12795B",
-  greenBg: "#EBF7F3",
-  orange: "#B0552A",
-  orangeBg: "#FEF4ED",
-  amber: "#8E641A",
-  amberBg: "#FBF5E3",
-  teal5: "#1A808E",
-  teal5Bg: "#EAF6F7",
-  border: "#E0E4EE",
-  borderLight: "#EAECF4",
-  inputBg: "#FFFFFF",
-  inputGreenBg: "#EEF2FF",
-  inputGreenBorder: "#C7D2FE",
-  inputHighlight: "#FEF3E8",
-  inputHighlightBorder: "#F0C998",
-  greenChipBg: "#E8F8F0",
-  greenChipBorder: "#A8DFCA",
-  greenChipText: "#1A9E6E",
-  amberChipBg: "#FBF1DC",
-  amberChipText: "#946312",
+/* ================================================================== */
+/* DESIGN TOKENS (same as ReferringProviderEdit / NewClaim)            */
+/* ================================================================== */
+const T = {
+  blue: "#0066FF",
+  blueHover: "#0052CC",
+  page: "#F5F7FA",
+  border: "#E5E7EB",
+  fieldBg: "#FFFFFF",
+  label: "#2F3036",
+  text: "#1F2937",
+  muted: "#6B7280",
+  placeholder: "#9CA3AF",
+  error: "#EF4444",
 };
 
-/* Figma "Main" frame: padding 24px 28px 60px, gap 12px, content width 1272px.
-   Made fluid: width 100% up to a max of 1272px content (+ 2 x 28px padding). */
-const CONTENT_MAX = 1272;
+/* Section accent colours (only used on the section header strip) */
+const A = {
+  purple: { main: "#5443C4", bg: "#F0EEF8" },
+  green: { main: "#12795B", bg: "#EBF7F3" },
+  orange: { main: "#B0552A", bg: "#FEF4ED" },
+  amber: { main: "#8E641A", bg: "#FBF5E3" },
+  teal: { main: "#1A808E", bg: "#EAF6F7" },
+};
 
-/* CONTAINER QUERIES (not viewport media queries): the page reacts to the width
-   of the area it is rendered in, so it stays correct even when your app has a
-   sidebar / drawer that makes the content narrower than the screen. */
+/* Same thin scrollbar as the other pages */
+const thinScroll = {
+  "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+  "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "#d1d5db",
+    borderRadius: "2px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ca3af" },
+};
+
+const hideScroll = {
+  scrollbarWidth: "none",
+  msOverflowStyle: "none",
+  "&::-webkit-scrollbar": { display: "none" },
+};
+
+/* ================================================================== */
+/* RESPONSIVE HELPERS                                                  */
+/* Container queries: the page reacts to the width of the area it is   */
+/* rendered in (so it is correct even with a sidebar), with an         */
+/* automatic viewport @media fallback for old browsers.                */
+/* ================================================================== */
 const BP = { sm: 560, md: 820, lg: 1040 };
-/* cqs({ sm: {...}, md: {...} }) -> container queries, plus an automatic
-   viewport @media fallback for old browsers without container-query support.
-   (Use ONE cqs() per sx object, cq() is the single-breakpoint shortcut.) */
+
 const cqs = (map) => {
   const out = {};
   const fallback = {};
@@ -149,380 +116,543 @@ const cqs = (map) => {
 };
 const cq = (bp, styles) => cqs({ [bp]: styles });
 
-const CONTAINER = {
+/* ================================================================== */
+/* DATE HELPERS                                                        */
+/* ================================================================== */
+// Auto-inserts dashes while typing: 08252026 -> 08-25-2026
+const maskDate = (raw) => {
+  const d = (raw || "").replace(/\D/g, "").slice(0, 8);
+  let out = d.slice(0, 2);
+  if (d.length > 2) out += "-" + d.slice(2, 4);
+  if (d.length > 4) out += "-" + d.slice(4);
+  return out;
+};
+
+const parseDate = (value) => {
+  if (!value || value.length !== 10) return null;
+  const parsed = dayjs(value, DATE_FORMAT, true);
+  return parsed.isValid() ? parsed : null;
+};
+
+// accepts "08/25/2026" or "08-25-2026" and returns "08-25-2026"
+const normalizeDate = (s) => String(s || "").replace(/\//g, "-");
+
+/* ================================================================== */
+/* INPUT STYLES (height 34, fontSize 12, radius 6)                     */
+/* ================================================================== */
+const inputSx = {
   width: "100%",
-  maxWidth: CONTENT_MAX + 56,
-  mx: "auto",
-  boxSizing: "border-box",
-  px: "12px",
-  ...cqs({ sm: { px: "16px" }, md: { px: "28px" } }),
+  "& .MuiOutlinedInput-root": {
+    height: 34,
+    minHeight: 34,
+    boxSizing: "border-box",
+    fontSize: 12,
+    borderRadius: "6px",
+    backgroundColor: T.fieldBg,
+    color: T.text,
+
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: "#D1D5DB" },
+    "&.Mui-focused fieldset": { borderColor: T.blue, borderWidth: "1px" },
+    "&.Mui-error fieldset": { borderColor: T.error },
+
+    "& input": {
+      height: "100%",
+      boxSizing: "border-box",
+      padding: "0 10px",
+      fontSize: 12,
+      color: T.text,
+    },
+    "& input::placeholder": { color: T.placeholder, opacity: 1 },
+    "& .MuiInputAdornment-root": { marginRight: 0 },
+  },
+
+  "& .MuiFormHelperText-root": {
+    fontSize: 10.5,
+    mx: 0,
+    ml: 0,
+    mt: 0.4,
+    color: T.error,
+  },
 };
 
-const scrollHide = {
-  scrollbarWidth: "none",
-  msOverflowStyle: "none",
-  "&::-webkit-scrollbar": { display: "none" },
+/* same look, but grows with its content (textarea) */
+const multilineSx = {
+  ...inputSx,
+  "& .MuiOutlinedInput-root": {
+    ...inputSx["& .MuiOutlinedInput-root"],
+    height: "auto",
+    padding: "7px 10px",
+    "& textarea": {
+      fontSize: 12,
+      padding: 0,
+      color: T.text,
+      lineHeight: 1.5,
+    },
+    "& textarea::placeholder": { color: T.placeholder, opacity: 1 },
+  },
 };
 
-/* =========================================================
-   STEPS
-   ========================================================= */
-const STEPS = [
-  { id: "patient", label: "Patient" },
-  { id: "case", label: "Case & Insurance" },
-  { id: "conditions", label: "Conditions & Auth" },
-  { id: "charges", label: "Charges & Review" },
-  { id: "additional", label: "Additional Details" },
-];
+const selectSx = (error = false) => ({
+  height: 34,
+  borderRadius: "6px",
+  fontSize: 12,
+  backgroundColor: T.fieldBg,
+  color: T.text,
 
-/* =========================================================
-   SHARED INPUT STYLES
-   ========================================================= */
-const inputBase = (
-  bgColor = C.inputBg,
-  borderColor = C.border,
-  focusColor = "#6366F1",
-) => ({
-  borderRadius: "8px",
-  fontSize: 13.5,
-  color: C.textDark,
-  bgcolor: bgColor,
-  "& .MuiOutlinedInput-notchedOutline": { borderColor },
-  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#B8BFCF" },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: focusColor,
-    borderWidth: "1.5px",
-  },
-  "& input": { py: "7px", px: "12px", fontSize: 13.5, color: C.textDark },
-  "& .MuiSelect-select": {
-    py: "7px",
-    px: "12px",
-    fontSize: 13.5,
-    color: C.textDark,
-  },
-});
-
-const inputNormal = () => inputBase();
-const inputGreen = () =>
-  inputBase(C.inputGreenBg, C.inputGreenBorder, "#6366F1");
-const inputOrange = () =>
-  inputBase(C.inputHighlight, C.inputHighlightBorder, C.orange);
-const inputAmber = () => inputBase(C.amberBg, "#FBE6B4", "#E8C96A");
-const inputBlue = () => ({
-  ...inputBase("#EEF4FF", "#006FFD", "#006FFD"),
   "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#006FFD",
-    borderStyle: "dashed",
-    borderWidth: "1.5px",
+    borderColor: error ? T.error : T.border,
+    borderRadius: "6px",
   },
   "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#006FFD",
-    borderStyle: "dashed",
+    borderColor: error ? T.error : "#D1D5DB",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: error ? T.error : T.blue,
+    borderWidth: "1px",
+  },
+
+  "& .MuiSelect-select": {
+    minHeight: "34px !important",
+    height: "34px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    padding: "0 32px 0 10px !important",
+    fontSize: 12,
+  },
+
+  "& .MuiSelect-icon": {
+    color: T.muted,
+    right: 6,
+    fontSize: 18,
   },
 });
 
-const hideHelper = { "& .MuiFormHelperText-root": { display: "none" } };
-
-/* =========================================================
-   SMALL SHARED PIECES
-   ========================================================= */
-const labelSx = {
+/* ================================================================== */
+/* BUTTON STYLES                                                       */
+/* ================================================================== */
+const outlineBtnSx = {
+  textTransform: "none",
   fontSize: 12,
   fontWeight: 600,
-  color: C.textLabel,
-  mb: 0.4,
-  lineHeight: 1.4,
-  display: "block",
+  height: 34,
+  px: 2.5,
+  borderRadius: "8px",
+  color: T.blue,
+  borderColor: T.blue,
+  backgroundColor: "#FFFFFF",
+  whiteSpace: "nowrap",
+  flexShrink: 0,
+  "&:hover": { borderColor: T.blueHover, backgroundColor: "#F5F9FF" },
 };
 
-function PrimaryBtn({ children, sx: sxExtra = {}, ...rest }) {
+const primaryBtnSx = {
+  textTransform: "none",
+  fontSize: 12,
+  fontWeight: 600,
+  height: 34,
+  px: 3,
+  borderRadius: "8px",
+  bgcolor: T.blue,
+  boxShadow: "none",
+  whiteSpace: "nowrap",
+  flexShrink: 0,
+  "&:hover": { bgcolor: T.blueHover, boxShadow: "none" },
+};
+
+/* smaller variant used inside section headers */
+const btnSm = { height: 30, px: 1.75, fontSize: 12 };
+
+function OutlineBtn({ children, sx, ...rest }) {
+  return (
+    <Button
+      variant="outlined"
+      disableElevation
+      {...rest}
+      sx={{ ...outlineBtnSx, ...sx }}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function PrimaryBtn({ children, sx, ...rest }) {
   return (
     <Button
       variant="contained"
       disableElevation
       {...rest}
-      sx={{
-        textTransform: "none",
-        borderRadius: "8px",
-        fontSize: 13,
-        fontWeight: 600,
-        bgcolor: C.blue,
-        px: 2,
-        py: 0.55,
-        whiteSpace: "nowrap",
-        "&:hover": { bgcolor: C.blueHover },
-        ...sxExtra,
-      }}
+      sx={{ ...primaryBtnSx, ...sx }}
     >
       {children}
     </Button>
   );
 }
 
-function OutlineBtn({ children, startIcon, onClick, sx: sxExtra = {} }) {
+/* Action icon button inside tables: fixed box, icon always centered */
+const actionBtnSx = {
+  width: 28,
+  height: 28,
+  p: 0,
+  borderRadius: "6px",
+  color: T.blue,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover": { bgcolor: "#EEF4FF" },
+  "& svg": { display: "block" },
+};
+
+/* ================================================================== */
+/* FIELD COMPONENTS                                                    */
+/* ================================================================== */
+
+/* Works controlled (value + onChange) or uncontrolled (defaultValue) */
+function useControllable(value, defaultValue, onChange) {
+  const [inner, setInner] = React.useState(defaultValue ?? "");
+  const isControlled = value !== undefined;
+  const handle = (e) => {
+    if (!isControlled) setInner(e.target.value);
+    if (onChange) onChange(e);
+  };
+  return [isControlled ? value : inner, handle];
+}
+
+function Label({ children, required }) {
   return (
-    <Button
-      variant="outlined"
-      disableElevation
-      onClick={onClick}
-      startIcon={startIcon}
+    <Typography
+      component="label"
       sx={{
-        textTransform: "none",
-        borderRadius: "8px",
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: 500,
-        color: C.textDark,
-        borderColor: C.border,
-        bgcolor: "#fff",
-        px: 2,
-        py: 0.55,
+        color: T.label,
+        mb: 0.5,
+        lineHeight: 1.4,
+        display: "block",
         whiteSpace: "nowrap",
-        boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-        "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
-        ...sxExtra,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}
     >
       {children}
-    </Button>
+      {required && (
+        <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
+          *
+        </Box>
+      )}
+    </Typography>
   );
 }
 
-/* Simple labelled text input / select used outside of <FieldRow /> */
-function LabeledInput({ label, sx, select, options = [], error, helperText, onBlur, inputProps, ...rest }) {
+function InputField({
+  label,
+  placeholder = "Type here",
+  required,
+  value,
+  defaultValue,
+  onChange,
+  onBlur,
+  error,
+  inputMode,
+  maxLength,
+  multiline = false,
+  rows = 2,
+}) {
+  const [val, handle] = useControllable(value, defaultValue, onChange);
   return (
     <Box sx={{ minWidth: 0 }}>
-      <Typography component="label" sx={labelSx}>
-        {label}
-      </Typography>
+      <Label required={required}>{label}</Label>
       <TextField
         fullWidth
         size="small"
-        select={!!select}
-        error={!!error}
-        helperText={error || helperText}
+        placeholder={placeholder}
+        value={val}
+        onChange={handle}
         onBlur={onBlur}
-        SelectProps={select ? { IconComponent: ArrowDropDownIcon } : undefined}
-        slotProps={{ input: { sx: sx || inputNormal() } }}
-        inputProps={inputProps}
-        sx={{
-          ...hideHelper,
-          ...(error && {
-            "& .MuiFormHelperText-root": {
-              display: "block",
-              fontSize: 11,
-              color: "#EF4444",
-              mt: 0.4,
-              mx: 0,
-            },
-          }),
-        }}
-        {...rest}
-      >
-        {select &&
-          options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>
-              {o}
-            </MenuItem>
-          ))}
-      </TextField>
+        error={!!error}
+        helperText={error || ""}
+        multiline={multiline}
+        rows={multiline ? rows : undefined}
+        inputProps={{ inputMode, maxLength }}
+        sx={multiline ? multilineSx : inputSx}
+      />
     </Box>
   );
 }
 
-/* Responsive card-grid helper: 1 col -> 2 cols (sm) -> N cols (bp) */
-const gridCols = (n, bp = "lg") => ({
-  display: "grid",
-  gridTemplateColumns: "minmax(0,1fr)",
-  gap: 1.5,
-  width: "100%",
-  ...cqs({
-    sm: { gridTemplateColumns: "repeat(2, minmax(0,1fr))" },
-    [bp]: { gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` },
-  }),
-});
-
-// Fixed grid that doesn't collapse - always N columns
-const fixedGrid = (n) => ({
-  display: "grid",
-  gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
-  gap: 1.5,
-  width: "100%",
-});
-
-/* =========================================================
-   FORM FIELD
-   ========================================================= */
-function FormField({
+function SelectField({
   label,
-  value,
-  select,
+  placeholder = "Select",
   options = [],
-  placeholder,
-  highlightedGreen,
-  highlightedBlue,
-  highlighted,
-  icon,
   required,
-  type,
+  value,
+  defaultValue,
+  onChange,
+  onClose,
+  error,
 }) {
-  const sx = highlightedGreen
-    ? inputGreen()
-    : highlightedBlue
-      ? inputBlue()
-      : highlighted
-        ? inputOrange()
-        : inputNormal();
-
-  /* Checkbox group variant */
-  if (type === "checkboxGroup") {
-    return (
-      <Box sx={{ width: "100%", minWidth: 0 }}>
-        <Typography component="label" sx={labelSx}>
-          {label}
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 1.5,
-            border: `1px solid ${C.border}`,
-            borderRadius: "8px",
-            bgcolor: "#fff",
-            px: 1.5,
-            py: "6px",
-            minHeight: 36,
-            boxSizing: "border-box",
-          }}
+  const [val, handle] = useControllable(value, defaultValue, onChange);
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Label required={required}>{label}</Label>
+      <FormControl fullWidth size="small" error={!!error}>
+        <Select
+          displayEmpty
+          value={val}
+          onChange={handle}
+          onClose={onClose}
+          sx={selectSx(!!error)}
+          IconComponent={KeyboardArrowDownIcon}
+          renderValue={(v) =>
+            v ? (
+              <span style={{ fontSize: 12, color: T.text }}>{v}</span>
+            ) : (
+              <span style={{ fontSize: 12, color: T.placeholder }}>
+                {placeholder}
+              </span>
+            )
+          }
         >
-          {options.map((opt) => (
-            <FormControlLabel
-              key={opt}
-              sx={{ mr: 0, ml: 0 }}
-              control={
-                <Checkbox
-                  size="small"
-                  sx={{
-                    p: 0.4,
-                    color: "#C8CDD8",
-                    "&.Mui-checked": { color: C.blue },
-                    "& svg": { fontSize: 16 },
-                  }}
-                />
-              }
-              label={
-                <Typography sx={{ fontSize: 13, color: C.textDark }}>
-                  {opt}
-                </Typography>
-              }
-            />
+          <MenuItem value="" sx={{ fontSize: 12, color: T.placeholder }}>
+            {placeholder}
+          </MenuItem>
+          {options.map((o) => (
+            <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+              {o}
+            </MenuItem>
           ))}
-        </Box>
-      </Box>
-    );
-  }
+        </Select>
+        {error && (
+          <FormHelperText
+            sx={{ fontSize: 10.5, mx: 0, mt: 0.4, color: T.error }}
+          >
+            {error}
+          </FormHelperText>
+        )}
+      </FormControl>
+    </Box>
+  );
+}
 
-  /* Date picker variant (icon: true) */
-  if (icon) {
-    const parsed =
-      value && dayjs(value, "MM/DD/YYYY", true).isValid()
-        ? dayjs(value, "MM/DD/YYYY", true)
-        : null;
+/* MM-DD-YYYY: typing is auto-masked, calendar popup too */
+function DateField({
+  label,
+  required,
+  value,
+  defaultValue,
+  onChange,
+  onBlur,
+  error,
+  disableFuture = false,
+  placeholder = "MM-DD-YYYY",
+}) {
+  const [val, handle] = useControllable(
+    value,
+    normalizeDate(defaultValue),
+    onChange,
+  );
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const fieldRef = React.useRef(null);
 
-    return (
-      <Box sx={{ width: "100%", minWidth: 0 }}>
-        <Typography component="label" sx={labelSx}>
-          {label}
-        </Typography>
+  const parsedValue = parseDate(val);
+  const invalidFormat = val.length === 10 && !parsedValue;
+  const message = invalidFormat ? "Enter a valid date (MM-DD-YYYY)" : error;
+
+  const emit = (v) => handle({ target: { value: v } });
+
+  const handleDateChange = (newVal) => {
+    if (newVal && newVal.isValid()) emit(newVal.format(DATE_FORMAT));
+    setAnchorEl(null);
+  };
+
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Label required={required}>{label}</Label>
+      <TextField
+        fullWidth
+        size="small"
+        ref={fieldRef}
+        placeholder={placeholder}
+        value={val}
+        onChange={(e) => emit(maskDate(e.target.value))}
+        onBlur={onBlur}
+        error={!!message}
+        helperText={message || ""}
+        inputProps={{ inputMode: "numeric", maxLength: 10 }}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end" sx={{ mr: "-4px" }}>
+                <IconButton
+                  onClick={() => setAnchorEl(fieldRef.current)}
+                  aria-label="Open calendar"
+                  disableRipple
+                  sx={{ p: "4px", "&:hover": { background: "transparent" } }}
+                >
+                  <CalendarIcon width={14} height={16} color={T.blue} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={inputSx}
+      />
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "12px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+              mt: 0.5,
+              maxWidth: "calc(100vw - 16px)",
+            },
+          },
+        }}
+      >
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            defaultValue={parsed}
-            format="MM/DD/YYYY"
-            slots={{
-              openPickerIcon: () => <BlueCalendarIcon width={16} height={17} />,
-            }}
-            slotProps={{
-              textField: {
-                fullWidth: true,
-                size: "small",
-                sx: { "& .MuiOutlinedInput-root": sx },
+          <DateCalendar
+            value={parsedValue}
+            onChange={handleDateChange}
+            disableFuture={disableFuture}
+            sx={{
+              width: { xs: "280px", sm: "320px" },
+              maxWidth: "100%",
+              "& .MuiPickersDay-root.Mui-selected": {
+                backgroundColor: T.blue,
               },
-              openPickerButton: { sx: { p: 0.5, mr: 0.2 } },
+              "& .MuiPickersDay-root:hover": { backgroundColor: "#EEF4FF" },
             }}
           />
         </LocalizationProvider>
-      </Box>
-    );
-  }
+      </Popover>
+    </Box>
+  );
+}
 
-  /* Regular field */
+function CheckboxGroupField({ label, options = [] }) {
   return (
-    <Box sx={{ width: "100%", minWidth: 0 }}>
-      <Typography component="label" sx={labelSx}>
-        {label}
-        {required && (
-          <Box component="span" sx={{ color: "red", ml: 0.3 }}>
-            *
-          </Box>
-        )}
-      </Typography>
-      <TextField
-        fullWidth
-        size="small"
-        select={!!select}
-        defaultValue={value}
-        placeholder={placeholder}
-        SelectProps={select ? { IconComponent: ArrowDropDownIcon } : undefined}
-        slotProps={{ input: { sx } }}
-        sx={hideHelper}
+    <Box sx={{ minWidth: 0 }}>
+      <Label>{label}</Label>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          border: `1px solid ${T.border}`,
+          borderRadius: "6px",
+          bgcolor: T.fieldBg,
+          px: "10px",
+          height: 34,
+          boxSizing: "border-box",
+          overflow: "hidden",
+          "&:hover": { borderColor: "#D1D5DB" },
+        }}
       >
-        {select &&
-          options.map((o) => (
-            <MenuItem key={o} value={o} sx={{ fontSize: 13.5 }}>
-              {o}
-            </MenuItem>
-          ))}
-      </TextField>
+        {options.map((opt) => (
+          <FormControlLabel
+            key={opt}
+            sx={{ m: 0 }}
+            control={
+              <Checkbox
+                size="small"
+                sx={{
+                  p: 0.4,
+                  color: "#C8CDD8",
+                  "&.Mui-checked": { color: T.blue },
+                  "& svg": { fontSize: 16 },
+                }}
+              />
+            }
+            label={
+              <Typography sx={{ fontSize: 12, color: T.text }}>
+                {opt}
+              </Typography>
+            }
+          />
+        ))}
+      </Box>
     </Box>
   );
 }
 
-/* Fixed 4-column layout - no collapsing */
-function FieldRow({ fields }) {
+/* ================================================================== */
+/* GRID                                                                */
+/* 1 column -> 2 columns (>=560) -> N columns (>=820)                  */
+/* ================================================================== */
+function FormGrid({ children, cols = 4 }) {
   return (
-    <Box sx={fixedGrid(4)}>
-      {fields.map((f, i) => {
-        let span = 1;
-        if (f.md === 6) span = 2;
-        if (f.md === 8 || f.md === 9) span = 3;
-        return (
-          <Box
-            key={i}
-            sx={{
-              minWidth: 0,
-              gridColumn: `span ${span}`,
-            }}
-          >
-            <FormField {...f} />
-          </Box>
-        );
-      })}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        gap: 1.5,
+        width: "100%",
+        alignItems: "start",
+        ...cqs({
+          sm: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" },
+          md: {
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          },
+        }),
+      }}
+    >
+      {children}
     </Box>
   );
 }
 
-/* =========================================================
-   SECTION CARD SHELL
-   scroll-margin uses --header-h, set at runtime from the real
-   sticky header height, so anchors never hide under the header.
-   ========================================================= */
+/* grid item that can span several columns on wide screens */
+function Cell({ span = 1, children }) {
+  return (
+    <Box
+      sx={{
+        minWidth: 0,
+        ...cqs({
+          sm: { gridColumn: span >= 2 ? "span 2" : "auto" },
+          md: { gridColumn: `span ${span}` },
+        }),
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function renderField({ type, span, ...props }) {
+  if (type === "select") return <SelectField {...props} />;
+  if (type === "date") return <DateField {...props} />;
+  if (type === "checks") return <CheckboxGroupField {...props} />;
+  return <InputField {...props} />;
+}
+
+/* config driven grid: fields = [{ label, type, defaultValue, span, ... }] */
+function FieldGrid({ fields, cols = 4 }) {
+  return (
+    <FormGrid cols={cols}>
+      {fields.map((f, i) => (
+        <Cell key={i} span={f.span || 1}>
+          {renderField(f)}
+        </Cell>
+      ))}
+    </FormGrid>
+  );
+}
+
+/* ================================================================== */
+/* SECTION CARD (same card as ReferringProviderEdit + accent header)   */
+/* ================================================================== */
 function SectionCard({
   id,
   sectionRef,
   number,
   title,
-  accentColor,
-  accentBg,
+  accent,
   rightSlot,
   children,
 }) {
@@ -532,24 +662,24 @@ function SectionCard({
       ref={sectionRef}
       elevation={0}
       sx={{
-        border: `1px solid ${C.borderLight}`,
-        borderRadius: "12px",
+        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        border: `1px solid ${T.border}`,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
         overflow: "hidden",
-        bgcolor: "#fff",
-        scrollMarginTop: "calc(var(--header-h, 0px) + 12px)",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
         width: "100%",
         minWidth: 0,
       }}
     >
       <Box
         sx={{
-          background: accentBg,
-          borderLeft: `4px solid ${accentColor}`,
-          borderBottom: `1px solid ${C.borderLight}`,
-          px: { xs: 2, md: 3 },
-          py: 1.35,
-          minHeight: 46,
+          bgcolor: accent.bg,
+          borderLeft: `4px solid ${accent.main}`,
+          borderBottom: `1px solid ${T.border}`,
+          px: 2,
+          py: 1,
+          minHeight: 44,
+          boxSizing: "border-box",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -557,108 +687,181 @@ function SectionCard({
           gap: 1,
         }}
       >
-        <Typography
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            color: accentColor,
-            textTransform: "uppercase",
-            lineHeight: 1.4,
-          }}
-        >
-          {number} - {title}
+        <Typography sx={{ fontSize: 13, fontWeight: 700, color: accent.main }}>
+          {number}. {title}
         </Typography>
-        {rightSlot}
+        {rightSlot && (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {rightSlot}
+          </Box>
+        )}
       </Box>
 
-      <Box sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
-        <Stack spacing={2}>{children}</Stack>
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+          minWidth: 0,
+        }}
+      >
+        {children}
       </Box>
     </Paper>
   );
 }
 
-/* =========================================================
-   TOP BAR
-   ========================================================= */
-function TopBar() {
-  const topBtn = {
-    fontSize: 13.5,
-    fontWeight: 600,
-    px: 2,
-    py: 0.65,
-    gap: 0.7,
-  };
-
+/* small bold sub-heading inside a card */
+function SubTitle({ children, color = T.text, right }) {
   return (
     <Box
       sx={{
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         justifyContent: "space-between",
-        flexDirection: "column",
-        gap: 1.5,
-        pb: 1.5,
-        ...cq("sm", { alignItems: "center", flexDirection: "row" }),
+        gap: 1,
+        mb: 0.75,
       }}
     >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography
-          sx={{
-            fontSize: 11.5,
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            color: C.textMuted,
-            textTransform: "uppercase",
-            mb: 0.25,
-          }}
-        >
-          Pri Charge Capture
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: { xs: 22, sm: 25 },
-            fontWeight: 800,
-            color: "#0D1B2A",
-            letterSpacing: "-0.5px",
-            lineHeight: 1.1,
-          }}
-        >
-          Claim ID #29068396
-        </Typography>
-      </Box>
-
-      {/* <Stack
-        direction="row"
-        spacing={0.8}
-        flexWrap="wrap"
-        useFlexGap
-        alignItems="center"
-      >
-        <OutlineBtn sx={topBtn}>Cancel</OutlineBtn>
-        <OutlineBtn
-          sx={topBtn}
-          startIcon={
-            <SaveDraftFileIcon color={C.textDark} width={20} height={20} />
-          }
-        >
-          Save draft
-        </OutlineBtn>
-        <PrimaryBtn
-          sx={topBtn}
-          startIcon={<TiaChatIcon color="#fff" width={22} height={22} />}
-        >
-          Scrub &amp; approve
-        </PrimaryBtn>
-      </Stack> */}
+      <Typography sx={{ fontSize: 12, fontWeight: 700, color }}>
+        {children}
+      </Typography>
+      {right}
     </Box>
   );
 }
 
-/* =========================================================
-   STEPPER NAV
-   ========================================================= */
+/* ================================================================== */
+/* TABLE HELPERS (inputs inside cells use the same input style)        */
+/* ================================================================== */
+const tableWrapSx = {
+  border: `1px solid ${T.border}`,
+  borderRadius: "8px",
+  overflowX: "auto",
+  maxWidth: "100%",
+  ...thinScroll,
+};
+
+const tableHeadSx = (accent) => ({
+  bgcolor: accent.bg,
+  color: accent.main,
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: "0.04em",
+  whiteSpace: "nowrap",
+  py: 1,
+  px: 1.25,
+  borderBottom: `1px solid ${T.border}`,
+});
+
+const tableCellSx = {
+  py: 0.75,
+  px: 1.25,
+  borderBottom: `1px solid ${T.border}`,
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+  fontSize: 12,
+  color: T.text,
+};
+
+function CellInput({ defaultValue, value, onChange, minWidth = 100 }) {
+  return (
+    <TextField
+      size="small"
+      {...(value !== undefined ? { value, onChange } : { defaultValue })}
+      sx={{ ...inputSx, minWidth }}
+    />
+  );
+}
+
+function CellSelect({ defaultValue, options, minWidth = 130 }) {
+  return (
+    <FormControl size="small" sx={{ minWidth, width: "100%" }}>
+      <Select
+        defaultValue={defaultValue}
+        sx={selectSx()}
+        IconComponent={KeyboardArrowDownIcon}
+      >
+        {options.map((o) => (
+          <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            {o}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+function ActiveBadge() {
+  return (
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "#E8F8F0",
+        border: "1px solid #A8DFCA",
+        borderRadius: "6px",
+        px: 1.2,
+        height: 26,
+        minWidth: 58,
+      }}
+    >
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#1A9E6E" }}>
+        Active
+      </Typography>
+    </Box>
+  );
+}
+
+/* ================================================================== */
+/* STEPS                                                               */
+/* ================================================================== */
+const STEPS = [
+  { id: "patient", label: "Patient" },
+  { id: "case", label: "Case & Insurance" },
+  { id: "conditions", label: "Conditions & Auth" },
+  { id: "charges", label: "Charges & Review" },
+  { id: "additional", label: "Additional Details" },
+];
+
+/* ================================================================== */
+/* TOP BAR                                                             */
+/* ================================================================== */
+function TopBar({ title = "New Charge Capture" }) {
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography
+        sx={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          color: T.muted,
+          textTransform: "uppercase",
+          lineHeight: 1.3,
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        sx={{
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#111827",
+          lineHeight: 1.3,
+        }}
+      >
+        Claim ID #29068396
+      </Typography>
+    </Box>
+  );
+}
+
+/* ================================================================== */
+/* STEPPER NAV                                                         */
+/* ================================================================== */
 function StepperNav({ activeId, onStepClick, onAlertsClick, onBack }) {
   const listRef = React.useRef(null);
 
@@ -683,158 +886,159 @@ function StepperNav({ activeId, onStepClick, onAlertsClick, onBack }) {
         alignItems: "stretch",
         justifyContent: "space-between",
         gap: 1,
-        pb: 1.5,
         ...cq("md", { flexDirection: "row", alignItems: "center" }),
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1, minWidth: 0 }}>
-        {onBack && (
-          <IconButton
-            onClick={onBack}
-            sx={{
-              flexShrink: 0,
-              color: "#5A6B7E",
-              border: "1.5px solid #E4E9EF",
-              borderRadius: "8px",
-              width: 36,
-              height: 36,
-              "&:hover": {
-                bgcolor: "#F3F4F6",
-                borderColor: "#D1D5DB",
-              },
-            }}
-          >
-            <ArrowBackIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-        )}
       <Box
-        ref={listRef}
         sx={{
           display: "flex",
           alignItems: "center",
-          overflowX: "auto",
+          gap: 1,
           flexGrow: 1,
           minWidth: 0,
-          ...scrollHide,
         }}
       >
-        {STEPS.map((step, index) => {
-          const isActive = step.id === activeId;
-          return (
-            <React.Fragment key={step.id}>
-              <Box
-                data-step={step.id}
-                onClick={() => onStepClick(step.id)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.4,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  px: 0.8,
-                  py: 0.3,
-                  borderRadius: "999px",
-                  bgcolor: isActive ? "#1A1D23" : "#fff",
-                  border: isActive
-                    ? "1.5px solid #1A1D23"
-                    : "1.5px solid #C8CDD8",
-                  transition:
-                    "background-color 0.35s ease, padding 0.35s ease, border-color 0.35s ease",
-                  "&:hover": {
-                    bgcolor: isActive ? "#1A1D23" : "#fff",
-                    borderColor: isActive ? "#1A1D23" : "#9CA3AF",
-                  },
-                }}
-              >
+        {onBack && (
+          <IconButton
+            onClick={onBack}
+            aria-label="Go back"
+            sx={{
+              flexShrink: 0,
+              color: "#5A6B7E",
+              border: `1px solid ${T.border}`,
+              bgcolor: "#FFFFFF",
+              borderRadius: "8px",
+              width: 32,
+              height: 32,
+              "&:hover": { bgcolor: "#F3F4F6", borderColor: "#D1D5DB" },
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        )}
+
+        <Box
+          ref={listRef}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            overflowX: "auto",
+            flexGrow: 1,
+            minWidth: 0,
+            ...hideScroll,
+          }}
+        >
+          {STEPS.map((step, index) => {
+            const isActive = step.id === activeId;
+            return (
+              <React.Fragment key={step.id}>
                 <Box
+                  data-step={step.id}
+                  onClick={() => onStepClick(step.id)}
                   sx={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    bgcolor: isActive ? C.blue : "transparent",
-                    border: isActive
-                      ? `1.5px solid ${C.blue}`
-                      : "1.5px solid #C8CDD8",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 9,
-                    fontWeight: isActive ? 800 : 600,
-                    color: isActive ? "#fff" : "#5A6B7E",
+                    gap: 0.6,
+                    cursor: "pointer",
                     flexShrink: 0,
+                    px: 0.9,
+                    height: 28,
+                    boxSizing: "border-box",
+                    borderRadius: "999px",
+                    bgcolor: isActive ? "#1A1D23" : "#fff",
+                    border: isActive
+                      ? "1px solid #1A1D23"
+                      : "1px solid #C8CDD8",
                     transition:
-                      "background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease",
+                      "background-color 0.3s ease, border-color 0.3s ease",
+                    "&:hover": {
+                      borderColor: isActive ? "#1A1D23" : "#9CA3AF",
+                    },
                   }}
                 >
-                  {index + 1}
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      bgcolor: isActive ? T.blue : "transparent",
+                      border: isActive
+                        ? `1px solid ${T.blue}`
+                        : "1px solid #C8CDD8",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      fontWeight: isActive ? 800 : 600,
+                      color: isActive ? "#fff" : "#5A6B7E",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: isActive ? "#fff" : "#5A6B7E",
+                      whiteSpace: "nowrap",
+                      display: isActive ? "block" : "none",
+                      ...cq("sm", { display: "block" }),
+                    }}
+                  >
+                    {step.label}
+                  </Typography>
                 </Box>
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: isActive ? "#fff" : "#5A6B7E",
-                    whiteSpace: "nowrap",
-                    display: isActive ? "block" : "none",
-                    ...cq("sm", { display: "block" }),
-                    transition: "color 0.35s ease",
-                  }}
-                >
-                  {step.label}
-                </Typography>
-              </Box>
-              {index < STEPS.length - 1 && (
-                <Typography
-                  aria-hidden="true"
-                  sx={{
-                    flexShrink: 0,
-                    mx: 0.3,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#C8CDD8",
-                    userSelect: "none",
-                    lineHeight: 1,
-                  }}
-                >
-                  --
-                </Typography>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </Box>
+
+                {index < STEPS.length - 1 && (
+                  <Box
+                    aria-hidden="true"
+                    sx={{
+                      flexShrink: 0,
+                      mx: 0.5,
+                      width: 14,
+                      height: "1px",
+                      bgcolor: "#D1D5DB",
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </Box>
       </Box>
 
-      <Stack direction="row" spacing={0.8} flexShrink={0}>
+      <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
         <OutlineBtn
           startIcon={<AlertBellIcon />}
           onClick={onAlertsClick}
-          sx={{ color: "#5A6B7E", borderColor: "#E4E9EF", fontWeight: 700 }}
+          sx={{ ...btnSm, color: "#5A6B7E", borderColor: T.border }}
         >
           Alerts
         </OutlineBtn>
         <OutlineBtn
           startIcon={<PlusBlueIcon />}
-          sx={{ color: "#5A6B7E", borderColor: "#E4E9EF", fontWeight: 700 }}
+          sx={{ ...btnSm, color: "#5A6B7E", borderColor: T.border }}
         >
           Add task
         </OutlineBtn>
-      </Stack>
+      </Box>
     </Box>
   );
 }
 
-/* =========================================================
-   ENCOUNTER SUMMARY STRIP
-   ========================================================= */
+/* ================================================================== */
+/* ENCOUNTER SUMMARY + ASSIST BANNER (only for existing claims)        */
+/* ================================================================== */
 function SummaryItem({ label, value, valueColor }) {
   return (
     <Box sx={{ minWidth: 0 }}>
       <Typography
         sx={{
-          fontSize: 9.5,
+          fontSize: 10,
           fontWeight: 700,
-          letterSpacing: "0.1em",
-          color: C.textMuted,
+          letterSpacing: "0.08em",
+          color: T.muted,
           textTransform: "uppercase",
           mb: 0.25,
         }}
@@ -843,9 +1047,9 @@ function SummaryItem({ label, value, valueColor }) {
       </Typography>
       <Typography
         sx={{
-          fontSize: 13.5,
+          fontSize: 12,
           fontWeight: 500,
-          color: valueColor || "#0D1B2A",
+          color: valueColor || "#111827",
           lineHeight: 1.3,
           overflowWrap: "anywhere",
         }}
@@ -857,53 +1061,50 @@ function SummaryItem({ label, value, valueColor }) {
 }
 
 function EncounterSummary({ claimData }) {
-  const encounterText = claimData ? `${claimData.encounterId || 'N/A'} - Draft` : "NEW - Draft";
+  const encounterText = claimData
+    ? `${claimData.encounterId || "N/A"} - Draft`
+    : "NEW - Draft";
   const patientText = claimData ? claimData.patientName : "Wayne, Jimmy";
-  const detailsText = claimData 
-    ? `${claimData.dob || 'N/A'} - ${claimData.gender?.replace(/[()]/g, '') || 'N/A'} - MRN ${claimData.mrn || 'N/A'}`
+  const detailsText = claimData
+    ? `${claimData.dob || "N/A"} - ${claimData.gender?.replace(/[()]/g, "") || "N/A"} - MRN ${claimData.mrn || "N/A"}`
     : "06/15/1978 - M - MRN 326362969";
 
   return (
     <Paper
       elevation={0}
       sx={{
-        border: `1px solid ${C.borderLight}`,
-        borderRadius: "12px",
+        border: `1px solid ${T.border}`,
+        borderRadius: "8px",
         bgcolor: "#fff",
-        px: { xs: 2, md: 3 },
-        py: 1.5,
+        p: 2,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         flexWrap: "wrap",
-        gap: 2,
+        gap: 1.5,
       }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 1.5,
+          gap: 1,
           minWidth: 0,
           ...cq("sm", { flexDirection: "row", gap: 4 }),
         }}
       >
         <SummaryItem label="Encounter" value={encounterText} />
         <SummaryItem label="Patient" value={patientText} />
-        <SummaryItem
-          label="Details"
-          value={detailsText}
-          valueColor={C.textMuted}
-        />
+        <SummaryItem label="Details" value={detailsText} valueColor={T.muted} />
       </Box>
       <Chip
         label="Unbilled"
         sx={{
-          bgcolor: C.amberChipBg,
-          color: C.amberChipText,
-          fontWeight: 800,
-          fontSize: 12,
-          borderRadius: "10px",
+          bgcolor: "#FBF1DC",
+          color: "#946312",
+          fontWeight: 700,
+          fontSize: 11,
+          borderRadius: "6px",
           height: 24,
           "& .MuiChip-label": { px: 1.2 },
         }}
@@ -912,25 +1113,20 @@ function EncounterSummary({ claimData }) {
   );
 }
 
-/* =========================================================
-   ENCOUNTER ASSIST BANNER
-   ========================================================= */
 function AssistBanner() {
-  const bold = { fontWeight: 700, color: C.textBold };
+  const bold = { fontWeight: 700, color: "#2B2842" };
   return (
     <Paper
       elevation={0}
       sx={{
-        border: "1px solid #E2E8F0",
-        borderRadius: "10px",
-        bgcolor: C.purpleBg,
-        px: { xs: 2, md: 2.5 },
-        py: 1.5,
+        border: `1px solid ${T.border}`,
+        borderRadius: "8px",
+        bgcolor: A.purple.bg,
+        p: 2,
         display: "flex",
-        gap: 0.8,
+        gap: 1,
         alignItems: "center",
         justifyContent: "space-between",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
       }}
     >
       <Box sx={{ minWidth: 0 }}>
@@ -938,22 +1134,16 @@ function AssistBanner() {
           sx={{
             fontSize: 11,
             fontWeight: 700,
-            letterSpacing: "0.08em",
-            color: C.purple,
+            letterSpacing: "0.06em",
+            color: A.purple.main,
             textTransform: "uppercase",
-            mb: 0.4,
-            fontFamily: "Figtree, sans-serif",
+            mb: 0.5,
           }}
         >
-          ✦ Encounter Assist
+          Encounter Assist
         </Typography>
         <Typography
-          sx={{
-            fontSize: { xs: 13, sm: 14 },
-            color: C.textBody,
-            lineHeight: 1.65,
-            fontFamily: "Figtree, sans-serif",
-          }}
+          sx={{ fontSize: 12, color: A.purple.main, lineHeight: 1.6 }}
         >
           Pre-filled from the 08/15 appointment and EHR note. I matched the
           patient, pulled the active{" "}
@@ -972,7 +1162,7 @@ function AssistBanner() {
           <Box component="span" sx={bold}>
             Eligibility isn&apos;t verified yet
           </Box>{" "}
-          — one click below runs it. Nothing here opens a new window.
+          - one click below runs it. Nothing here opens a new window.
         </Typography>
       </Box>
 
@@ -996,114 +1186,81 @@ function AssistBanner() {
   );
 }
 
-/* =========================================================
-   CARD 1 - PATIENT
-   ========================================================= */
-function DetailColumn({ items }) {
-  return (
-    <Box
-      sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}
-    >
-      {items.map(({ label, value, pre }) => (
-        <Typography
-          key={label}
-          sx={{ fontSize: 13, color: C.textBody, overflowWrap: "anywhere" }}
-        >
-          {label}{" "}
-          <Box
-            component="span"
-            sx={{
-              fontWeight: 700,
-              color: C.textDark,
-              whiteSpace: pre ? "pre-line" : "normal",
-            }}
-          >
-            {value}
-          </Box>
-        </Typography>
-      ))}
-    </Box>
-  );
-}
+/* ================================================================== */
+/* CARD 1 - PATIENT                                                    */
+/* ================================================================== */
+const EMPTY_PATIENT = {
+  legalName: "",
+  dob: "",
+  gender: "",
+  mrn: "",
+  ssn: "",
+  mobile: "",
+  address: "",
+  maritalStatus: "",
+  emplStatus: "",
+  referralSource: "",
+  employer: "",
+  pcp: "",
+  referringPhysician: "",
+};
 
-function PatientSection({ sectionRef, isNewClaim = false, isEditMode = false, claimData = null }) {
-  const navigate = useNavigate();
-  
-  // Determine patient data based on mode
-  const getInitialPatient = () => {
-    if (claimData) {
-      // Edit mode - populate from claim data
-      return {
-        legalName: claimData.patientName || "",
-        dob: claimData.dob || "",
-        gender: claimData.gender?.replace(/[()]/g, '') || "",
-        mrn: claimData.mrn || "",
-        ssn: "",
-        mobile: "",
-        address: "",
-        maritalStatus: "",
-        emplStatus: "",
-        referralSource: "",
-        employer: "",
-        pcp: "",
-        referringPhysician: "",
-      };
-    } else if (isNewClaim) {
-      // New claim - empty fields
-      return {
-        legalName: "",
-        dob: "",
-        gender: "",
-        mrn: "",
-        ssn: "",
-        mobile: "",
-        address: "",
-        maritalStatus: "",
-        emplStatus: "",
-        referralSource: "",
-        employer: "",
-        pcp: "",
-        referringPhysician: "",
-      };
-    } else {
-      // Default - pre-filled example data
-      return {
-        legalName: "Wayne Jimmy",
-        dob: "08/25/1978",
-        gender: "Male",
-        mrn: "563526626",
-        ssn: "563526626",
-        mobile: "(313) 404-6928",
-        address: "Capitol Way S, Washingtone, AR 12344",
-        maritalStatus: "NA",
-        emplStatus: "NA",
-        referralSource: "NA",
-        employer: "NA",
-        pcp: "NA",
-        referringPhysician: "NA",
-      };
-    }
+const getInitialPatient = (claimData, isNewClaim) => {
+  if (claimData) {
+    // Edit mode - populate from claim data
+    return {
+      ...EMPTY_PATIENT,
+      legalName: claimData.patientName || "",
+      dob: normalizeDate(claimData.dob),
+      gender: claimData.gender?.replace(/[()]/g, "") || "",
+      mrn: claimData.mrn || "",
+    };
+  }
+  // New claim - empty fields
+  if (isNewClaim) return { ...EMPTY_PATIENT };
+  // Default - pre-filled example data
+  return {
+    legalName: "Wayne Jimmy",
+    dob: "08-25-1978",
+    gender: "Male",
+    mrn: "563526626",
+    ssn: "563526626",
+    mobile: "3134046928",
+    address: "Capitol Way S, Washingtone, AR 12344",
+    maritalStatus: "NA",
+    emplStatus: "NA",
+    referralSource: "NA",
+    employer: "NA",
+    pcp: "NA",
+    referringPhysician: "NA",
   };
+};
 
-  const [patient, setPatient] = React.useState(getInitialPatient());
+function PatientSection({
+  sectionRef,
+  isNewClaim = false,
+  isEditMode = false,
+  claimData = null,
+}) {
+  const navigate = useNavigate();
+  const [patient, setPatient] = React.useState(() =>
+    getInitialPatient(claimData, isNewClaim),
+  );
   const [phoneErrors, setPhoneErrors] = React.useState({});
 
-  const handleFieldChange = (field) => (event) => {
-    setPatient(prev => ({ ...prev, [field]: event.target.value }));
+  const setField = (field) => (e) =>
+    setPatient((prev) => ({ ...prev, [field]: e.target.value }));
+
+  /* phone: digits only, max 10 */
+  const handlePhoneChange = (field) => (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setPatient((prev) => ({ ...prev, [field]: digits }));
+    setPhoneErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  // Phone field handler - strips non-digits and limits to 10
-  const handlePhoneChange = (field) => (event) => {
-    const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
-    setPatient(prev => ({ ...prev, [field]: digits }));
-    // Clear error when typing
-    setPhoneErrors(prev => ({ ...prev, [field]: "" }));
-  };
-
-  // Validate phone on blur
   const handlePhoneBlur = (field) => () => {
     const error = validatePhone(patient[field]);
-    setPhoneErrors(prev => ({ ...prev, [field]: error }));
+    setPhoneErrors((prev) => ({ ...prev, [field]: error }));
   };
 
   return (
@@ -1112,168 +1269,122 @@ function PatientSection({ sectionRef, isNewClaim = false, isEditMode = false, cl
       sectionRef={sectionRef}
       number={1}
       title="Patient"
-      accentColor={C.purple}
-      accentBg={C.purpleBg}
+      accent={A.purple}
       rightSlot={
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <OutlineBtn>Select existing</OutlineBtn>
+        <>
+          <OutlineBtn sx={btnSm}>Select existing</OutlineBtn>
           {!isEditMode && (
-            <PrimaryBtn onClick={() => navigate("/add-new-patient")}>+ New patient</PrimaryBtn>
+            <PrimaryBtn sx={btnSm} onClick={() => navigate("/add-new-patient")}>
+              + New patient
+            </PrimaryBtn>
           )}
-        </Stack>
+        </>
       }
     >
-      {/* Row 1: Legal Name, DOB, Gender, MRN */}
-      <Box sx={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
-        gap: 1.5, 
-        width: "100%" 
-      }}>
-        <LabeledInput
+      <FormGrid>
+        <InputField
           label="Legal Name"
-          value={patient.legalName}
-          onChange={handleFieldChange("legalName")}
           placeholder="Enter legal name"
-          sx={inputNormal()}
+          value={patient.legalName}
+          onChange={setField("legalName")}
         />
-        <LabeledInput
+        <DateField
           label="DOB"
+          disableFuture
           value={patient.dob}
-          onChange={handleFieldChange("dob")}
-          placeholder="MM/DD/YYYY"
-          sx={inputNormal()}
+          onChange={setField("dob")}
         />
-        <LabeledInput
+        <SelectField
           label="Gender"
-          select
-          value={patient.gender}
-          onChange={handleFieldChange("gender")}
           options={["Male", "Female", "Other"]}
-          sx={inputNormal()}
+          value={patient.gender}
+          onChange={setField("gender")}
         />
-        <LabeledInput
+        <InputField
           label="MRN"
-          value={patient.mrn}
-          onChange={handleFieldChange("mrn")}
           placeholder="Enter MRN"
-          sx={inputNormal()}
+          value={patient.mrn}
+          onChange={setField("mrn")}
         />
-      </Box>
+      </FormGrid>
 
-      {/* Row 2: SSN, Mobile, Marital Status, Empl. Status */}
-      <Box sx={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
-        gap: 1.5, 
-        width: "100%" 
-      }}>
-        <LabeledInput
+      <FormGrid>
+        <InputField
           label="SSN"
-          value={patient.ssn}
-          onChange={handleFieldChange("ssn")}
           placeholder="000-00-0000"
-          sx={inputNormal()}
+          value={patient.ssn}
+          onChange={setField("ssn")}
         />
-        <LabeledInput
+        <InputField
           label="Mobile No"
+          placeholder="10-digit number"
+          inputMode="numeric"
+          maxLength={10}
           value={patient.mobile}
           onChange={handlePhoneChange("mobile")}
           onBlur={handlePhoneBlur("mobile")}
           error={phoneErrors.mobile}
-          placeholder="10-digit number"
-          inputProps={{ inputMode: "numeric", maxLength: 10 }}
-          sx={inputNormal()}
         />
-        <LabeledInput
+        <InputField
           label="Marital Status"
+          placeholder="Enter status"
           value={patient.maritalStatus}
-          onChange={handleFieldChange("maritalStatus")}
-          placeholder="Enter status"
-          sx={inputNormal()}
+          onChange={setField("maritalStatus")}
         />
-        <LabeledInput
+        <InputField
           label="Empl. Status"
-          value={patient.emplStatus}
-          onChange={handleFieldChange("emplStatus")}
           placeholder="Enter status"
-          sx={inputNormal()}
+          value={patient.emplStatus}
+          onChange={setField("emplStatus")}
         />
-      </Box>
+      </FormGrid>
 
-      {/* Row 3: Address (2 lines - multiline), Referral Source, Employer */}
-      <Box sx={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
-        gap: 1.5, 
-        width: "100%" 
-      }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography component="label" sx={labelSx}>
-            Address
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={2}
-            value={patient.address}
-            onChange={handleFieldChange("address")}
-            placeholder="Enter full address"
-            slotProps={{ input: { sx: inputNormal() } }}
-            sx={hideHelper}
-          />
-        </Box>
-        <LabeledInput
+      <FormGrid>
+        <InputField
+          label="Address"
+          placeholder="Enter full address"
+          multiline
+          rows={2}
+          value={patient.address}
+          onChange={setField("address")}
+        />
+        <InputField
           label="Referral Source"
-          value={patient.referralSource}
-          onChange={handleFieldChange("referralSource")}
           placeholder="Enter source"
-          sx={inputNormal()}
+          value={patient.referralSource}
+          onChange={setField("referralSource")}
         />
-        <LabeledInput
+        <InputField
           label="Employer"
-          value={patient.employer}
-          onChange={handleFieldChange("employer")}
           placeholder="Enter employer"
-          sx={inputNormal()}
+          value={patient.employer}
+          onChange={setField("employer")}
         />
-        <LabeledInput
+        <InputField
           label="PCP"
-          value={patient.pcp}
-          onChange={handleFieldChange("pcp")}
           placeholder="Enter PCP"
-          sx={inputNormal()}
+          value={patient.pcp}
+          onChange={setField("pcp")}
         />
-      </Box>
+      </FormGrid>
 
-      {/* Row 4: Referring Physician only */}
-      <Box sx={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))", 
-        gap: 1.5, 
-        width: "100%" 
-      }}>
-        <LabeledInput
+      <FormGrid>
+        <InputField
           label="Referring Physician"
-          value={patient.referringPhysician}
-          onChange={handleFieldChange("referringPhysician")}
           placeholder="Enter physician"
-          sx={inputNormal()}
+          value={patient.referringPhysician}
+          onChange={setField("referringPhysician")}
         />
-        <Box /> {/* Empty placeholder */}
-        <Box /> {/* Empty placeholder */}
-        <Box /> {/* Empty placeholder */}
-      </Box>
+      </FormGrid>
     </SectionCard>
   );
 }
 
-/* =========================================================
-   CARD 2 - CASE & INSURANCE
-   ========================================================= */
+/* ================================================================== */
+/* CARD 2 - CASE & INSURANCE                                           */
+/* ================================================================== */
 
-/* Own component so each checkbox owns its state (hooks must never be
-   called inside .map() like in the old version). */
+/* Own component so each checkbox owns its state */
 function CaseCheck({ label, initial }) {
   const [checked, setChecked] = React.useState(initial);
   return (
@@ -1286,19 +1397,14 @@ function CaseCheck({ label, initial }) {
           size="small"
           sx={{
             p: 0.5,
-            color: C.textLabel,
-            "&.Mui-checked": { color: "#6C5AE0" },
+            color: "#C8CDD8",
+            "&.Mui-checked": { color: T.blue },
+            "& svg": { fontSize: 18 },
           }}
         />
       }
       label={
-        <Typography
-          sx={{
-            fontSize: 13.5,
-            fontWeight: 500,
-            color: checked ? C.purple : C.textLabel,
-          }}
-        >
+        <Typography sx={{ fontSize: 12, fontWeight: 500, color: T.text }}>
           {label}
         </Typography>
       }
@@ -1325,149 +1431,91 @@ const POLICY_ROWS = [
   },
 ];
 
+const POLICY_COLS = [
+  "",
+  "Type",
+  "Insurance",
+  "Plan",
+  "Policy #",
+  "Group #",
+  "Active",
+  "Action",
+];
+
 function CaseInsuranceSection({ sectionRef }) {
-  const cellSx = {
-    borderBottom: "1px solid #E8F3EF",
-    py: 1,
-    px: 1.5,
-    verticalAlign: "middle",
-  };
-
-  const headCellSx = {
-    ...cellSx,
-    bgcolor: C.greenBg,
-    fontSize: 12,
-    fontWeight: 700,
-    color: C.green,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    whiteSpace: "nowrap",
-    py: 1.1,
-  };
-
-  const tblInputSx = {
-    borderRadius: "8px",
-    fontSize: 11,
-    bgcolor: "#fff",
-    color: C.textDark,
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#DDE3EE" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#B0BACA" },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: C.green,
-      borderWidth: "1.5px",
-    },
-    "& input": { py: "5.5px", px: "10px", fontSize: 11, color: C.textDark },
-    "& .MuiSelect-select": {
-      py: "5.5px",
-      px: "10px",
-      fontSize: 11,
-      color: C.textDark,
-    },
-  };
-
-  const cols = [
-    { label: "" },
-    { label: "TYPE" },
-    { label: "INSURANCE" },
-    { label: "PLAN" },
-    { label: "POLICY #" },
-    { label: "GROUP #" },
-    { label: "ACTIVE", arrow: true },
-    { label: "ACTIONS" },
-  ];
-
-  const cellInput = (defaultValue) => (
-    <TextField
-      size="small"
-      defaultValue={defaultValue}
-      slotProps={{ input: { sx: tblInputSx } }}
-      sx={hideHelper}
-    />
-  );
-
   return (
     <SectionCard
       id="case"
       sectionRef={sectionRef}
       number={2}
       title="Case & Insurance"
-      accentColor={C.green}
-      accentBg={C.greenBg}
+      accent={A.green}
       rightSlot={
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <OutlineBtn>Select case</OutlineBtn>
-          <PrimaryBtn>+ New case</PrimaryBtn>
-        </Stack>
+        <>
+          <OutlineBtn sx={btnSm}>Select case</OutlineBtn>
+          <PrimaryBtn sx={btnSm}>+ New case</PrimaryBtn>
+        </>
       }
     >
-      <FieldRow
+      <FieldGrid
+        cols={3}
         fields={[
-          { label: "Case Name", value: "Aetna test", md: 4 },
-          { label: "Description", value: "Aetna test", md: 4 },
+          { label: "Case Name", defaultValue: "Aetna test" },
+          { label: "Description", defaultValue: "Aetna test" },
           {
             label: "Payor Scenario",
-            value: "Commercial",
-            select: true,
-            options: ["Commercial", "Medicare", "Medicaid", "Self-pay"],
-            md: 4,
+            type: "select",
+            // defaultValue: "select",
+            options: [
+              "Commercial",
+              "Worker",
+              "Medicaid",
+              "Self-pay",
+              "Individual",
+            ],
           },
         ]}
       />
 
-      <Stack direction="row" flexWrap="wrap" rowGap={0.5} alignItems="center">
+      <Box sx={{ display: "flex", flexWrap: "wrap", rowGap: 0.5 }}>
         <CaseCheck label="Active" initial />
         <CaseCheck label="Send patient statement" initial />
         <CaseCheck label="Do not send claim electronically" initial={false} />
-      </Stack>
+      </Box>
 
-      <Box sx={{ width: "100%", minWidth: 0 }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ mb: 1, width: "100%" }}
+      <Box sx={{ minWidth: 0 }}>
+        <SubTitle
+          color={A.green.main}
+          right={
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: T.blue,
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              + Add/Manage policy
+            </Typography>
+          }
         >
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: C.green }}>
-            Insurance policies
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: "#015DFF",
-              cursor: "pointer",
-              ml: "auto",
-              "&:hover": { textDecoration: "underline" },
-            }}
-          >
-            + Add/Manage policy
-          </Typography>
-        </Stack>
+          Insurance policies
+        </SubTitle>
 
-        <TableContainer
-          sx={{
-            border: "1px solid #D6EDE6",
-            borderRadius: "10px",
-            overflowX: "auto",
-            maxWidth: "100%",
-            ...scrollHide,
-          }}
-        >
-          <Table size="small" sx={{ minWidth: 820 }}>
+        <TableContainer sx={tableWrapSx}>
+          <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow>
-                {cols.map((col, ci) => (
-                  <TableCell key={ci} sx={headCellSx}>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.3 }}
-                    >
-                      {col.label}
-                      {col.arrow && (
-                        <KeyboardArrowDownIcon
-                          sx={{ fontSize: 14, color: C.green }}
-                        />
-                      )}
-                    </Box>
+                {POLICY_COLS.map((c, i) => (
+                  <TableCell
+                    key={i}
+                    sx={{
+                      ...tableHeadSx(A.green),
+                      textAlign: c === "Action" ? "center" : "left",
+                    }}
+                  >
+                    {c}
                   </TableCell>
                 ))}
               </TableRow>
@@ -1482,61 +1530,47 @@ function CaseInsuranceSection({ sectionRef }) {
                     "&:last-child td": { borderBottom: 0 },
                   }}
                 >
-                  <TableCell sx={{ ...cellSx, width: 44 }}>
+                  <TableCell sx={{ ...tableCellSx, width: 44 }}>
                     <Checkbox
                       size="small"
                       defaultChecked={row.checked}
                       sx={{
                         p: 0.4,
                         color: "#C8D0DC",
-                        "&.Mui-checked": { color: C.green },
+                        "&.Mui-checked": { color: T.blue },
                       }}
                     />
                   </TableCell>
-
-                  <TableCell sx={{ ...cellSx, minWidth: 138 }}>
-                    <TextField
-                      select
-                      size="small"
-                      fullWidth
+                  <TableCell sx={tableCellSx}>
+                    <CellSelect
                       defaultValue={row.type}
-                      SelectProps={{ IconComponent: ArrowDropDownIcon }}
-                      slotProps={{ input: { sx: tblInputSx } }}
-                      sx={hideHelper}
-                    >
-                      <MenuItem value="PRIMARY" sx={{ fontSize: 11 }}>
-                        PRIMARY
-                      </MenuItem>
-                      <MenuItem value="SECONDARY" sx={{ fontSize: 11 }}>
-                        SECONDARY
-                      </MenuItem>
-                    </TextField>
+                      options={["PRIMARY", "SECONDARY"]}
+                      minWidth={130}
+                    />
                   </TableCell>
-
-                  <TableCell sx={{ ...cellSx, minWidth: 100 }}>
-                    {cellInput(row.insurance)}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput defaultValue={row.insurance} minWidth={110} />
                   </TableCell>
-                  <TableCell sx={{ ...cellSx, minWidth: 140 }}>
-                    {cellInput(row.plan)}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput defaultValue={row.plan} minWidth={150} />
                   </TableCell>
-                  <TableCell sx={{ ...cellSx, minWidth: 116 }}>
-                    {cellInput(row.policy)}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput defaultValue={row.policy} minWidth={120} />
                   </TableCell>
-                  <TableCell sx={{ ...cellSx, minWidth: 116 }}>
-                    {cellInput(row.group)}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput defaultValue={row.group} minWidth={120} />
                   </TableCell>
-
-                  <TableCell sx={{ ...cellSx, minWidth: 110 }}>
+                  <TableCell sx={tableCellSx}>
                     <Box
                       sx={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: 0.4,
+                        gap: 0.5,
                         bgcolor: "#E6F6F0",
                         border: "1px solid #B2DECE",
-                        borderRadius: "8px",
+                        borderRadius: "6px",
                         px: 1,
-                        py: 0.3,
+                        height: 28,
                       }}
                     >
                       <Checkbox
@@ -1544,23 +1578,41 @@ function CaseInsuranceSection({ sectionRef }) {
                         defaultChecked
                         sx={{
                           p: 0,
-                          color: C.green,
-                          "&.Mui-checked": { color: C.green },
-                          "& svg": { fontSize: 15 },
+                          color: A.green.main,
+                          "&.Mui-checked": { color: A.green.main },
+                          "& svg": { fontSize: 16 },
                         }}
                       />
                       <Typography
-                        sx={{ fontSize: 11, fontWeight: 600, color: C.green }}
+                        sx={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: A.green.main,
+                        }}
                       >
                         Active
                       </Typography>
                     </Box>
                   </TableCell>
-
-                  <TableCell sx={{ ...cellSx, width: 48 }}>
-                    <IconButton size="small">
-                      <RPEditIcon width={16} height={16} color={C.blue} />
-                    </IconButton>
+                  <TableCell
+                    sx={{ ...tableCellSx, width: 70, textAlign: "center" }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        width: "fit-content",
+                        mx: "auto",
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label="Edit policy"
+                        sx={actionBtnSx}
+                      >
+                        <RPEditIcon width={16} height={16} color={T.blue} />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}
@@ -1570,82 +1622,71 @@ function CaseInsuranceSection({ sectionRef }) {
       </Box>
 
       <Box>
-        <Typography
-          sx={{ fontSize: 12.5, fontWeight: 700, color: C.green, mb: 1.2 }}
-        >
-          Additional details
-        </Typography>
-        <FieldRow
+        <SubTitle color={A.green.main}>Additional details</SubTitle>
+        <FieldGrid
           fields={[
-            { label: "Copay", value: "0.00" },
-            { label: "Deductible", value: "0.00" },
+            { label: "Copay", defaultValue: "0.00" },
+            { label: "Deductible", defaultValue: "0.00" },
             {
               label: "Relationship to Insured",
-              value: "Self",
-              select: true,
+              type: "select",
+              //defaultValue: "Self",
               options: ["Self", "Spouse", "Child", "Other"],
             },
             {
               label: "Release of Info",
-              value: "Y - Yes",
-              select: true,
+              type: "select",
+              //defaultValue: "Y - Yes",
               options: ["Y - Yes", "N - No"],
             },
           ]}
         />
       </Box>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        flexWrap="wrap"
-        rowGap={1}
-        columnGap={2}
-      >
-        <PrimaryBtn sx={{ fontSize: 12.5, px: 2.5, py: 0.75 }}>
-          Check eligibility (270/271)
-        </PrimaryBtn>
 
-        <Typography
-          sx={{
-            fontSize: 13,
-            color: "#8B87A3",
-          }}
-        >
-          Runs inline — no separate window.
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          rowGap: 1,
+          columnGap: 2,
+        }}
+      >
+        <PrimaryBtn>Check eligibility (270/271)</PrimaryBtn>
+
+        <Typography sx={{ fontSize: 11, color: T.muted }}>
+          Runs inline - no separate window.
         </Typography>
 
         <Typography
           sx={{
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: 600,
-            color: "#015DFF",
+            color: T.blue,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: 0.4,
+            gap: 0.5,
             ml: "auto",
             "&:hover": { textDecoration: "underline" },
           }}
         >
-          <CalendarBlueIcon sx={{ fontSize: 13, fontWeight: 600 }} /> View log
+          <CalendarBlueIcon sx={{ fontSize: 12 }} /> View log
         </Typography>
-      </Stack>
+      </Box>
     </SectionCard>
   );
 }
 
-/* =========================================================
-   CARD 3 - CONDITIONS & AUTHORISATION
-   ========================================================= */
-const COND_ROW_1 = [
+/* ================================================================== */
+/* CARD 3 - CONDITIONS & AUTHORISATION                                 */
+/* ================================================================== */
+const CONDITIONS = [
   "Auto accident",
   "Employment",
   "Pregnancy",
   "Abuse",
   "Homebound",
-];
-const COND_ROW_2 = [
   "Other",
   "EPSDT",
   "Family planning",
@@ -1653,77 +1694,51 @@ const COND_ROW_2 = [
   "Worker's Compensation",
 ];
 
-function ActiveBadge() {
+const AUTH_COLS = [
+  "Authorization #",
+  "# Visits",
+  "# Used",
+  "Start",
+  "End",
+  "Status",
+  "Provider Name",
+  "Contact",
+  "Notes",
+];
+
+const REF_COLS = [
+  "Referrer #",
+  "# Visits",
+  "# Used",
+  "Start",
+  "End",
+  "Status",
+  "Name",
+  "Contact",
+  "Notes",
+];
+
+const makeAuthRows = () =>
+  [1, 2].map(() => [
+    "AUTH-88210",
+    "6",
+    "0",
+    "08-01-2026",
+    "10-31-2026",
+    <ActiveBadge key="badge" />,
+    "Lorem Ipsum",
+    "XXXXXXXXXX",
+    "Neuro follow-up",
+  ]);
+
+function DataTable({ cols, rows, accent, minWidth = 1000 }) {
   return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: C.greenChipBg,
-        border: `1px solid ${C.greenChipBorder}`,
-        borderRadius: "6px",
-        px: 1.2,
-        py: 0.25,
-        minWidth: 58,
-      }}
-    >
-      <Typography
-        sx={{ fontSize: 12.5, fontWeight: 700, color: C.greenChipText }}
-      >
-        Active
-      </Typography>
-    </Box>
-  );
-}
-
-function ConditionsSection({ sectionRef }) {
-  const cellSx = {
-    borderBottom: "1px solid #F0EDE8",
-    py: 1.1,
-    px: 1.5,
-    verticalAlign: "middle",
-    fontSize: 13,
-    color: C.textDark,
-    whiteSpace: "nowrap",
-  };
-  const headCellSx = {
-    ...cellSx,
-    bgcolor: C.orangeBg,
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#C2662A",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  };
-  const tblInputSx = {
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "7px",
-      fontSize: 13,
-      bgcolor: "#fff",
-      "& fieldset": { borderColor: C.border },
-      "&:hover fieldset": { borderColor: "#B8BFCF" },
-      "&.Mui-focused fieldset": { borderColor: C.orange, borderWidth: "1.5px" },
-      "& input": { py: "5.5px", px: "10px", fontSize: 13 },
-    },
-    ...hideHelper,
-  };
-
-  const buildTable = (cols, rows) => (
-    <TableContainer
-      sx={{
-        border: "1px solid #EDE8E2",
-        borderRadius: "10px",
-        overflowX: "auto",
-        maxWidth: "100%",
-        ...scrollHide,
-      }}
-    >
-      <Table size="small" sx={{ minWidth: 980 }}>
+    <TableContainer sx={tableWrapSx}>
+      <Table size="small" sx={{ minWidth }}>
         <TableHead>
           <TableRow>
-            {cols.map((c, ci) => (
-              <TableCell key={ci} sx={headCellSx}>
+            {cols.map((c, i) => (
+              <TableCell key={i} sx={tableHeadSx(accent)}>
                 {c}
               </TableCell>
             ))}
@@ -1736,12 +1751,11 @@ function ConditionsSection({ sectionRef }) {
               sx={{ bgcolor: "#fff", "&:last-child td": { borderBottom: 0 } }}
             >
               {row.map((cell, ci) => (
-                <TableCell key={ci} sx={cellSx}>
+                <TableCell key={ci} sx={tableCellSx}>
                   {typeof cell === "string" ? (
-                    <TextField
-                      size="small"
+                    <CellInput
                       defaultValue={cell}
-                      sx={{ ...tblInputSx, minWidth: ci === 0 ? 130 : 84 }}
+                      minWidth={ci === 0 || ci === 6 || ci === 8 ? 130 : 90}
                     />
                   ) : (
                     cell
@@ -1754,134 +1768,87 @@ function ConditionsSection({ sectionRef }) {
       </Table>
     </TableContainer>
   );
+}
 
-  const makeRows = (prefix) =>
-    [1, 2].map((n) => [
-      "AUTH-88210",
-      "6",
-      "0",
-      "08/01/2026",
-      "10/31/2026",
-      <ActiveBadge key={`${prefix}${n}`} />,
-      "Lorem Ipsum",
-      "XXXXXXXXXX",
-      "Neuro follow-up",
-    ]);
-
-  const authCols = [
-    "Authorization #",
-    "# Visits",
-    "# Used",
-    "Start",
-    "End",
-    "Status +",
-    "Provider Name",
-    "Contact",
-    "Notes",
-  ];
-  const refCols = [
-    "Referrer #",
-    "# Visits",
-    "# Used",
-    "Start",
-    "End",
-    "Status +",
-    "Name",
-    "Contact",
-    "Notes",
-  ];
-
-  const condChk = (lbl) => (
-    <FormControlLabel
-      key={lbl}
-      sx={{ mr: 0, ml: 0, mb: 0 }}
-      control={
-        <Checkbox
-          size="small"
-          sx={{
-            p: 0.5,
-            color: "#D0D5E0",
-            "&.Mui-checked": { color: C.orange },
-            "& svg": { fontSize: 17 },
-          }}
-        />
-      }
-      label={
-        <Typography sx={{ fontSize: 13.5, color: C.textDark }}>
-          {lbl}
-        </Typography>
-      }
-    />
-  );
-
+function ConditionsSection({ sectionRef }) {
   return (
     <SectionCard
       id="conditions"
       sectionRef={sectionRef}
       number={3}
       title="Conditions & Authorisation / Referrals"
-      accentColor={C.orange}
-      accentBg={C.orangeBg}
+      accent={A.orange}
     >
       <Box>
-        <Typography
-          sx={{ fontSize: 12, fontWeight: 600, color: C.textLabel, mb: 1 }}
-        >
-          Condition related to
-        </Typography>
+        <Label>Condition related to</Label>
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(1, minmax(0,1fr))",
+            gridTemplateColumns: "minmax(0, 1fr)",
             rowGap: 0.5,
             columnGap: 1,
             ...cqs({
-              sm: { gridTemplateColumns: "repeat(2, minmax(0,1fr))" },
-              md: { gridTemplateColumns: "repeat(3, minmax(0,1fr))" },
-              lg: { gridTemplateColumns: "repeat(5, minmax(0,1fr))" },
+              sm: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" },
+              md: { gridTemplateColumns: "repeat(3, minmax(0, 1fr))" },
+              lg: { gridTemplateColumns: "repeat(5, minmax(0, 1fr))" },
             }),
           }}
         >
-          {[...COND_ROW_1, ...COND_ROW_2].map(condChk)}
+          {CONDITIONS.map((lbl) => (
+            <FormControlLabel
+              key={lbl}
+              sx={{ m: 0 }}
+              control={
+                <Checkbox
+                  size="small"
+                  sx={{
+                    p: 0.5,
+                    color: "#C8CDD8",
+                    "&.Mui-checked": { color: T.blue },
+                    "& svg": { fontSize: 18 },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ fontSize: 12, color: T.text }}>
+                  {lbl}
+                </Typography>
+              }
+            />
+          ))}
         </Box>
       </Box>
 
-      <Box sx={fixedGrid(3)}>
-        <LabeledInput
-          label="Condition Date Type"
-          select
-          defaultValue="None"
-          options={["None", "Initial", "Last seen", "Acute manifestation"]}
-          sx={inputOrange()}
-        />
-        <LabeledInput label="Start Date" defaultValue="NA" sx={inputOrange()} />
-        <LabeledInput label="End Date" defaultValue="NA" sx={inputOrange()} />
+      <FieldGrid
+        cols={3}
+        fields={[
+          {
+            label: "Condition Date Type",
+            type: "select",
+            //defaultValue: "None",
+            options: ["None", "Initial", "Last seen", "Acute manifestation"],
+          },
+          { label: "Start Date", type: "date" },
+          { label: "End Date", type: "date" },
+        ]}
+      />
+
+      <Box sx={{ minWidth: 0 }}>
+        <SubTitle color={A.orange.main}>Authorizations</SubTitle>
+        <DataTable cols={AUTH_COLS} rows={makeAuthRows()} accent={A.orange} />
       </Box>
 
       <Box sx={{ minWidth: 0 }}>
-        <Typography
-          sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}
-        >
-          Authorizations
-        </Typography>
-        {buildTable(authCols, makeRows("a"))}
-      </Box>
-
-      <Box sx={{ minWidth: 0 }}>
-        <Typography
-          sx={{ fontSize: 13.5, fontWeight: 700, color: C.orange, mb: 1 }}
-        >
-          Referrals
-        </Typography>
-        {buildTable(refCols, makeRows("r"))}
+        <SubTitle color={A.orange.main}>Referrals</SubTitle>
+        <DataTable cols={REF_COLS} rows={makeAuthRows()} accent={A.orange} />
       </Box>
     </SectionCard>
   );
 }
 
-/* =========================================================
-   CUSTOMISED COLUMNS POPUP
-   ========================================================= */
+/* ================================================================== */
+/* CUSTOMISED COLUMNS POPUP                                            */
+/* ================================================================== */
 const OPTIONAL_COLUMNS = ["Emergency", "NDC", "MOD", "Unspecified Code"];
 
 function SelectColumnsMenu({ selectedColumns, onChange }) {
@@ -1898,7 +1865,7 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
 
   return (
     <>
-      <OutlineBtn onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <OutlineBtn sx={btnSm} onClick={(e) => setAnchorEl(e.currentTarget)}>
         + Customised Columns
       </OutlineBtn>
 
@@ -1914,35 +1881,36 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
               mt: 1,
               width: 220,
               maxWidth: "calc(100vw - 32px)",
-              borderRadius: 3,
-              p: 0,
+              borderRadius: "12px",
               boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-              border: "1px solid #E2E8F0",
+              border: `1px solid ${T.border}`,
             },
           },
         }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ mb: 1.5, px: 2.5, pt: 2.5, gap: 4 }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2,
+            py: 1.5,
+            borderBottom: `1px solid ${T.border}`,
+          }}
         >
-          <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 13, color: "#111827" }}>
             Select Columns
           </Typography>
           <IconButton
             size="small"
             onClick={() => setAnchorEl(null)}
-            sx={{ color: "#1976d2" }}
+            sx={{ color: T.blue, p: 0.3 }}
           >
             <CloseIcon sx={{ fontSize: 16 }} />
           </IconButton>
-        </Stack>
+        </Box>
 
-        <Box sx={{ borderBottom: "1px solid #eee", mb: 1.5 }} />
-
-        <Stack spacing={2} sx={{ px: 2, pb: 2.5 }}>
+        <Box sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
           {OPTIONAL_COLUMNS.map((col) => {
             const isSelected = selectedColumns.includes(col);
             return (
@@ -1951,36 +1919,32 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
                 onClick={() => toggleColumn(col)}
                 sx={{
                   cursor: "pointer",
-                  borderRadius: "12px",
-                  px: 1,
+                  borderRadius: "8px",
+                  px: 1.5,
                   py: 1,
                   border: "1px solid",
-                  borderColor: isSelected ? "#bfdbfe" : "#e5e7eb",
+                  borderColor: isSelected ? "#BFDBFE" : T.border,
                   bgcolor: isSelected ? "#EAF2FF" : "#fff",
-                  "&:hover": { borderColor: "#93c5fd", bgcolor: "#f0f7ff" },
+                  "&:hover": { borderColor: "#93C5FD", bgcolor: "#F0F7FF" },
                 }}
               >
                 <Typography
-                  sx={{
-                    fontWeight: 600,
-                    color: isSelected ? "#1976d2" : "#1976d2",
-                    fontSize: 14,
-                  }}
+                  sx={{ fontWeight: 600, color: T.blue, fontSize: 12 }}
                 >
                   {col}
                 </Typography>
               </Box>
             );
           })}
-        </Stack>
+        </Box>
       </Popover>
     </>
   );
 }
 
-/* =========================================================
-   CARD 4 - ENCOUNTER DETAILS & CHARGES
-   ========================================================= */
+/* ================================================================== */
+/* CARD 4 - ENCOUNTER DETAILS & CHARGES                                */
+/* ================================================================== */
 const PROC_COLUMNS = [
   "DOS FROM",
   "DOS TO",
@@ -1999,8 +1963,8 @@ const PROC_COLUMNS = [
 
 const PROC_ROWS = [
   [
-    "05/27/2026",
-    "05/27/2026",
+    "05-27-2026",
+    "05-27-2026",
     "GCH-IP",
     "36389.IH",
     "99214",
@@ -2025,6 +1989,30 @@ const DIAG_COLORS = [
 function ChargesSection({ sectionRef }) {
   const [selectedColumns, setSelectedColumns] = React.useState(["NDC"]);
 
+  const [procRows, setProcRows] = React.useState(() =>
+    PROC_ROWS.map((cells, i) => ({ id: i + 1, cells })),
+  );
+  const nextRowId = React.useRef(PROC_ROWS.length + 1);
+
+  const addLine = () =>
+    setProcRows((prev) => {
+      const last = prev[prev.length - 1];
+      const cells = last ? [...last.cells] : [...PROC_ROWS[0]];
+      return [...prev, { id: nextRowId.current++, cells }];
+    });
+
+  const updateCell = (rowId, colIdx, val) =>
+    setProcRows((prev) =>
+      prev.map((r) =>
+        r.id === rowId
+          ? { ...r, cells: r.cells.map((c, j) => (j === colIdx ? val : c)) }
+          : r,
+      ),
+    );
+
+  const deleteLine = (rowId) =>
+    setProcRows((prev) => prev.filter((r) => r.id !== rowId));
+
   const [diagnoses, setDiagnoses] = React.useState([
     { id: 1, code: "F73" },
     { id: 2, code: "C73" },
@@ -2045,105 +2033,77 @@ function ChargesSection({ sectionRef }) {
   const removeDiagnosis = (id) =>
     setDiagnoses((prev) => prev.filter((d) => d.id !== id));
 
-  const diagChip = (key, label, bg, color, onDelete) => (
-    <Chip
-      key={key}
-      label={label}
-      onDelete={onDelete}
-      deleteIcon={<CloseIcon sx={{ fontSize: 10 }} />}
-      sx={{
-        bgcolor: bg,
-        color,
-        fontWeight: 600,
-        fontSize: 11,
-        borderRadius: "14px",
-        height: 24,
-        px: 0.5,
-        "& .MuiChip-deleteIcon": { color, fontSize: 12 },
-        "& .MuiChip-label": { px: 1 },
-      }}
-    />
-  );
-
   return (
     <SectionCard
       id="charges"
       sectionRef={sectionRef}
       number={4}
       title="Encounter Details & Charges"
-      accentColor={C.amber}
-      accentBg={C.amberBg}
+      accent={A.amber}
     >
-      <FieldRow
+      <FieldGrid
         fields={[
-          { label: "From Date", value: "08/15/2026", icon: true },
-          { label: "Through Date", value: "08/15/2026", icon: true },
-          { label: "Post Date", value: "08/28/2026", icon: true },
-          { label: "Batch #", value: "--" },
+          { label: "From Date", type: "date", defaultValue: "08-15-2026" },
+          { label: "Through Date", type: "date", defaultValue: "08-15-2026" },
+          { label: "Post Date", type: "date", defaultValue: "08-28-2026" },
+          { label: "Batch #", defaultValue: "--" },
         ]}
       />
 
-      <FieldRow
+      <FieldGrid
         fields={[
-          { label: "Scheduling Provider", value: "Kumar V2, Jayram" },
-          { label: "Rendering Provider", value: "Kumar V2, Jayram" },
-          { label: "Supervising Provider", value: "NA" },
-          {
-            label: "Location",
-            value: "The University RL",
-            highlightedGreen: true,
-          },
+          { label: "Scheduling Provider", defaultValue: "Kumar V2, Jayram" },
+          { label: "Rendering Provider", defaultValue: "Kumar V2, Jayram" },
+          { label: "Supervising Provider", defaultValue: "NA" },
+          { label: "Location", defaultValue: "The University RL" },
         ]}
       />
 
-      <Box sx={fixedGrid(4)}>
-        <LabeledInput
-          label="Referring Provider"
-          defaultValue=""
-          sx={inputAmber()}
-        />
-        <LabeledInput
-          label="NPI"
-          defaultValue=""
-          sx={inputAmber()}
-        />
-        <LabeledInput
-          label="Place of Service"
-          defaultValue="11 - Office"
-          sx={inputAmber()}
-        />
-        <LabeledInput
-          label="Encounter Mode"
-          defaultValue="In Office"
-          sx={inputAmber()}
-        />
-      </Box>
+      <FieldGrid
+        fields={[
+          { label: "Referring Provider" },
+          { label: "NPI" },
+          { label: "Place of Service", defaultValue: "11 - Office" },
+          { label: "Encounter Mode", defaultValue: "In Office" },
+        ]}
+      />
 
-      <Box sx={fixedGrid(4)}>
-        <LabeledInput label="Copay Due" defaultValue="0.00" sx={inputAmber()} />
-        <LabeledInput label="Payment Amount" defaultValue="0.00" sx={inputAmber()} />
-        <Box />
-        <Box />
-      </Box>
+      <FieldGrid
+        fields={[
+          { label: "Copay Due", defaultValue: "0.00" },
+          { label: "Payment Amount", defaultValue: "0.00" },
+        ]}
+      />
 
       <Box>
-        <Typography
-          sx={{ fontSize: 13, fontWeight: 700, color: C.amber, mb: 1 }}
-        >
-          Diagnosis pointers
-        </Typography>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          flexWrap="wrap"
-          useFlexGap
+        <SubTitle color={A.amber.main}>Diagnosis pointers</SubTitle>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 1,
+          }}
         >
           {diagnoses.map((d, i) => {
             const { bg, color } = DIAG_COLORS[i % DIAG_COLORS.length];
-            const label = `${String.fromCharCode(65 + i)}_${d.code}`;
-            return diagChip(d.id, label, bg, color, () =>
-              removeDiagnosis(d.id),
+            return (
+              <Chip
+                key={d.id}
+                label={`${String.fromCharCode(65 + i)}_${d.code}`}
+                onDelete={() => removeDiagnosis(d.id)}
+                deleteIcon={<CloseIcon sx={{ fontSize: 12 }} />}
+                sx={{
+                  bgcolor: bg,
+                  color,
+                  fontWeight: 600,
+                  fontSize: 12,
+                  borderRadius: "14px",
+                  height: 26,
+                  "& .MuiChip-deleteIcon": { color, fontSize: 12 },
+                  "& .MuiChip-label": { px: 1.25 },
+                }}
+              />
             );
           })}
 
@@ -2162,12 +2122,26 @@ function ChargesSection({ sectionRef }) {
                   setAdding(false);
                 }
               }}
-              slotProps={{
-                input: {
-                  sx: { ...inputNormal(), height: 24, borderRadius: "14px" },
+              sx={{
+                width: 130,
+                "& .MuiOutlinedInput-root": {
+                  height: 26,
+                  fontSize: 12,
+                  borderRadius: "14px",
+                  bgcolor: T.fieldBg,
+                  "& fieldset": { borderColor: T.border },
+                  "&.Mui-focused fieldset": {
+                    borderColor: T.blue,
+                    borderWidth: "1px",
+                  },
+                  "& input": {
+                    height: "100%",
+                    boxSizing: "border-box",
+                    padding: "0 10px",
+                    fontSize: 12,
+                  },
                 },
               }}
-              sx={{ width: 110, ...hideHelper }}
             />
           ) : (
             <Chip
@@ -2176,113 +2150,122 @@ function ChargesSection({ sectionRef }) {
               onClick={() => setAdding(true)}
               disabled={diagnoses.length >= 12}
               sx={{
-                borderColor: "#DCD6F8",
-                color: C.purple,
+                borderColor: T.blue,
+                color: T.blue,
                 fontWeight: 600,
-                fontSize: 11,
+                fontSize: 12,
                 borderRadius: "14px",
-                height: 24,
-                px: 0.5,
+                height: 26,
                 cursor: "pointer",
-                "& .MuiChip-label": { px: 1 },
+                "& .MuiChip-label": { px: 1.25 },
               }}
             />
           )}
-        </Stack>
+        </Box>
       </Box>
 
       <Box
         sx={{
-          border: `1px solid ${C.borderLight}`,
-          borderRadius: "10px",
+          border: `1px solid ${T.border}`,
+          borderRadius: "8px",
           overflow: "hidden",
           minWidth: 0,
         }}
       >
-        <Stack
-          direction="column"
-          alignItems="flex-start"
-          justifyContent="space-between"
-          rowGap={1}
+        <Box
           sx={{
-            bgcolor: C.amberBg,
+            bgcolor: A.amber.bg,
             px: 1.5,
             py: 1,
-            ...cq("sm", { flexDirection: "row", alignItems: "center" }),
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 1,
+            ...cq("sm", {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }),
           }}
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}>
+          <Typography
+            sx={{ fontSize: 12, fontWeight: 700, color: A.amber.main }}
+          >
             Procedures
           </Typography>
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            useFlexGap
-            sx={{ ...cq("sm", { marginLeft: "auto" }) }}
-          >
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             <SelectColumnsMenu
               selectedColumns={selectedColumns}
               onChange={setSelectedColumns}
             />
-            <OutlineBtn>+ Add line</OutlineBtn>
-          </Stack>
-        </Stack>
+            <OutlineBtn sx={btnSm} onClick={addLine}>
+              + Add line
+            </OutlineBtn>
+          </Box>
+        </Box>
 
         <TableContainer
           sx={{
-            borderTop: `1px solid ${C.borderLight}`,
-            borderRadius: 0,
+            borderTop: `1px solid ${T.border}`,
             overflowX: "auto",
             maxWidth: "100%",
-            ...scrollHide,
+            ...thinScroll,
           }}
         >
-          <Table size="small" sx={{ minWidth: 960 }}>
+          <Table size="small" sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow>
                 {PROC_COLUMNS.map((col) => (
-                  <TableCell
-                    key={col}
-                    sx={{
-                      bgcolor: C.amberBg,
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: C.amber,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                      whiteSpace: "nowrap",
-                      borderBottom: "1px solid #EEF1F7",
-                      py: 1.1,
-                      px: 1.5,
-                    }}
-                  >
+                  <TableCell key={col} sx={tableHeadSx(A.amber)}>
                     {col}
                   </TableCell>
                 ))}
+                <TableCell
+                  sx={{ ...tableHeadSx(A.amber), textAlign: "center" }}
+                >
+                  ACTION
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {PROC_ROWS.map((row, i) => (
+              {procRows.map((row) => (
                 <TableRow
-                  key={i}
-                  sx={{ "&:last-child td": { borderBottom: 0 } }}
+                  key={row.id}
+                  sx={{
+                    bgcolor: "#fff",
+                    "&:last-child td": { borderBottom: 0 },
+                  }}
                 >
-                  {row.map((cell, j) => (
-                    <TableCell
-                      key={j}
-                      sx={{
-                        fontSize: 12,
-                        color: C.textDark,
-                        whiteSpace: "nowrap",
-                        borderBottom: "1px solid #EEF1F7",
-                        py: 1.1,
-                        px: 1.5,
-                      }}
-                    >
-                      {cell}
+                  {row.cells.map((cell, j) => (
+                    <TableCell key={j} sx={tableCellSx}>
+                      <CellInput
+                        value={cell}
+                        onChange={(e) => updateCell(row.id, j, e.target.value)}
+                        minWidth={j < 2 ? 110 : j === 3 ? 100 : 76}
+                      />
                     </TableCell>
                   ))}
+
+                  <TableCell
+                    sx={{ ...tableCellSx, width: 70, textAlign: "center" }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                      <IconButton
+                        size="small"
+                        aria-label="Delete line"
+                        onClick={() => deleteLine(row.id)}
+                        disabled={procRows.length === 0}
+                        sx={{
+                          ...actionBtnSx,
+                          color: T.error,
+                          "&:hover": { bgcolor: "#FEF2F2" },
+                          "&.Mui-disabled": { opacity: 0.4 },
+                        }}
+                      >
+                        <RPDeleteIcon width={16} height={16} />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -2292,9 +2275,10 @@ function ChargesSection({ sectionRef }) {
     </SectionCard>
   );
 }
-/* =========================================================
-   CARD 5 - ADDITIONAL DETAILS
-   ========================================================= */
+
+/* ================================================================== */
+/* CARD 5 - ADDITIONAL DETAILS                                         */
+/* ================================================================== */
 function AdditionalDetailsSection({ sectionRef }) {
   return (
     <SectionCard
@@ -2302,118 +2286,113 @@ function AdditionalDetailsSection({ sectionRef }) {
       sectionRef={sectionRef}
       number={5}
       title="Additional Details"
-      accentColor={C.teal5}
-      accentBg={C.teal5Bg}
+      accent={A.teal}
     >
-      <FieldRow
+      <FieldGrid
         fields={[
+          { label: "Outside Lab", type: "checks", options: ["Yes", "No"] },
+          { label: "Outside Lab Charges", defaultValue: "0" },
+          { label: "Is LMP", type: "checks", options: ["Yes"] },
           {
-            label: "Outside Lab",
-            type: "checkboxGroup",
-            options: ["Yes", "No"],
+            label: "Date of current illness",
+            type: "date",
+            defaultValue: "09-28-2026",
           },
-          { label: "Outside Lab Charges", value: "0" },
-          { label: "Is LMP", type: "checkboxGroup", options: ["Yes"] },
-          { label: "Date of current illness", value: "09/28/2026", icon: true },
         ]}
       />
-      <FieldRow
+      <FieldGrid
         fields={[
           {
             label: "Has other claim ID",
-            value: "Yes",
-            select: true,
+            type: "select",
+            //defaultValue: "Yes",
             options: ["Yes", "No"],
           },
-          { label: "Agency claim no.", value: "", placeholder: "Type here" },
+          { label: "Agency claim no." },
           {
             label: "Unable to work from date",
-            value: "08/28/2026",
-            icon: true,
+            type: "date",
+            defaultValue: "08-28-2026",
           },
-          { label: "Unable to work to date", value: "09/28/2026", icon: true },
+          {
+            label: "Unable to work to date",
+            type: "date",
+            defaultValue: "09-28-2026",
+          },
         ]}
       />
-      <FieldRow
+      <FieldGrid
         fields={[
-          { label: "Initial visit date", value: "07/28/2026", icon: true },
-          { label: "Last related visit date", value: "07/28/2026", icon: true },
+          {
+            label: "Initial visit date",
+            type: "date",
+            defaultValue: "07-28-2026",
+          },
+          {
+            label: "Last related visit date",
+            type: "date",
+            defaultValue: "07-28-2026",
+          },
           {
             label: "Claim code",
-            value: "W3",
-            select: true,
+            type: "select",
+            //defaultValue: "W3",
             options: ["W3", "W2", "W1"],
           },
-          { label: "Other date", value: "09/28/2026", icon: true },
+          { label: "Other date", type: "date" },
         ]}
       />
-      <FieldRow
+      <FieldGrid
         fields={[
           {
             label: "Other date qualifier",
-            value: "-",
-            select: true,
+            type: "select",
+            //defaultValue: "-",
             options: ["-"],
           },
-          { label: "Resubmission code", value: "-" },
-          { label: "Original reference no.", value: "-" },
-          { label: "Additional Claim info", value: "-" },
+          { label: "Resubmission code", defaultValue: "-" },
+          { label: "Original reference no.", defaultValue: "-" },
+          { label: "Additional Claim info", defaultValue: "-" },
         ]}
       />
     </SectionCard>
   );
 }
 
-/* =========================================================
-   FOOTER BAR (sticky at the bottom of the viewport)
-   ========================================================= */
+/* ================================================================== */
+/* FOOTER BAR                                                          */
+/* ================================================================== */
 const SELECT_ACTION_ITEMS = [
   { label: "E-submit to Primary", highlighted: false },
   { label: "Approve", highlighted: true },
   { label: "Print Paper Claim", highlighted: false },
   { label: "Reject", highlighted: false },
+  { label: "Reviewed and Approved", highlighted: false },
+  { label: "Reviewed and Rejected", highlighted: false },
+  { label: "Sent for Review", highlighted: false },
+  { label: "On Hold", highlighted: false },
+  { label: "Need Info", highlighted: false },
 ];
 
-function FooterBar({ navigate, onBack }) {
+function FooterBar({ onBack }) {
   const [anchor, setAnchor] = React.useState(null);
   const open = Boolean(anchor);
 
-  const footBtn = {
-    fontSize: 13,
-    fontWeight: 700,
-    color: C.textDark,
-    borderColor: C.border,
-    px: 2,
-    py: 0.65,
-    whiteSpace: "nowrap", // never wrap "Save draft" onto 2 lines
-    flexShrink: 0,
-    minWidth: "auto",
-    "&:hover": { borderColor: "#B0B8C8", bgcolor: "#FAFBFD" },
-  };
-
   return (
     <Paper
-      elevation={3}
+      elevation={0}
       sx={{
-        position: "static",
-        bottom: { xs: 8, md: 12 },
-        "@media (max-height: 600px)": { position: "static" },
-        zIndex: 25,
-        border: `1px solid ${C.borderLight}`,
-        borderRadius: "12px",
-        bgcolor: "#fff",
-        px: { xs: 2, md: 3 },
-        py: 1.5,
+        backgroundColor: "#FFFFFF",
+        borderRadius: "8px",
+        border: `1px solid ${T.border}`,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+        p: 2,
         display: "flex",
+        flexDirection: "column",
         alignItems: "stretch",
         justifyContent: "space-between",
-        flexDirection: "column",
         gap: 1.5,
-        ...cq("lg", {
-          alignItems: "center",
-          flexDirection: "row",
-          gap: 2,
-        }),
+        ...cq("md", { flexDirection: "row", alignItems: "center" }),
       }}
     >
       {/* Left: Total Charges */}
@@ -2423,233 +2402,208 @@ function FooterBar({ navigate, onBack }) {
           alignItems: "center",
           gap: 1,
           width: "100%",
-          ...cq("lg", { width: "auto" }),
+          ...cq("md", { width: "auto" }),
         }}
       >
         <Typography
           sx={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
-            color: "#5A6B7E",
+            color: T.label,
             whiteSpace: "nowrap",
           }}
         >
-          Total Charges{" "}
-          <Box
-            component="span"
-            sx={{ color: "#5A6B7E", fontWeight: 700, fontSize: 17 }}
-          >
+          Total Charges
+          <Box component="span" sx={{ color: T.error, ml: 0.3 }}>
             *
           </Box>
         </Typography>
-        <TextField
-          size="small"
-          defaultValue="118.00"
-          slotProps={{ input: { sx: inputNormal() } }}
-          sx={{
-            flex: 1,
-            ...cq("lg", { flex: "none", width: 160 }),
-          }}
-        />
+        <Box sx={{ flex: 1, ...cq("md", { flex: "none", width: 160 }) }}>
+          <TextField
+            fullWidth
+            size="small"
+            defaultValue="118.00"
+            sx={inputSx}
+          />
+        </Box>
       </Box>
 
-      {/* Right: Action buttons */}
-      <Stack
-        direction="row"
-        spacing={1}
-        flexWrap="wrap"
-        useFlexGap
-        alignItems="center"
+      {/* Right: action buttons */}
+      <Box
         sx={{
-          justifyContent: "flex-start",
+          display: "flex",
+          flexDirection: "column-reverse",
+          gap: 1,
           minWidth: 0,
-          ...cq("lg", { justifyContent: "flex-end" }),
+          ...cq("sm", {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }),
         }}
       >
-        <Button
-          variant="outlined"
+        {/* Cancel */}
+        <OutlineBtn
           onClick={onBack}
-          sx={{ textTransform: "none", borderRadius: "8px", ...footBtn }}
+          sx={{
+            color: "#000000",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              borderColor: "#D1D5DB",
+            },
+          }}
         >
           Cancel
-        </Button>
+        </OutlineBtn>
 
-        <Button
-          variant="outlined"
+        {/* Save Draft */}
+        <OutlineBtn
           startIcon={<SaveDraftFileIcon width={16} height={16} />}
-          sx={{ textTransform: "none", borderRadius: "8px", ...footBtn }}
+          sx={{
+            color: "#000000",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              borderColor: "#D1D5DB",
+            },
+          }}
         >
           Save draft
-        </Button>
+        </OutlineBtn>
 
-        <Button
-          variant="outlined"
-          startIcon={
-            <TiaChatIcon2
-              sx={{ fontSize: 15, fontWeight: 700, color: C.textBold }}
-            />
-          }
+        {/* Scrub */}
+        <OutlineBtn
+          startIcon={<TiaChatIcon2 sx={{ fontSize: 14, color: "#000000" }} />}
           sx={{
-            textTransform: "none",
-            borderRadius: "8px",
-            ...footBtn,
-            fontWeight: 600,
+            color: "#000000",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              borderColor: "#D1D5DB",
+            },
           }}
         >
           Scrub
-        </Button>
+        </OutlineBtn>
 
-        {/* Save + Select Action buttons */}
+        {/* Save - Primary Button */}
+        <PrimaryBtn
+          startIcon={<CheckIcon sx={{ fontSize: 16 }} />}
+          sx={{
+            color: "#FFFFFF",
+            backgroundColor: "#0066FF",
+            border: "1px solid #0066FF",
+            "&:hover": {
+              backgroundColor: "#0052CC",
+              borderColor: "#0052CC",
+            },
+          }}
+        >
+          Save
+        </PrimaryBtn>
+
+        {/* Select Action */}
+        <OutlineBtn
+          onClick={(e) => setAnchor(e.currentTarget)}
+          endIcon={
+            <KeyboardArrowDownIcon sx={{ fontSize: 18, color: "#000000" }} />
+          }
+          sx={{
+            color: "#000000",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              borderColor: "#D1D5DB",
+            },
+          }}
+        >
+          Select Action
+        </OutlineBtn>
+      </Box>
+
+      <Popover
+        open={open}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "12px",
+              width: 220,
+              maxWidth: "calc(100vw - 32px)",
+              boxShadow: "0 8px 28px rgba(0,0,0,0.14)",
+              mt: -0.5,
+              overflow: "hidden",
+              border: `1px solid ${T.border}`,
+            },
+          },
+        }}
+      >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1,
-            flexShrink: 0,
+            justifyContent: "space-between",
+            px: 2,
+            py: 1.25,
+            borderBottom: `1px solid ${T.border}`,
           }}
         >
-          {/* Save Button */}
-          <Button
-            variant="contained"
-            disableElevation
-            startIcon={<CheckIcon sx={{ fontSize: 15 }} />}
-            sx={{
-              textTransform: "none",
-              borderRadius: "8px",
-              fontSize: 13,
-              fontWeight: 700,
-              bgcolor: C.blue,
-              px: 2,
-              py: 0.68,
-              whiteSpace: "nowrap",
-              "&:hover": {
-                bgcolor: C.blueHover,
-              },
-            }}
-          >
-            Save
-          </Button>
-
-          {/* Select Action Button */}
-          <Button
-            disableElevation
-            onClick={(e) => setAnchor(e.currentTarget)}
-            endIcon={
-              <ArrowDropDownIcon
-                sx={{
-                  fontSize: 18,
-                  color: "#6B7280",
-                }}
-              />
-            }
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 700,
-              color: C.textDark,
-              border: `1px solid ${C.border}`,
-              borderRadius: "8px",
-              px: 1.5,
-              py: 0.68,
-              bgcolor: "#fff",
-              whiteSpace: "nowrap",
-              "&:hover": {
-                bgcolor: "#F5F6F8",
-              },
-            }}
-          >
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
             Select Action
-          </Button>
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setAnchor(null)}
+            sx={{ p: 0.3, color: T.blue }}
+          >
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
         </Box>
 
-        <Popover
-          open={open}
-          anchorEl={anchor}
-          onClose={() => setAnchor(null)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          transformOrigin={{ vertical: "bottom", horizontal: "right" }}
-          slotProps={{
-            paper: {
-              sx: {
-                borderRadius: "14px",
-                width: 200,
-                maxWidth: "calc(100vw - 32px)",
-                boxShadow: "0 8px 28px rgba(0,0,0,0.14)",
-                mt: -0.5,
-                overflow: "hidden",
-                border: "1px solid #E2E8F0",
-              },
-            },
-          }}
+        <Box
+          sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.75 }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              px: 2,
-              py: 1.2,
-              borderBottom: `1px solid ${C.borderLight}`,
-            }}
-          >
-            <Typography
-              sx={{ fontSize: 14, fontWeight: 700, color: C.textDark }}
-            >
-              Select Action
-            </Typography>
-            <IconButton
-              size="small"
+          {SELECT_ACTION_ITEMS.map((item) => (
+            <Box
+              key={item.label}
               onClick={() => setAnchor(null)}
-              sx={{ p: 0.3, color: C.blue }}
+              sx={{
+                px: 1.5,
+                py: 1,
+                borderRadius: "8px",
+                cursor: "pointer",
+                border: `1px solid ${item.highlighted ? "#B8D0FF" : T.border}`,
+                bgcolor: item.highlighted ? "#EEF4FF" : "#fff",
+                transition: "background 0.15s, border-color 0.15s",
+                "&:hover": {
+                  bgcolor: item.highlighted ? "#DDE9FF" : "#F5F8FF",
+                  borderColor: item.highlighted ? "#93BBFF" : "#C5CEDE",
+                },
+              }}
             >
-              <CloseIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Box>
-
-          <Box
-            sx={{
-              py: 1.2,
-              px: 1.5,
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.8,
-            }}
-          >
-            {SELECT_ACTION_ITEMS.map((item) => (
-              <Box
-                key={item.label}
-                onClick={() => setAnchor(null)}
-                sx={{
-                  px: 2,
-                  py: 1.1,
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  border: `1px solid ${item.highlighted ? "#B8D0FF" : C.borderLight}`,
-                  bgcolor: item.highlighted ? "#EEF4FF" : "#fff",
-                  transition: "background 0.15s, border-color 0.15s",
-                  "&:hover": {
-                    bgcolor: item.highlighted ? "#DDE9FF" : "#F5F8FF",
-                    borderColor: item.highlighted ? "#93BBFF" : "#C5CEDE",
-                  },
-                }}
-              >
-                <Typography
-                  sx={{ fontSize: 13.5, fontWeight: 700, color: C.blue }}
-                >
-                  {item.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Popover>
-      </Stack>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.blue }}>
+                {item.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Popover>
     </Paper>
   );
 }
 
-/* =========================================================
-   PATIENT ALERT DIALOG
-   ========================================================= */
+/* ================================================================== */
+/* PATIENT ALERT DIALOG                                                */
+/* ================================================================== */
 const SHOW_WHEN_OPTIONS = [
   "Select all",
   "Claim form",
@@ -2662,11 +2616,11 @@ const SHOW_WHEN_ITEMS = SHOW_WHEN_OPTIONS.filter((o) => o !== "Select all");
 
 function PatientAlertDialog({ open, onClose }) {
   const [patient, setPatient] = React.useState("");
-  const [showWhenAnchor, setShowWhenAnchor] = React.useState(null);
+  const [whenAnchor, setWhenAnchor] = React.useState(null);
   const [selectedWhen, setSelectedWhen] = React.useState([]);
   const [message, setMessage] = React.useState("");
 
-  const showWhenOpen = Boolean(showWhenAnchor);
+  const whenOpen = Boolean(whenAnchor);
   const allSelected = selectedWhen.length === SHOW_WHEN_ITEMS.length;
 
   const toggleWhen = (opt) => {
@@ -2679,154 +2633,99 @@ function PatientAlertDialog({ open, onClose }) {
     );
   };
 
-  const showWhenDisplay =
+  const whenDisplay =
     selectedWhen.length === 0
       ? "Select"
       : allSelected
         ? "Select all"
         : selectedWhen.join(", ");
 
-  const fieldLabelSx = {
-    fontSize: 12,
-    fontWeight: 500,
-    color: C.textLabel,
-    mb: "6px",
-    lineHeight: 1.3,
-    display: "block",
-  };
-
-  const selectSx = {
-    width: "100%",
-    "& .MuiOutlinedInput-root": {
-      height: 38,
-      borderRadius: "8px",
-      backgroundColor: "#FFFFFF",
-      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#DFE4ED" },
-      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#B8C0CE" },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-        borderColor: C.blue,
-        borderWidth: "1.5px",
-      },
-    },
-    "& .MuiSelect-select": {
-      fontSize: 13.5,
-      fontWeight: 400,
-      color: "#6F7887",
-      padding: "8px 32px 8px 12px !important",
-      minHeight: "auto !important",
-      display: "flex",
-      alignItems: "center",
-    },
-    "& .MuiSelect-icon": {
-      color: C.blue,
-      fontSize: 22,
-      right: 6,
-      top: "calc(50% - 11px)",
-    },
-  };
-
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth={false}
-      sx={{
-        "& .MuiDialog-paper": {
-          width: 520,
-          maxWidth: "calc(100vw - 24px)",
-          maxHeight: "calc(100dvh - 24px)",
-          borderRadius: "16px",
-          overflowY: "auto",
-          boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
-          m: 1.5,
+      fullWidth={false}
+      slotProps={{
+        paper: {
+          sx: {
+            width: "520px !important",
+            minWidth: 0,
+            maxWidth: "calc(100vw - 32px)",
+            flex: "0 0 520px",
+            boxSizing: "border-box",
+            m: "16px",
+            borderRadius: "12px",
+            overflowY: "auto",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+          },
         },
-        "& .MuiBackdrop-root": { backgroundColor: "rgba(0,0,0,0.45)" },
       }}
     >
-      <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2.5, pb: 3 }}>
-        {/* HEADER */}
+      <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            mb: 2.5,
+            mb: 1.5,
           }}
         >
-          <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>
             Patient Alert
           </Typography>
           <IconButton
             size="small"
             onClick={onClose}
-            sx={{ color: "#374151", "&:hover": { bgcolor: "#F3F4F6" } }}
+            aria-label="Close"
+            sx={{ color: "#1D1B20", p: 0.5 }}
           >
             <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </Box>
 
-        {/* TWO SELECTS */}
+        {/* Two selects */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: {
-              xs: "minmax(0,1fr)",
-              sm: "repeat(2, minmax(0,1fr))",
+              xs: "minmax(0, 1fr)",
+              sm: "repeat(2, minmax(0, 1fr))",
             },
-            gap: 2,
-            mb: 2,
+            gap: 1.5,
+            mb: 1.5,
           }}
         >
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={fieldLabelSx}>Select Patient</Typography>
-            <TextField
-              fullWidth
-              size="small"
-              select
-              value={patient}
-              onChange={(e) => setPatient(e.target.value)}
-              SelectProps={{
-                displayEmpty: true,
-                IconComponent: ArrowDropDownIcon,
-              }}
-              sx={selectSx}
-            >
-              <MenuItem value="" sx={{ fontSize: 13.5 }}>
-                Select
-              </MenuItem>
-              <MenuItem value="wayne" sx={{ fontSize: 13.5 }}>
-                Wayne, Jimmy
-              </MenuItem>
-              <MenuItem value="cook" sx={{ fontSize: 13.5 }}>
-                Cook, Lisha
-              </MenuItem>
-            </TextField>
-          </Box>
+          <SelectField
+            label="Select Patient"
+            options={["Wayne, Jimmy", "Cook, Lisha"]}
+            value={patient}
+            onChange={(e) => setPatient(e.target.value)}
+          />
 
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={fieldLabelSx}>Show Alert when</Typography>
+            <Label>Show Alert when</Label>
             <Box
-              onClick={(e) => setShowWhenAnchor(e.currentTarget)}
+              onClick={(e) => setWhenAnchor(e.currentTarget)}
               sx={{
-                height: 38,
+                height: 34,
                 boxSizing: "border-box",
-                border: `${showWhenOpen ? "1.5px" : "1px"} solid ${
-                  showWhenOpen ? C.blue : "#DFE4ED"
-                }`,
-                borderRadius: "8px",
-                bgcolor: "#fff",
+                border: `1px solid ${whenOpen ? T.blue : T.border}`,
+                borderRadius: "6px",
+                bgcolor: T.fieldBg,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                px: 1.5,
+                px: "10px",
                 cursor: "pointer",
-                "&:hover": { borderColor: "#B8C0CE" },
+                "&:hover": { borderColor: whenOpen ? T.blue : "#D1D5DB" },
               }}
             >
               <Typography
                 sx={{
-                  fontSize: 13.5,
-                  color: selectedWhen.length === 0 ? "#6F7887" : C.textDark,
+                  fontSize: 12,
+                  color: selectedWhen.length === 0 ? T.placeholder : T.text,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -2834,26 +2733,26 @@ function PatientAlertDialog({ open, onClose }) {
                   mr: 1,
                 }}
               >
-                {showWhenDisplay}
+                {whenDisplay}
               </Typography>
-              <ArrowDropDownIcon
-                sx={{ color: C.blue, fontSize: 22, flexShrink: 0 }}
+              <KeyboardArrowDownIcon
+                sx={{ color: T.muted, fontSize: 18, flexShrink: 0 }}
               />
             </Box>
 
             <Popover
-              open={showWhenOpen}
-              anchorEl={showWhenAnchor}
-              onClose={() => setShowWhenAnchor(null)}
+              open={whenOpen}
+              anchorEl={whenAnchor}
+              onClose={() => setWhenAnchor(null)}
               anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
               transformOrigin={{ vertical: "top", horizontal: "left" }}
               slotProps={{
                 paper: {
                   sx: {
                     mt: 0.5,
-                    borderRadius: "10px",
+                    borderRadius: "8px",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                    border: "1px solid #E5E7EB",
+                    border: `1px solid ${T.border}`,
                     minWidth: 240,
                     maxWidth: "calc(100vw - 32px)",
                     py: 0.5,
@@ -2887,11 +2786,11 @@ function PatientAlertDialog({ open, onClose }) {
                       sx={{
                         p: 0,
                         color: "#D1D5DB",
-                        "&.Mui-checked": { color: C.blue },
+                        "&.Mui-checked": { color: T.blue },
                         "& svg": { fontSize: 18 },
                       }}
                     />
-                    <Typography sx={{ fontSize: 13.5, color: "#1F2937" }}>
+                    <Typography sx={{ fontSize: 12, color: T.text }}>
                       {opt}
                     </Typography>
                   </Box>
@@ -2901,120 +2800,63 @@ function PatientAlertDialog({ open, onClose }) {
           </Box>
         </Box>
 
-        {/* MESSAGE BOX */}
-        <Box
-          sx={{
-            borderRadius: "10px",
-            border: `1px solid ${C.border}`,
-            backgroundColor: "#F8F9FB",
-            px: 2,
-            pt: 1.5,
-            pb: 1,
-            mb: 3,
-            minHeight: { xs: 150, sm: 190 },
-          }}
-        >
-          <Typography
-            sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mb: 1 }}
-          >
-            Enter patient alert message
-          </Typography>
-          <TextField
-            fullWidth
+        {/* Message */}
+        <Box sx={{ mb: 2 }}>
+          <InputField
+            label="Enter patient alert message"
+            placeholder="Type here"
             multiline
-            minRows={4}
+            rows={6}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            variant="standard"
-            slotProps={{ input: { disableUnderline: true } }}
-            sx={{
-              "& .MuiInputBase-root": {
-                p: 0,
-                fontSize: 13.5,
-                color: "#273142",
-                alignItems: "flex-start",
-              },
-              "& textarea": {
-                p: 0,
-                fontSize: 13.5,
-                color: "#273142",
-                lineHeight: 1.55,
-              },
-            }}
           />
         </Box>
 
-        {/* FOOTER BUTTONS */}
-        <Stack direction="row" justifyContent="flex-end" spacing={1.2}>
-          <Button
-            variant="outlined"
-            onClick={onClose}
-            sx={{
-              textTransform: "none",
-              borderRadius: "8px",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "#374151",
-              borderColor: "#D1D5DB",
-              px: 2.5,
-              py: 0.75,
-              "&:hover": { borderColor: "#9CA3AF", bgcolor: "#F9FAFB" },
-            }}
-          >
-            Cancel
-          </Button>
-          <PrimaryBtn
-            onClick={onClose}
-            sx={{ fontSize: 14, px: 2.5, py: 0.75 }}
-          >
-            Save Alert
-          </PrimaryBtn>
-        </Stack>
+        {/* Footer buttons */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+            gap: 1,
+          }}
+        >
+          <OutlineBtn onClick={onClose}>Cancel</OutlineBtn>
+          <PrimaryBtn onClick={onClose}>Save Alert</PrimaryBtn>
+        </Box>
       </Box>
     </Dialog>
   );
 }
 
-/* =========================================================
-   MAIN PAGE
-   ========================================================= */
-/* Finds the element that really scrolls (window, or a parent with overflow). */
-const getScrollParent = (el) => {
-  let node = el && el.parentElement;
-  while (node && node !== document.body && node !== document.documentElement) {
-    if (/(auto|scroll|overlay)/.test(window.getComputedStyle(node).overflowY)) {
-      return node;
-    }
-    node = node.parentElement;
-  }
-  return window;
-};
-
+/* ================================================================== */
+/* MAIN PAGE                                                           */
+/* ================================================================== */
 export default function PreBillingEditPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeId, setActiveId] = React.useState(STEPS[0].id);
 
-  // Get claim data and active tab from location state
+  // Claim data and active tab come from the router state
   const claimData = location.state?.claim;
   const activeTab = location.state?.activeTab ?? 0;
-  
-  // Check if we're creating a new claim (hide encounter info boxes)
-  const isNewClaim = window.location.pathname === '/new-claim';
-  
-  // Check if we're editing an existing claim (pre-billing or post-billing edit)
-  const isEditMode = (window.location.pathname.includes('/pre-billing-edit') || 
-                      window.location.pathname.includes('/post-billing-edit') ||
-                      (window.location.pathname === '/new-claim' && claimData));
-  
+
+  // Creating a new claim (hides the encounter info boxes)
+  const isNewClaim = location.pathname === "/new-claim";
+
+  // Editing an existing claim (pre-billing or post-billing edit)
+  const isEditMode =
+    location.pathname.includes("/pre-billing-edit") ||
+    location.pathname.includes("/post-billing-edit") ||
+    (isNewClaim && Boolean(claimData));
+
   // Back navigation with tab preservation
   const handleBack = () => {
-    navigate('/encounters', { state: { activeTab } });
+    navigate("/encounters", { state: { activeTab } });
   };
 
   const sectionRefs = React.useRef({});
-  const rootRef = React.useRef(null);
   const headerRef = React.useRef(null);
   const mainRef = React.useRef(null);
   const scrollLockRef = React.useRef(false);
@@ -3024,63 +2866,22 @@ export default function PreBillingEditPage() {
     sectionRefs.current[id] = node;
   };
 
-  /* Publish the real sticky-header height as --header-h (0 when not sticky) so
-     SectionCard's scroll-margin-top is always correct at every breakpoint. */
-  React.useEffect(() => {
-    const header = headerRef.current;
-    const root = rootRef.current;
-    if (!header || !root) return undefined;
-
-    const update = () => {
-      const sticky = window.getComputedStyle(header).position === "sticky";
-      root.style.setProperty(
-        "--header-h",
-        sticky ? `${header.getBoundingClientRect().height}px` : "0px",
-      );
-    };
-    update();
-
-    const ro =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
-    if (ro) ro.observe(header);
-    window.addEventListener("resize", update);
-    return () => {
-      if (ro) ro.disconnect();
-      window.removeEventListener("resize", update);
-    };
-  }, []);
-
-  /* Scroll-spy: the stepper always highlights the section you are looking at.
-     It is based ONLY on where the sections are on screen right now (their
-     getBoundingClientRect vs. the bottom edge of the sticky header), so it does
-     not matter what actually scrolls (window, body, or a parent container). */
+  /* Scroll-spy: the stepper highlights the section you are looking at.
+     Based only on where sections are on screen vs. the bottom of the header. */
   React.useEffect(() => {
     let raf = 0;
     const ids = STEPS.map((x) => x.id);
 
     const computeActive = () => {
       raf = 0;
-      if (scrollLockRef.current) return; // a step-click scroll is running
+      if (scrollLockRef.current) return;
 
-      const root = rootRef.current;
       const header = headerRef.current;
       const main = mainRef.current;
-      if (!root || !header || !main) return;
+      if (!header || !main) return;
 
-      const scroller = getScrollParent(root);
-      const isWindow = scroller === window;
-      const sRect = isWindow ? null : scroller.getBoundingClientRect();
+      const threshold = header.getBoundingClientRect().bottom + 24;
 
-      // Reference line = bottom edge of the (stuck) header.
-      const sticky = window.getComputedStyle(header).position === "sticky";
-      const refLine = sticky
-        ? header.getBoundingClientRect().bottom
-        : isWindow
-          ? 0
-          : sRect.top;
-      const threshold = refLine + 24;
-
-      // Active = the last section whose top has reached the reference line.
       let currentId = ids[0];
       for (const id of ids) {
         const node = sectionRefs.current[id];
@@ -3089,15 +2890,11 @@ export default function PreBillingEditPage() {
         }
       }
 
-      // The last sections are short, so their top can never reach the line.
-      // When the end of the page is on screen (and we did scroll), pick the last.
-      const first = sectionRefs.current[ids[0]];
-      const firstTop = first ? first.getBoundingClientRect().top : Infinity;
-      const viewBottom = isWindow
-        ? window.innerHeight
-        : Math.min(window.innerHeight, sRect.bottom);
-      const mainBottom = main.getBoundingClientRect().bottom;
-      if (firstTop < refLine && mainBottom <= viewBottom + 4) {
+      // at the very bottom -> last section is active
+      if (
+        main.scrollHeight > main.clientHeight + 10 &&
+        main.scrollTop + main.clientHeight >= main.scrollHeight - 8
+      ) {
         currentId = ids[ids.length - 1];
       }
 
@@ -3105,7 +2902,7 @@ export default function PreBillingEditPage() {
     };
 
     const onScroll = () => {
-      // While a click-scroll is animating, wait until scrolling goes idle.
+      // while a click-scroll is animating, wait until scrolling goes idle
       if (scrollLockRef.current) {
         window.clearTimeout(lockTimerRef.current);
         lockTimerRef.current = window.setTimeout(() => {
@@ -3117,64 +2914,36 @@ export default function PreBillingEditPage() {
       if (!raf) raf = window.requestAnimationFrame(computeActive);
     };
 
-    // capture:true => catches scroll of window AND of any scrolling parent
-    window.addEventListener("scroll", onScroll, {
-      passive: true,
-      capture: true,
-    });
-    window.addEventListener("wheel", onScroll, { passive: true });
-    window.addEventListener("touchmove", onScroll, { passive: true });
-    window.addEventListener("keydown", onScroll, { passive: true });
+    const scroller = mainRef.current;
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
 
     computeActive();
-    const first300 = window.setTimeout(computeActive, 300); // after first layout
-    // Safety net: even if some scroll event is never delivered, stay in sync.
-    const poll = window.setInterval(() => {
-      if (!scrollLockRef.current) computeActive();
-    }, 250);
+    const firstCheck = window.setTimeout(computeActive, 300);
 
     return () => {
-      window.removeEventListener("scroll", onScroll, { capture: true });
-      window.removeEventListener("wheel", onScroll);
-      window.removeEventListener("touchmove", onScroll);
-      window.removeEventListener("keydown", onScroll);
+      scroller?.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
-      window.clearTimeout(first300);
-      window.clearInterval(poll);
+      window.clearTimeout(firstCheck);
       window.clearTimeout(lockTimerRef.current);
       if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
 
-  /* Scrolls so the section HEADING sits right under the sticky header
-     (same result for steps 1-5, works for window or a scrolling parent). */
+  /* Scrolls so the section heading sits right under the fixed header. */
   const scrollToSection = (id) => {
     const node = sectionRefs.current[id];
-    if (!node) return;
+    const scroller = mainRef.current;
+    if (!node || !scroller) return;
+
     const header = headerRef.current;
-    const sticky =
-      header && window.getComputedStyle(header).position === "sticky";
-    const headerH = sticky ? header.getBoundingClientRect().height : 0;
+    const headerH = header ? header.getBoundingClientRect().height : 0;
     const gap = 12;
-
-    const scroller = getScrollParent(node);
     const nodeTop = node.getBoundingClientRect().top;
+    const scrollerTop = scroller.getBoundingClientRect().top;
 
-    if (scroller === window) {
-      window.scrollTo({
-        top: Math.max(0, nodeTop + window.scrollY - headerH - gap),
-        behavior: "smooth",
-      });
-    } else {
-      const top =
-        nodeTop -
-        scroller.getBoundingClientRect().top +
-        scroller.scrollTop -
-        headerH -
-        gap;
-      scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    }
+    const top = scroller.scrollTop + (nodeTop - scrollerTop) - headerH - gap;
+    scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   };
 
   const handleStepClick = (id) => {
@@ -3190,35 +2959,38 @@ export default function PreBillingEditPage() {
   };
 
   return (
-    <Box
-      ref={rootRef}
-      sx={{
-        bgcolor: C.pageBg,
-        minHeight: "100dvh",
-        width: "100%",
-        boxSizing: "border-box",
-        containerType: "inline-size",
-        overflowX: "clip",
-        /* NOTE: no overflow / fixed height here - the page itself scrolls so
-           the sticky header and footer keep working. */
-      }}
-    >
-      {/* Sticky header (static on phones) */}
+    <>
+      {/* Full-height flex column: header stays fixed, content scrolls */}
       <Box
-        ref={headerRef}
         sx={{
-          position: "static",
-          ...cq("sm", { position: "sticky" }),
-          "@media (max-height: 600px)": { position: "static" },
-          top: 0,
-          zIndex: 100,
-          bgcolor: C.pageBg,
-          borderBottom: `1px solid ${C.borderLight}`,
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.04)",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          bgcolor: T.page,
+          containerType: "inline-size",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <Box sx={{ ...CONTAINER, pt: { xs: 1.5, md: 2 }, pb: 0 }}>
-          <TopBar />
+        {/* Fixed header: title + stepper */}
+        <Box
+          ref={headerRef}
+          sx={{
+            flexShrink: 0,
+            bgcolor: T.page,
+            borderBottom: `1px solid ${T.border}`,
+            px: 2,
+            py: 1,
+            boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            zIndex: 10,
+          }}
+        >
+          <TopBar
+            title={isNewClaim ? "New Charge Capture" : "Pri Charge Capture"}
+          />
           <StepperNav
             activeId={activeId}
             onStepClick={handleStepClick}
@@ -3226,38 +2998,53 @@ export default function PreBillingEditPage() {
             onBack={handleBack}
           />
         </Box>
-      </Box>
 
-      {/* Main (Figma): flex column, padding 24px 28px 60px, gap 12px */}
-      <Box
-        component="main"
-        ref={mainRef}
-        sx={{
-          ...CONTAINER,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-          gap: "12px",
-          pt: "24px",
-          pb: "60px",
-        }}
-      >
-        {!isNewClaim && <EncounterSummary claimData={claimData} />}
-        {!isNewClaim && <AssistBanner />}
+        {/* Scrollable content */}
+        <Box
+          component="main"
+          ref={mainRef}
+          sx={{
+            flexGrow: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+            ...thinScroll,
+          }}
+        >
+          <Box
+            sx={{
+              width: "100%",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1.5,
+              px: 2,
+              py: 1.5,
+            }}
+          >
+            {!isNewClaim && <EncounterSummary claimData={claimData} />}
+            {!isNewClaim && <AssistBanner />}
 
-        <PatientSection sectionRef={setRef("patient")} isNewClaim={isNewClaim} isEditMode={isEditMode} claimData={claimData} />
-        <CaseInsuranceSection sectionRef={setRef("case")} />
-        <ConditionsSection sectionRef={setRef("conditions")} />
-        <ChargesSection sectionRef={setRef("charges")} />
-        <AdditionalDetailsSection sectionRef={setRef("additional")} />
+            <PatientSection
+              sectionRef={setRef("patient")}
+              isNewClaim={isNewClaim}
+              isEditMode={isEditMode}
+              claimData={claimData}
+            />
+            <CaseInsuranceSection sectionRef={setRef("case")} />
+            <ConditionsSection sectionRef={setRef("conditions")} />
+            <ChargesSection sectionRef={setRef("charges")} />
+            <AdditionalDetailsSection sectionRef={setRef("additional")} />
 
-        <FooterBar navigate={navigate} onBack={handleBack} />
+            <FooterBar onBack={handleBack} />
+          </Box>
+        </Box>
       </Box>
 
       <PatientAlertDialog
         open={alertOpen}
         onClose={() => setAlertOpen(false)}
       />
-    </Box>
+    </>
   );
 }
