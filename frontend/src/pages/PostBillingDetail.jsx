@@ -21,6 +21,8 @@ import {
   FormControl,
   Checkbox,
   Chip,
+  InputAdornment,
+  Tooltip,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -30,6 +32,7 @@ import {
   KeyboardArrowLeft,
   KeyboardArrowRight,
 } from "@mui/icons-material";
+import { Search } from "../assets/Assets";
 
 /* ─────────────────────────────────────────────
    Constants
@@ -45,20 +48,42 @@ const LOG_ENTRIES = Array.from({ length: 60 }, (_, i) => ({
   remarks: "Marked as payment received",
 }));
 
+/* sort: "date" | "alpha" | undefined (not sortable).
+   Only Date is sortable right now; add sort: "alpha" to any other column to enable it. */
 const LOG_COLUMNS = [
-  { key: "date", label: "Date", sortable: true, width: "20%" },
-  { key: "time", label: "Time", sortable: false, width: "18%" },
-  { key: "user", label: "Updated By", sortable: false, width: "22%" },
-  { key: "remarks", label: "Remarks", sortable: false, width: "40%" },
+  { key: "date", label: "Date", sort: "date", width: "20%" },
+  { key: "time", label: "Time", width: "18%" },
+  { key: "user", label: "Updated By", width: "22%" },
+  { key: "remarks", label: "Remarks", width: "40%" },
 ];
 
-const logSortValue = (row, key) => {
-  if (key === "date") {
-    const [m, d, y] = row.date.split("/").map(Number);
-    return new Date(y, m - 1, d).getTime();
-  }
-  return String(row[key]).toLowerCase();
+/* Same wording as the main claims tables */
+const LOG_SORT_TITLES = {
+  date: {
+    asc: "Sorted oldest first",
+    desc: "Sorted newest first",
+    none: "Sort oldest first",
+  },
+  alpha: { asc: "Sorted A–Z", desc: "Sorted Z–A", none: "Sort A–Z" },
 };
+
+const LOG_COMPARERS = {
+  date: (a, b) => {
+    const t = (s) => {
+      const [m, d, y] = String(s).split("/").map(Number);
+      return new Date(y, m - 1, d).getTime();
+    };
+    return t(a) - t(b);
+  },
+  alpha: (a, b) =>
+    String(a ?? "").localeCompare(String(b ?? ""), undefined, {
+      sensitivity: "base",
+      numeric: true,
+    }),
+};
+
+const SORT_BLUE = "#2563EB";
+const SORT_ARROW = "#52525B";
 
 const DX_COLORS = [
   { bg: "#E2F6EE", color: "#1A7A54" },
@@ -66,6 +91,18 @@ const DX_COLORS = [
   { bg: "#E8ECFB", color: "#3B4CB8" },
   { bg: "#FDF1DC", color: "#9A5B0B" },
 ];
+
+/* Additional Details (adjustment) form */
+const EMPTY_ADJ = {
+  type: "",
+  postingDate: "",
+  adjustment: "",
+  code: "",
+  reasonCode: "",
+  relatedPayment: "",
+  changeStatus: "",
+  notes: "",
+};
 
 /* ─────────────────────────────────────────────
    Shared sx helpers
@@ -108,6 +145,46 @@ const readOnlyFieldSx = {
     color: "#6B7280",
     fontWeight: 600,
   },
+};
+
+const ADJ_LABEL_SX = {
+  fontSize: 10,
+  fontWeight: 600,
+  color: "#1E293B",
+  mb: 0.7,
+  whiteSpace: "nowrap",
+};
+
+const adjGridSx = {
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "1fr",
+    sm: "repeat(2, minmax(0, 1fr))",
+    md: "repeat(4, minmax(0, 1fr))",
+  },
+  gap: 0.5,
+  "& .MuiFormControl-root": { minWidth: 0, m: 0 },
+  "& .MuiInputBase-root": {
+    height: 28,
+    minHeight: 28,
+    fontSize: 10,
+    borderRadius: "5px",
+    backgroundColor: "#FFFFFF",
+  },
+  "& .MuiInputBase-input": {
+    padding: "4px 6px",
+    fontSize: 10,
+    boxSizing: "border-box",
+  },
+  "& .MuiSelect-select": {
+    padding: "4px 22px 4px 6px !important",
+    fontSize: 10,
+    minHeight: "unset !important",
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#D9DEE7" },
+  "& .MuiSvgIcon-root": { fontSize: 15 },
 };
 
 /* ─────────────────────────────────────────────
@@ -395,6 +472,57 @@ function ClaimSelect({ label, value, options, onChange }) {
   );
 }
 
+/* Additional Details helpers */
+function AdjSelect({ label, value, onChange, options }) {
+  return (
+    <Box>
+      <Typography sx={ADJ_LABEL_SX}>{label}</Typography>
+      <FormControl fullWidth size="small">
+        <Select
+          displayEmpty
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          IconComponent={KeyboardArrowDown}
+        >
+          <MenuItem value="" disabled sx={{ fontSize: 11 }}>
+            Select
+          </MenuItem>
+          {options.map(([v, l]) => (
+            <MenuItem key={v} value={v} sx={{ fontSize: 11 }}>
+              {l}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
+}
+
+function AdjText({ label, value, onChange, placeholder, type, endIcon }) {
+  return (
+    <Box>
+      <Typography sx={ADJ_LABEL_SX}>{label}</Typography>
+      <TextField
+        fullWidth
+        size="small"
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        InputProps={
+          endIcon
+            ? {
+                endAdornment: (
+                  <InputAdornment position="end">{endIcon}</InputAdornment>
+                ),
+              }
+            : undefined
+        }
+      />
+    </Box>
+  );
+}
+
 /* ======================================================
    Main Page
 ========================================================= */
@@ -409,10 +537,11 @@ export default function PostBillingDetail({
   const claim = claimProp ?? state?.claim;
   const savedActiveTab = state?.activeTab ?? 1; // Get saved tab or default to post-billing (1)
   const onBack =
-    onBackProp ?? (() => navigate("/encounters", { state: { activeTab: savedActiveTab } }));
+    onBackProp ??
+    (() => navigate("/encounters", { state: { activeTab: savedActiveTab } }));
   const [actionAnchorEl, setActionAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
-  const [logSort, setLogSort] = useState({ key: null, dir: "asc" });
+  const [logSort, setLogSort] = useState({ key: null, dir: null });
 
   // Log tab pagination
   const [logPage, setLogPage] = useState(0);
@@ -455,6 +584,11 @@ export default function PostBillingDetail({
 
   const [doNotSendElectronically, setDoNotSendElectronically] = useState(false);
   const [removedCount, setRemovedCount] = useState(0);
+
+  /* Additional Details (moved here from the Post-Billing tab) */
+  const [adj, setAdj] = useState(EMPTY_ADJ);
+  const setAdjField = (key) => (value) =>
+    setAdj((prev) => ({ ...prev, [key]: value }));
 
   /* ── Responsive breakpoints — must be before any early return ── */
   const theme = useTheme();
@@ -1204,6 +1338,155 @@ export default function PostBillingDetail({
   );
 
   /* ─────────────────────────────────────────────
+     ADDITIONAL DETAILS (shown under the General tab)
+  ───────────────────────────────────────────── */
+  const additionalDetails = (
+    <Box sx={{ px: { xs: 1, sm: 1.5 }, pb: 1.5, flexShrink: 0 }}>
+      <Box
+        sx={{
+          backgroundColor: "#FFFFFF",
+          borderRadius: "8px",
+          border: "1px solid #E5E7EB",
+          p: 1,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#1E293B",
+            mb: 0.5,
+            lineHeight: 1.2,
+          }}
+        >
+          Additional Details
+        </Typography>
+
+        <Box sx={{ backgroundColor: "#F5F6FA", borderRadius: "6px", p: 0.5 }}>
+          <Box sx={{ ...adjGridSx, mb: 0.5 }}>
+            <AdjSelect
+              label="Type"
+              value={adj.type}
+              onChange={setAdjField("type")}
+              options={[
+                ["adjustment1", "Adjustment Type 1"],
+                ["adjustment2", "Adjustment Type 2"],
+              ]}
+            />
+            <AdjText
+              label="Posting Date"
+              type="date"
+              value={adj.postingDate}
+              onChange={setAdjField("postingDate")}
+            />
+            <AdjText
+              label="Adj"
+              placeholder="Type here"
+              value={adj.adjustment}
+              onChange={setAdjField("adjustment")}
+            />
+            <AdjText
+              label="Adj"
+              placeholder="Type here"
+              value={adj.code}
+              onChange={setAdjField("code")}
+            />
+          </Box>
+
+          <Box sx={adjGridSx}>
+            <AdjSelect
+              label="Reason Code"
+              value={adj.reasonCode}
+              onChange={setAdjField("reasonCode")}
+              options={[
+                ["reason1", "Reason Code 1"],
+                ["reason2", "Reason Code 2"],
+              ]}
+            />
+            <AdjText
+              label="Related payment"
+              placeholder="Search"
+              value={adj.relatedPayment}
+              onChange={setAdjField("relatedPayment")}
+              endIcon={<Search style={{ width: 12, height: 12 }} />}
+            />
+            <AdjSelect
+              label="Status"
+              value={adj.changeStatus}
+              onChange={setAdjField("changeStatus")}
+              options={[
+                ["submitted", "Submitted"],
+                ["ready", "Ready for statement"],
+                ["settled", "Settled"],
+              ]}
+            />
+            <AdjText
+              label="Notes"
+              placeholder="Type here"
+              value={adj.notes}
+              onChange={setAdjField("notes")}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 0.5,
+              mt: 0.5,
+            }}
+          >
+            <Button
+              variant="contained"
+              disableElevation
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#0066FF",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 10,
+                px: 1,
+                py: 0.2,
+                minWidth: 48,
+                minHeight: 24,
+                borderRadius: "5px",
+                lineHeight: 1.2,
+                "&:hover": { backgroundColor: "#0052CC" },
+              }}
+            >
+              Apply
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setAdj(EMPTY_ADJ)}
+              sx={{
+                textTransform: "none",
+                color: "#0066FF",
+                borderColor: "#0066FF",
+                fontWeight: 600,
+                fontSize: 10,
+                px: 1,
+                py: 0.2,
+                minWidth: 48,
+                minHeight: 24,
+                borderRadius: "5px",
+                lineHeight: 1.2,
+                backgroundColor: "#FFFFFF",
+                "&:hover": {
+                  borderColor: "#0052CC",
+                  backgroundColor: "#F5F9FF",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  /* ─────────────────────────────────────────────
      RENDER
   ───────────────────────────────────────────── */
   return (
@@ -1456,7 +1739,7 @@ export default function PostBillingDetail({
               Select Action
             </Button>
 
-            <Menu
+            {/* <Menu
               anchorEl={actionAnchorEl}
               open={Boolean(actionAnchorEl)}
               onClose={() => setActionAnchorEl(null)}
@@ -1471,63 +1754,81 @@ export default function PostBillingDetail({
                   {a}
                 </MenuItem>
               ))}
-            </Menu>
+            </Menu> */}
+
+            <Menu
+  anchorEl={actionAnchorEl}
+  open={Boolean(actionAnchorEl)}
+  onClose={() => setActionAnchorEl(null)}
+  slotProps={{ paper: { sx: { mt: 0.5, minWidth: 160 } } }}
+>
+  {[
+    "Adjustment",
+    "Apply Payment",
+    "Settle",
+    "Note",
+    "Bill patient",
+    "Rebill",
+  ].map((action) => (
+    <MenuItem
+      key={action}
+      sx={{ fontSize: 11 }}
+      onClick={() => setActionAnchorEl(null)}
+    >
+      {action}
+    </MenuItem>
+  ))}
+</Menu>
           </Box>
         </Box>
       </Box>
 
       {/* ══════════════════ GENERAL TAB BODY ══════════════════ */}
       {activeTab === 0 && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: isTablet ? "column" : "row",
-            alignItems: isTablet ? "stretch" : "flex-start",
-            gap: 1,
-            p: { xs: 1, sm: 1 },
-            flexShrink: 0,
-          }}
-        >
-          {leftPanel}
-          {rightPanel}
-        </Box>
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isTablet ? "column" : "row",
+              alignItems: isTablet ? "stretch" : "flex-start",
+              gap: 1,
+              p: { xs: 1, sm: 1 },
+              flexShrink: 0,
+            }}
+          >
+            {leftPanel}
+            {rightPanel}
+          </Box>
+
+          {additionalDetails}
+        </>
       )}
 
       {/* ══════════════════ LOG TAB ══════════════════ */}
       {activeTab === 1 &&
         (() => {
-          // 1) sort the full list
+          // 1) sort the full list (all pages), then 2) slice for the current page
           const rows = [...LOG_ENTRIES];
-          if (logSort.key === "date") {
-            rows.sort((a, b) => {
-              const va = logSortValue(a, "date");
-              const vb = logSortValue(b, "date");
-              const r = va < vb ? -1 : va > vb ? 1 : 0;
-              return logSort.dir === "asc" ? r : -r;
-            });
+          const sortCol = LOG_COLUMNS.find((c) => c.key === logSort.key);
+          if (sortCol?.sort && logSort.dir) {
+            const compare = LOG_COMPARERS[sortCol.sort];
+            const factor = logSort.dir === "asc" ? 1 : -1;
+            rows.sort((a, b) => compare(a[sortCol.key], b[sortCol.key]) * factor);
           }
 
-          // 2) slice for the current page
           const pagedRows = rows.slice(
             logPage * logRowsPerPage,
             logPage * logRowsPerPage + logRowsPerPage,
           );
 
-          const toggleSort = (key) => {
-            if (key !== "date") return; // Only allow sorting on date column
+          // first click = ascending, then toggles descending / ascending
+          const handleLogSort = (key) => {
             setLogSort((prev) =>
-              prev.key === key && prev.dir === "asc"
-                ? { key, dir: "desc" }
-                : { key, dir: "asc" },
+              prev.key !== key || !prev.dir
+                ? { key, dir: "asc" }
+                : { key, dir: prev.dir === "asc" ? "desc" : "asc" },
             );
             setLogPage(0); // back to page 1 on sort change
-          };
-
-          const getSortTitle = () => {
-            if (logSort.key !== "date") return "Sort oldest first";
-            return logSort.dir === "asc"
-              ? "Sorted oldest first"
-              : "Sorted newest first";
           };
 
           return (
@@ -1578,62 +1879,86 @@ export default function PostBillingDetail({
                   >
                     <TableHead>
                       <TableRow>
-                        {LOG_COLUMNS.map((col) => (
-                          <TableCell
-                            key={col.key}
-                            onClick={() => col.sortable && toggleSort(col.key)}
-                            sx={{
-                              backgroundColor: "#EBF1FE",
-                              borderBottom: "1px solid #BED3FC",
-                              borderRight: "1px solid #BED3FC",
-                              "&:last-of-type": { borderRight: 0 },
-                              cursor: col.sortable ? "pointer" : "default",
-                              userSelect: "none",
-                              py: 0.4,
-                              px: 0.75,
-                              minHeight: 28,
-                              width: col.width,
-                              textAlign: "center",
-                            }}
-                          >
-                            <Box
+                        {LOG_COLUMNS.map((col) => {
+                          const sortDir =
+                            logSort.key === col.key ? logSort.dir : null;
+                          const active = !!sortDir;
+                          return (
+                            <TableCell
+                              key={col.key}
                               sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 0.3,
+                                backgroundColor: "#EBF1FE",
+                                borderBottom: "1px solid #BED3FC",
+                                borderRight: "1px solid #BED3FC",
+                                "&:last-of-type": { borderRight: 0 },
+                                py: 0.4,
+                                px: 0.75,
+                                minHeight: 28,
+                                width: col.width,
+                                textAlign: "center",
                               }}
                             >
-                              <Typography
+                              <Box
                                 sx={{
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  color: "#1e293b",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 0.15,
                                 }}
                               >
-                                {col.label}
-                              </Typography>
-                              {col.sortable && (
-                                <KeyboardArrowDown
-                                  titleAccess={getSortTitle()}
+                                <Box
+                                  component="span"
                                   sx={{
-                                    fontSize: 13,
-                                    color:
-                                      logSort.key === col.key
-                                        ? "#2563EB"
-                                        : "#52525B",
-                                    transform:
-                                      logSort.key === col.key &&
-                                      logSort.dir === "desc"
-                                        ? "rotate(180deg)"
-                                        : "none",
-                                    transition: "transform .15s ease",
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    color: "#1e293b",
+                                    lineHeight: 1.15,
                                   }}
-                                />
-                              )}
-                            </Box>
-                          </TableCell>
-                        ))}
+                                >
+                                  {col.label}
+                                </Box>
+
+                                {col.sort && (
+                                  <Tooltip
+                                    title={
+                                      LOG_SORT_TITLES[col.sort][
+                                        sortDir || "none"
+                                      ]
+                                    }
+                                    arrow
+                                  >
+                                    <IconButton
+                                      size="small"
+                                      aria-label={`Sort ${col.label}`}
+                                      onClick={() => handleLogSort(col.key)}
+                                      sx={{
+                                        p: 0.15,
+                                        flexShrink: 0,
+                                        borderRadius: "6px",
+                                        color: active ? SORT_BLUE : SORT_ARROW,
+                                        bgcolor: active
+                                          ? "#DCE7FD"
+                                          : "transparent",
+                                        "&:hover": { bgcolor: "#DCE7FD" },
+                                      }}
+                                    >
+                                      <KeyboardArrowDown
+                                        sx={{
+                                          fontSize: 13,
+                                          transform:
+                                            sortDir === "desc"
+                                              ? "rotate(180deg)"
+                                              : "none",
+                                          transition: "transform .15s ease",
+                                        }}
+                                      />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </Box>
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     </TableHead>
 

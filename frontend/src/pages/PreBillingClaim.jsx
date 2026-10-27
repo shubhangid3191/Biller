@@ -1178,94 +1178,7 @@ function FilterDate({ label, value, onChange, applied = false }) {
   );
 }
 
-/* Additional Details form helpers */
-const adjFieldSx = {
-  fontSize: 12,
-  "& .MuiOutlinedInput-root": {
-    fontSize: 12,
-    borderRadius: "10px",
-    backgroundColor: "#FFFFFF",
-    "& fieldset": { borderColor: "#D9DEE7", borderRadius: "10px" },
-    "& input::-webkit-calendar-picker-indicator": {
-      opacity: 1,
-      cursor: "pointer",
-      width: 16,
-      height: 16,
-      filter: "brightness(0)",
-    },
-  },
-};
 
-const adjSelectSx = {
-  fontSize: 12,
-  borderRadius: "10px",
-  backgroundColor: "#FFFFFF",
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#D9DEE7",
-    borderRadius: "10px",
-  },
-  "& .MuiSelect-icon": { color: "#555555", fontSize: 18, right: 7 },
-};
-
-const ADJ_LABEL_SX = {
-  fontSize: 10,
-  fontWeight: 600,
-  color: "#1E293B",
-  mb: 0.7,
-  whiteSpace: "nowrap",
-};
-
-function AdjSelect({ label, value, onChange, options }) {
-  return (
-    <Box>
-      <Typography sx={ADJ_LABEL_SX}>{label}</Typography>
-      <FormControl fullWidth size="small">
-        <Select
-          displayEmpty
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          IconComponent={KeyboardArrowDown}
-          sx={adjSelectSx}
-        >
-          <MenuItem value="" disabled>
-            Select
-          </MenuItem>
-          {options.map(([v, l]) => (
-            <MenuItem key={v} value={v}>
-              {l}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Box>
-  );
-}
-
-function AdjText({ label, value, onChange, placeholder, type, endIcon }) {
-  return (
-    <Box>
-      <Typography sx={ADJ_LABEL_SX}>{label}</Typography>
-      <TextField
-        fullWidth
-        size="small"
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        sx={adjFieldSx}
-        InputProps={
-          endIcon
-            ? {
-                endAdornment: (
-                  <InputAdornment position="end">{endIcon}</InputAdornment>
-                ),
-              }
-            : undefined
-        }
-      />
-    </Box>
-  );
-}
 
 /* Grid-view helpers */
 function GridSection({ title, flex, children, sx }) {
@@ -1510,17 +1423,17 @@ const ICD_LIST = [
   "F41.1",
 ];
 const REMARK_LIST = [
-  "Gender conflict — P13.1 removed...",
+  "Gender conflict — P13.1 removed",
   "Missing etiology dx",
   "Cosmetic vs functional",
   "Clean — ready to bill",
-  "Gender conflict — P13.1 removed...",
+  "Gender conflict — P13.1 removed",
   "Clean — ready to bill",
   "Missing etiology dx",
   "Clean — ready to bill",
   "Cosmetic vs functional",
   "Missing etiology dx",
-  "Gender conflict — P13.1 removed...",
+  "Gender conflict — P13.1 removed",
 ];
 
 /* ---------- Pre-billing ---------- */
@@ -1535,7 +1448,7 @@ const PRE_STATUS = [
   "Ready",
   "Processed",
   "Unbilled",
-  "Processed",
+  "Rejected",
 ];
 
 const PRE_STATUS_STYLES = {
@@ -1543,7 +1456,7 @@ const PRE_STATUS_STYLES = {
   Ready: { bg: "#DFF5EA", fg: "#1E7F55" },
   "Need Info": { bg: "#FFEBEE", fg: "#C62828" },
   Processed: { bg: "#E3EEFB", fg: "#2F5FA8" },
-  Archived: { bg: "#F3F4F6", fg: "#4B5563" },
+  Rejected: { bg: "#F3F4F6", fg: "#4B5563" },
 };
 
 const preBillingClaimsData = PEOPLE.map(([name, gender], i) => {
@@ -2112,26 +2025,7 @@ const PRE_COLUMNS = [
     label: "Patient\nName",
     sort: "alpha",
     center: true,
-  //   cellSx: {
-  //     minWidth: 140,
-  //     maxWidth: 180,
-  //     whiteSpace: "normal",
-  //     wordWrap: "break-word",
-  //   },
-  //   render: (r) => `${r.patientName} ${r.gender}`,
-  // },
-  // {
-  //   id: "fin",
-  //   label: "Fin ID",
-  //   center: true,
-  //   cellSx: { minWidth: 70, color: "#4B5563" },
-  // },
-  // {
-  //   id: "mrn",
-  //   label: "MRN",
-  //   center: true,
-  //   cellSx: { minWidth: 90, color: "#4B5563" },
-  // },
+
 
       cellSx: {
       minWidth: 100,
@@ -2312,53 +2206,7 @@ const iconColSx = { width: 30, minWidth: 30, px: 0, maxWidth: 30 };
 const iconCellSx = { color: "#4B5563", px: 0 };
 
 const NEW_STMT_COLUMNS = [
-  // {
-  //   id: "name",
-  //   label: "Patient Name",
-  //   sort: "alpha",
-  //   center: true,
-  //   cellSx: {
-  //     fontWeight: 600,
-  //     minWidth: 140,
-  //     maxWidth: 220,
-  //     whiteSpace: "normal",
-  //     wordWrap: "break-word",
-  //   },
-  //   render: (r) => (
-  //     <Box
-  //       sx={{
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //         gap: 0.8,
-  //       }}
-  //     >
-  //       {/* fixed-width slot so names line up whether a patient has 0, 1 or 2 icons */}
-  //       <Box
-  //         sx={{
-  //           width: 34,
-  //           display: "flex",
-  //           alignItems: "center",
-  //           justifyContent: "flex-end",
-  //           gap: 0.6,
-  //           flexShrink: 0,
-  //         }}
-  //       >
-  //         {r.hasEmail && (
-  //           <Tooltip title="Email available" placement="top">
-  //             <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
-  //           </Tooltip>
-  //         )}
-  //         {r.hasPhone && (
-  //           <Tooltip title="Phone available" placement="top">
-  //             <Phone sx={{ fontSize: 15, color: "#0B1560" }} />
-  //           </Tooltip>
-  //         )}
-  //       </Box>
-  //       <span>{r.name}</span>
-  //     </Box>
-  //   ),
-  // },
+
 
     {
     id: "name",
@@ -2686,7 +2534,7 @@ const EMPTY_FILTERS = {
   provider: "",
   serviceLocation: "",
   patientName: "",
-  claimNumber: "", // Claim / Encounter ID
+  claimNumber: "", 
   dosFrom: "",
   dosTill: "",
   insurance: "",
@@ -2695,10 +2543,9 @@ const EMPTY_FILTERS = {
   finId: "",
   mrn: "",
   status: "",
-  // Post-billing (own keys so they don't clash with Patient Name / MRN)
   renderingProvider: "",
   insuranceType: "",
-  // Remittance
+  
   receivedSince: "",
   receivedTill: "",
   checkNumber: "",
@@ -2718,23 +2565,14 @@ const PLAN_OPTIONS = ["E-Claim", "Paper Claim", "Patient"];
 
 const INSURANCE_OPTIONS = ["Primary", "Secondary", "Tertiary"];
 
-const EMPTY_ADJ = {
-  type: "",
-  postingDate: "",
-  adjustment: "",
-  code: "",
-  reasonCode: "",
-  relatedPayment: "",
-  changeStatus: "",
-  notes: "",
-};
+
 
 // Column options for each tab
 const PRE_BILLING_COLUMN_OPTIONS = [
   { key: "dosShort", label: "DOS" },
   { key: "patientName", label: "Patient Name (Gender)" },
-  { key: "fin", label: "Fin ID" }, // Added
-  { key: "mrn", label: "MRN" }, // Added
+  { key: "fin", label: "Fin ID" }, 
+  { key: "mrn", label: "MRN" },
   { key: "cpt", label: "CPT" },
   { key: "modifier", label: "Modifier" },
   { key: "icd", label: "ICD" },
@@ -2842,19 +2680,13 @@ const filterColumns = (columns, visibleColumns) => {
   });
 };
 
+
+
 const ACTION_MENU_ITEMS = [
   ["Print Claim", "Ctrl+P"],
   ["Rebill", "Ctrl+R"],
   ["Transfer Balance", "Ctrl+T"],
-  [
-    <>
-      Transfer patient balance to
-      <br />
-      patient responsibility
-    </>,
-    "Ctrl+Shift+T",
-    32,
-  ],
+  ["Bill patient", "Ctrl+Shift+T", 32],
   ["Note", "Ctrl+N"],
   ["Settle", "Ctrl+S"],
   ["Re-Open", "Ctrl+Shift+R"],
@@ -2862,7 +2694,17 @@ const ACTION_MENU_ITEMS = [
   ["Apply Payment", "Ctrl+Shift+A"],
   ["Adjustment", "Ctrl+J"],
   ["Apply Payment & Adjust", "Ctrl+Shift+J"],
-  ["Set Follow-up Date", "Ctrl+Shift+F"],
+  ["Follow Up ", "Ctrl+Shift+F"],
+
+  // Added actions from the Batch Action status dropdown
+  ["E-submit to primary"],
+  ["E-submit to secondary"],
+  ["E-submit to tertiary"],
+  ["Coding Review"],
+  ["Unknown"],
+  ["Add Remark"],
+  ["AR follow-up"],
+  ["Temporary Closed"],
 ];
 
 /* ================================================================== */
@@ -2874,7 +2716,7 @@ const PRE_CHIPS = [
   ["ready", "Ready To Bill", "Ready"],
   ["need", "Need Info", "Need Info"],
   ["processed", "Processed", "Processed"],
-  ["archived", "Archived", "Archived"],
+  ["Rejected", "Rejected", "Rejected"],
 ];
 
 const REMIT_CHIPS = [
@@ -2954,7 +2796,7 @@ function PreBillingClaim() {
 
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewMode, setViewMode] = useState("list");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("unbilled");
   const [postStatusFilter, setPostStatusFilter] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState({
     preBilling: false,
@@ -3223,39 +3065,72 @@ function PreBillingClaim() {
     setOcrProcessing(false);
   };
 
+  // const handleSaveERA = () => {
+  //   // Convert OCR results to remittance format and add to the top of the table
+  //   const newRemittanceRecords = ocrResults.map((result, index) => {
+  //     const newId =
+  //       Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
+  //     return {
+  //       id: newId,
+  //       remittanceId: result.claimNumber,
+  //       location: result.location || "GCH-IH",
+  //       Payor: result.payerName,
+  //       paymentMethod: result.paymentMethod || "Cheque",
+  //       eraEobType: "EOB", // Keep as EOB in the main table
+  //       chequeNumber: result.checkNumber,
+  //       amount: money(result.paidAmount),
+  //       checkDate: result.checkDate,
+  //       receivedDate: dayjs().format("MM/DD/YYYY"),
+  //       claimNumbers: 1,
+  //       unpostedAmount: money(result.adjustmentAmount),
+  //       status: result.status,
+  //     };
+  //   });
+
+
+  //       // Add new records to the top of the table
+  //   setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
+
+  //   // Show success message
+  //   alert(
+  //     `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
+  //   );
+
+  //   // Close dialog and reset
+  //   handleCloseOCR();
+  // };
+
   const handleSaveERA = () => {
-    // Convert OCR results to remittance format and add to the top of the table
-    const newRemittanceRecords = ocrResults.map((result, index) => {
-      const newId =
-        Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
-      return {
-        id: newId,
-        remittanceId: result.claimNumber,
-        location: result.location || "GCH-IH",
-        Payor: result.payerName,
-        paymentMethod: result.paymentMethod || "Cheque",
-        eraEobType: "EOB", // Keep as EOB in the main table
-        chequeNumber: result.checkNumber,
-        amount: money(result.paidAmount),
-        checkDate: result.checkDate,
-        receivedDate: dayjs().format("MM/DD/YYYY"),
-        claimNumbers: 1,
-        unpostedAmount: money(result.adjustmentAmount),
-        status: result.status,
-      };
-    });
+  // Convert OCR results to remittance format and add to the top of the table
+  const newRemittanceRecords = ocrResults.map((result, index) => {
+    const newId =
+      Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
+    return {
+      id: newId,
+      remittanceId: result.claimNumber,
+      location: result.location || "GCH-IH",
+      Payor: result.payerName,
+      paymentMethod: result.paymentMethod || "Cheque",
+      eraEobType: "EOB",
+      chequeNumber: result.checkNumber,
+      amount: money(result.paidAmount),
+      checkDate: result.checkDate,
+      receivedDate: dayjs().format("MM/DD/YYYY"),
+      claimNumbers: 1,
+      unpostedAmount: money(result.adjustmentAmount),
+      status: result.status,
+    };
+  });
 
-    // Add new records to the top of the table
-    setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
+  // Add new records to the top of the table
+  setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
 
-    // Show success message
-    alert(
-      `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
-    );
+  alert(
+    `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
+  );
 
-    // Close dialog and reset
-    handleCloseOCR();
-  };
+  handleCloseOCR();
+};
 
   const formatRemarkTime = (d = new Date()) => {
     const p = (n) => String(n).padStart(2, "0");
@@ -3307,7 +3182,7 @@ function PreBillingClaim() {
       setCurrentTab(tab);
       setSelectedRows([]);
       setSearchQuery("");
-      setStatusFilter("all");
+      setStatusFilter("unbilled");
       setPostStatusFilter("all");
       setRemittanceFilter("all");
       setViewMode("list");
@@ -3325,10 +3200,6 @@ function PreBillingClaim() {
     }
   }, [location.pathname]);
 
-  /* Additional Details */
-  const [adj, setAdj] = useState(EMPTY_ADJ);
-  const setAdjField = (key) => (value) =>
-    setAdj((prev) => ({ ...prev, [key]: value }));
 
   /* Remittance */
   const [remittanceFilter, setRemittanceFilter] = useState("all");
@@ -3340,6 +3211,24 @@ function PreBillingClaim() {
   });
   const [eraEobFilter, setEraEobFilter] = useState({ ERA: true, EOB: true });
   const [eraEobAnchor, setEraEobAnchor] = useState(null);
+
+  /* Mark selected ERA/EOB rows as "Mark as review" */
+const handleMarkAsReview = () => {
+  if (remittanceSelected.length === 0) {
+    alert("Please select at least one ERA/EOB record to mark as review.");
+    return;
+  }
+
+  setRemittanceRecords((prev) =>
+    prev.map((r) =>
+      remittanceSelected.includes(r.id)
+        ? { ...r, status: "Mark as review" }
+        : r,
+    ),
+  );
+
+  setRemittanceSelected([]);
+};
 
   // Save remittance records to localStorage whenever they change
   useEffect(() => {
@@ -3694,7 +3583,7 @@ function PreBillingClaim() {
 
   const advStatusOptions =
     currentTab === 0
-      ? ["Unbilled", "Ready", "Need Info", "Processed", "Archived"]
+      ? ["Unbilled", "Ready", "Need Info", "Processed", "Rejected"]
       : currentTab === 1
         ? [
             "Submitted",
@@ -3762,11 +3651,9 @@ function PreBillingClaim() {
   const bottomRef = useRef(null);
   const [tableAreaRef, tableH] = useFillHeight(
     bottomRef,
-    currentTab === 3 ? 28 : currentTab === 1 ? 8 : 16, // gap under the table
-    [
+   currentTab === 3 ? 28 : 16,    [
       currentTab,
       effectiveViewMode,
-      // viewMode,
       statementSubTab,
       showAdvancedFilters,
       hideTabsAndBanner,
@@ -5120,246 +5007,7 @@ function PreBillingClaim() {
             />
           </Box>
 
-          {/* Additional Details */}
-
-          <Box ref={bottomRef} sx={{ px: 2, pb: 0.25 }}>
-            <Box
-              sx={{
-                backgroundColor: "#FFFFFF",
-                borderRadius: "8px",
-                border: "1px solid #E5E7EB",
-                p: 1,
-                mt: 0.2,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#1E293B",
-                  mb: 0.5,
-                  lineHeight: 1.2,
-                }}
-              >
-                Additional Details
-              </Typography>
-
-              <Box
-                sx={{
-                  backgroundColor: "#F5F6FA",
-                  borderRadius: "6px",
-                  p: 0.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                    gap: 0.5,
-                    mb: 0.5,
-                    "& .MuiFormControl-root": {
-                      minWidth: 0,
-                      m: 0,
-                    },
-                    "& .MuiInputBase-root": {
-                      height: 28,
-                      minHeight: 28,
-                      fontSize: 10,
-                      borderRadius: "5px",
-                      backgroundColor: "#FFFFFF",
-                    },
-                    "& .MuiInputBase-input": {
-                      padding: "4px 6px",
-                      fontSize: 10,
-                      boxSizing: "border-box",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "4px 22px 4px 6px !important",
-                      fontSize: 10,
-                      minHeight: "unset !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: 10,
-                    },
-                    "& .MuiInputLabel-root.MuiInputLabel-shrink": {
-                      fontSize: 10,
-                    },
-                    "& .MuiSvgIcon-root": {
-                      fontSize: 15,
-                    },
-                  }}
-                >
-                  <AdjSelect
-                    label="Type"
-                    value={adj.type}
-                    onChange={setAdjField("type")}
-                    options={[
-                      ["adjustment1", "Adjustment Type 1"],
-                      ["adjustment2", "Adjustment Type 2"],
-                    ]}
-                  />
-
-                  <AdjText
-                    label="Posting Date"
-                    type="date"
-                    value={adj.postingDate}
-                    onChange={setAdjField("postingDate")}
-                  />
-
-                  <AdjText
-                    label="Adj"
-                    placeholder="Type here"
-                    value={adj.adjustment}
-                    onChange={setAdjField("adjustment")}
-                  />
-
-                  <AdjText
-                    label="Adj"
-                    placeholder="Type here"
-                    value={adj.code}
-                    onChange={setAdjField("code")}
-                  />
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                    gap: 0.5,
-                    mb: 0,
-                    "& .MuiFormControl-root": {
-                      minWidth: 0,
-                      m: 0,
-                    },
-                    "& .MuiInputBase-root": {
-                      height: 28,
-                      minHeight: 28,
-                      fontSize: 10,
-                      borderRadius: "5px",
-                      backgroundColor: "#FFFFFF",
-                    },
-                    "& .MuiInputBase-input": {
-                      padding: "4px 6px",
-                      fontSize: 10,
-                      boxSizing: "border-box",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "4px 22px 4px 6px !important",
-                      fontSize: 10,
-                      minHeight: "unset !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontSize: 10,
-                    },
-                    "& .MuiInputLabel-root.MuiInputLabel-shrink": {
-                      fontSize: 10,
-                    },
-                    "& .MuiSvgIcon-root": {
-                      fontSize: 15,
-                    },
-                  }}
-                >
-                  <AdjSelect
-                    label="Reason Code"
-                    value={adj.reasonCode}
-                    onChange={setAdjField("reasonCode")}
-                    options={[
-                      ["reason1", "Reason Code 1"],
-                      ["reason2", "Reason Code 2"],
-                    ]}
-                  />
-
-                  <AdjText
-                    label="Related payment"
-                    placeholder="Search"
-                    value={adj.relatedPayment}
-                    onChange={setAdjField("relatedPayment")}
-                    endIcon={<Search sx={{ fontSize: 12, color: "#111827" }} />}
-                  />
-
-                  <AdjSelect
-                    label="Status"
-                    value={adj.changeStatus}
-                    onChange={setAdjField("changeStatus")}
-                    options={[
-                      ["submitted", "Submitted"],
-                      ["ready", "Ready for statement"],
-                      ["settled", "Settled"],
-                    ]}
-                  />
-
-                  <AdjText
-                    label="Notes"
-                    placeholder="Type here"
-                    value={adj.notes}
-                    onChange={setAdjField("notes")}
-                  />
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: 0.5,
-                    mt: 0.5,
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    sx={{
-                      textTransform: "none",
-                      backgroundColor: "#0066FF",
-                      color: "#FFFFFF",
-                      fontWeight: 600,
-                      fontSize: 10,
-                      px: 1,
-                      py: 0.2,
-                      minWidth: 48,
-                      minHeight: 24,
-                      borderRadius: "5px",
-                      lineHeight: 1.2,
-                      boxShadow: "none",
-                      "&:hover": {
-                        backgroundColor: "#0052CC",
-                        boxShadow: "none",
-                      },
-                    }}
-                  >
-                    Apply
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    onClick={() => setAdj(EMPTY_ADJ)}
-                    sx={{
-                      textTransform: "none",
-                      color: "#0066FF",
-                      borderColor: "#0066FF",
-                      fontWeight: 600,
-                      fontSize: 10,
-                      px: 1,
-                      py: 0.2,
-                      minWidth: 48,
-                      minHeight: 24,
-                      borderRadius: "5px",
-                      lineHeight: 1.2,
-                      backgroundColor: "#FFFFFF",
-                      "&:hover": {
-                        borderColor: "#0052CC",
-                        backgroundColor: "#F5F9FF",
-                      },
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+        
         </Box>
       )}
 
@@ -5394,7 +5042,7 @@ function PreBillingClaim() {
 
 
             <Box sx={{ flex: 1 }} />
-
+{/* 
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button
@@ -5421,7 +5069,39 @@ function PreBillingClaim() {
               >
                 New Payment
               </Button>
-            </Box>
+            </Box> */}
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+  <ToolbarIcons onSettings={handleOpenColumnSettings} />
+
+  <Button
+    variant="outlined"
+    onClick={handleMarkAsReview}
+    sx={selectActionBtnSx}
+  >
+    Mark as Review
+  </Button>
+
+  <Button
+    variant="contained"
+    onClick={() => navigate("/new-payment")}
+    sx={{
+      textTransform: "none",
+      backgroundColor: "#0066ff",
+      color: "white",
+      fontWeight: 500,
+      fontSize: 11,
+      height: 28,
+      px: 1.75,
+      boxShadow: "none",
+      "&:hover": {
+        backgroundColor: "#0052cc",
+        boxShadow: "none",
+      },
+    }}
+  >
+    New Payment
+  </Button>
+</Box>
           </Box>
 
           <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
