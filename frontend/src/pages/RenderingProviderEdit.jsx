@@ -21,6 +21,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
 import { RPAddIcon, RPDeleteIcon, CalendarIcon } from "../assets/Assets";
+import { saveProvider } from "./RenderingProvider";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -265,6 +266,11 @@ function SelectField({
   onClose,
   error,
 }) {
+  /* keep the current value selectable even if it is not in `options`
+     (e.g. a practice list like "Hitex, Fresh" coming from the table) */
+  const opts =
+    value && !options.includes(value) ? [value, ...options] : options;
+
   return (
     <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
@@ -291,7 +297,7 @@ function SelectField({
             {placeholder}
           </MenuItem>
 
-          {options.map((o) => (
+          {opts.map((o) => (
             <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
               {o}
             </MenuItem>
@@ -492,6 +498,18 @@ function SectionBox({ children }) {
   );
 }
 
+/* Address text shown in the table: "Address 1, Address 2, City, State Zip" */
+const buildAddress = (f) => {
+  const stateZip = [f.state, f.zipCode]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return [f.address1, f.address2, f.city, stateZip]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
+};
+
 /* ------------------------------------------------------------------ */
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
@@ -502,9 +520,12 @@ export default function RenderingProviderEdit() {
   const row = routeState?.row ?? null;
   const isEdit = row !== null;
 
-  const [pcp, setPcp] = React.useState(true);
+  /* full form saved earlier (so re-opening a saved row shows every field) */
+  const saved = row?.details;
 
-  const [form, setForm] = React.useState({
+  const [pcp, setPcp] = React.useState(saved?.pcp ?? true);
+
+  const [form, setForm] = React.useState(() => ({
     firstName: row?.providerName?.split(" ")[0] ?? "",
     lastName: row?.providerName?.split(" ").slice(1).join(" ") ?? "",
     dateOfBirth: "",
@@ -529,17 +550,22 @@ export default function RenderingProviderEdit() {
     phone: "",
     fax: row?.fax ?? "",
     email: row?.email ?? "",
-  });
+    ...(saved?.form ?? {}),
+  }));
 
   /* touched mirrors ALL_REQUIRED keys */
   const [touched, setTouched] = React.useState({});
 
   /* ---------- Specialty & Taxonomy rows ---------- */
-  const [specialties, setSpecialties] = React.useState([
-    { id: 1, specialty: "", taxonomy: "" },
-  ]);
+  const [specialties, setSpecialties] = React.useState(() =>
+    saved?.specialties?.length
+      ? saved.specialties
+      : [{ id: 1, specialty: "", taxonomy: "" }],
+  );
   const [specTouched, setSpecTouched] = React.useState({});
-  const nextSpecId = React.useRef(2);
+  const nextSpecId = React.useRef(
+    Math.max(0, ...specialties.map((r) => r.id)) + 1,
+  );
 
   const addSpecialty = () =>
     setSpecialties((prev) => [
@@ -641,8 +667,20 @@ export default function RenderingProviderEdit() {
       }, 50);
       return;
     }
-    /* valid — submit form to API here */
-    console.log("Provider data:", { ...form, pcp, specialties });
+
+    /* valid -> save to the shared store (table updates), then go back */
+    saveProvider({
+      ...(isEdit ? { id: row.id } : {}),
+      providerName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+      address: buildAddress(form),
+      npi: form.npi.trim(),
+      fax: form.fax,
+      mobile: form.mobilePhone,
+      email: form.email,
+      practice: form.practice,
+      details: { form, pcp, specialties },
+    });
+    navigate(-1);
   };
 
   /* footer / header button look (same as NewPayment buttons) */

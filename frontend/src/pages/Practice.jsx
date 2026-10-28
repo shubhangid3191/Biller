@@ -394,6 +394,58 @@ const INITIAL_ROWS = SAMPLE.map(
 );
 
 /* ------------------------------------------------------------------ */
+/* Shared store (used by this page + PracticeEdit)                 */
+/* Edit page calls savePractice() -> this table updates automatically.   */
+/* Saved rows are kept in localStorage so they survive a refresh.       */
+/* Replace with your API calls later.                                   */
+/* ------------------------------------------------------------------ */
+const STORAGE_KEY = "practices:v1";
+
+const loadPractices = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+const persistPractices = (rows) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* storage full / blocked -> keep working in memory */
+  }
+};
+
+let storePractices = loadPractices() ?? INITIAL_ROWS;
+let nextPracticesId =
+  storePractices.reduce((m, p) => Math.max(m, p.id), -1) + 1;
+const listenersPractices = new Set();
+
+const subscribePractices = (l) => {
+  listenersPractices.add(l);
+  return () => listenersPractices.delete(l);
+};
+const getPractices = () => storePractices;
+
+export const usePractices = () =>
+  React.useSyncExternalStore(subscribePractices, getPractices, getPractices);
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
+export const savePractice = (row) => {
+  if (row.id !== undefined && row.id !== null) {
+    storePractices = storePractices.map((p) =>
+      p.id === row.id ? { ...p, ...row } : p,
+    );
+  } else {
+    storePractices = [{ ...row, id: nextPracticesId++ }, ...storePractices];
+  }
+  persistPractices(storePractices);
+  listenersPractices.forEach((l) => l());
+};
+
+/* ------------------------------------------------------------------ */
 /* Table columns                                                        */
 /* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
 /* (remove `sort` to disable sorting on a column)                       */
@@ -960,12 +1012,11 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 export default function Practice() {
   const navigate = useNavigate();
 
-  // rows in state so the Active checkbox works with the Status filter
-  const [rows, setRows] = React.useState(INITIAL_ROWS);
-  const toggleActive = (id) =>
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
-    );
+  // rows come from the shared store (Edit page saves into it)
+  const rows = usePractices();
+
+  // Active checkbox in the table -> saved to the store too
+  const toggleActive = (id, active) => savePractice({ id, active: !active });
 
   // search
   const [query, setQuery] = React.useState("");
@@ -1252,7 +1303,7 @@ export default function Practice() {
                   <TableCell sx={listCellSx}>
                     <Checkbox
                       checked={row.active}
-                      onChange={() => toggleActive(row.id)}
+                      onChange={() => toggleActive(row.id, row.active)}
                       size="small"
                       sx={{
                         p: 0,

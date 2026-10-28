@@ -16,6 +16,7 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RPDeleteIcon } from "../assets/Assets";
+import { saveLocation } from "./Locations";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -253,6 +254,11 @@ function SelectField({
   onClose,
   error,
 }) {
+  /* keep the current value selectable even if it is not in `options`
+     (e.g. a fax number coming from the table) */
+  const opts =
+    value && !options.includes(value) ? [value, ...options] : options;
+
   return (
     <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
@@ -279,7 +285,7 @@ function SelectField({
             {placeholder}
           </MenuItem>
 
-          {options.map((o) => (
+          {opts.map((o) => (
             <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
               {o}
             </MenuItem>
@@ -377,6 +383,18 @@ function SectionBox({ children }) {
   );
 }
 
+/* Address text shown in the table: "Address 1, Address 2, City, State Zip" */
+const buildAddress = (f) => {
+  const stateZip = [f.state, f.zipCode]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return [f.address1, f.addressLine2, f.city, stateZip]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
+};
+
 /* ------------------------------------------------------------------ */
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
@@ -387,9 +405,12 @@ export default function LocationsEdit() {
   const row = routeState?.row ?? null;
   const isEdit = row !== null;
 
+  /* full form saved earlier (so re-opening a saved row shows every field) */
+  const saved = row?.details;
+
   const [active, setActive] = React.useState(row?.active ?? true);
 
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState(() => ({
     locationName: row?.location ?? "",
     npi: row?.npi ?? "",
     cliaNumber: row?.contact ?? "",
@@ -407,9 +428,10 @@ export default function LocationsEdit() {
     state: "",
     country: "",
     county: "",
-    fax: "",
+    fax: row?.fax ?? "",
     email: "",
-  });
+    ...(saved?.form ?? {}),
+  }));
 
   /* touched mirrors the shape of ALL_REQUIRED */
   const [touched, setTouched] = React.useState({});
@@ -467,8 +489,21 @@ export default function LocationsEdit() {
       }, 50);
       return;
     }
-    /* valid — submit form to API here */
-    console.log("Location data:", { ...form, active });
+
+    /* valid -> save to the shared store (table updates), then go back.
+       (Practice has no field on this form, so an edited row keeps its
+       existing practice and a new row starts with an empty one.) */
+    saveLocation({
+      ...(isEdit ? { id: row.id } : { practice: "" }),
+      location: form.locationName.trim(),
+      address: buildAddress(form),
+      contact: form.mobile,
+      fax: form.fax,
+      npi: form.npi.trim(),
+      active,
+      details: { form },
+    });
+    navigate(-1);
   };
 
   /* footer button look (same as provider pages) */

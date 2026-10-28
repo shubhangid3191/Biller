@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { savePatient } from "./AllPatient";
 import {
   Box,
   Button,
@@ -803,8 +804,24 @@ function AddNewPatient() {
       }, 50);
       return;
     }
-    // TODO: API call
-    console.log("Patient data:", form);
+
+    // valid -> save to the shared store (All Patients table updates), then go back
+    const dob = parseDate(form.dateOfBirth);
+    const fin = form.fin.trim();
+    savePatient({
+      name: `${form.patientFirstName.trim()} ${form.patientLastName.trim()}`,
+      age: dob ? dayjs().diff(dob, "year") : 0,
+      gender: "Other", // this form has no gender field
+      location: form.location,
+      mrn: form.mrn.trim(),
+      patientId: `ID: ${fin || "NA"}`,
+      dob: dob ? dob.format("MM/DD/YYYY") : "",
+      physician:
+        form.primaryCarePhysician || form.admittingPhysician || form.provider,
+      alert: false,
+      details: { form },
+    });
+    navigate(-1);
   };
 
   const handleOk = (file) => {

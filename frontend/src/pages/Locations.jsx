@@ -393,6 +393,55 @@ const INITIAL_ROWS = SAMPLE.map(
 );
 
 /* ------------------------------------------------------------------ */
+/* Shared store (used by this page + LocationsEdit)                     */
+/* Edit page calls saveLocation() -> this table updates automatically.  */
+/* Replace with your API calls later.                                   */
+/* ------------------------------------------------------------------ */
+const STORAGE_KEY = "serviceLocations:v1";
+
+/* saved data survives a page refresh (browser localStorage) */
+const loadLocations = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+const persistLocations = (rows) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* storage full / blocked -> keep working in memory */
+  }
+};
+
+let locations = loadLocations() ?? INITIAL_ROWS;
+let nextLocationId = locations.reduce((m, p) => Math.max(m, p.id), -1) + 1;
+const locationListeners = new Set();
+
+const subscribeLocations = (l) => {
+  locationListeners.add(l);
+  return () => locationListeners.delete(l);
+};
+const getLocations = () => locations;
+
+export const useLocations = () =>
+  React.useSyncExternalStore(subscribeLocations, getLocations, getLocations);
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
+export const saveLocation = (row) => {
+  if (row.id !== undefined && row.id !== null) {
+    locations = locations.map((p) => (p.id === row.id ? { ...p, ...row } : p));
+  } else {
+    locations = [{ ...row, id: nextLocationId++ }, ...locations];
+  }
+  persistLocations(locations);
+  locationListeners.forEach((l) => l());
+};
+
+/* ------------------------------------------------------------------ */
 /* Table columns                                                        */
 /* sort: "alpha" = A-Z / Z-A, "number" = low-high / high-low            */
 /* (remove `sort` to disable sorting on a column)                       */
@@ -410,9 +459,10 @@ const COLUMNS = [
 
 const SORTABLE_COLUMNS = COLUMNS.filter((c) => c.sort);
 
-const PRACTICE_OPTIONS = [
-  ...new Set(INITIAL_ROWS.map((r) => r.practice).filter(Boolean)),
-].sort((a, b) => a.localeCompare(b));
+const getPracticeOptions = (rows) =>
+  [...new Set(rows.map((r) => r.practice).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b),
+  );
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
@@ -625,7 +675,14 @@ const hideScrollSx = {
 /* ------------------------------------------------------------------ */
 const EMPTY_DRAFT = { practice: "", status: "", sortBy: "", sortDir: "asc" };
 
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+function FilterSortDialog({
+  open,
+  onClose,
+  initial,
+  onApply,
+  onClear,
+  practiceOptions,
+}) {
   const [category, setCategory] = React.useState("practice");
   const [search, setSearch] = React.useState("");
   const [draft, setDraft] = React.useState(EMPTY_DRAFT);
@@ -651,7 +708,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
     ? SORT_ORDER_LABELS[selectedSortCol.sort]
     : SORT_ORDER_LABELS.alpha;
 
-  const practiceList = PRACTICE_OPTIONS.filter((opt) =>
+  const practiceList = practiceOptions.filter((opt) =>
     opt.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -1036,12 +1093,12 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 export default function Locations() {
   const navigate = useNavigate();
 
-  // rows in state so the Active checkbox toggles work with the Status filter
-  const [rows, setRows] = React.useState(INITIAL_ROWS);
-  const toggleActive = (id) =>
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
-    );
+  // rows come from the shared store (Edit page saves into it)
+  const rows = useLocations();
+  const practiceOptions = React.useMemo(() => getPracticeOptions(rows), [rows]);
+
+  // Active checkbox in the table -> saved to the store too
+  const toggleActive = (id, active) => saveLocation({ id, active: !active });
 
   // search
   const [query, setQuery] = React.useState("");
@@ -1334,7 +1391,7 @@ export default function Locations() {
                   <TableCell sx={listCellSx}>
                     <Checkbox
                       checked={row.active}
-                      onChange={() => toggleActive(row.id)}
+                      onChange={() => toggleActive(row.id, row.active)}
                       size="small"
                       sx={{
                         p: 0,
@@ -1398,6 +1455,7 @@ export default function Locations() {
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         initial={dialogInitial}
+        practiceOptions={practiceOptions}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />

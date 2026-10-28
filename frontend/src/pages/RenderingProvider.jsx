@@ -335,6 +335,55 @@ const ROWS = SAMPLE.map(
 );
 
 /* ------------------------------------------------------------------ */
+/* Shared store (used by this page + RenderingProviderEdit)             */
+/* Edit page calls saveProvider() -> this table updates automatically.  */
+/* Replace with your API calls later.                                   */
+/* ------------------------------------------------------------------ */
+const STORAGE_KEY = "renderingProviders:v1";
+
+/* saved data survives a page refresh (browser localStorage) */
+const loadProviders = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+const persistProviders = (rows) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* storage full / blocked -> keep working in memory */
+  }
+};
+
+let providers = loadProviders() ?? ROWS;
+let nextProviderId = providers.reduce((m, p) => Math.max(m, p.id), -1) + 1;
+const providerListeners = new Set();
+
+const subscribeProviders = (l) => {
+  providerListeners.add(l);
+  return () => providerListeners.delete(l);
+};
+const getProviders = () => providers;
+
+export const useProviders = () =>
+  React.useSyncExternalStore(subscribeProviders, getProviders, getProviders);
+
+/* row.id present -> update that row, otherwise add a new row on top */
+export const saveProvider = (row) => {
+  if (row.id !== undefined && row.id !== null) {
+    providers = providers.map((p) => (p.id === row.id ? { ...p, ...row } : p));
+  } else {
+    providers = [{ ...row, id: nextProviderId++ }, ...providers];
+  }
+  persistProviders(providers);
+  providerListeners.forEach((l) => l());
+};
+
+/* ------------------------------------------------------------------ */
 /* Table columns                                                        */
 /* (remove `sort` to disable sorting on a column)                       */
 /* ------------------------------------------------------------------ */
@@ -358,9 +407,10 @@ const splitPractices = (value) =>
     .map((p) => p.trim())
     .filter(Boolean);
 
-const PRACTICE_OPTIONS = [
-  ...new Set(ROWS.flatMap((r) => splitPractices(r.practice))),
-].sort((a, b) => a.localeCompare(b));
+const getPracticeOptions = (rows) =>
+  [...new Set(rows.flatMap((r) => splitPractices(r.practice)))].sort((a, b) =>
+    a.localeCompare(b),
+  );
 
 /* ------------------------------------------------------------------ */
 /* Search + filter helper                                               */
@@ -1132,7 +1182,14 @@ const hideScrollSx = {
 /* ------------------------------------------------------------------ */
 const EMPTY_DRAFT = { practice: "", sortBy: "", sortDir: "asc" };
 
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+function FilterSortDialog({
+  open,
+  onClose,
+  initial,
+  onApply,
+  onClear,
+  practiceOptions,
+}) {
   const [category, setCategory] = React.useState("practice");
   const [search, setSearch] = React.useState("");
   const [draft, setDraft] = React.useState(EMPTY_DRAFT);
@@ -1157,7 +1214,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
     ? SORT_ORDER_LABELS[selectedSortCol.sort]
     : SORT_ORDER_LABELS.alpha;
 
-  const practiceList = PRACTICE_OPTIONS.filter((opt) =>
+  const practiceList = practiceOptions.filter((opt) =>
     opt.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -1525,9 +1582,13 @@ export default function RenderingProvider() {
   const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
 
   // 1) filter (search + practice)  2) sort  3) slice for the current page
+  const rows = useProviders();
+
+  const practiceOptions = React.useMemo(() => getPracticeOptions(rows), [rows]);
+
   const filteredRows = React.useMemo(
-    () => filterRows(ROWS, query, practiceFilter),
-    [query, practiceFilter],
+    () => filterRows(rows, query, practiceFilter),
+    [rows, query, practiceFilter],
   );
 
   const { sort, setSort, sortedRows, handleSort } = useSortedRows(
@@ -1852,6 +1913,7 @@ export default function RenderingProvider() {
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         initial={dialogInitial}
+        practiceOptions={practiceOptions}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />

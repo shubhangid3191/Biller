@@ -431,6 +431,55 @@ const ROWS = SAMPLE.map(
 );
 
 /* ------------------------------------------------------------------ */
+/* Shared store (used by this page + FeeConfiguration)                 */
+/* Edit page calls saveFee() -> this table updates automatically.   */
+/* Saved rows are kept in localStorage so they survive a refresh.       */
+/* Replace with your API calls later.                                   */
+/* ------------------------------------------------------------------ */
+const STORAGE_KEY = "feeSchedule:v1";
+
+const loadFees = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+const persistFees = (rows) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* storage full / blocked -> keep working in memory */
+  }
+};
+
+let storeFees = loadFees() ?? ROWS;
+let nextFeesId = storeFees.reduce((m, p) => Math.max(m, p.id), -1) + 1;
+const listenersFees = new Set();
+
+const subscribeFees = (l) => {
+  listenersFees.add(l);
+  return () => listenersFees.delete(l);
+};
+const getFees = () => storeFees;
+
+export const useFees = () =>
+  React.useSyncExternalStore(subscribeFees, getFees, getFees);
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
+export const saveFee = (row) => {
+  if (row.id !== undefined && row.id !== null) {
+    storeFees = storeFees.map((p) => (p.id === row.id ? { ...p, ...row } : p));
+  } else {
+    storeFees = [{ ...row, id: nextFeesId++ }, ...storeFees];
+  }
+  persistFees(storeFees);
+  listenersFees.forEach((l) => l());
+};
+
+/* ------------------------------------------------------------------ */
 /* Table columns                                                        */
 /* sort: "alpha" = A-Z, "number" = low-high, "date" = start date        */
 /* (remove `sort` to disable sorting on a column)                       */
@@ -460,14 +509,15 @@ const FILTER_CATEGORIES = [
   { key: "typeOfService", label: "Type of Service" },
 ];
 
-const FILTER_OPTIONS = Object.fromEntries(
-  FILTER_CATEGORIES.map(({ key }) => [
-    key,
-    [...new Set(ROWS.map((r) => r[key]).filter((v) => v && v !== "-"))].sort(
-      (a, b) => a.localeCompare(b),
-    ),
-  ]),
-);
+const getFilterOptions = (rows) =>
+  Object.fromEntries(
+    FILTER_CATEGORIES.map(({ key }) => [
+      key,
+      [...new Set(rows.map((r) => r[key]).filter((v) => v && v !== "-"))].sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    ]),
+  );
 
 const EMPTY_FILTERS = {
   practice: "",
@@ -720,7 +770,14 @@ const hideScrollSx = {
 /* ------------------------------------------------------------------ */
 const EMPTY_DRAFT = { ...EMPTY_FILTERS, sortBy: "", sortDir: "asc" };
 
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+function FilterSortDialog({
+  open,
+  onClose,
+  initial,
+  onApply,
+  onClear,
+  filterOptions,
+}) {
   const [category, setCategory] = React.useState("practice");
   const [search, setSearch] = React.useState("");
   const [draft, setDraft] = React.useState(EMPTY_DRAFT);
@@ -746,7 +803,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
   const activeFilterCat = FILTER_CATEGORIES.find((c) => c.key === category);
 
   const optionList = activeFilterCat
-    ? FILTER_OPTIONS[category].filter((opt) =>
+    ? filterOptions[category].filter((opt) =>
         opt.toLowerCase().includes(search.toLowerCase()),
       )
     : [];
@@ -1121,9 +1178,13 @@ export default function Fee() {
   const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
 
   // 1) filter (search + dropdown filters)  2) sort  3) slice for the current page
+  const rows = useFees();
+
+  const filterOptions = React.useMemo(() => getFilterOptions(rows), [rows]);
+
   const filteredRows = React.useMemo(
-    () => filterRows(ROWS, query, filters),
-    [query, filters],
+    () => filterRows(rows, query, filters),
+    [rows, query, filters],
   );
 
   const { sort, setSort, sortedRows, handleSort } = useSortedRows(
@@ -1474,6 +1535,7 @@ export default function Fee() {
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         initial={dialogInitial}
+        filterOptions={filterOptions}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />

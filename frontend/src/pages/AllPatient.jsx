@@ -393,9 +393,62 @@ const createRows = () =>
 
 /* Unique physician list derived from rows */
 const ALL_ROWS = createRows();
-const PHYSICIAN_OPTIONS = [...new Set(ALL_ROWS.map((r) => r.physician))].sort(
-  (a, b) => a.localeCompare(b),
-);
+
+/* ------------------------------------------------------------------ */
+/* Shared store (used by this page + AddNewPatient)                     */
+/* AddNewPatient calls savePatient() -> this table updates automatically.*/
+/* Saved rows are kept in localStorage so they survive a refresh.       */
+/* Replace with your API calls later.                                   */
+/* ------------------------------------------------------------------ */
+const STORAGE_KEY = "allPatients:v1";
+
+const loadPatients = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+const persistPatients = (rows) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* storage full / blocked -> keep working in memory */
+  }
+};
+
+let storePatients = loadPatients() ?? ALL_ROWS;
+let nextPatientId = storePatients.reduce((m, p) => Math.max(m, p.id), -1) + 1;
+const listenersPatients = new Set();
+
+const subscribePatients = (l) => {
+  listenersPatients.add(l);
+  return () => listenersPatients.delete(l);
+};
+const getPatients = () => storePatients;
+
+export const usePatients = () =>
+  React.useSyncExternalStore(subscribePatients, getPatients, getPatients);
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
+export const savePatient = (row) => {
+  if (row.id !== undefined && row.id !== null) {
+    storePatients = storePatients.map((p) =>
+      p.id === row.id ? { ...p, ...row } : p,
+    );
+  } else {
+    storePatients = [{ ...row, id: nextPatientId++ }, ...storePatients];
+  }
+  persistPatients(storePatients);
+  listenersPatients.forEach((l) => l());
+};
+
+const getPhysicianOptions = (rows) =>
+  [...new Set(rows.map((r) => r.physician).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b),
+  );
 
 const toTime = (s) => {
   const t = new Date(s).getTime();
@@ -611,7 +664,14 @@ const hideScrollSx = {
 
 const EMPTY_DRAFT = { physician: "", gender: "", sortBy: "", sortDir: "asc" };
 
-function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
+function FilterSortDialog({
+  open,
+  onClose,
+  initial,
+  onApply,
+  onClear,
+  physicianOptions,
+}) {
   const [category, setCategory] = React.useState("physician");
   const [draft, setDraft] = React.useState(EMPTY_DRAFT);
   const [phSearch, setPhSearch] = React.useState("");
@@ -641,7 +701,7 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
     ? SORT_ORDER_LABELS[selectedSortCol.sort]
     : SORT_ORDER_LABELS.alpha;
 
-  const filteredPhysicians = PHYSICIAN_OPTIONS.filter((p) =>
+  const filteredPhysicians = physicianOptions.filter((p) =>
     p.toLowerCase().includes(phSearch.toLowerCase()),
   );
 
@@ -1498,7 +1558,9 @@ export default function AllPatients() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(PAGE_SIZES[0]);
 
-  const rows = React.useMemo(() => ALL_ROWS, []);
+  // rows come from the shared store (AddNewPatient saves into it)
+  const rows = usePatients();
+  const physicianOptions = React.useMemo(() => getPhysicianOptions(rows), [rows]);
 
   /* 1) search + filter  2) sort */
   const visibleRows = React.useMemo(() => {
@@ -1658,6 +1720,7 @@ export default function AllPatients() {
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         initial={dialogInitial}
+        physicianOptions={physicianOptions}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />

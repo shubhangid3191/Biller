@@ -23,6 +23,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { CalendarIcon } from "../assets/Assets";
+import { saveFee } from "./Fee";
 
 dayjs.extend(customParseFormat);
 
@@ -60,6 +61,21 @@ const parseDate = (v) => {
   if (!v || v.length !== 10) return null;
   const d = dayjs(v, DATE_FORMAT, true);
   return d.isValid() ? d : null;
+};
+
+/* The table shows dates as YYYY-MM-DD (so it can sort them);
+   the form uses MM-DD-YYYY. Convert between the two. */
+const TABLE_DATE_FORMAT = "YYYY-MM-DD";
+
+const toTableDate = (v) => {
+  const d = parseDate(v);
+  return d ? d.format(TABLE_DATE_FORMAT) : String(v ?? "");
+};
+
+const fromTableDate = (v) => {
+  const s = String(v ?? "").trim();
+  const d = dayjs(s, TABLE_DATE_FORMAT, true);
+  return d.isValid() ? d.format(DATE_FORMAT) : s;
 };
 
 /* Required text / input fields */
@@ -258,6 +274,11 @@ function SelectField({
   onClose,
   error,
 }) {
+  /* keep the current value selectable even if it is not in `options`
+     (e.g. a value coming from the table) */
+  const opts =
+    value && !options.includes(value) ? [value, ...options] : options;
+
   return (
     <Box sx={{ minWidth: 0 }}>
       <Label required={required}>{label}</Label>
@@ -284,7 +305,7 @@ function SelectField({
             {placeholder}
           </MenuItem>
 
-          {options.map((o) => (
+          {opts.map((o) => (
             <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
               {o}
             </MenuItem>
@@ -490,9 +511,14 @@ export default function FeeConfiguration() {
   const row = routeState?.row ?? null;
   const isEdit = row !== null;
 
-  const [nonCovered, setNonCovered] = React.useState(false);
+  /* full form saved earlier (so re-opening a saved row shows every field) */
+  const saved = row?.details;
 
-  const [form, setForm] = React.useState({
+  const [nonCovered, setNonCovered] = React.useState(
+    saved?.nonCovered ?? false,
+  );
+
+  const [form, setForm] = React.useState(() => ({
     cpt: row?.cpt ?? "",
     description: row?.description ?? "",
     modifier1: row?.modifiers ?? "",
@@ -505,8 +531,8 @@ export default function FeeConfiguration() {
     ndcLabel: "",
     ndcUnitBasis: "",
     ndcDefaultUnit: "",
-    effectiveDate: row?.effectiveDate?.split(" - ")[0] ?? "",
-    expiryDate: row?.effectiveDate?.split(" - ")[1] ?? "",
+    effectiveDate: fromTableDate(row?.effectiveDate?.split(" - ")[0]),
+    expiryDate: fromTableDate(row?.effectiveDate?.split(" - ")[1]),
     /* selects */
     practice: row?.practice ?? "",
     specialty: row?.specialty ?? "",
@@ -514,7 +540,8 @@ export default function FeeConfiguration() {
     program: row?.program ?? "",
     posCode: "",
     ndcCode: "",
-  });
+    ...(saved?.form ?? {}),
+  }));
 
   /* touched mirrors ALL_REQUIRED keys */
   const [touched, setTouched] = React.useState({});
@@ -570,8 +597,32 @@ export default function FeeConfiguration() {
       }, 50);
       return;
     }
-    /* valid — submit form to API here */
-    console.log("Fee config data:", { ...form, nonCovered });
+
+    /* valid -> save to the shared store (table updates), then go back */
+    const charge = form.charge.trim();
+    const dates = [form.effectiveDate, form.expiryDate]
+      .filter((d) => String(d ?? "").trim())
+      .map(toTableDate)
+      .join(" - ");
+
+    saveFee({
+      ...(isEdit ? { id: row.id } : {}),
+      practice: form.practice,
+      cpt: form.cpt.trim(),
+      description: form.description.trim(),
+      specialty: form.specialty,
+      typeOfService: form.typeOfService,
+      modifiers:
+        [form.modifier1, form.modifier2, form.modifier3, form.modifier4]
+          .map((m) => String(m ?? "").trim())
+          .filter(Boolean)
+          .join(", ") || "-",
+      program: form.program,
+      effectiveDate: dates,
+      charge: /^\$/.test(charge) ? charge : `$${charge}`,
+      details: { form, nonCovered },
+    });
+    navigate(-1);
   };
 
   /* footer button look (same as provider pages) */

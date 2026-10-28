@@ -23,6 +23,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { RPDeleteIcon, FileUploadOutlinedIcon } from "../assets/Assets";
+import { savePractice } from "./Practice";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -542,50 +543,33 @@ function UploadBox({ label, hint, file, onSelect, onRemove }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Address table rows                                                  */
+/* Address table                                                       */
 /* ------------------------------------------------------------------ */
 
-const addrRows = [
-  {
-    type: "Billing",
-    addr1: "Prac1bill",
-    addr2: "Prac2bill",
-    zip: "15232-1545",
-    city: "Washington",
-    country: "USA",
-    state: "Arizona",
-    county: "Alpine",
-    phone: "(599) 966-666",
-    fax: "(120) 200-000",
-    email: "billprac@ttest",
-  },
-  {
-    type: "Mailing",
-    addr1: "Prac1bill",
-    addr2: "Prac2bill",
-    zip: "15232-1545",
-    city: "Washington",
-    country: "USA",
-    state: "Arizona",
-    county: "Alpine",
-    phone: "(599) 966-666",
-    fax: "(120) 200-000",
-    email: "billprac@ttest",
-  },
-  {
-    type: "Billing",
-    addr1: "Prac1bill",
-    addr2: "Prac2bill",
-    zip: "15232-1545",
-    city: "Washington",
-    country: "USA",
-    state: "Arizona",
-    county: "Alpine",
-    phone: "(599) 966-666",
-    fax: "(120) 200-000",
-    email: "billprac@ttest",
-  },
+/* first row shown on the page (and used as a template when the list is empty) */
+const DEFAULT_ADDRESS = {
+  type: "Billing",
+  addr1: "Prac1bill",
+  addr2: "Prac2bill",
+  zip: "15232-1545",
+  city: "Washington",
+  country: "USA",
+  state: "Arizona",
+  county: "Alpine",
+  phone: "(599) 966-666",
+  fax: "(120) 200-000",
+  email: "billprac@ttest",
+};
+
+const INITIAL_ADDRESSES = [
+  { ...DEFAULT_ADDRESS },
+  { ...DEFAULT_ADDRESS, type: "Mailing" },
+  { ...DEFAULT_ADDRESS },
 ];
+
+const TYPE_OPTIONS = ["Billing", "Mailing"];
+const STATE_OPTIONS = ["Arizona", "California", "Texas"];
+const COUNTY_OPTIONS = ["Alpine", "Barry", "Clark"];
 
 const addrCols = [
   "TYPE",
@@ -625,6 +609,40 @@ const bodyCellSx = {
   whiteSpace: "nowrap",
 };
 
+/* dropdown used inside the address table (controlled) */
+function TblSelect({ value, options, onChange }) {
+  return (
+    <FormControl fullWidth size="small">
+      <Select
+        value={value}
+        onChange={onChange}
+        sx={tblSelectSx}
+        IconComponent={KeyboardArrowDownIcon}
+      >
+        {options.map((o) => (
+          <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
+            {o}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+/* Address text shown in the table: "Address 1, Address 2, City, State Zip" */
+const buildAddress = (a = {}) => {
+  const stateZip = [a.state, a.zip]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return [a.addr1, a.addr2, a.city, stateZip]
+    .map((s) => String(s ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
+};
+
+const onlyDigits = (s) => String(s ?? "").replace(/\D/g, "");
+
 /* ------------------------------------------------------------------ */
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
@@ -635,13 +653,16 @@ export default function PracticeEdit() {
   const row = routeState?.row ?? null;
   const isEdit = row !== null;
 
+  /* full form saved earlier (so re-opening a saved row shows every field) */
+  const saved = row?.details;
+
   const [active, setActive] = React.useState(row?.active ?? true);
 
   /* uploaded files (File objects from the device) */
   const [logoFile, setLogoFile] = React.useState(null);
   const [qrFile, setQrFile] = React.useState(null);
 
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState(() => ({
     practiceName: row?.practice ?? "",
     practiceCode: "",
     npi: row?.npi ?? "",
@@ -654,10 +675,58 @@ export default function PracticeEdit() {
     patientStatement: "",
     billingPhone: row?.contact ?? "",
     extension: "",
-  });
+    ...(saved?.form ?? {}),
+  }));
 
   /* touched mirrors ALL_REQUIRED keys */
   const [touched, setTouched] = React.useState({});
+
+  /* ---------- address rows (+ adds a row, delete icon removes it) ---------- */
+  const [addresses, setAddresses] = React.useState(() => {
+    /* saved earlier -> restore exactly */
+    if (saved?.addresses) return saved.addresses;
+    /* existing table row that was never edited here -> one line from the table values */
+    if (isEdit)
+      return [
+        {
+          id: 1,
+          type: "Billing",
+          addr1: row.address ?? "",
+          addr2: "",
+          zip: "",
+          city: "",
+          country: "",
+          state: "",
+          county: "",
+          phone: row.workPhone ?? "",
+          fax: row.fax ?? "",
+          email: "",
+        },
+      ];
+    /* new practice -> default template rows */
+    return INITIAL_ADDRESSES.map((a, i) => ({ id: i + 1, ...a }));
+  });
+  const nextAddrId = React.useRef(
+    Math.max(0, ...addresses.map((a) => a.id)) + 1,
+  );
+
+  /* adds the same line again (a copy of the last row) */
+  const addAddress = () =>
+    setAddresses((prev) => {
+      const last = prev[prev.length - 1];
+      const { id: _ignored, ...values } = last || DEFAULT_ADDRESS;
+      return [...prev, { ...values, id: nextAddrId.current++ }];
+    });
+
+  const deleteAddress = (id) =>
+    setAddresses((prev) => prev.filter((a) => a.id !== id));
+
+  const updateAddress = (id, key) => (e) => {
+    const val = e.target.value;
+    setAddresses((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, [key]: val } : a)),
+    );
+  };
 
   /* ---------- helpers ---------- */
   const set = (field) => (e) =>
@@ -703,14 +772,23 @@ export default function PracticeEdit() {
       return;
     }
 
-    /* valid — submit to API here. For the files use FormData, e.g.:
-         const fd = new FormData();
-         Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-         fd.append("active", active);
-         if (logoFile) fd.append("logo", logoFile);
-         if (qrFile) fd.append("qr", qrFile);
-    */
-    console.log("Practice data:", { ...form, active, logoFile, qrFile });
+    /* valid -> save to the shared store (table updates), then go back.
+       Table columns come from the first address line:
+       Address / Work Phone / Fax.  Logo & QR files are not stored
+       (File objects can't be kept) - upload them with FormData to your API. */
+    const first = addresses[0] ?? {};
+    savePractice({
+      ...(isEdit ? { id: row.id } : {}),
+      practice: form.practiceName.trim(),
+      address: buildAddress(first),
+      contact: form.billingPhone,
+      workPhone: onlyDigits(first.phone),
+      fax: onlyDigits(first.fax),
+      npi: form.npi.trim(),
+      active,
+      details: { form, addresses },
+    });
+    navigate(-1);
   };
 
   /* footer button look (same as provider pages) */
@@ -957,6 +1035,7 @@ export default function PracticeEdit() {
               <IconButton
                 size="small"
                 aria-label="Add address"
+                onClick={addAddress}
                 sx={{
                   bgcolor: "#EEF4FF",
                   width: 26,
@@ -1009,9 +1088,9 @@ export default function PracticeEdit() {
               </TableHead>
 
               <TableBody>
-                {addrRows.map((addr, i) => (
+                {addresses.map((addr) => (
                   <TableRow
-                    key={i}
+                    key={addr.id}
                     hover
                     sx={{
                       "&:hover": { bgcolor: "#FAFBFE" },
@@ -1020,19 +1099,11 @@ export default function PracticeEdit() {
                   >
                     {/* TYPE */}
                     <TableCell sx={bodyCellSx}>
-                      <FormControl fullWidth size="small">
-                        <Select
-                          defaultValue={addr.type}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
-                        >
-                          {["Billing", "Mailing"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
-                              {o}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <TblSelect
+                        value={addr.type}
+                        options={TYPE_OPTIONS}
+                        onChange={updateAddress(addr.id, "type")}
+                      />
                     </TableCell>
 
                     {/* ADDRESS 1, ADDRESS 2, ZIP, CITY, COUNTRY */}
@@ -1041,7 +1112,8 @@ export default function PracticeEdit() {
                         <TextField
                           size="small"
                           fullWidth
-                          defaultValue={addr[k]}
+                          value={addr[k]}
+                          onChange={updateAddress(addr.id, k)}
                           sx={tblInputSx}
                         />
                       </TableCell>
@@ -1049,36 +1121,20 @@ export default function PracticeEdit() {
 
                     {/* STATE */}
                     <TableCell sx={bodyCellSx}>
-                      <FormControl fullWidth size="small">
-                        <Select
-                          defaultValue={addr.state}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
-                        >
-                          {["Arizona", "California", "Texas"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
-                              {o}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <TblSelect
+                        value={addr.state}
+                        options={STATE_OPTIONS}
+                        onChange={updateAddress(addr.id, "state")}
+                      />
                     </TableCell>
 
                     {/* COUNTY */}
                     <TableCell sx={bodyCellSx}>
-                      <FormControl fullWidth size="small">
-                        <Select
-                          defaultValue={addr.county}
-                          sx={tblSelectSx}
-                          IconComponent={KeyboardArrowDownIcon}
-                        >
-                          {["Alpine", "Barry", "Clark"].map((o) => (
-                            <MenuItem key={o} value={o} sx={{ fontSize: 11 }}>
-                              {o}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <TblSelect
+                        value={addr.county}
+                        options={COUNTY_OPTIONS}
+                        onChange={updateAddress(addr.id, "county")}
+                      />
                     </TableCell>
 
                     {/* PHONE, FAX, E-MAIL */}
@@ -1087,7 +1143,8 @@ export default function PracticeEdit() {
                         <TextField
                           size="small"
                           fullWidth
-                          defaultValue={addr[k]}
+                          value={addr[k]}
+                          onChange={updateAddress(addr.id, k)}
                           sx={tblInputSx}
                         />
                       </TableCell>
@@ -1104,6 +1161,7 @@ export default function PracticeEdit() {
                       <IconButton
                         size="small"
                         aria-label="Delete address"
+                        onClick={() => deleteAddress(addr.id)}
                         sx={{ p: "4px", "&:hover": { bgcolor: "#EEF4FF" } }}
                       >
                         <RPDeleteIcon
@@ -1115,6 +1173,24 @@ export default function PracticeEdit() {
                     </TableCell>
                   </TableRow>
                 ))}
+
+                {/* empty state (all rows deleted) */}
+                {addresses.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={addrCols.length}
+                      align="center"
+                      sx={{
+                        py: 3,
+                        fontSize: 12,
+                        color: "#6B7280",
+                        borderBottom: "none",
+                      }}
+                    >
+                      No address added. Click + to add one.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
