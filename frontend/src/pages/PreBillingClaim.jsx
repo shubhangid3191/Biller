@@ -2178,7 +2178,7 @@ const REMIT_COLUMNS = [
           justifyContent: "center",
         }}
       >
-        <Tooltip title="Refresh/Sync" placement="top">
+        <Tooltip title="Details" placement="top">
           <IconButton
             size="small"
             onClick={() => ctx.onShowEob(r)}
@@ -2363,8 +2363,8 @@ const NEW_STMT_COLUMNS = [
       color: r.negative ? "#DC2626" : "#1F2937",
       backgroundColor: selBodyBg,
     }),
-    render: (r, ctx) =>
-      ctx.selectedIds.includes(r.id) ? (r.selectedBalance ?? r.balance) : "—",
+    // Always visible (same as the other columns), no longer depends on row selection
+    render: (r) => r.selectedBalance ?? r.balance,
   },
   {
     id: "alert",
@@ -3258,7 +3258,7 @@ const handleMarkAsReview = () => {
     });
 
   const handleShowEobDetails = (remittance) =>
-    navigate(`/remittance-era-edit/${remittance.id}`, {
+    navigate(`/remittance-era-details/${remittance.id}`, {
       state: { remittance },
     });
 
@@ -3283,7 +3283,7 @@ const handleMarkAsReview = () => {
 
   const handleSendStatement = () => {
     if (!sendMethod) {
-      alert("Please choose Send via SMS or Send via Email first.");
+      alert("Please choose Send SMS or Send Email first.");
       return;
     }
 
@@ -5289,6 +5289,7 @@ const handleMarkAsReview = () => {
                 Fewer [#] statements since last payment
               </Button>
 
+              {/* "Reachable via" filter: shows only patients who have an email / phone on file */}
               <Button
                 variant="outlined"
                 sx={{
@@ -5303,10 +5304,10 @@ const handleMarkAsReview = () => {
                 onClick={(e) => setContactMenuAnchor(e.currentTarget)}
               >
                 {contactFilter === "email"
-                  ? "Contact via email"
+                  ? "Reachable: Email"
                   : contactFilter === "phone"
-                    ? "Contact via SMS"
-                    : "Contact"}
+                    ? "Reachable: Phone"
+                    : "Reachable via"}
               </Button>
               <Menu
                 anchorEl={contactMenuAnchor}
@@ -5322,8 +5323,8 @@ const handleMarkAsReview = () => {
                 }}
               >
                 {[
-                  ["Contact via email", "email"],
-                  ["Contact via SMS", "phone"],
+                  ["Email", "email"],
+                  ["Phone", "phone"],
                 ].map(([label, value]) => (
                   <MenuItem
                     key={value}
@@ -5534,9 +5535,9 @@ const handleMarkAsReview = () => {
                 }}
               >
                 {sendMethod === "sms"
-                  ? "Send via SMS"
+                  ? "Send SMS"
                   : sendMethod === "email"
-                    ? "Send via Email"
+                    ? "Send Email"
                     : "Select action"}
               </Button>
 
@@ -5556,8 +5557,8 @@ const handleMarkAsReview = () => {
                 }}
               >
                 {[
-                  ["Send via SMS", "sms"],
-                  ["Send via Email", "email"],
+                  ["Send SMS", "sms"],
+                  ["Send Email", "email"],
                 ].map(([label, value]) => (
                   <MenuItem
                     key={value}

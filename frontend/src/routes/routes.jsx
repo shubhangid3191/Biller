@@ -405,7 +405,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/remittance-era-edit/:id"
+        path="/remittance-era-details/:id"
         element={
           <ProtectedRoute>
             <RemittanceERAEdit />

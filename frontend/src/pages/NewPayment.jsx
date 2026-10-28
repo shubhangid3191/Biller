@@ -519,7 +519,7 @@ export default function NewPayment() {
             />
           </Box>
           <Box>
-            <Typography sx={labelSx}>Type</Typography>
+            <Typography sx={labelSx}>Payor Type</Typography>
             <FormControl fullWidth size="small" sx={inputSx}>
               <Select
                 value={type}
