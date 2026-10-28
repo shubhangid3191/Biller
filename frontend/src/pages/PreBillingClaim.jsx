@@ -2208,42 +2208,39 @@ const iconCellSx = { color: "#4B5563", px: 0 };
 const NEW_STMT_COLUMNS = [
 
 
-    {
-    id: "name",
-    label: "Patient Name",
-    sort: "alpha",
-    center: true,
-    cellSx: {
-      fontWeight: 600,
-      minWidth: 200,
-      maxWidth: 260,
-      whiteSpace: "normal",
-      wordWrap: "break-word",
-    },
-    render: (r) => (
+{
+  id: "name",
+  label: "Patient Name",
+  // sort: "alpha",
+  center: false,
+  headSx: { width: 140, minWidth: 140, pl: 1 },
+  cellSx: { fontWeight: 600, width: 140, minWidth: 140, maxWidth: 140, pl: 1 },
+  render: (r) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
+        columnGap: 0.75,
+        minWidth: 0,
+      }}
+    >
       <Box
+        component="span"
         sx={{
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: 20,
-          // equal space on both sides so the name is truly centered
-          px: "42px",
+          minWidth: 0,
+          textAlign: "left",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
-        {/* icons packed to the left, right after the checkbox */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: 0,
-            top: "50%",
-            transform: "translateY(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: 0.6,
-          }}
-        >
+        {r.name}
+      </Box>
+
+      {(r.hasEmail || r.hasPhone) && (
+        <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
           {r.hasEmail && (
             <Tooltip title="Email available" placement="top">
               <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
@@ -2255,11 +2252,10 @@ const NEW_STMT_COLUMNS = [
             </Tooltip>
           )}
         </Box>
-
-        <span>{r.name}</span>
-      </Box>
-    ),
-  },
+      )}
+    </Box>
+  ),
+},
   {
     id: "pid",
     label: "ID",
@@ -5380,8 +5376,8 @@ const handleMarkAsReview = () => {
                   borderBottom: "none",
                 })}
                 cbSx={checkboxSx}
-                checkHeadSx={{ pl: 1.5 }}
-                checkCellSx={{ pl: 1.5 }}
+                checkHeadSx={{ pl: 2.5 }}
+                checkCellSx={{ pl: 2.5 }}
                 highlightSelected={false}
               />
             ) : (
