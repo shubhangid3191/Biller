@@ -32,7 +32,8 @@ const thinScroll = {
 /* ------------------------------------------------------------------ */
 
 const REQUIRED_FIELDS = {
-  programName: "Program Name",
+  firstName: "First Name",
+  lastName: "Last Name",
   description: "Description",
 };
 
@@ -188,6 +189,24 @@ function SectionBox({ children }) {
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
 
+/* Name format used in the table: "Surname, First"  (e.g. "Dolare, Shubhangi")
+   splitName  : table value  -> First Name / Last Name fields
+   formatName : First / Last -> table value                              */
+const splitName = (full) => {
+  const s = String(full ?? "").trim();
+  if (s.includes(",")) {
+    const [last, ...rest] = s.split(",");
+    return { firstName: rest.join(",").trim(), lastName: last.trim() };
+  }
+  const parts = s.split(/\s+/).filter(Boolean);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+};
+
+const formatName = (first, last) =>
+  [String(last ?? "").trim(), String(first ?? "").trim()]
+    .filter(Boolean)
+    .join(", ");
+
 export default function ProgramEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
@@ -195,7 +214,7 @@ export default function ProgramEdit() {
   const isEdit = row !== null;
 
   const [form, setForm] = React.useState({
-    programName: row?.programName ?? "",
+    ...splitName(row?.programName),
     description: row?.description ?? "",
     cpt: row?.cpt ?? "",
   });
@@ -245,7 +264,11 @@ export default function ProgramEdit() {
         state: {
           result: {
             action: "edit",
-            data: { id: row.id, ...form },
+            data: {
+              id: row.id,
+              ...form,
+              programName: formatName(form.firstName, form.lastName),
+            },
           },
         },
       });
@@ -255,7 +278,10 @@ export default function ProgramEdit() {
         state: {
           result: {
             action: "add",
-            data: form,
+            data: {
+              ...form,
+              programName: formatName(form.firstName, form.lastName),
+            },
           },
         },
       });
@@ -359,12 +385,26 @@ export default function ProgramEdit() {
             FORM CARD
         ========================================================= */}
         <SectionBox>
-          <InputField
-            label="Program Name"
-            required
-            placeholder="Enter program name"
-            {...tx("programName")}
-          />
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 1.5,
+            }}
+          >
+            <InputField
+              label="First Name"
+              required
+              placeholder="Enter first name"
+              {...tx("firstName")}
+            />
+            <InputField
+              label="Last Name"
+              required
+              placeholder="Enter last name"
+              {...tx("lastName")}
+            />
+          </Box>
 
           <InputField
             label="Description"

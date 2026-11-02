@@ -23,6 +23,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -1205,6 +1207,26 @@ const EMPTY_PATIENT = {
   referringPhysician: "",
 };
 
+/* snackbar colours: add = green, update = blue, delete = red */
+const SNACK_COLORS = {
+  add: "#2E7D32",
+  update: "#1976D2",
+  delete: "#D32F2F",
+};
+
+/* Saves the edited fields of a claim so the claim list can show them.
+   kind = "pre" | "post" */
+const saveClaimEdit = (kind, id, patch) => {
+  const key = `${kind}ClaimEdits`;
+  try {
+    const all = JSON.parse(localStorage.getItem(key) || "{}");
+    all[id] = { ...(all[id] || {}), ...patch };
+    localStorage.setItem(key, JSON.stringify(all));
+  } catch {
+    /* storage blocked - ignore */
+  }
+};
+
 const getInitialPatient = (claimData, isNewClaim) => {
   if (claimData) {
     // Edit mode - populate from claim data
@@ -1236,20 +1258,44 @@ const getInitialPatient = (claimData, isNewClaim) => {
   };
 };
 
-function PatientSection({
-  sectionRef,
-  isNewClaim = false,
-  isEditMode = false,
-  claimData = null,
-}) {
+const PatientSection = React.forwardRef(function PatientSection(
+  { sectionRef, isNewClaim = false, isEditMode = false, claimData = null },
+  ref,
+) {
   const navigate = useNavigate();
   const [patient, setPatient] = React.useState(() =>
     getInitialPatient(claimData, isNewClaim),
   );
   const [phoneErrors, setPhoneErrors] = React.useState({});
+  const [errors, setErrors] = React.useState({});
 
-  const setField = (field) => (e) =>
+  /* typing clears that field's error */
+  const setField = (field) => (e) => {
     setPatient((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: "" } : prev));
+  };
+
+  /* Save button calls these */
+  const validate = () => {
+    const er = {};
+    if (!patient.legalName?.trim()) er.legalName = "Legal name is required";
+    if (patient.dob && !dayjs(patient.dob, DATE_FORMAT, true).isValid())
+      er.dob = "Enter a valid date (MM-DD-YYYY)";
+    if (patient.mobile) {
+      const mobileErr = validatePhone(patient.mobile);
+      if (mobileErr) {
+        er.mobile = mobileErr;
+        setPhoneErrors((p) => ({ ...p, mobile: mobileErr }));
+      }
+    }
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  React.useImperativeHandle(ref, () => ({
+    validate,
+    getValues: () => patient,
+  }));
 
   /* phone: digits only, max 10 */
   const handlePhoneChange = (field) => (e) => {
@@ -1285,14 +1331,17 @@ function PatientSection({
         <InputField
           label="Legal Name"
           placeholder="Enter legal name"
+          required
           value={patient.legalName}
           onChange={setField("legalName")}
+          error={errors.legalName}
         />
         <DateField
           label="DOB"
           disableFuture
           value={patient.dob}
           onChange={setField("dob")}
+          error={errors.dob}
         />
         <SelectField
           label="Gender"
@@ -1378,7 +1427,7 @@ function PatientSection({
       </FormGrid>
     </SectionCard>
   );
-}
+});
 
 /* ================================================================== */
 /* CARD 2 - CASE & INSURANCE                                           */
@@ -1986,7 +2035,7 @@ const DIAG_COLORS = [
   { bg: "#FEF1DC", color: "#A66A12" },
 ];
 
-function ChargesSection({ sectionRef }) {
+function ChargesSection({ sectionRef, onNotify }) {
   const [selectedColumns, setSelectedColumns] = React.useState(["NDC"]);
 
   const [procRows, setProcRows] = React.useState(() =>
@@ -1994,12 +2043,14 @@ function ChargesSection({ sectionRef }) {
   );
   const nextRowId = React.useRef(PROC_ROWS.length + 1);
 
-  const addLine = () =>
+  const addLine = () => {
     setProcRows((prev) => {
       const last = prev[prev.length - 1];
       const cells = last ? [...last.cells] : [...PROC_ROWS[0]];
       return [...prev, { id: nextRowId.current++, cells }];
     });
+    onNotify?.("Procedure line added");
+  };
 
   const updateCell = (rowId, colIdx, val) =>
     setProcRows((prev) =>
@@ -2010,8 +2061,10 @@ function ChargesSection({ sectionRef }) {
       ),
     );
 
-  const deleteLine = (rowId) =>
+  const deleteLine = (rowId) => {
     setProcRows((prev) => prev.filter((r) => r.id !== rowId));
+    onNotify?.("Procedure line deleted", "delete");
+  };
 
   const [diagnoses, setDiagnoses] = React.useState([
     { id: 1, code: "F73" },
@@ -2025,13 +2078,16 @@ function ChargesSection({ sectionRef }) {
     const code = newCode.trim().toUpperCase();
     if (code) {
       setDiagnoses((prev) => [...prev, { id: nextId.current++, code }]);
+      onNotify?.(`Diagnosis ${code} added`);
     }
     setNewCode("");
     setAdding(false);
   };
 
-  const removeDiagnosis = (id) =>
+  const removeDiagnosis = (id) => {
     setDiagnoses((prev) => prev.filter((d) => d.id !== id));
+    onNotify?.("Diagnosis removed", "delete");
+  };
 
   return (
     <SectionCard
@@ -2374,7 +2430,7 @@ const SELECT_ACTION_ITEMS = [
   { label: "Need Info", highlighted: false },
 ];
 
-function FooterBar({ onBack }) {
+function FooterBar({ onBack, onSave }) {
   const [anchor, setAnchor] = React.useState(null);
   const open = Boolean(anchor);
 
@@ -2493,6 +2549,7 @@ function FooterBar({ onBack }) {
 
         {/* Save - Primary Button */}
         <PrimaryBtn
+          onClick={onSave}
           startIcon={<CheckIcon sx={{ fontSize: 16 }} />}
           sx={{
             color: "#FFFFFF",
@@ -2856,6 +2913,19 @@ export default function PreBillingEditPage() {
     navigate("/encounters", { state: { activeTab } });
   };
 
+  /* "pre" or "post" - decides where the edit is stored */
+  const kind = location.pathname.includes("/post-billing-edit")
+    ? "post"
+    : "pre";
+  const patientRef = React.useRef(null);
+  const [snack, setSnack] = React.useState({
+    open: false,
+    message: "",
+    type: "add",
+  });
+  const notify = (message, type = "add") =>
+    setSnack({ open: true, message, type });
+
   const sectionRefs = React.useRef({});
   const headerRef = React.useRef(null);
   const mainRef = React.useRef(null);
@@ -2867,7 +2937,7 @@ export default function PreBillingEditPage() {
   };
 
   /* Scroll-spy: the stepper highlights the section you are looking at.
-     Based only on where sections are on screen vs. the bottom of the header. */
+     Based only on where sections are on screen vs. the top of the scroll area. */
   React.useEffect(() => {
     let raf = 0;
     const ids = STEPS.map((x) => x.id);
@@ -2880,7 +2950,7 @@ export default function PreBillingEditPage() {
       const main = mainRef.current;
       if (!header || !main) return;
 
-      const threshold = header.getBoundingClientRect().bottom + 24;
+      const threshold = main.getBoundingClientRect().top + 24;
 
       let currentId = ids[0];
       for (const id of ids) {
@@ -2936,13 +3006,11 @@ export default function PreBillingEditPage() {
     const scroller = mainRef.current;
     if (!node || !scroller) return;
 
-    const header = headerRef.current;
-    const headerH = header ? header.getBoundingClientRect().height : 0;
     const gap = 12;
     const nodeTop = node.getBoundingClientRect().top;
     const scrollerTop = scroller.getBoundingClientRect().top;
 
-    const top = scroller.scrollTop + (nodeTop - scrollerTop) - headerH - gap;
+    const top = scroller.scrollTop + (nodeTop - scrollerTop) - gap;
     scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   };
 
@@ -2956,6 +3024,31 @@ export default function PreBillingEditPage() {
     lockTimerRef.current = window.setTimeout(() => {
       scrollLockRef.current = false;
     }, 1000);
+  };
+
+  /* Save: validate, store the edit, go back to the list (it shows the snackbar) */
+  const handleSave = () => {
+    const ok = patientRef.current?.validate();
+    if (!ok) {
+      handleStepClick("patient");
+      return;
+    }
+    const p = patientRef.current.getValues();
+    if (claimData?.id != null) {
+      saveClaimEdit(kind, claimData.id, {
+        patientName: p.legalName.trim(),
+        gender: { Male: "(M)", Female: "(F)", Other: "(O)" }[p.gender] || "",
+        dob: (p.dob || "").replace(/-/g, "/"),
+        mrn: p.mrn,
+      });
+    }
+    navigate("/encounters", {
+      state: {
+        activeTab,
+        snackMessage: "Claim updated successfully",
+        snackType: "update",
+      },
+    });
   };
 
   return (
@@ -2989,7 +3082,7 @@ export default function PreBillingEditPage() {
           }}
         >
           <TopBar
-            title={isNewClaim ? "New Charge Capture" : "Pri Charge Capture"}
+            title={isNewClaim ? "New Charge Capture" : "Pre Charge Capture"}
           />
           <StepperNav
             activeId={activeId}
@@ -3026,6 +3119,7 @@ export default function PreBillingEditPage() {
             {!isNewClaim && <AssistBanner />}
 
             <PatientSection
+              ref={patientRef}
               sectionRef={setRef("patient")}
               isNewClaim={isNewClaim}
               isEditMode={isEditMode}
@@ -3033,10 +3127,10 @@ export default function PreBillingEditPage() {
             />
             <CaseInsuranceSection sectionRef={setRef("case")} />
             <ConditionsSection sectionRef={setRef("conditions")} />
-            <ChargesSection sectionRef={setRef("charges")} />
+            <ChargesSection sectionRef={setRef("charges")} onNotify={notify} />
             <AdditionalDetailsSection sectionRef={setRef("additional")} />
 
-            <FooterBar onBack={handleBack} />
+            <FooterBar onBack={handleBack} onSave={handleSave} />
           </Box>
         </Box>
       </Box>
@@ -3045,6 +3139,34 @@ export default function PreBillingEditPage() {
         open={alertOpen}
         onClose={() => setAlertOpen(false)}
       />
+
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snack.open}
+        autoHideDuration={3000}
+        onClose={(_, reason) => {
+          if (reason === "clickaway") return;
+          setSnack((s) => ({ ...s, open: false }));
+        }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          sx={{
+            bgcolor: SNACK_COLORS[snack.type] || SNACK_COLORS.add,
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            alignItems: "center",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            "& .MuiAlert-icon": { color: "#fff" },
+          }}
+        >
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

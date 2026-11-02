@@ -51,7 +51,8 @@ const EMAIL_REGEX =
   /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
 const REQUIRED_TEXT = {
-  payorName: "Payor Name",
+  firstName: "First Name",
+  lastName: "Last Name",
   payorCode: "Payor Code",
   payorEmail: "Payor E-mail",
   payorPhone: "Payor Phone",
@@ -342,6 +343,24 @@ function SectionBox({ children }) {
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
 
+/* Name format used in the table: "Surname, First"  (e.g. "Dolare, Shubhangi")
+   splitName  : table value  -> First Name / Last Name fields
+   formatName : First / Last -> table value                              */
+const splitName = (full) => {
+  const s = String(full ?? "").trim();
+  if (s.includes(",")) {
+    const [last, ...rest] = s.split(",");
+    return { firstName: rest.join(",").trim(), lastName: last.trim() };
+  }
+  const parts = s.split(/\s+/).filter(Boolean);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+};
+
+const formatName = (first, last) =>
+  [String(last ?? "").trim(), String(first ?? "").trim()]
+    .filter(Boolean)
+    .join(", ");
+
 export default function InsuranceProviderEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
@@ -351,7 +370,7 @@ export default function InsuranceProviderEdit() {
   const [mandatoryCode, setMandatoryCode] = React.useState(true);
 
   const [form, setForm] = React.useState({
-    payorName: row?.payorName ?? "",
+    ...splitName(row?.payorName),
     payorCode: row?.payorCode ?? "",
     payorEmail: row?.payorEmail ?? "",
     payorPhone: row?.payorPhone ?? "",
@@ -420,11 +439,28 @@ export default function InsuranceProviderEdit() {
 
     if (isEdit) {
       navigate("/insurance-provider", {
-        state: { result: { action: "edit", data: { id: row.id, ...form } } },
+        state: {
+          result: {
+            action: "edit",
+            data: {
+              id: row.id,
+              ...form,
+              payorName: formatName(form.firstName, form.lastName),
+            },
+          },
+        },
       });
     } else {
       navigate("/insurance-provider", {
-        state: { result: { action: "add", data: form } },
+        state: {
+          result: {
+            action: "add",
+            data: {
+              ...form,
+              payorName: formatName(form.firstName, form.lastName),
+            },
+          },
+        },
       });
     }
   };
@@ -526,7 +562,9 @@ export default function InsuranceProviderEdit() {
         <SectionBox>
           {/* Row 1 */}
           <FormGrid>
-            <InputField label="Payor Name" required {...tx("payorName")} />
+            <InputField label="First Name" required {...tx("firstName")} />
+
+            <InputField label="Last Name" required {...tx("lastName")} />
 
             <InputField label="Payor Code" required {...tx("payorCode")} />
 
@@ -536,7 +574,10 @@ export default function InsuranceProviderEdit() {
               required
               {...tx("payorEmail")}
             />
+          </FormGrid>
 
+          {/* Row 2 */}
+          <FormGrid>
             <InputField
               label="Payor Phone"
               required
@@ -545,10 +586,7 @@ export default function InsuranceProviderEdit() {
               placeholder="10-digit number"
               {...tx("payorPhone")}
             />
-          </FormGrid>
 
-          {/* Row 2 */}
-          <FormGrid>
             <InputField
               label="Payor Fax"
               required
@@ -569,16 +607,16 @@ export default function InsuranceProviderEdit() {
               value={form.payorStreet}
               onChange={set("payorStreet")}
             />
+          </FormGrid>
 
+          {/* Row 3 — Street 2 → City → State → Country */}
+          <FormGrid>
             <InputField
               label="Payor Street 2"
               value={form.payorStreet2}
               onChange={set("payorStreet2")}
             />
-          </FormGrid>
 
-          {/* Row 3 — City → State → Country → Zip */}
-          <FormGrid>
             <InputField label="Payor City" required {...tx("payorCity")} />
 
             <SelectField
@@ -594,12 +632,12 @@ export default function InsuranceProviderEdit() {
               options={["USA", "Canada", "India", "United Kingdom"]}
               {...sel("country")}
             />
-
-            <InputField label="Zip Code" required {...tx("payorZip")} />
           </FormGrid>
 
-          {/* Row 4 — Submission Method + Mandatory code toggle */}
+          {/* Row 4 — Zip → Submission Method + Mandatory code toggle */}
           <FormGrid last>
+            <InputField label="Zip Code" required {...tx("payorZip")} />
+
             <SelectField
               label="Submission Method"
               required

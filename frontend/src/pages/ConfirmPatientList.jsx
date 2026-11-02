@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { PatientNoticeSnackbar } from "./AllPatient";
 import {
   Box,
   Checkbox,
@@ -308,32 +309,319 @@ const SORT_TITLES = {
 /* Dummy rows                                                          */
 /* dosOffset: days relative to Jan 26 (-1 = Jan 25, 0 = Jan 26, 1 = Jan 27) */
 /* ------------------------------------------------------------------ */
+/* Name format used everywhere: "Surname, First M"  (e.g. "Dolare, Shubhangi V")
+   Dummy names below are written "First Last" -> converted here.        */
+const toSurnameFirst = (fullName) => {
+  const parts = String(fullName ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length < 2) return parts[0] ?? "";
+  const surname = parts[parts.length - 1];
+  return `${surname}, ${parts.slice(0, -1).join(" ")}`;
+};
+
 const SAMPLE = [
-  ["302 - Bed A", "Lisha Cook", "45y (F)", "719471345", "ID: NA", "11/20/2025", "GCH -IP", "Alex Tobar", "Julia R", 0],
-  ["302 - Bed B", "Rahul Sharma", "52y (M)", "719471346", "ID: 4521", "03/14/1973", "GCH -IP", "Neha Rao", "Amit K", 0],
-  ["303 - Bed A", "Priya Patel", "34y (F)", "719471347", "ID: NA", "07/02/1991", "GCH -ICU", "Alex Tobar", "Sara L", 0],
-  ["303 - Bed B", "John Miller", "61y (M)", "719471348", "ID: 8810", "01/29/1964", "GCH -ER", "David Chen", "Julia R", 0],
-  ["304 - Bed A", "Anita Desai", "28y (F)", "719471349", "ID: NA", "09/18/1997", "GCH -IP", "Neha Rao", "Amit K", 0],
-  ["304 - Bed B", "Mark Wilson", "47y (M)", "719471350", "ID: 3307", "05/06/1978", "GCH -OP", "Carla Mendes", "Sara L", 0],
-  ["305 - Bed A", "Sneha Kulkarni", "39y (F)", "719471351", "ID: NA", "12/11/1986", "GCH -ICU", "David Chen", "Julia R", 0],
-  ["305 - Bed B", "David Brown", "70y (M)", "719471352", "ID: 9942", "08/23/1955", "GCH -IP", "Alex Tobar", "Amit K", 0],
-  ["306 - Bed A", "Meera Nair", "55y (F)", "719471353", "ID: NA", "02/17/1970", "GCH -ER", "Carla Mendes", "Sara L", 0],
-  ["306 - Bed B", "Kevin Zhang", "30y (M)", "719471354", "ID: 1180", "10/09/1995", "GCH -OP", "Neha Rao", "Julia R", 0],
-  ["307 - Bed A", "Fatima Khan", "42y (F)", "719471355", "ID: NA", "04/25/1983", "GCH -IP", "David Chen", "Amit K", 0],
-  ["307 - Bed B", "Robert King", "66y (M)", "719471356", "ID: 7754", "06/30/1959", "GCH -ICU", "Carla Mendes", "Sara L", 0],
-  ["201 - Bed A", "Nisha Verma", "36y (F)", "719471357", "ID: 2201", "02/09/1989", "GCH -IP", "Alex Tobar", "Julia R", -1],
-  ["201 - Bed B", "Omar Ali", "58y (M)", "719471358", "ID: NA", "10/30/1967", "GCH -ER", "Neha Rao", "Sara L", -1],
-  ["202 - Bed A", "Grace Lee", "49y (F)", "719471359", "ID: 6612", "08/14/1976", "GCH -ICU", "David Chen", "Amit K", -1],
-  ["401 - Bed A", "Vikram Joshi", "63y (M)", "719471360", "ID: NA", "05/21/1962", "GCH -IP", "Carla Mendes", "Julia R", 1],
-  ["401 - Bed B", "Emma Clark", "27y (F)", "719471361", "ID: 9034", "01/05/1998", "GCH -OP", "Alex Tobar", "Sara L", 1],
-  ["306 - Bed B", "Kevin Zhang", "30y (M)", "719471354", "ID: 1180", "10/09/1995", "GCH -OP", "Neha Rao", "Julia R", 0],
-  ["307 - Bed A", "Fatima Khan", "42y (F)", "719471355", "ID: NA", "04/25/1983", "GCH -IP", "David Chen", "Amit K", 0],
-  ["307 - Bed B", "Robert King", "66y (M)", "719471356", "ID: 7754", "06/30/1959", "GCH -ICU", "Carla Mendes", "Sara L", 0],
-  ["201 - Bed A", "Nisha Verma", "36y (F)", "719471357", "ID: 2201", "02/09/1989", "GCH -IP", "Alex Tobar", "Julia R", -1],
-  ["201 - Bed B", "Omar Ali", "58y (M)", "719471358", "ID: NA", "10/30/1967", "GCH -ER", "Neha Rao", "Sara L", -1],
-  ["202 - Bed A", "Grace Lee", "49y (F)", "719471359", "ID: 6612", "08/14/1976", "GCH -ICU", "David Chen", "Amit K", -1],
-  ["401 - Bed A", "Vikram Joshi", "63y (M)", "719471360", "ID: NA", "05/21/1962", "GCH -IP", "Carla Mendes", "Julia R", 1],
-  ["401 - Bed B", "Emma Clark", "27y (F)", "719471361", "ID: 9034", "01/05/1998", "GCH -OP", "Alex Tobar", "Sara L", 1],
+  [
+    "302 - Bed A",
+    "Lisha Cook",
+    "45y (F)",
+    "719471345",
+    "ID: NA",
+    "11/20/2025",
+    "GCH -IP",
+    "Alex Tobar",
+    "Julia R",
+    0,
+  ],
+  [
+    "302 - Bed B",
+    "Rahul Sharma",
+    "52y (M)",
+    "719471346",
+    "ID: 4521",
+    "03/14/1973",
+    "GCH -IP",
+    "Neha Rao",
+    "Amit K",
+    0,
+  ],
+  [
+    "303 - Bed A",
+    "Priya Patel",
+    "34y (F)",
+    "719471347",
+    "ID: NA",
+    "07/02/1991",
+    "GCH -ICU",
+    "Alex Tobar",
+    "Sara L",
+    0,
+  ],
+  [
+    "303 - Bed B",
+    "John Miller",
+    "61y (M)",
+    "719471348",
+    "ID: 8810",
+    "01/29/1964",
+    "GCH -ER",
+    "David Chen",
+    "Julia R",
+    0,
+  ],
+  [
+    "304 - Bed A",
+    "Anita Desai",
+    "28y (F)",
+    "719471349",
+    "ID: NA",
+    "09/18/1997",
+    "GCH -IP",
+    "Neha Rao",
+    "Amit K",
+    0,
+  ],
+  [
+    "304 - Bed B",
+    "Mark Wilson",
+    "47y (M)",
+    "719471350",
+    "ID: 3307",
+    "05/06/1978",
+    "GCH -OP",
+    "Carla Mendes",
+    "Sara L",
+    0,
+  ],
+  [
+    "305 - Bed A",
+    "Sneha Kulkarni",
+    "39y (F)",
+    "719471351",
+    "ID: NA",
+    "12/11/1986",
+    "GCH -ICU",
+    "David Chen",
+    "Julia R",
+    0,
+  ],
+  [
+    "305 - Bed B",
+    "David Brown",
+    "70y (M)",
+    "719471352",
+    "ID: 9942",
+    "08/23/1955",
+    "GCH -IP",
+    "Alex Tobar",
+    "Amit K",
+    0,
+  ],
+  [
+    "306 - Bed A",
+    "Meera Nair",
+    "55y (F)",
+    "719471353",
+    "ID: NA",
+    "02/17/1970",
+    "GCH -ER",
+    "Carla Mendes",
+    "Sara L",
+    0,
+  ],
+  [
+    "306 - Bed B",
+    "Kevin Zhang",
+    "30y (M)",
+    "719471354",
+    "ID: 1180",
+    "10/09/1995",
+    "GCH -OP",
+    "Neha Rao",
+    "Julia R",
+    0,
+  ],
+  [
+    "307 - Bed A",
+    "Fatima Khan",
+    "42y (F)",
+    "719471355",
+    "ID: NA",
+    "04/25/1983",
+    "GCH -IP",
+    "David Chen",
+    "Amit K",
+    0,
+  ],
+  [
+    "307 - Bed B",
+    "Robert King",
+    "66y (M)",
+    "719471356",
+    "ID: 7754",
+    "06/30/1959",
+    "GCH -ICU",
+    "Carla Mendes",
+    "Sara L",
+    0,
+  ],
+  [
+    "201 - Bed A",
+    "Nisha Verma",
+    "36y (F)",
+    "719471357",
+    "ID: 2201",
+    "02/09/1989",
+    "GCH -IP",
+    "Alex Tobar",
+    "Julia R",
+    -1,
+  ],
+  [
+    "201 - Bed B",
+    "Omar Ali",
+    "58y (M)",
+    "719471358",
+    "ID: NA",
+    "10/30/1967",
+    "GCH -ER",
+    "Neha Rao",
+    "Sara L",
+    -1,
+  ],
+  [
+    "202 - Bed A",
+    "Grace Lee",
+    "49y (F)",
+    "719471359",
+    "ID: 6612",
+    "08/14/1976",
+    "GCH -ICU",
+    "David Chen",
+    "Amit K",
+    -1,
+  ],
+  [
+    "401 - Bed A",
+    "Vikram Joshi",
+    "63y (M)",
+    "719471360",
+    "ID: NA",
+    "05/21/1962",
+    "GCH -IP",
+    "Carla Mendes",
+    "Julia R",
+    1,
+  ],
+  [
+    "401 - Bed B",
+    "Emma Clark",
+    "27y (F)",
+    "719471361",
+    "ID: 9034",
+    "01/05/1998",
+    "GCH -OP",
+    "Alex Tobar",
+    "Sara L",
+    1,
+  ],
+  [
+    "306 - Bed B",
+    "Kevin Zhang",
+    "30y (M)",
+    "719471354",
+    "ID: 1180",
+    "10/09/1995",
+    "GCH -OP",
+    "Neha Rao",
+    "Julia R",
+    0,
+  ],
+  [
+    "307 - Bed A",
+    "Fatima Khan",
+    "42y (F)",
+    "719471355",
+    "ID: NA",
+    "04/25/1983",
+    "GCH -IP",
+    "David Chen",
+    "Amit K",
+    0,
+  ],
+  [
+    "307 - Bed B",
+    "Robert King",
+    "66y (M)",
+    "719471356",
+    "ID: 7754",
+    "06/30/1959",
+    "GCH -ICU",
+    "Carla Mendes",
+    "Sara L",
+    0,
+  ],
+  [
+    "201 - Bed A",
+    "Nisha Verma",
+    "36y (F)",
+    "719471357",
+    "ID: 2201",
+    "02/09/1989",
+    "GCH -IP",
+    "Alex Tobar",
+    "Julia R",
+    -1,
+  ],
+  [
+    "201 - Bed B",
+    "Omar Ali",
+    "58y (M)",
+    "719471358",
+    "ID: NA",
+    "10/30/1967",
+    "GCH -ER",
+    "Neha Rao",
+    "Sara L",
+    -1,
+  ],
+  [
+    "202 - Bed A",
+    "Grace Lee",
+    "49y (F)",
+    "719471359",
+    "ID: 6612",
+    "08/14/1976",
+    "GCH -ICU",
+    "David Chen",
+    "Amit K",
+    -1,
+  ],
+  [
+    "401 - Bed A",
+    "Vikram Joshi",
+    "63y (M)",
+    "719471360",
+    "ID: NA",
+    "05/21/1962",
+    "GCH -IP",
+    "Carla Mendes",
+    "Julia R",
+    1,
+  ],
+  [
+    "401 - Bed B",
+    "Emma Clark",
+    "27y (F)",
+    "719471361",
+    "ID: 9034",
+    "01/05/1998",
+    "GCH -OP",
+    "Alex Tobar",
+    "Sara L",
+    1,
+  ],
 ];
 
 const BASE_DATE = new Date(2025, 0, 26); // Jan 26
@@ -344,12 +632,23 @@ const ADD_NEW_PATIENT_ROUTE = "/add-new-patient";
 const createRows = () =>
   SAMPLE.map(
     (
-      [roomBed, name, age, mrn, patientId, dob, location, physician, residents, dosOffset],
+      [
+        roomBed,
+        name,
+        age,
+        mrn,
+        patientId,
+        dob,
+        location,
+        physician,
+        residents,
+        dosOffset,
+      ],
       i,
     ) => ({
       id: i,
       roomBed,
-      name,
+      name: toSurnameFirst(name),
       age,
       mrn,
       patientId,
@@ -490,10 +789,7 @@ function HeaderCell({ column, isLast, sortDir, onSort }) {
         }}
       >
         {/* pre-line keeps the two-line labels ("Name / Age (Gender)") */}
-        <Box
-          component="span"
-          sx={{ lineHeight: 1.15, whiteSpace: "pre-line" }}
-        >
+        <Box component="span" sx={{ lineHeight: 1.15, whiteSpace: "pre-line" }}>
           {column.label}
         </Box>
 
@@ -1013,7 +1309,11 @@ export default function ConfirmPatientList() {
             bgcolor: "#015DFF",
             color: "#fff",
             "&:hover": { bgcolor: "#0145CC" },
-            "&.Mui-disabled": { bgcolor: "#015DFF", color: "#fff", opacity: 0.5 },
+            "&.Mui-disabled": {
+              bgcolor: "#015DFF",
+              color: "#fff",
+              opacity: 0.5,
+            },
           }}
         >
           {selected.size > 0
@@ -1021,6 +1321,9 @@ export default function ConfirmPatientList() {
             : "Add Patients"}
         </Button>
       </Box>
+
+      {/* SNACKBAR: Bottom-Right (shows when a patient was added / updated / deleted) */}
+      <PatientNoticeSnackbar />
     </Box>
   );
 }

@@ -25,6 +25,8 @@ import {
   FormControl,
   Dialog,
   InputBase,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   ViewList,
@@ -1178,8 +1180,6 @@ function FilterDate({ label, value, onChange, applied = false }) {
   );
 }
 
-
-
 /* Grid-view helpers */
 function GridSection({ title, flex, children, sx }) {
   return (
@@ -1339,9 +1339,79 @@ function ChargeCaptureBanner() {
 /* ================================================================== */
 /* Sample data                                                          */
 /* ================================================================== */
+const NEW_CLAIMS_KEY = "newPreBillingClaims";
+
+const capName = (s) =>
+  String(s || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .replace(/(^|[\s'-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
+
+/* "Dolare, Shubhangi V"  (Surname, Name M) */
+const formatPatientName = ({ firstName, middleName, lastName }) => {
+  const mid = String(middleName || "")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+  const given = [capName(firstName), mid].filter(Boolean).join(" ");
+  return [capName(lastName), given].filter(Boolean).join(", ");
+};
+
+/* "Lisha Cook" -> "Cook, Lisha" (names already in "Cook, Lisha" are kept) */
+const toDisplayName = (full) => {
+  const s = String(full || "").trim();
+  if (!s || s.includes(",")) return s;
+  const parts = s.split(/\s+/);
+  if (parts.length === 1) return s;
+  const last = parts.pop();
+  const first = parts.shift();
+  return formatPatientName({
+    firstName: first,
+    middleName: parts.join(" "),
+    lastName: last,
+  });
+};
+
+/* snackbar colours: add = green, update = blue, delete = red */
+const SNACK_COLORS = {
+  add: "#2E7D32",
+  update: "#1976D2",
+  delete: "#D32F2F",
+};
+
+/* edits saved from the Pre/Post billing edit pages: { [claimId]: patch } */
+/* ids of deleted Patient Statement > History rows (kept in localStorage) */
+const DELETED_HISTORY_KEY = "deletedHistoryBatchIds";
+const loadDeletedIds = (key) => {
+  try {
+    const v = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+};
+
+const loadClaimEdits = (kind) => {
+  try {
+    return JSON.parse(localStorage.getItem(`${kind}ClaimEdits`) || "{}");
+  } catch {
+    return {};
+  }
+};
+
+/* claims created on the New Claim page */
+const loadNewClaims = () => {
+  try {
+    return JSON.parse(localStorage.getItem(NEW_CLAIMS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 const money = (n) => `$${n.toLocaleString("en-US")}`;
 
-const PEOPLE = [
+const PEOPLE_RAW = [
   ["Lisha Cook", "(F)"],
   ["Aamir Pathan", "(M)"],
   ["Rahul Sharma", "(M)"],
@@ -1354,6 +1424,8 @@ const PEOPLE = [
   ["Meera Nair", "(F)"],
   ["Kevin Zhang", "(M)"],
 ];
+/* every name is shown as "Surname, Name M" */
+const PEOPLE = PEOPLE_RAW.map(([n, g]) => [toDisplayName(n), g]);
 const INSURERS = ["Aetna", "BCBS", "Cigna", "UnitedHealth", "Medicare"];
 const DOS_LIST = [
   "08/25/2026",
@@ -1963,7 +2035,7 @@ const newStatementData = STMT_SAMPLE.map(
     i,
   ) => ({
     id: i + 1,
-    name,
+    name: toDisplayName(name), // Surname, Name M
     pid,
     dob,
     category,
@@ -2026,8 +2098,7 @@ const PRE_COLUMNS = [
     sort: "alpha",
     center: true,
 
-
-      cellSx: {
+    cellSx: {
       minWidth: 100,
       maxWidth: 150,
       whiteSpace: "normal",
@@ -2206,56 +2277,67 @@ const iconColSx = { width: 30, minWidth: 30, px: 0, maxWidth: 30 };
 const iconCellSx = { color: "#4B5563", px: 0 };
 
 const NEW_STMT_COLUMNS = [
-
-
-{
-  id: "name",
-  label: "Patient Name",
-  // sort: "alpha",
-  center: false,
-  headSx: { width: 140, minWidth: 140, pl: 1 },
-  cellSx: { fontWeight: 600, width: 140, minWidth: 140, maxWidth: 140, pl: 1 },
-  render: (r) => (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        flexWrap: "nowrap",
-        columnGap: 0.75,
-        minWidth: 0,
-      }}
-    >
+  {
+    id: "name",
+    label: "Patient Name",
+    // sort: "alpha",
+    center: false,
+    headSx: { width: 140, minWidth: 140, pl: 1 },
+    cellSx: {
+      fontWeight: 600,
+      width: 140,
+      minWidth: 140,
+      maxWidth: 140,
+      pl: 1,
+    },
+    render: (r) => (
       <Box
-        component="span"
         sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          flexWrap: "nowrap",
+          columnGap: 0.75,
           minWidth: 0,
-          textAlign: "left",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
         }}
       >
-        {r.name}
-      </Box>
-
-      {(r.hasEmail || r.hasPhone) && (
-        <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
-          {r.hasEmail && (
-            <Tooltip title="Email available" placement="top">
-              <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
-            </Tooltip>
-          )}
-          {r.hasPhone && (
-            <Tooltip title="Phone available" placement="top">
-              <Phone sx={{ fontSize: 15, color: "#0B1560" }} />
-            </Tooltip>
-          )}
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            textAlign: "left",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {r.name}
         </Box>
-      )}
-    </Box>
-  ),
-},
+
+        {(r.hasEmail || r.hasPhone) && (
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            {r.hasEmail && (
+              <Tooltip title="Email available" placement="top">
+                <EmailRounded sx={{ fontSize: 15, color: "#0B1560" }} />
+              </Tooltip>
+            )}
+            {r.hasPhone && (
+              <Tooltip title="Phone available" placement="top">
+                <Phone sx={{ fontSize: 15, color: "#0B1560" }} />
+              </Tooltip>
+            )}
+          </Box>
+        )}
+      </Box>
+    ),
+  },
   {
     id: "pid",
     label: "ID",
@@ -2498,7 +2580,7 @@ const HISTORY_COLUMNS = [
     id: "actions",
     label: "",
     headSx: { width: 80 },
-    render: () => (
+    render: (r, ctx) => (
       <Box
         sx={{
           display: "flex",
@@ -2514,7 +2596,12 @@ const HISTORY_COLUMNS = [
         </Tooltip>
 
         <Tooltip title="Delete" placement="top">
-          <IconButton size="small" sx={{ p: "2px" }}>
+          <IconButton
+            size="small"
+            aria-label="Delete batch"
+            onClick={() => ctx?.onDelete?.(r)}
+            sx={{ p: "2px" }}
+          >
             <DeleteIcon sx={{ fontSize: 16, color: "#1E3A8A" }} />
           </IconButton>
         </Tooltip>
@@ -2530,7 +2617,7 @@ const EMPTY_FILTERS = {
   provider: "",
   serviceLocation: "",
   patientName: "",
-  claimNumber: "", 
+  claimNumber: "",
   dosFrom: "",
   dosTill: "",
   insurance: "",
@@ -2541,7 +2628,7 @@ const EMPTY_FILTERS = {
   status: "",
   renderingProvider: "",
   insuranceType: "",
-  
+
   receivedSince: "",
   receivedTill: "",
   checkNumber: "",
@@ -2561,13 +2648,11 @@ const PLAN_OPTIONS = ["E-Claim", "Paper Claim", "Patient"];
 
 const INSURANCE_OPTIONS = ["Primary", "Secondary", "Tertiary"];
 
-
-
 // Column options for each tab
 const PRE_BILLING_COLUMN_OPTIONS = [
   { key: "dosShort", label: "DOS" },
   { key: "patientName", label: "Patient Name (Gender)" },
-  { key: "fin", label: "Fin ID" }, 
+  { key: "fin", label: "Fin ID" },
   { key: "mrn", label: "MRN" },
   { key: "cpt", label: "CPT" },
   { key: "modifier", label: "Modifier" },
@@ -2676,8 +2761,6 @@ const filterColumns = (columns, visibleColumns) => {
   });
 };
 
-
-
 const ACTION_MENU_ITEMS = [
   ["Print Claim", "Ctrl+P"],
   ["Rebill", "Ctrl+R"],
@@ -2776,6 +2859,38 @@ function PreBillingClaim() {
 
   const getInitialTab = () =>
     getTabFromPath(location.pathname) ?? location.state?.activeTab ?? 0;
+
+  /* claims created on the New Claim page */
+  const [newClaims] = useState(() => loadNewClaims());
+  const [claimEdits] = useState(() => ({
+    pre: loadClaimEdits("pre"),
+    post: loadClaimEdits("post"),
+  }));
+  const applyEdits = (rows, kind) =>
+    rows.map((r) => ({ ...r, ...(claimEdits[kind][r.id] || {}) }));
+
+  /* snackbar message comes from the page we came from (add / update) */
+  const [snackMsg, setSnackMsg] = useState(location.state?.snackMessage || "");
+  const [snackType, setSnackType] = useState(
+    location.state?.snackType || "add",
+  );
+  const [snackOpen, setSnackOpen] = useState(Boolean(snackMsg));
+  const notify = (message, type = "add") => {
+    setSnackMsg(message);
+    setSnackType(type);
+    setSnackOpen(true);
+  };
+
+  useEffect(() => {
+    // clear the message so a refresh / back does not show the snackbar again
+    if (location.state?.snackMessage) {
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...location.state, snackMessage: "" },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(null);
@@ -3083,7 +3198,6 @@ function PreBillingClaim() {
   //     };
   //   });
 
-
   //       // Add new records to the top of the table
   //   setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
 
@@ -3097,36 +3211,36 @@ function PreBillingClaim() {
   // };
 
   const handleSaveERA = () => {
-  // Convert OCR results to remittance format and add to the top of the table
-  const newRemittanceRecords = ocrResults.map((result, index) => {
-    const newId =
-      Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
-    return {
-      id: newId,
-      remittanceId: result.claimNumber,
-      location: result.location || "GCH-IH",
-      Payor: result.payerName,
-      paymentMethod: result.paymentMethod || "Cheque",
-      eraEobType: "EOB",
-      chequeNumber: result.checkNumber,
-      amount: money(result.paidAmount),
-      checkDate: result.checkDate,
-      receivedDate: dayjs().format("MM/DD/YYYY"),
-      claimNumbers: 1,
-      unpostedAmount: money(result.adjustmentAmount),
-      status: result.status,
-    };
-  });
+    // Convert OCR results to remittance format and add to the top of the table
+    const newRemittanceRecords = ocrResults.map((result, index) => {
+      const newId =
+        Math.max(...remittanceRecords.map((r) => r.id), 0) + index + 1;
+      return {
+        id: newId,
+        remittanceId: result.claimNumber,
+        location: result.location || "GCH-IH",
+        Payor: result.payerName,
+        paymentMethod: result.paymentMethod || "Cheque",
+        eraEobType: "EOB",
+        chequeNumber: result.checkNumber,
+        amount: money(result.paidAmount),
+        checkDate: result.checkDate,
+        receivedDate: dayjs().format("MM/DD/YYYY"),
+        claimNumbers: 1,
+        unpostedAmount: money(result.adjustmentAmount),
+        status: result.status,
+      };
+    });
 
-  // Add new records to the top of the table
-  setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
+    // Add new records to the top of the table
+    setRemittanceRecords((prev) => [...newRemittanceRecords, ...prev]);
 
-  alert(
-    `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
-  );
+    alert(
+      `${ocrResults.length} EOB records converted and added to Remittance table successfully!`,
+    );
 
-  handleCloseOCR();
-};
+    handleCloseOCR();
+  };
 
   const formatRemarkTime = (d = new Date()) => {
     const p = (n) => String(n).padStart(2, "0");
@@ -3170,8 +3284,6 @@ function PreBillingClaim() {
     remarkEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentRemarks.length, checkPopupOpen]);
 
- 
-
   useEffect(() => {
     const tab = getTabFromPath(location.pathname);
     if (tab !== null) {
@@ -3196,7 +3308,6 @@ function PreBillingClaim() {
     }
   }, [location.pathname]);
 
-
   /* Remittance */
   const [remittanceFilter, setRemittanceFilter] = useState("all");
   const [remittanceSelected, setRemittanceSelected] = useState([]);
@@ -3209,22 +3320,22 @@ function PreBillingClaim() {
   const [eraEobAnchor, setEraEobAnchor] = useState(null);
 
   /* Mark selected ERA/EOB rows as "Mark as review" */
-const handleMarkAsReview = () => {
-  if (remittanceSelected.length === 0) {
-    alert("Please select at least one ERA/EOB record to mark as review.");
-    return;
-  }
+  const handleMarkAsReview = () => {
+    if (remittanceSelected.length === 0) {
+      alert("Please select at least one ERA/EOB record to mark as review.");
+      return;
+    }
 
-  setRemittanceRecords((prev) =>
-    prev.map((r) =>
-      remittanceSelected.includes(r.id)
-        ? { ...r, status: "Mark as review" }
-        : r,
-    ),
-  );
+    setRemittanceRecords((prev) =>
+      prev.map((r) =>
+        remittanceSelected.includes(r.id)
+          ? { ...r, status: "Mark as review" }
+          : r,
+      ),
+    );
 
-  setRemittanceSelected([]);
-};
+    setRemittanceSelected([]);
+  };
 
   // Save remittance records to localStorage whenever they change
   useEffect(() => {
@@ -3240,6 +3351,26 @@ const handleMarkAsReview = () => {
     newStatementData.map((r) => r.id),
   );
   const [historySelectedRows, setHistorySelectedRows] = useState([]);
+
+  /* History delete: row is removed and stays removed after refresh */
+  const [deletedHistoryIds, setDeletedHistoryIds] = useState(() =>
+    loadDeletedIds(DELETED_HISTORY_KEY),
+  );
+  const historyStatementRows = historyStatementData.filter(
+    (r) => !deletedHistoryIds.includes(r.id),
+  );
+
+  const handleDeleteHistoryBatch = (row) => {
+    const next = [...deletedHistoryIds, row.id];
+    setDeletedHistoryIds(next);
+    try {
+      localStorage.setItem(DELETED_HISTORY_KEY, JSON.stringify(next));
+    } catch {
+      /* storage blocked - ignore */
+    }
+    setHistorySelectedRows((prev) => prev.filter((id) => id !== row.id));
+    notify("Batch deleted successfully", "delete");
+  };
 
   const handleEditClick = (claim) =>
     navigate(`/claims/post-billing-edit/${claim.id}`, {
@@ -3341,14 +3472,12 @@ const handleMarkAsReview = () => {
     alert(`${action} triggered for ${selectedCount} patient(s).`);
   };
 
-
-
   const handleTabChange = (event, newValue) => {
-  setCurrentTab(newValue);
-  setSearchQuery("");
-  handleResetFilters();
-  setSelectedRows([]);
-};
+    setCurrentTab(newValue);
+    setSearchQuery("");
+    handleResetFilters();
+    setSelectedRows([]);
+  };
 
   const toggleIn = (setter) => (id) =>
     setter((prev) =>
@@ -3431,31 +3560,34 @@ const handleMarkAsReview = () => {
     }));
 
   /* ---------- Pre-billing ---------- */
-  const preBillingSearched = applyAll(withMeta(preBillingClaimsData), {
-    searchFields: [
-      "patientName",
-      "mrn",
-      "fin",
-      "claimId",
-      "encounterId",
-      "referenceId",
-      "primaryInsurance",
-    ],
-    textMap: {
-      patientName: "patientName",
-      finId: "fin",
-      mrn: "mrn",
-      claimNumber: ["claimId", "encounterId"],
+  const preBillingSearched = applyAll(
+    withMeta(applyEdits([...newClaims, ...preBillingClaimsData], "pre")),
+    {
+      searchFields: [
+        "patientName",
+        "mrn",
+        "fin",
+        "claimId",
+        "encounterId",
+        "referenceId",
+        "primaryInsurance",
+      ],
+      textMap: {
+        patientName: "patientName",
+        finId: "fin",
+        mrn: "mrn",
+        claimNumber: ["claimId", "encounterId"],
+      },
+      selectMap: {
+        insurance: "primaryInsurance",
+        insurancePlan: "insurancePlan",
+        provider: "provider",
+        serviceLocation: "serviceLocation",
+      },
+      statusField: "status",
+      dateField: "dos",
     },
-    selectMap: {
-      insurance: "primaryInsurance",
-      insurancePlan: "insurancePlan",
-      provider: "provider",
-      serviceLocation: "serviceLocation",
-    },
-    statusField: "status",
-    dateField: "dos",
-  });
+  );
 
   const preChipStatus = PRE_CHIPS.find((c) => c[0] === statusFilter)?.[2];
   const preBillingFiltered = preChipStatus
@@ -3463,29 +3595,32 @@ const handleMarkAsReview = () => {
     : preBillingSearched;
 
   /* ---------- Post-billing ---------- */
-  const postBillingSearched = applyAll(withMeta(postBillingClaimsData), {
-    searchFields: [
-      "patientName",
-      "claimId",
-      "encounterId",
-      "billedTo",
-      "status",
-      "cpt",
-      "clearingHouse",
-    ],
-    textMap: {
-      patientName: "patientName",
-      claimNumber: ["claimId", "encounterId"],
+  const postBillingSearched = applyAll(
+    withMeta(applyEdits(postBillingClaimsData, "post")),
+    {
+      searchFields: [
+        "patientName",
+        "claimId",
+        "encounterId",
+        "billedTo",
+        "status",
+        "cpt",
+        "clearingHouse",
+      ],
+      textMap: {
+        patientName: "patientName",
+        claimNumber: ["claimId", "encounterId"],
+      },
+      selectMap: {
+        insurance: "billedTo",
+        insurancePlan: "insurancePlan",
+        provider: "provider",
+        serviceLocation: "serviceLocation",
+      },
+      statusField: "status",
+      dateField: "dos",
     },
-    selectMap: {
-      insurance: "billedTo",
-      insurancePlan: "insurancePlan",
-      provider: "provider",
-      serviceLocation: "serviceLocation",
-    },
-    statusField: "status",
-    dateField: "dos",
-  });
+  );
 
   const postChipStatus = POST_CHIPS.find((c) => c[0] === postStatusFilter)?.[2];
   const postBillingFiltered = postChipStatus
@@ -3551,7 +3686,7 @@ const handleMarkAsReview = () => {
   });
 
   /* ---------- Patient Statement: History ---------- */
-  const historyFiltered = applyAll(historyStatementData, {
+  const historyFiltered = applyAll(historyStatementRows, {
     searchFields: [
       "practice",
       "batchId",
@@ -3647,7 +3782,8 @@ const handleMarkAsReview = () => {
   const bottomRef = useRef(null);
   const [tableAreaRef, tableH] = useFillHeight(
     bottomRef,
-   currentTab === 3 ? 28 : 16,    [
+    currentTab === 3 ? 28 : 16,
+    [
       currentTab,
       effectiveViewMode,
       statementSubTab,
@@ -4445,12 +4581,14 @@ const handleMarkAsReview = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 1,
               px: 2,
               py: 1,
               backgroundColor: "#f5f7fa",
             }}
           >
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {PRE_CHIPS.map(([id, label, match]) => (
                 <FilterChip
                   key={id}
@@ -4582,12 +4720,11 @@ const handleMarkAsReview = () => {
                     >
                       <Box
                         sx={{
-                          display: "flex",
-                          columnGap: "28px",
-                          rowGap: 2,
-                          alignItems: "flex-start",
+                          display: "grid",
+                          gridTemplateColumns: "auto minmax(0, 1fr) auto",
+                          columnGap: { xs: 1, md: 2 },
+                          alignItems: "start",
                           width: "100%",
-                          flexWrap: { xs: "wrap", xl: "nowrap" },
                         }}
                       >
                         {/* Checkbox */}
@@ -4611,194 +4748,213 @@ const handleMarkAsReview = () => {
                           />
                         </Box>
 
-                        {/* Encounter Details */}
-                        <Box sx={{ flex: "0 0 auto", width: "140px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Encounter Details
-                          </Typography>
-                          <GridLine label="Encounter ID:">
-                            {row.encounterId}
-                          </GridLine>
-                          <GridLine label="Claim ID:">{row.claimId}</GridLine>
-                          <GridLine label="DOS:">{row.dos}</GridLine>
-                          <GridLine label="POS:">{row.pos}</GridLine>
-                          <GridLine label="Rendering Prov.:" last>
-                            JohnJohn
-                          </GridLine>
-                        </Box>
+                        {/* Sections: 2 cols on phones, 3 on tablets, 6 on desktop */}
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: {
+                              xs: "repeat(2, minmax(0, 1fr))",
+                              sm: "repeat(3, minmax(0, 1fr))",
+                              lg: "repeat(6, minmax(0, 1fr))",
+                            },
+                            columnGap: { xs: 1.5, md: 2.5 },
+                            rowGap: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          {/* Encounter Details */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Encounter Details
+                            </Typography>
+                            <GridLine label="Encounter ID:">
+                              {row.encounterId}
+                            </GridLine>
+                            <GridLine label="Claim ID:">{row.claimId}</GridLine>
+                            <GridLine label="DOS:">{row.dos}</GridLine>
+                            <GridLine label="POS:">{row.pos}</GridLine>
+                            <GridLine label="Rendering Prov.:" last>
+                              JohnJohn
+                            </GridLine>
+                          </Box>
 
-                        {/* Patient Details */}
-                        <Box sx={{ flex: "0 0 auto", width: "145px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Patient Details
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              mb: 0.3,
-                              lineHeight: 1.4,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {row.patientName} {row.gender}
-                          </Typography>
-                          <GridLine label="FIN:">{row.fin}</GridLine>
-                          <GridLine label="MRN:">{row.mrn}</GridLine>
-                          <GridLine label="DOB:">{row.dob}</GridLine>
-                          <GridLine label="Referring Prov.:" last>
-                            JohnJohn
-                          </GridLine>
-                        </Box>
+                          {/* Patient Details */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Patient Details
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                mb: 0.3,
+                                lineHeight: 1.4,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {row.patientName} {row.gender}
+                            </Typography>
+                            <GridLine label="FIN:">{row.fin}</GridLine>
+                            <GridLine label="MRN:">{row.mrn}</GridLine>
+                            <GridLine label="DOB:">{row.dob}</GridLine>
+                            <GridLine label="Referring Prov.:" last>
+                              JohnJohn
+                            </GridLine>
+                          </Box>
 
-                        {/* Admit & Authorization */}
-                        <Box sx={{ flex: "0 0 auto", width: "135px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Admit & Authorization
-                          </Typography>
-                          <GridLine label="DOA:">{row.doa}</GridLine>
-                          <GridLine label="Referral#:">{row.referral}</GridLine>
-                          <GridLine label="Authir:">{row.author}</GridLine>
-                          <GridLine label="Subscriber ID:" last>
-                            {row.subscriber}
-                          </GridLine>
-                        </Box>
+                          {/* Admit & Authorization */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Admit & Authorization
+                            </Typography>
+                            <GridLine label="DOA:">{row.doa}</GridLine>
+                            <GridLine label="Referral#:">
+                              {row.referral}
+                            </GridLine>
+                            <GridLine label="Authir:">{row.author}</GridLine>
+                            <GridLine label="Subscriber ID:" last>
+                              {row.subscriber}
+                            </GridLine>
+                          </Box>
 
-                        {/* Audit & Authorization */}
-                        <Box sx={{ flex: "0 0 auto", width: "160px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Audit & Authorization
-                          </Typography>
-                          <GridLine label="CPT:">{row.cpt2}</GridLine>
-                          <GridLine label="Modifier:">{row.modifier2}</GridLine>
-                          <GridLine label="ICD:">{row.icd2}</GridLine>
-                          <GridLine label="Place of Service:" last>
-                            {row.placeOfService}
-                          </GridLine>
-                        </Box>
+                          {/* Audit & Authorization */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Audit & Authorization
+                            </Typography>
+                            <GridLine label="CPT:">{row.cpt2 || "NA"}</GridLine>
+                            <GridLine label="Modifier:">
+                              {row.modifier2 || "NA"}
+                            </GridLine>
+                            <GridLine label="ICD:">{row.icd2 || "NA"}</GridLine>
+                            <GridLine label="Place of Service:" last>
+                              {row.placeOfService}
+                            </GridLine>
+                          </Box>
 
-                        {/* Insurance & Payment */}
-                        <Box sx={{ flex: "0 0 auto", width: "165px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Insurance & Payment Details
-                          </Typography>
-                          <GridLine label="Insurance:">
-                            {row.primaryInsurance}
-                          </GridLine>
-                          <GridLine label="Plan:">{row.plan}</GridLine>
-                          <GridLine label="Billed amt:">
-                            {row.billedAmount}
-                          </GridLine>
-                          <GridLine label="Patient paymemt:" last>
-                            {row.patientPayment}
-                          </GridLine>
-                        </Box>
+                          {/* Insurance & Payment */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Insurance & Payment Details
+                            </Typography>
+                            <GridLine label="Insurance:">
+                              {row.primaryInsurance}
+                            </GridLine>
+                            <GridLine label="Plan:">{row.plan}</GridLine>
+                            <GridLine label="Billed amt:">
+                              {row.billedAmount}
+                            </GridLine>
+                            <GridLine label="Patient payment:" last>
+                              {row.patientPayment}
+                            </GridLine>
+                          </Box>
 
-                        {/* Status & Remarks */}
-                        <Box sx={{ flex: "0 0 auto", width: "150px" }}>
-                          <Typography
-                            sx={{
-                              fontSize: 9,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                              mb: 2,
-                              mt: 1,
-                              lineHeight: 1,
-                            }}
-                          >
-                            Status & Remarks
-                          </Typography>
-                          <StatusPill
-                            label={row.status}
-                            bg={st.bg}
-                            fg={st.fg}
-                            height={19}
-                            mb={0.4}
-                          />
-                          <Typography
-                            sx={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              color: "rgba(0, 0, 0, 0.87)",
-                              mb: 0.3,
-                              lineHeight: 1.4,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            Remarks
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: 10,
-                              color: "rgba(0, 0, 0, 0.7)",
-                              lineHeight: 1.4,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {row.remarks}
-                          </Typography>
+                          {/* Status & Remarks */}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px",
+                                mb: 2,
+                                mt: 1,
+                                lineHeight: 1,
+                              }}
+                            >
+                              Status & Remarks
+                            </Typography>
+                            <StatusPill
+                              label={row.status}
+                              bg={st.bg}
+                              fg={st.fg}
+                              height={19}
+                              mb={0.4}
+                            />
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "rgba(0, 0, 0, 0.87)",
+                                mb: 0.3,
+                                lineHeight: 1.4,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Remarks
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                                color: "rgba(0, 0, 0, 0.7)",
+                                lineHeight: 1.4,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {row.remarks}
+                            </Typography>
+                          </Box>
                         </Box>
 
                         {/* Edit Icon */}
@@ -5002,8 +5158,6 @@ const handleMarkAsReview = () => {
               })}
             />
           </Box>
-
-        
         </Box>
       )}
 
@@ -5034,11 +5188,8 @@ const handleMarkAsReview = () => {
               />
             ))}
 
-          
-
-
             <Box sx={{ flex: 1 }} />
-{/* 
+            {/* 
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <ToolbarIcons onSettings={handleOpenColumnSettings} />
               <Button
@@ -5067,37 +5218,37 @@ const handleMarkAsReview = () => {
               </Button>
             </Box> */}
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-  <ToolbarIcons onSettings={handleOpenColumnSettings} />
+              <ToolbarIcons onSettings={handleOpenColumnSettings} />
 
-  <Button
-    variant="outlined"
-    onClick={handleMarkAsReview}
-    sx={selectActionBtnSx}
-  >
-    Mark as Review
-  </Button>
+              <Button
+                variant="outlined"
+                onClick={handleMarkAsReview}
+                sx={selectActionBtnSx}
+              >
+                Mark as Review
+              </Button>
 
-  <Button
-    variant="contained"
-    onClick={() => navigate("/new-payment")}
-    sx={{
-      textTransform: "none",
-      backgroundColor: "#0066ff",
-      color: "white",
-      fontWeight: 500,
-      fontSize: 11,
-      height: 28,
-      px: 1.75,
-      boxShadow: "none",
-      "&:hover": {
-        backgroundColor: "#0052cc",
-        boxShadow: "none",
-      },
-    }}
-  >
-    New Payment
-  </Button>
-</Box>
+              <Button
+                variant="contained"
+                onClick={() => navigate("/new-payment")}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#0066ff",
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: 11,
+                  height: 28,
+                  px: 1.75,
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: "#0052cc",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                New Payment
+              </Button>
+            </Box>
           </Box>
 
           <Box ref={tableAreaRef} sx={{ pb: 0, px: 2 }}>
@@ -5394,6 +5545,7 @@ const handleMarkAsReview = () => {
                       checked ? historyFiltered.map((r) => r.id) : [],
                     ),
                 }}
+                ctx={{ onDelete: handleDeleteHistoryBatch }}
                 minWidth={1000}
                 stickyHeader
                 containerSx={fillSx}
@@ -6546,6 +6698,34 @@ const handleMarkAsReview = () => {
           </Box>
         </Box>
       </Dialog>
+
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={(_, reason) => {
+          if (reason === "clickaway") return;
+          setSnackOpen(false);
+        }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setSnackOpen(false)}
+          sx={{
+            bgcolor: SNACK_COLORS[snackType] || SNACK_COLORS.add,
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            alignItems: "center",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            "& .MuiAlert-icon": { color: "#fff" },
+          }}
+        >
+          {snackMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

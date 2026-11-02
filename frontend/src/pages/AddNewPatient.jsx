@@ -809,7 +809,12 @@ function AddNewPatient() {
     const dob = parseDate(form.dateOfBirth);
     const fin = form.fin.trim();
     savePatient({
-      name: `${form.patientFirstName.trim()} ${form.patientLastName.trim()}`,
+      // "Surname, First M"
+      name: `${form.patientLastName.trim()}, ${form.patientFirstName.trim()}${
+        form.patientMiddleName.trim()
+          ? ` ${form.patientMiddleName.trim()[0].toUpperCase()}`
+          : ""
+      }`,
       age: dob ? dayjs().diff(dob, "year") : 0,
       gender: "Other", // this form has no gender field
       location: form.location,

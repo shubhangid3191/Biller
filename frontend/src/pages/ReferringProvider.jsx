@@ -24,6 +24,8 @@ import {
   InputBase,
   Checkbox,
   Badge,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -66,6 +68,18 @@ const thinScroll = {
 /* ------------------------------------------------------------------ */
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
+/* Name format used everywhere: "Surname, First"  (e.g. "Dolare, Shubhangi")
+   Dummy names below are written "First Last" -> converted here.        */
+const toSurnameFirst = (fullName) => {
+  const parts = String(fullName ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length < 2) return parts[0] ?? "";
+  const surname = parts[parts.length - 1];
+  return `${surname}, ${parts.slice(0, -1).join(" ")}`;
+};
+
 const SAMPLE = [
   [
     "Clare Jane",
@@ -288,7 +302,7 @@ const SAMPLE = [
 const ROWS = SAMPLE.map(
   ([providerName, address, npi, fax, mobile, email, practice], id) => ({
     id,
-    providerName,
+    providerName: toSurnameFirst(providerName),
     address,
     npi,
     fax,
@@ -303,7 +317,7 @@ const ROWS = SAMPLE.map(
 /* Edit page calls saveProvider() -> this table updates automatically.  */
 /* Replace with your API calls later.                                   */
 /* ------------------------------------------------------------------ */
-const STORAGE_KEY = "referringProviders:v1";
+const STORAGE_KEY = "referringProviders:v2";
 
 /* saved data survives a page refresh (browser localStorage) */
 const loadProviders = () => {
@@ -337,15 +351,86 @@ export const useProviders = () =>
   React.useSyncExternalStore(subscribeProviders, getProviders, getProviders);
 
 /* row.id present -> update that row, otherwise add a new row on top */
+/* Snackbar message: set when add / update / delete happens.
+   If the table page is not mounted yet (the edit page is open) the message
+   waits in `pendingNotice` and is shown as soon as the table page opens. */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+let pendingNotice = null;
+const noticeListeners = new Set();
+const notify = (message, type) => {
+  pendingNotice = { message, type };
+  noticeListeners.forEach((l) => l({ message, type }));
+};
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
 export const saveProvider = (row) => {
-  if (row.id !== undefined && row.id !== null) {
+  const isUpdate = row.id !== undefined && row.id !== null;
+  if (isUpdate) {
     providers = providers.map((p) => (p.id === row.id ? { ...p, ...row } : p));
   } else {
     providers = [{ ...row, id: nextProviderId++ }, ...providers];
   }
   persistProviders(providers);
   providerListeners.forEach((l) => l());
+  notify(
+    isUpdate
+      ? "Referring provider updated successfully"
+      : "Referring provider added successfully",
+    isUpdate ? "update" : "add",
+  );
 };
+
+/* Bottom-right green popup (3 sec) for add / update / delete */
+function ProviderNoticeSnackbar() {
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+
+  React.useEffect(() => {
+    const show = ({ message, type }) => {
+      pendingNotice = null;
+      setNotice({ open: true, message, type });
+    };
+    if (pendingNotice) show(pendingNotice); // saved on the edit page
+    noticeListeners.add(show);
+    return () => noticeListeners.delete(show);
+  }, []);
+
+  const handleClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      open={notice.open}
+      autoHideDuration={3000}
+      onClose={handleClose}
+    >
+      <Alert
+        onClose={handleClose}
+        severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+        variant="filled"
+        sx={{
+          width: "100%",
+          fontSize: 12,
+          alignItems: "center",
+          color: "#fff",
+          backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+            .color,
+          "& .MuiAlert-icon": { color: "#fff" },
+        }}
+      >
+        {notice.message}
+      </Alert>
+    </Snackbar>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
@@ -384,13 +469,19 @@ const SEARCH_FIELDS = ["providerName", "npi", "practice"];
 function filterRows(rows, query, practice) {
   const q = query.trim().toLowerCase();
   return rows.filter((row) => {
+    // "Lisha Cook" also finds "Cook, Lisha"
+    const nameText = String(row.providerName ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ");
+    const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
     const matchesSearch =
       !q ||
       SEARCH_FIELDS.some((field) =>
         String(row[field] ?? "")
           .toLowerCase()
           .includes(q),
-      );
+      ) ||
+      (words.length > 1 && words.every((w) => nameText.includes(w)));
     const matchesPractice =
       !practice || splitPractices(row.practice).includes(practice);
     return matchesSearch && matchesPractice;
@@ -1528,6 +1619,50 @@ function FilterSortDialog({
 /* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function ReferringProvider() {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = React.useState(false);
@@ -1562,6 +1697,14 @@ export default function ReferringProvider() {
   React.useEffect(() => {
     setPage(0);
   }, [filteredRows.length]);
+
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      COLUMNS,
+      sortedRows,
+      `referring-providers_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
 
   const pagedRows = sortedRows.slice(
     page * rowsPerPage,
@@ -1712,6 +1855,7 @@ export default function ReferringProvider() {
 
           <Button
             variant="outlined"
+            onClick={handleExport}
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
@@ -1883,6 +2027,8 @@ export default function ReferringProvider() {
 
       {/* EDIT DIALOG */}
       <EditDialog open={editOpen} onClose={() => setEditOpen(false)} />
+      {/* SNACKBAR: Bottom-Right */}
+      <ProviderNoticeSnackbar />
     </Box>
   );
 }

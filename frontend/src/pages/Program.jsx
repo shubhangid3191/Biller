@@ -20,6 +20,8 @@ import {
   Badge,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -280,67 +282,67 @@ function PaginationBar({
 const SEED = [
   {
     id: 1,
-    programName: "Clare Jane",
+    programName: "Jane, Clare",
     description: "Provider-Delivered Care Management.",
     cpt: "11980; 00934",
   },
   {
     id: 2,
-    programName: "Adam Ross",
+    programName: "Ross, Adam",
     description: "Chronic Care Management.",
     cpt: "99490; 99439",
   },
   {
     id: 3,
-    programName: "Zoe Martin",
+    programName: "Martin, Zoe",
     description: "Remote Patient Monitoring.",
     cpt: "99453; 99454",
   },
   {
     id: 4,
-    programName: "Brian Cox",
+    programName: "Cox, Brian",
     description: "Principal Care Management.",
     cpt: "99424; 99425",
   },
   {
     id: 5,
-    programName: "Maya Singh",
+    programName: "Singh, Maya",
     description: "Transitional Care Management.",
     cpt: "99495; 99496",
   },
   {
     id: 6,
-    programName: "Liam Turner",
+    programName: "Turner, Liam",
     description: "Behavioral Health Integration.",
     cpt: "99484; 99492",
   },
   {
     id: 7,
-    programName: "Nora Blake",
+    programName: "Blake, Nora",
     description: "Annual Wellness Visit.",
     cpt: "G0438; G0439",
   },
   {
     id: 8,
-    programName: "Ethan Hall",
+    programName: "Hall, Ethan",
     description: "Advance Care Planning.",
     cpt: "99497; 99498",
   },
   {
     id: 9,
-    programName: "Ivy Morgan",
+    programName: "Morgan, Ivy",
     description: "Home Health Certification.",
     cpt: "G0180; G0179",
   },
   {
     id: 10,
-    programName: "Owen Reed",
+    programName: "Reed, Owen",
     description: "Telehealth Consultation.",
     cpt: "99441; 99442",
   },
   {
     id: 11,
-    programName: "Ruby Fox",
+    programName: "Fox, Ruby",
     description: "Preventive Medicine Counseling.",
     cpt: "99401; 99402",
   },
@@ -364,13 +366,21 @@ const SORTABLE_COLUMNS = COLUMNS.filter((c) => c.sort);
 function filterRows(rows, query) {
   const q = query.trim().toLowerCase();
   if (!q) return rows;
-  return rows.filter((r) =>
-    ["programName", "cpt"].some((f) =>
-      String(r[f] ?? "")
-        .toLowerCase()
-        .includes(q),
-    ),
-  );
+  const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
+  return rows.filter((r) => {
+    // "Clare Jane" also finds "Jane, Clare"
+    const nameText = String(r.programName ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ");
+    return (
+      ["programName", "cpt"].some((f) =>
+        String(r[f] ?? "")
+          .toLowerCase()
+          .includes(q),
+      ) ||
+      (words.length > 1 && words.every((w) => nameText.includes(w)))
+    );
+  });
 }
 
 const COMPARERS = {
@@ -778,14 +788,74 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function Program() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Snackbar (bottom-right) for add / update / delete
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+  const showNotice = (message, type = "add") =>
+    setNotice({ open: true, message, type });
+  const handleNoticeClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
   /* ── rows state — persisted in localStorage ── */
   const [rows, setRows] = React.useState(() => {
     try {
-      const saved = localStorage.getItem("programRows");
+      const saved = localStorage.getItem("programRows:v2");
       return saved ? JSON.parse(saved) : SEED;
     } catch {
       return SEED;
@@ -797,7 +867,7 @@ export default function Program() {
 
   /* keep localStorage in sync whenever rows change */
   React.useEffect(() => {
-    localStorage.setItem("programRows", JSON.stringify(rows));
+    localStorage.setItem("programRows:v2", JSON.stringify(rows));
   }, [rows]);
 
   /* ── handle result coming back from ProgramEdit ── */
@@ -821,6 +891,14 @@ export default function Program() {
         ),
       );
     }
+    if (result.action === "add" || result.action === "edit") {
+      showNotice(
+        result.action === "add"
+          ? "Program added successfully"
+          : "Program updated successfully",
+        result.action === "add" ? "add" : "update",
+      );
+    }
     /* clear the state so re-visits don't re-apply */
     navigate("/program", { replace: true, state: {} });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -832,6 +910,7 @@ export default function Program() {
   const handleDeleteConfirm = () => {
     setRows((prev) => prev.filter((r) => r.id !== deleteTarget.id));
     setDeleteTarget(null);
+    showNotice("Program deleted successfully", "delete");
   };
 
   /* ── search / filter / sort / pagination ── */
@@ -853,6 +932,14 @@ export default function Program() {
   React.useEffect(() => {
     setPage(0);
   }, [filteredRows.length]);
+
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      COLUMNS,
+      sortedRows,
+      `programs_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
 
   const pagedRows = sortedRows.slice(
     page * rowsPerPage,
@@ -993,6 +1080,7 @@ export default function Program() {
           {/* Export */}
           <Button
             variant="outlined"
+            onClick={handleExport}
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
@@ -1194,6 +1282,30 @@ export default function Program() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
       />
+      {/* SNACKBAR: Bottom-Right, green, 3 sec */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={notice.open}
+        autoHideDuration={3000}
+        onClose={handleNoticeClose}
+      >
+        <Alert
+          onClose={handleNoticeClose}
+          severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+          variant="filled"
+          sx={{
+            width: "100%",
+            fontSize: 12,
+            alignItems: "center",
+            color: "#fff",
+            backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+              .color,
+            "& .MuiAlert-icon": { color: "#fff" },
+          }}
+        >
+          {notice.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -19,6 +19,8 @@ import {
   DialogContent,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -279,22 +281,229 @@ function PaginationBar({
 /* ------------------------------------------------------------------ */
 /* Dummy rows                                                           */
 /* ------------------------------------------------------------------ */
+/* Name format used everywhere: "Surname, First M"  (e.g. "Dolare, Shubhangi V")
+   Dummy names below are written "First Last" -> converted here.        */
+const toSurnameFirst = (fullName) => {
+  const parts = String(fullName ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length < 2) return parts[0] ?? "";
+  const surname = parts[parts.length - 1];
+  return `${surname}, ${parts.slice(0, -1).join(" ")}`;
+};
+
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+/* state that is also kept in localStorage (a deleted refund stays deleted
+   after a page refresh). Replace with your API later.                  */
+const usePersistedState = (key, initial) => {
+  const [value, setValue] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      /* ignore */
+    }
+    return initial;
+  });
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      /* storage full / blocked -> keep working in memory */
+    }
+  }, [key, value]);
+  return [value, setValue];
+};
+
 const NEW_SAMPLE = [
-  ["Lisha Cook", "863", "24/08/1965", "864", "9759402598", "$200", "12/05/2026", "-", "Draft", "Mode 1"],
-  ["Aamir Pathan", "864", "13/05/1984", "865", "9370937902", "$20", "03/06/2026", "-", "Approved", "Mode 2"],
-  ["Rahul Sharma", "865", "14/03/1973", "866", "9812345670", "$75", "21/04/2026", "-", "Pending", "Mode 3"],
-  ["Priya Patel", "866", "02/07/1991", "867", "9898989898", "$310", "09/01/2026", "-", "Draft", "Mode 1"],
-  ["John Miller", "867", "29/01/1964", "868", "9123456780", "$45", "30/03/2026", "-", "Rejected", "Mode 2"],
-  ["Anita Desai", "868", "18/09/1997", "869", "9345678123", "$500", "17/07/2026", "-", "Approved", "Mode 3"],
-  ["Mark Wilson", "869", "06/05/1978", "870", "9456781234", "$90", "05/02/2026", "-", "Pending", "Mode 1"],
-  ["Sneha Kulkarni", "870", "11/12/1986", "871", "9567812345", "$60", "28/05/2026", "-", "Draft", "Mode 2"],
-  ["David Brown", "871", "23/08/1955", "872", "9678123456", "$240", "11/11/2025", "-", "Approved", "Mode 3"],
-  ["Meera Nair", "872", "17/02/1970", "873", "9781234567", "$35", "19/08/2026", "-", "Rejected", "Mode 1"],
-  ["Kevin Zhang", "873", "09/10/1995", "874", "9892345678", "$150", "03/09/2026", "-", "Pending", "Mode 2"],
-  ["Fatima Khan", "874", "25/04/1983", "875", "9903456781", "$410", "14/12/2025", "-", "Draft", "Mode 3"],
-  ["Robert King", "875", "30/06/1959", "876", "9014567812", "$25", "26/04/2026", "-", "Approved", "Mode 1"],
-  ["Nisha Verma", "876", "09/02/1989", "877", "9125678123", "$130", "07/10/2026", "-", "Pending", "Mode 2"],
-  ["Omar Ali", "877", "30/10/1967", "878", "9236781234", "$95", "12/03/2026", "-", "Rejected", "Mode 3"],
+  [
+    "Lisha Cook",
+    "863",
+    "24/08/1965",
+    "864",
+    "9759402598",
+    "$200",
+    "12/05/2026",
+    "-",
+    "Draft",
+    "Mode 1",
+  ],
+  [
+    "Aamir Pathan",
+    "864",
+    "13/05/1984",
+    "865",
+    "9370937902",
+    "$20",
+    "03/06/2026",
+    "-",
+    "Approved",
+    "Mode 2",
+  ],
+  [
+    "Rahul Sharma",
+    "865",
+    "14/03/1973",
+    "866",
+    "9812345670",
+    "$75",
+    "21/04/2026",
+    "-",
+    "Pending",
+    "Mode 3",
+  ],
+  [
+    "Priya Patel",
+    "866",
+    "02/07/1991",
+    "867",
+    "9898989898",
+    "$310",
+    "09/01/2026",
+    "-",
+    "Draft",
+    "Mode 1",
+  ],
+  [
+    "John Miller",
+    "867",
+    "29/01/1964",
+    "868",
+    "9123456780",
+    "$45",
+    "30/03/2026",
+    "-",
+    "Rejected",
+    "Mode 2",
+  ],
+  [
+    "Anita Desai",
+    "868",
+    "18/09/1997",
+    "869",
+    "9345678123",
+    "$500",
+    "17/07/2026",
+    "-",
+    "Approved",
+    "Mode 3",
+  ],
+  [
+    "Mark Wilson",
+    "869",
+    "06/05/1978",
+    "870",
+    "9456781234",
+    "$90",
+    "05/02/2026",
+    "-",
+    "Pending",
+    "Mode 1",
+  ],
+  [
+    "Sneha Kulkarni",
+    "870",
+    "11/12/1986",
+    "871",
+    "9567812345",
+    "$60",
+    "28/05/2026",
+    "-",
+    "Draft",
+    "Mode 2",
+  ],
+  [
+    "David Brown",
+    "871",
+    "23/08/1955",
+    "872",
+    "9678123456",
+    "$240",
+    "11/11/2025",
+    "-",
+    "Approved",
+    "Mode 3",
+  ],
+  [
+    "Meera Nair",
+    "872",
+    "17/02/1970",
+    "873",
+    "9781234567",
+    "$35",
+    "19/08/2026",
+    "-",
+    "Rejected",
+    "Mode 1",
+  ],
+  [
+    "Kevin Zhang",
+    "873",
+    "09/10/1995",
+    "874",
+    "9892345678",
+    "$150",
+    "03/09/2026",
+    "-",
+    "Pending",
+    "Mode 2",
+  ],
+  [
+    "Fatima Khan",
+    "874",
+    "25/04/1983",
+    "875",
+    "9903456781",
+    "$410",
+    "14/12/2025",
+    "-",
+    "Draft",
+    "Mode 3",
+  ],
+  [
+    "Robert King",
+    "875",
+    "30/06/1959",
+    "876",
+    "9014567812",
+    "$25",
+    "26/04/2026",
+    "-",
+    "Approved",
+    "Mode 1",
+  ],
+  [
+    "Nisha Verma",
+    "876",
+    "09/02/1989",
+    "877",
+    "9125678123",
+    "$130",
+    "07/10/2026",
+    "-",
+    "Pending",
+    "Mode 2",
+  ],
+  [
+    "Omar Ali",
+    "877",
+    "30/10/1967",
+    "878",
+    "9236781234",
+    "$95",
+    "12/03/2026",
+    "-",
+    "Rejected",
+    "Mode 3",
+  ],
 ];
 
 const NEW_ROWS = NEW_SAMPLE.map(
@@ -314,7 +523,7 @@ const NEW_ROWS = NEW_SAMPLE.map(
     id,
   ) => ({
     id,
-    patientName,
+    patientName: toSurnameFirst(patientName),
     patientId,
     dob,
     refundId,
@@ -328,21 +537,171 @@ const NEW_ROWS = NEW_SAMPLE.map(
 );
 
 const HISTORY_SAMPLE = [
-  ["Lisha Cook", "863", "24/08/1965", "864", "9759402598", "$200", "12/05/2026", "-", "Draft"],
-  ["Aamir Pathan", "864", "13/05/1984", "865", "9370937902", "$20", "03/06/2026", "-", "Approved"],
-  ["Rahul Sharma", "865", "14/03/1973", "866", "9812345670", "$75", "21/04/2026", "-", "Pending"],
-  ["Priya Patel", "866", "02/07/1991", "867", "9898989898", "$310", "09/01/2026", "-", "Draft"],
-  ["John Miller", "867", "29/01/1964", "868", "9123456780", "$45", "30/03/2026", "-", "Rejected"],
-  ["Anita Desai", "868", "18/09/1997", "869", "9345678123", "$500", "17/07/2026", "-", "Approved"],
-  ["Mark Wilson", "869", "06/05/1978", "870", "9456781234", "$90", "05/02/2026", "-", "Pending"],
-  ["Sneha Kulkarni", "870", "11/12/1986", "871", "9567812345", "$60", "28/05/2026", "-", "Draft"],
-  ["David Brown", "871", "23/08/1955", "872", "9678123456", "$240", "11/11/2025", "-", "Approved"],
-  ["Meera Nair", "872", "17/02/1970", "873", "9781234567", "$35", "19/08/2026", "-", "Rejected"],
-  ["Kevin Zhang", "873", "09/10/1995", "874", "9892345678", "$150", "03/09/2026", "-", "Pending"],
-  ["Fatima Khan", "874", "25/04/1983", "875", "9903456781", "$410", "14/12/2025", "-", "Draft"],
-  ["Robert King", "875", "30/06/1959", "876", "9014567812", "$25", "26/04/2026", "-", "Approved"],
-  ["Nisha Verma", "876", "09/02/1989", "877", "9125678123", "$130", "07/10/2026", "-", "Pending"],
-  ["Omar Ali", "877", "30/10/1967", "878", "9236781234", "$95", "12/03/2026", "-", "Rejected"],
+  [
+    "Lisha Cook",
+    "863",
+    "24/08/1965",
+    "864",
+    "9759402598",
+    "$200",
+    "12/05/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "Aamir Pathan",
+    "864",
+    "13/05/1984",
+    "865",
+    "9370937902",
+    "$20",
+    "03/06/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Rahul Sharma",
+    "865",
+    "14/03/1973",
+    "866",
+    "9812345670",
+    "$75",
+    "21/04/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Priya Patel",
+    "866",
+    "02/07/1991",
+    "867",
+    "9898989898",
+    "$310",
+    "09/01/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "John Miller",
+    "867",
+    "29/01/1964",
+    "868",
+    "9123456780",
+    "$45",
+    "30/03/2026",
+    "-",
+    "Rejected",
+  ],
+  [
+    "Anita Desai",
+    "868",
+    "18/09/1997",
+    "869",
+    "9345678123",
+    "$500",
+    "17/07/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Mark Wilson",
+    "869",
+    "06/05/1978",
+    "870",
+    "9456781234",
+    "$90",
+    "05/02/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Sneha Kulkarni",
+    "870",
+    "11/12/1986",
+    "871",
+    "9567812345",
+    "$60",
+    "28/05/2026",
+    "-",
+    "Draft",
+  ],
+  [
+    "David Brown",
+    "871",
+    "23/08/1955",
+    "872",
+    "9678123456",
+    "$240",
+    "11/11/2025",
+    "-",
+    "Approved",
+  ],
+  [
+    "Meera Nair",
+    "872",
+    "17/02/1970",
+    "873",
+    "9781234567",
+    "$35",
+    "19/08/2026",
+    "-",
+    "Rejected",
+  ],
+  [
+    "Kevin Zhang",
+    "873",
+    "09/10/1995",
+    "874",
+    "9892345678",
+    "$150",
+    "03/09/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Fatima Khan",
+    "874",
+    "25/04/1983",
+    "875",
+    "9903456781",
+    "$410",
+    "14/12/2025",
+    "-",
+    "Draft",
+  ],
+  [
+    "Robert King",
+    "875",
+    "30/06/1959",
+    "876",
+    "9014567812",
+    "$25",
+    "26/04/2026",
+    "-",
+    "Approved",
+  ],
+  [
+    "Nisha Verma",
+    "876",
+    "09/02/1989",
+    "877",
+    "9125678123",
+    "$130",
+    "07/10/2026",
+    "-",
+    "Pending",
+  ],
+  [
+    "Omar Ali",
+    "877",
+    "30/10/1967",
+    "878",
+    "9236781234",
+    "$95",
+    "12/03/2026",
+    "-",
+    "Rejected",
+  ],
 ];
 
 const HISTORY_ROWS = HISTORY_SAMPLE.map(
@@ -361,7 +720,7 @@ const HISTORY_ROWS = HISTORY_SAMPLE.map(
     id,
   ) => ({
     id,
-    patientName,
+    patientName: toSurnameFirst(patientName),
     patientId,
     dob,
     refundId,
@@ -419,12 +778,17 @@ const REFUND_MODE_OPTIONS = [
 const filterRows = (rows, query, status, refundMode) => {
   const q = query.trim().toLowerCase();
   return rows.filter((row) => {
+    const nameText = String(row.patientName ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ");
+    const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
     const matchesSearch =
       !q ||
       Object.entries(row).some(
         ([key, value]) =>
           key !== "id" && String(value).toLowerCase().includes(q),
-      );
+      ) ||
+      (words.length > 1 && words.every((w) => nameText.includes(w)));
     const matchesStatus = !status || row.status === status;
     const matchesMode = !refundMode || row.refundMode === refundMode;
     return matchesSearch && matchesStatus && matchesMode;
@@ -935,7 +1299,7 @@ function HeaderCell({ column, sortDir, onSort }) {
 /* ------------------------------------------------------------------ */
 /* Row actions + status chip                                            */
 /* ------------------------------------------------------------------ */
-function RowActions() {
+function RowActions({ onDelete }) {
   return (
     <Stack
       direction="row"
@@ -957,6 +1321,7 @@ function RowActions() {
         <IconButton
           size="small"
           aria-label="Delete"
+          onClick={onDelete}
           sx={{ p: "4px", color: T.blue, "&:hover": { bgcolor: "#EEF4FF" } }}
         >
           <RPDeleteIcon width={18} height={18} color={T.blue} />
@@ -987,7 +1352,7 @@ function StatusChip({ label }) {
 }
 
 /* renders one body cell by column id */
-function renderCell(col, row) {
+function renderCell(col, row, onDelete) {
   switch (col.id) {
     case "patientName":
       return (
@@ -1013,7 +1378,7 @@ function renderCell(col, row) {
     case "actions":
       return (
         <TableCell key={col.id} sx={listCellSx}>
-          <RowActions />
+          <RowActions onDelete={onDelete} />
         </TableCell>
       );
     default:
@@ -1030,7 +1395,7 @@ function renderCell(col, row) {
 /* border box: rows scroll inside, header stays sticky,                 */
 /* pagination stays pinned at the bottom                                */
 /* ------------------------------------------------------------------ */
-function DataTable({ columns, rows, sort, onSort }) {
+function DataTable({ columns, rows, sort, onSort, onDelete }) {
   const [selected, setSelected] = React.useState([]);
 
   // pagination
@@ -1066,6 +1431,12 @@ function DataTable({ columns, rows, sort, onSort }) {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+
+  // delete one row (also un-select it)
+  const handleDeleteRow = (id) => {
+    setSelected((prev) => prev.filter((x) => x !== id));
+    if (onDelete) onDelete(id);
+  };
 
   return (
     <Box
@@ -1151,7 +1522,9 @@ function DataTable({ columns, rows, sort, onSort }) {
                     sx={checkboxSx}
                   />
                 </TableCell>
-                {columns.map((col) => renderCell(col, row))}
+                {columns.map((col) =>
+                  renderCell(col, row, () => handleDeleteRow(row.id)),
+                )}
               </TableRow>
             ))}
 
@@ -1702,13 +2075,27 @@ export default function RefundsNew() {
   const [modeFilter, setModeFilter] = React.useState("");
   const [filterOpen, setFilterOpen] = React.useState(false);
 
+  // rows live in state (kept in localStorage) so Delete really removes them
+  const [newRows, setNewRows] = usePersistedState("refundsNew:v1", NEW_ROWS);
+  const [historyRows, setHistoryRows] = usePersistedState(
+    "refundsHistory:v1",
+    HISTORY_ROWS,
+  );
+
+  // Snackbar (bottom-right)
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+  const handleNoticeClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
   const newFiltered = React.useMemo(
-    () => filterRows(NEW_ROWS, query, statusFilter, modeFilter),
-    [query, statusFilter, modeFilter],
+    () => filterRows(newRows, query, statusFilter, modeFilter),
+    [newRows, query, statusFilter, modeFilter],
   );
   const historyFiltered = React.useMemo(
-    () => filterRows(HISTORY_ROWS, query, statusFilter, ""),
-    [query, statusFilter],
+    () => filterRows(historyRows, query, statusFilter, ""),
+    [historyRows, query, statusFilter],
   );
 
   // each tab keeps its own sort state
@@ -1734,6 +2121,16 @@ export default function RefundsNew() {
   const handleDownload = () => {
     const filename = `refunds-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`;
     exportToCSV(visibleColumns, current.sortedRows, filename);
+  };
+
+  const handleDeleteRefund = (id) => {
+    const setRows = activeTab === "new" ? setNewRows : setHistoryRows;
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    setNotice({
+      open: true,
+      message: "Refund deleted successfully",
+      type: "delete",
+    });
   };
 
   const handleFilterApply = (draft) => {
@@ -1847,6 +2244,7 @@ export default function RefundsNew() {
         rows={current.sortedRows}
         sort={current.sort}
         onSort={current.handleSort}
+        onDelete={handleDeleteRefund}
       />
 
       {/* FILTER DIALOG */}
@@ -1867,6 +2265,31 @@ export default function RefundsNew() {
         visible={currentVisible}
         setVisible={setCurrentVisible}
       />
+
+      {/* SNACKBAR: Bottom-Right */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={notice.open}
+        autoHideDuration={3000}
+        onClose={handleNoticeClose}
+      >
+        <Alert
+          onClose={handleNoticeClose}
+          severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+          variant="filled"
+          sx={{
+            width: "100%",
+            fontSize: 12,
+            alignItems: "center",
+            color: "#fff",
+            backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+              .color,
+            "& .MuiAlert-icon": { color: "#fff" },
+          }}
+        >
+          {notice.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

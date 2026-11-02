@@ -20,6 +20,8 @@ import {
   DialogContent,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -280,7 +282,7 @@ function PaginationBar({
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
   [
-    "Clare Jane",
+    "Jane, Clare",
     "Washington, Aleutians East Borough, AK 99571",
     "8475875747",
     "8475875747",
@@ -289,7 +291,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Adam Ross",
+    "Ross, Adam",
     "Boston, Suffolk County, MA 02108",
     "9123456780",
     "9123456781",
@@ -298,7 +300,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Zoe Martin",
+    "Martin, Zoe",
     "Denver, Denver County, CO 80202",
     "7345678123",
     "7345678124",
@@ -307,7 +309,7 @@ const SAMPLE = [
     false,
   ],
   [
-    "Brian Cox",
+    "Cox, Brian",
     "Austin, Travis County, TX 78701",
     "6456781234",
     "6456781235",
@@ -316,7 +318,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Maya Singh",
+    "Singh, Maya",
     "Chicago, Cook County, IL 60601",
     "9567812345",
     "9567812346",
@@ -325,7 +327,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Liam Turner",
+    "Turner, Liam",
     "Seattle, King County, WA 98101",
     "5678123456",
     "5678123457",
@@ -334,7 +336,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Nora Blake",
+    "Blake, Nora",
     "Miami, Miami-Dade County, FL 33101",
     "8781234567",
     "8781234568",
@@ -343,7 +345,7 @@ const SAMPLE = [
     false,
   ],
   [
-    "Ethan Hall",
+    "Hall, Ethan",
     "Phoenix, Maricopa County, AZ 85001",
     "4892345678",
     "4892345679",
@@ -352,7 +354,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Ivy Morgan",
+    "Morgan, Ivy",
     "Portland, Multnomah County, OR 97201",
     "9903456781",
     "9903456782",
@@ -361,7 +363,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Owen Reed",
+    "Reed, Owen",
     "Dallas, Dallas County, TX 75201",
     "3014567812",
     "3014567813",
@@ -370,7 +372,7 @@ const SAMPLE = [
     true,
   ],
   [
-    "Ruby Fox",
+    "Fox, Ruby",
     "Atlanta, Fulton County, GA 30301",
     "7125678123",
     "7125678124",
@@ -399,7 +401,7 @@ const INITIAL_ROWS = SAMPLE.map(
 /* Saved rows are kept in localStorage so they survive a refresh.       */
 /* Replace with your API calls later.                                   */
 /* ------------------------------------------------------------------ */
-const STORAGE_KEY = "practices:v1";
+const STORAGE_KEY = "practices:v2";
 
 const loadPractices = () => {
   try {
@@ -433,8 +435,27 @@ export const usePractices = () =>
   React.useSyncExternalStore(subscribePractices, getPractices, getPractices);
 
 /* row.id present -> update (merge) that row, otherwise add a new row on top */
+/* Snackbar message: set when add / update / delete happens.
+   If the table page is not mounted yet (the edit page is open) the message
+   waits in `pendingNotice` and is shown as soon as the table page opens. */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+let pendingNotice = null;
+const noticeListeners = new Set();
+const notify = (message, type) => {
+  pendingNotice = { message, type };
+  noticeListeners.forEach((l) => l({ message, type }));
+};
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
 export const savePractice = (row) => {
-  if (row.id !== undefined && row.id !== null) {
+  const isUpdate = row.id !== undefined && row.id !== null;
+  if (isUpdate) {
     storePractices = storePractices.map((p) =>
       p.id === row.id ? { ...p, ...row } : p,
     );
@@ -443,7 +464,57 @@ export const savePractice = (row) => {
   }
   persistPractices(storePractices);
   listenersPractices.forEach((l) => l());
+  notify(
+    isUpdate ? "Practice updated successfully" : "Practice added successfully",
+    isUpdate ? "update" : "add",
+  );
 };
+
+/* Bottom-right green popup (3 sec) for add / update / delete */
+function PracticeNoticeSnackbar() {
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+
+  React.useEffect(() => {
+    const show = ({ message, type }) => {
+      pendingNotice = null;
+      setNotice({ open: true, message, type });
+    };
+    if (pendingNotice) show(pendingNotice); // saved on the edit page
+    noticeListeners.add(show);
+    return () => noticeListeners.delete(show);
+  }, []);
+
+  const handleClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      open={notice.open}
+      autoHideDuration={3000}
+      onClose={handleClose}
+    >
+      <Alert
+        onClose={handleClose}
+        severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+        variant="filled"
+        sx={{
+          width: "100%",
+          fontSize: 12,
+          alignItems: "center",
+          color: "#fff",
+          backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+            .color,
+          "& .MuiAlert-icon": { color: "#fff" },
+        }}
+      >
+        {notice.message}
+      </Alert>
+    </Snackbar>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
@@ -476,13 +547,18 @@ const SEARCH_FIELDS = ["practice", "npi", "contact", "fax"];
 function filterRows(rows, query, status) {
   const q = query.trim().toLowerCase();
   return rows.filter((row) => {
+    const nameText = String(row.practice ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ");
+    const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
     const matchesSearch =
       !q ||
       SEARCH_FIELDS.some((field) =>
         String(row[field] ?? "")
           .toLowerCase()
           .includes(q),
-      );
+      ) ||
+      (words.length > 1 && words.every((w) => nameText.includes(w)));
     const matchesStatus =
       !status ||
       (status === "active" ? row.active === true : row.active === false);
@@ -1009,6 +1085,50 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function Practice() {
   const navigate = useNavigate();
 
@@ -1044,6 +1164,14 @@ export default function Practice() {
   React.useEffect(() => {
     setPage(0);
   }, [filteredRows.length]);
+
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      COLUMNS,
+      sortedRows,
+      `practices_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
 
   const pagedRows = sortedRows.slice(
     page * rowsPerPage,
@@ -1196,6 +1324,7 @@ export default function Practice() {
 
           <Button
             variant="outlined"
+            onClick={handleExport}
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
@@ -1394,6 +1523,8 @@ export default function Practice() {
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />
+      {/* SNACKBAR: Bottom-Right */}
+      <PracticeNoticeSnackbar />
     </Box>
   );
 }

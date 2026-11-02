@@ -24,6 +24,8 @@ import {
   Tooltip,
   InputBase,
   Badge,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -288,7 +290,7 @@ function PaginationBar({
 /* ------------------------------------------------------------------ */
 const SAMPLE = [
   [
-    "Clare Jane",
+    "Jane, Clare",
     "8475875747",
     "Washington, Aleutians East Borough, AK 99571",
     "8475875747",
@@ -377,7 +379,7 @@ const ROWS = SAMPLE.map(([payorName, payorCode, address, fax, active], id) => ({
 
 /* Change this key (v3, v4 ...) whenever you change the dummy data above,
    so the old cached rows in localStorage are ignored. */
-const STORAGE_KEY = "insuranceProviderRows_v2";
+const STORAGE_KEY = "insuranceProviderRows_v3";
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
@@ -402,13 +404,21 @@ const SEARCH_FIELDS = ["payorName", "payorCode"];
 function filterRows(rows, query) {
   const q = query.trim().toLowerCase();
   if (!q) return rows;
-  return rows.filter((row) =>
-    SEARCH_FIELDS.some((field) =>
-      String(row[field] ?? "")
-        .toLowerCase()
-        .includes(q),
-    ),
-  );
+  const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
+  return rows.filter((row) => {
+    // "Clare Jane" also finds "Jane, Clare"
+    const nameText = String(row.payorName ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ");
+    return (
+      SEARCH_FIELDS.some((field) =>
+        String(row[field] ?? "")
+          .toLowerCase()
+          .includes(q),
+      ) ||
+      (words.length > 1 && words.every((w) => nameText.includes(w)))
+    );
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -1207,9 +1217,69 @@ function FilterSortDialog({ open, onClose, initial, onApply, onClear }) {
 /* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function InsuranceProvider() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Snackbar (bottom-right) for add / update / delete
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+  const showNotice = (message, type = "add") =>
+    setNotice({ open: true, message, type });
+  const handleNoticeClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
 
   /* ── rows — persisted in localStorage ── */
   const [data, setData] = React.useState(() => {
@@ -1271,15 +1341,25 @@ export default function InsuranceProvider() {
         ),
       );
     }
+    if (result.action === "add" || result.action === "edit") {
+      showNotice(
+        result.action === "add"
+          ? "Insurance provider added successfully"
+          : "Insurance provider updated successfully",
+        result.action === "add" ? "add" : "update",
+      );
+    }
     navigate("/insurance-provider", { replace: true, state: {} });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.result]);
 
   /* ── toggle active ── */
-  const toggleActive = (id) =>
+  const toggleActive = (id) => {
     setData((prev) =>
       prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)),
     );
+    showNotice("Insurance provider updated successfully", "update");
+  };
 
   // search
   const [query, setQuery] = React.useState("");
@@ -1306,6 +1386,14 @@ export default function InsuranceProvider() {
   React.useEffect(() => {
     setPage(0);
   }, [filteredRows.length]);
+
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      COLUMNS,
+      sortedRows,
+      `insurance-providers_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
 
   const pagedRows = sortedRows.slice(
     page * rowsPerPage,
@@ -1454,6 +1542,7 @@ export default function InsuranceProvider() {
 
           <Button
             variant="outlined"
+            onClick={handleExport}
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
@@ -1655,6 +1744,30 @@ export default function InsuranceProvider() {
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />
+      {/* SNACKBAR: Bottom-Right, green, 3 sec */}
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        open={notice.open}
+        autoHideDuration={3000}
+        onClose={handleNoticeClose}
+      >
+        <Alert
+          onClose={handleNoticeClose}
+          severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+          variant="filled"
+          sx={{
+            width: "100%",
+            fontSize: 12,
+            alignItems: "center",
+            color: "#fff",
+            backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+              .color,
+            "& .MuiAlert-icon": { color: "#fff" },
+          }}
+        >
+          {notice.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

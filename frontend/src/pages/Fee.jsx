@@ -20,6 +20,8 @@ import {
   DialogContent,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -469,15 +471,91 @@ export const useFees = () =>
   React.useSyncExternalStore(subscribeFees, getFees, getFees);
 
 /* row.id present -> update (merge) that row, otherwise add a new row on top */
+/* Snackbar message: set when add / update / delete happens.
+   If the table page is not mounted yet (the edit page is open) the message
+   waits in `pendingNotice` and is shown as soon as the table page opens. */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+let pendingNotice = null;
+const noticeListeners = new Set();
+const notify = (message, type) => {
+  pendingNotice = { message, type };
+  noticeListeners.forEach((l) => l({ message, type }));
+};
+
+/* row.id present -> update (merge) that row, otherwise add a new row on top */
 export const saveFee = (row) => {
-  if (row.id !== undefined && row.id !== null) {
+  const isUpdate = row.id !== undefined && row.id !== null;
+  if (isUpdate) {
     storeFees = storeFees.map((p) => (p.id === row.id ? { ...p, ...row } : p));
   } else {
     storeFees = [{ ...row, id: nextFeesId++ }, ...storeFees];
   }
   persistFees(storeFees);
   listenersFees.forEach((l) => l());
+  notify(
+    isUpdate ? "Fee updated successfully" : "Fee added successfully",
+    isUpdate ? "update" : "add",
+  );
 };
+
+export const deleteFee = (id) => {
+  storeFees = storeFees.filter((p) => p.id !== id);
+  persistFees(storeFees);
+  listenersFees.forEach((l) => l());
+  notify("Fee deleted successfully", "delete");
+};
+
+/* Bottom-right green popup (3 sec) for add / update / delete */
+function FeeNoticeSnackbar() {
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+
+  React.useEffect(() => {
+    const show = ({ message, type }) => {
+      pendingNotice = null;
+      setNotice({ open: true, message, type });
+    };
+    if (pendingNotice) show(pendingNotice); // saved on the edit page
+    noticeListeners.add(show);
+    return () => noticeListeners.delete(show);
+  }, []);
+
+  const handleClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      open={notice.open}
+      autoHideDuration={3000}
+      onClose={handleClose}
+    >
+      <Alert
+        onClose={handleClose}
+        severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+        variant="filled"
+        sx={{
+          width: "100%",
+          fontSize: 12,
+          alignItems: "center",
+          color: "#fff",
+          backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+            .color,
+          "& .MuiAlert-icon": { color: "#fff" },
+        }}
+      >
+        {notice.message}
+      </Alert>
+    </Snackbar>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Table columns                                                        */
@@ -1163,6 +1241,50 @@ function FilterSortDialog({
 /* ------------------------------------------------------------------ */
 /* Main Page                                                            */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function Fee() {
   const navigate = useNavigate();
 
@@ -1196,6 +1318,14 @@ export default function Fee() {
   React.useEffect(() => {
     setPage(0);
   }, [filteredRows.length]);
+
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      COLUMNS,
+      sortedRows,
+      `fee-schedule_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
 
   const pagedRows = sortedRows.slice(
     page * rowsPerPage,
@@ -1354,6 +1484,7 @@ export default function Fee() {
 
           <Button
             variant="outlined"
+            onClick={handleExport}
             startIcon={<ExportIcon color="#2563EB" />}
             sx={{
               textTransform: "none",
@@ -1491,7 +1622,10 @@ export default function Fee() {
                         <IconButton
                           size="small"
                           aria-label="Delete"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFee(row.id);
+                          }}
                           sx={actionBtnSx}
                         >
                           <RPDeleteIcon width={16} height={16} color={T.blue} />
@@ -1539,6 +1673,8 @@ export default function Fee() {
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />
+      {/* SNACKBAR: Bottom-Right */}
+      <FeeNoticeSnackbar />
     </Box>
   );
 }

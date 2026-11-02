@@ -20,6 +20,8 @@ import {
   Badge,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -347,30 +349,213 @@ const ROW_ACTIONS = [
 
 /* ------------------------------------------------------------------ */
 /* Dummy rows                                                          */
-/* name format: "First Last Age (M|F)"                                 */
+/* dummy name format: "First Last" (shown as "Last, First")             */
 /* ------------------------------------------------------------------ */
 
 const SAMPLE = [
-  ["Lisha Cook", 45, "F", "GCH–IH", "719471345", "ID: NA", "11/20/2025", "Julia R"],
-  ["Rahul Sharma", 52, "M", "GCH–OP", "874382743", "ID: 4521", "03/14/1973", "Amit K"],
-  ["Priya Patel", 34, "F", "GCH–ICU", "892891989", "ID: NA", "07/02/1991", "Julia R"],
-  ["John Miller", 61, "M", "GCH–IH", "728374888", "ID: 8810", "01/29/1964", "Sara L"],
-  ["Anita Desai", 28, "F", "GCH–ER", "909238484", "ID: NA", "09/18/1997", "Amit K"],
-  ["Mark Wilson", 47, "M", "GCH–OP", "322736772", "ID: 3307", "05/06/1978", "Sara L"],
-  ["Sneha Kulkarni", 39, "F", "GCH–ICU", "719471351", "ID: NA", "12/11/1986", "Julia R"],
-  ["David Brown", 70, "M", "GCH–IH", "242657545", "ID: 9942", "08/23/1955", "Amit K"],
-  ["Meera Nair", 55, "F", "GCH–ER", "232446577", "ID: NA", "02/17/1970", "Sara L"],
-  ["Kevin Zhang", 30, "M", "GCH–OP", "456547677", "ID: 1180", "10/09/1995", "Julia R"],
-  ["Fatima Khan", 42, "F", "GCH–IH", "565756545", "ID: NA", "04/25/1983", "Amit K"],
-  ["Robert King", 66, "M", "GCH–ICU", "877876655", "ID: 7754", "06/30/1959", "Sara L"],
-  ["Kobert King", 66, "M", "BCH–ICU", "333333333", "ID: 7754", "06/30/1959", "Sara L"],
-  ["Nora Blake", 50, "F", "GCH–ICU", "557575665", "ID: 3310", "06/30/1975", "Bara L"],
-  ["David Brown", 70, "M", "GCH–IH", "242657545", "ID: 9942", "08/23/1955", "Amit K"],
-  ["Meera Nair", 55, "F", "GCH–ER", "232446577", "ID: NA", "02/17/1970", "Sara L"],
-  ["Kevin Zhang", 30, "M", "GCH–OP", "456547677", "ID: 1180", "10/09/1995", "Julia R"],
-  ["Fatima Khan", 42, "F", "GCH–IH", "565756545", "ID: NA", "04/25/1983", "Amit K"],
-  ["Robert King", 66, "M", "GCH–ICU", "877876655", "ID: 7754", "06/30/1959", "Sara L"],
+  [
+    "Lisha Cook",
+    45,
+    "F",
+    "GCH–IH",
+    "719471345",
+    "ID: NA",
+    "11/20/2025",
+    "Julia R",
+  ],
+  [
+    "Rahul Sharma",
+    52,
+    "M",
+    "GCH–OP",
+    "874382743",
+    "ID: 4521",
+    "03/14/1973",
+    "Amit K",
+  ],
+  [
+    "Priya Patel",
+    34,
+    "F",
+    "GCH–ICU",
+    "892891989",
+    "ID: NA",
+    "07/02/1991",
+    "Julia R",
+  ],
+  [
+    "John Miller",
+    61,
+    "M",
+    "GCH–IH",
+    "728374888",
+    "ID: 8810",
+    "01/29/1964",
+    "Sara L",
+  ],
+  [
+    "Anita Desai",
+    28,
+    "F",
+    "GCH–ER",
+    "909238484",
+    "ID: NA",
+    "09/18/1997",
+    "Amit K",
+  ],
+  [
+    "Mark Wilson",
+    47,
+    "M",
+    "GCH–OP",
+    "322736772",
+    "ID: 3307",
+    "05/06/1978",
+    "Sara L",
+  ],
+  [
+    "Sneha Kulkarni",
+    39,
+    "F",
+    "GCH–ICU",
+    "719471351",
+    "ID: NA",
+    "12/11/1986",
+    "Julia R",
+  ],
+  [
+    "David Brown",
+    70,
+    "M",
+    "GCH–IH",
+    "242657545",
+    "ID: 9942",
+    "08/23/1955",
+    "Amit K",
+  ],
+  [
+    "Meera Nair",
+    55,
+    "F",
+    "GCH–ER",
+    "232446577",
+    "ID: NA",
+    "02/17/1970",
+    "Sara L",
+  ],
+  [
+    "Kevin Zhang",
+    30,
+    "M",
+    "GCH–OP",
+    "456547677",
+    "ID: 1180",
+    "10/09/1995",
+    "Julia R",
+  ],
+  [
+    "Fatima Khan",
+    42,
+    "F",
+    "GCH–IH",
+    "565756545",
+    "ID: NA",
+    "04/25/1983",
+    "Amit K",
+  ],
+  [
+    "Robert King",
+    66,
+    "M",
+    "GCH–ICU",
+    "877876655",
+    "ID: 7754",
+    "06/30/1959",
+    "Sara L",
+  ],
+  [
+    "Kobert King",
+    66,
+    "M",
+    "BCH–ICU",
+    "333333333",
+    "ID: 7754",
+    "06/30/1959",
+    "Sara L",
+  ],
+  [
+    "Nora Blake",
+    50,
+    "F",
+    "GCH–ICU",
+    "557575665",
+    "ID: 3310",
+    "06/30/1975",
+    "Bara L",
+  ],
+  [
+    "David Brown",
+    70,
+    "M",
+    "GCH–IH",
+    "242657545",
+    "ID: 9942",
+    "08/23/1955",
+    "Amit K",
+  ],
+  [
+    "Meera Nair",
+    55,
+    "F",
+    "GCH–ER",
+    "232446577",
+    "ID: NA",
+    "02/17/1970",
+    "Sara L",
+  ],
+  [
+    "Kevin Zhang",
+    30,
+    "M",
+    "GCH–OP",
+    "456547677",
+    "ID: 1180",
+    "10/09/1995",
+    "Julia R",
+  ],
+  [
+    "Fatima Khan",
+    42,
+    "F",
+    "GCH–IH",
+    "565756545",
+    "ID: NA",
+    "04/25/1983",
+    "Amit K",
+  ],
+  [
+    "Robert King",
+    66,
+    "M",
+    "GCH–ICU",
+    "877876655",
+    "ID: 7754",
+    "06/30/1959",
+    "Sara L",
+  ],
 ];
+
+/* Name format used everywhere: "Surname, First M"  (e.g. "Dolare, Shubhangi V")
+   Dummy names below are written "First Last" -> converted here.        */
+const toSurnameFirst = (fullName) => {
+  const parts = String(fullName ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length < 2) return parts[0] ?? "";
+  const surname = parts[parts.length - 1];
+  return `${surname}, ${parts.slice(0, -1).join(" ")}`;
+};
 
 /* Map single-letter code → display label */
 const GENDER_LABEL = { M: "Male", F: "Female", O: "Other" };
@@ -379,7 +564,7 @@ const createRows = () =>
   SAMPLE.map(
     ([name, age, genderCode, location, mrn, patientId, dob, physician], i) => ({
       id: i,
-      name,
+      name: toSurnameFirst(name),
       age,
       gender: GENDER_LABEL[genderCode] ?? genderCode,
       location,
@@ -400,7 +585,7 @@ const ALL_ROWS = createRows();
 /* Saved rows are kept in localStorage so they survive a refresh.       */
 /* Replace with your API calls later.                                   */
 /* ------------------------------------------------------------------ */
-const STORAGE_KEY = "allPatients:v1";
+const STORAGE_KEY = "allPatients:v2";
 
 const loadPatients = () => {
   try {
@@ -432,9 +617,27 @@ const getPatients = () => storePatients;
 export const usePatients = () =>
   React.useSyncExternalStore(subscribePatients, getPatients, getPatients);
 
+/* Snackbar message: set when add / update / delete happens.
+   If this page is not mounted yet (AddNewPatient is open) the message waits
+   in `pendingNotice` and is shown as soon as the table page opens. */
+/* Snackbar colours: Add = green, Update = blue, Delete = red */
+const NOTICE_STYLE = {
+  add: { severity: "success", color: "#2E7D32" },
+  update: { severity: "info", color: "#1976D2" },
+  delete: { severity: "error", color: "#D32F2F" },
+};
+
+let pendingNotice = null;
+const noticeListeners = new Set();
+const notify = (message, type) => {
+  pendingNotice = { message, type };
+  noticeListeners.forEach((l) => l({ message, type }));
+};
+
 /* row.id present -> update (merge) that row, otherwise add a new row on top */
 export const savePatient = (row) => {
-  if (row.id !== undefined && row.id !== null) {
+  const isUpdate = row.id !== undefined && row.id !== null;
+  if (isUpdate) {
     storePatients = storePatients.map((p) =>
       p.id === row.id ? { ...p, ...row } : p,
     );
@@ -443,7 +646,66 @@ export const savePatient = (row) => {
   }
   persistPatients(storePatients);
   listenersPatients.forEach((l) => l());
+  notify(
+    isUpdate ? "Patient updated successfully" : "Patient added successfully",
+    isUpdate ? "update" : "add",
+  );
 };
+
+export const deletePatient = (id) => {
+  storePatients = storePatients.filter((p) => p.id !== id);
+  persistPatients(storePatients);
+  listenersPatients.forEach((l) => l());
+  notify("Patient deleted successfully", "delete");
+};
+
+/* Bottom-right popup for add / update / delete.
+   Put <PatientNoticeSnackbar /> on any page the user can land on after
+   saving (All Patients, Confirm Patient List, ...).                     */
+export function PatientNoticeSnackbar() {
+  const [notice, setNotice] = React.useState({ open: false, message: "" });
+
+  React.useEffect(() => {
+    const show = ({ message, type }) => {
+      pendingNotice = null;
+      setNotice({ open: true, message, type });
+    };
+    if (pendingNotice) show(pendingNotice); // saved on the other page
+    noticeListeners.add(show);
+    return () => noticeListeners.delete(show);
+  }, []);
+
+  const handleClose = (_, reason) => {
+    if (reason === "clickaway") return;
+    setNotice((prev) => ({ ...prev, open: false }));
+  };
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      open={notice.open}
+      autoHideDuration={3000}
+      onClose={handleClose}
+    >
+      <Alert
+        onClose={handleClose}
+        severity={NOTICE_STYLE[notice.type]?.severity ?? "success"}
+        variant="filled"
+        sx={{
+          width: "100%",
+          fontSize: 12,
+          alignItems: "center",
+          color: "#fff",
+          backgroundColor: (NOTICE_STYLE[notice.type] ?? NOTICE_STYLE.add)
+            .color,
+          "& .MuiAlert-icon": { color: "#fff" },
+        }}
+      >
+        {notice.message}
+      </Alert>
+    </Snackbar>
+  );
+}
 
 const getPhysicianOptions = (rows) =>
   [...new Set(rows.map((r) => r.physician).filter(Boolean))].sort((a, b) =>
@@ -464,6 +726,7 @@ function Toolbar({
   onQueryChange,
   onAddNewPatient,
   onFilterOpen,
+  onExport,
   activeFilterCount,
 }) {
   return (
@@ -575,6 +838,7 @@ function Toolbar({
 
         <Button
           variant="outlined"
+          onClick={onExport}
           startIcon={<ExportIcon color="#2563EB" />}
           sx={{
             textTransform: "none",
@@ -1540,6 +1804,62 @@ function PatientsTable({
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
 
+/* Columns written to the CSV (the table shows name / age / gender in one cell) */
+const PATIENT_EXPORT_COLUMNS = [
+  { id: "name", label: "Name" },
+  { id: "age", label: "Age" },
+  { id: "gender", label: "Gender" },
+  { id: "location", label: "Location" },
+  { id: "mrn", label: "MRN" },
+  { id: "patientId", label: "Patient ID" },
+  { id: "dob", label: "DOB" },
+  { id: "physician", label: "Physician" },
+];
+
+/* ------------------------------------------------------------------ */
+/* CSV export: downloads every row the table currently matches          */
+/* (search + filter + sort applied, not only the current page)          */
+/* ------------------------------------------------------------------ */
+const csvCell = (val) => {
+  const str = String(val ?? "");
+  return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+function exportToCsv(columns, rows, filename) {
+  // "actions" column has nothing to export
+  const exportCols = columns.filter((c) => c.id !== "actions");
+
+  const header = exportCols
+    .map((c) => csvCell(String(c.label).replace(/\s*\n\s*/g, " ")))
+    .join(",");
+
+  const body = rows
+    .map((row) =>
+      exportCols
+        .map((c) => {
+          const v = row[c.id];
+          return csvCell(
+            typeof v === "boolean" ? (v ? "Active" : "Inactive") : v,
+          );
+        })
+        .join(","),
+    )
+    .join("\n");
+
+  // "\uFEFF" lets Excel open UTF-8 text correctly
+  const blob = new Blob(["\uFEFF" + header + "\n" + body], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function AllPatients() {
   const navigate = useNavigate();
 
@@ -1560,15 +1880,20 @@ export default function AllPatients() {
 
   // rows come from the shared store (AddNewPatient saves into it)
   const rows = usePatients();
-  const physicianOptions = React.useMemo(() => getPhysicianOptions(rows), [rows]);
+  const physicianOptions = React.useMemo(
+    () => getPhysicianOptions(rows),
+    [rows],
+  );
 
   /* 1) search + filter  2) sort */
   const visibleRows = React.useMemo(() => {
     const q = query.trim().toLowerCase();
 
     let result = rows.filter((r) => {
+      const nameText = r.name.toLowerCase().replace(/,/g, " ");
+      const words = q.replace(/,/g, " ").split(/\s+/).filter(Boolean);
       const matchSearch =
-        !q || r.name.toLowerCase().includes(q) || r.mrn.includes(q);
+        !q || words.every((w) => nameText.includes(w)) || r.mrn.includes(q);
       const matchPhysician =
         !physicianFilter || r.physician === physicianFilter;
       const matchGender = !genderFilter || r.gender === genderFilter;
@@ -1595,6 +1920,14 @@ export default function AllPatients() {
   }, [visibleRows.length]);
 
   // 3) slice for the current page
+  // Export button -> CSV of everything the table currently matches
+  const handleExport = () =>
+    exportToCsv(
+      PATIENT_EXPORT_COLUMNS,
+      visibleRows,
+      `patients_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+
   const pagedRows = visibleRows.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
@@ -1677,6 +2010,7 @@ export default function AllPatients() {
         onQueryChange={setQuery}
         onAddNewPatient={handleAddNewPatient}
         onFilterOpen={() => setFilterOpen(true)}
+        onExport={handleExport}
         activeFilterCount={activeFilterCount}
       />
 
@@ -1724,6 +2058,9 @@ export default function AllPatients() {
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />
+
+      {/* SNACKBAR: Bottom-Right (add / update / delete) */}
+      <PatientNoticeSnackbar />
     </Box>
   );
 }

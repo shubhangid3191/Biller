@@ -82,7 +82,8 @@ const PHONE_REGEX = /^\d{10}$/;
 const PHONE_ERROR = "Enter a valid 10-digit number";
 
 const REQUIRED_TEXT_FIELDS = {
-  practiceName: "Practice Name",
+  firstName: "First Name",
+  lastName: "Last Name",
   practiceCode: "Practice Short Code",
   npi: "NPI",
   ein: "EIN",
@@ -647,6 +648,24 @@ const onlyDigits = (s) => String(s ?? "").replace(/\D/g, "");
 /* Main Page                                                           */
 /* ------------------------------------------------------------------ */
 
+/* Name format used in the table: "Surname, First"  (e.g. "Dolare, Shubhangi")
+   splitName  : table value  -> First Name / Last Name fields
+   formatName : First / Last -> table value                              */
+const splitName = (full) => {
+  const s = String(full ?? "").trim();
+  if (s.includes(",")) {
+    const [last, ...rest] = s.split(",");
+    return { firstName: rest.join(",").trim(), lastName: last.trim() };
+  }
+  const parts = s.split(/\s+/).filter(Boolean);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+};
+
+const formatName = (first, last) =>
+  [String(last ?? "").trim(), String(first ?? "").trim()]
+    .filter(Boolean)
+    .join(", ");
+
 export default function PracticeEdit() {
   const navigate = useNavigate();
   const { state: routeState } = useLocation();
@@ -663,7 +682,7 @@ export default function PracticeEdit() {
   const [qrFile, setQrFile] = React.useState(null);
 
   const [form, setForm] = React.useState(() => ({
-    practiceName: row?.practice ?? "",
+    ...splitName(row?.practice),
     practiceCode: "",
     npi: row?.npi ?? "",
     ein: "",
@@ -779,7 +798,7 @@ export default function PracticeEdit() {
     const first = addresses[0] ?? {};
     savePractice({
       ...(isEdit ? { id: row.id } : {}),
-      practice: form.practiceName.trim(),
+      practice: formatName(form.firstName, form.lastName),
       address: buildAddress(first),
       contact: form.billingPhone,
       workPhone: onlyDigits(first.phone),
@@ -891,22 +910,20 @@ export default function PracticeEdit() {
 
           {/* Row 1 */}
           <FormGrid>
-            <InputField
-              label="Practice Name"
-              required
-              {...tx("practiceName")}
-            />
+            <InputField label="First Name" required {...tx("firstName")} />
+            <InputField label="Last Name" required {...tx("lastName")} />
             <InputField
               label="Practice Short Code"
               required
               {...tx("practiceCode")}
             />
             <InputField label="NPI" required {...tx("npi")} />
-            <InputField label="EIN" required {...tx("ein")} />
           </FormGrid>
 
           {/* Row 2 — Active toggle + SFTP fields */}
           <FormGrid>
+            <InputField label="EIN" required {...tx("ein")} />
+
             {/* Active toggle (same look as the other inputs) */}
             <Box sx={{ minWidth: 0 }}>
               <Label>Active</Label>
@@ -962,16 +979,16 @@ export default function PracticeEdit() {
               required
               {...tx("sftpUsername")}
             />
+          </FormGrid>
+
+          {/* Row 3 */}
+          <FormGrid>
             <InputField
               label="SFTP Password"
               required
               type="password"
               {...tx("sftpPassword")}
             />
-          </FormGrid>
-
-          {/* Row 3 */}
-          <FormGrid>
             <InputField label="SFTP Port" required {...tx("sftpPort")} />
             <InputField
               label="Practice Code"

@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
 import CheckIcon from "@mui/icons-material/Check";
+import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -53,6 +54,35 @@ import { validatePhone } from "../utils/phoneValidation.js";
 dayjs.extend(customParseFormat);
 
 const DATE_FORMAT = "MM-DD-YYYY";
+
+const NEW_CLAIMS_KEY = "newPreBillingClaims";
+
+const capName = (s) =>
+  String(s || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .replace(/(^|[\s'-])([a-z])/g, (_, p, c) => p + c.toUpperCase());
+
+/* "Dolare, Shubhangi V"  (Surname, Name M) */
+const formatPatientName = ({ firstName, middleName, lastName }) => {
+  const mid = String(middleName || "")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+  const given = [capName(firstName), mid].filter(Boolean).join(" ");
+  return [capName(lastName), given].filter(Boolean).join(", ");
+};
+
+/* saves a new claim so the Pre-Billing page can show it */
+const addNewClaim = (claim) => {
+  try {
+    const old = JSON.parse(localStorage.getItem(NEW_CLAIMS_KEY) || "[]");
+    localStorage.setItem(NEW_CLAIMS_KEY, JSON.stringify([claim, ...old]));
+  } catch {
+    /* storage blocked - ignore */
+  }
+};
 
 /* ================================================================== */
 /* DESIGN TOKENS (same as ReferringProviderEdit)                       */
@@ -1190,7 +1220,9 @@ function AssistBanner() {
 /* CARD 1 - PATIENT                                                    */
 /* ================================================================== */
 const EMPTY_PATIENT = {
-  legalName: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
   dob: "",
   gender: "",
   mrn: "",
@@ -1207,9 +1239,11 @@ const EMPTY_PATIENT = {
 
 const getInitialPatient = (claimData, isNewClaim) => {
   if (claimData) {
+    const [first = "", ...rest] = (claimData.patientName || "").split(" ");
     return {
       ...EMPTY_PATIENT,
-      legalName: claimData.patientName || "",
+      firstName: first,
+      lastName: rest.join(" "),
       dob: normalizeDate(claimData.dob),
       gender: claimData.gender?.replace(/[()]/g, "") || "",
       mrn: claimData.mrn || "",
@@ -1217,7 +1251,9 @@ const getInitialPatient = (claimData, isNewClaim) => {
   }
   if (isNewClaim) return { ...EMPTY_PATIENT };
   return {
-    legalName: "Wayne Jimmy",
+    firstName: "Jimmy",
+    middleName: "",
+    lastName: "Wayne",
     dob: "08-25-1978",
     gender: "Male",
     mrn: "563526626",
@@ -1233,20 +1269,23 @@ const getInitialPatient = (claimData, isNewClaim) => {
   };
 };
 
-function PatientSection({
-  sectionRef,
-  isNewClaim = false,
-  isEditMode = false,
-  claimData = null,
-}) {
+/* forwardRef so the page (Save button) can call validate() / getValues() */
+const PatientSection = React.forwardRef(function PatientSection(
+  { sectionRef, isNewClaim = false, isEditMode = false, claimData = null },
+  ref,
+) {
   const navigate = useNavigate();
   const [patient, setPatient] = React.useState(() =>
     getInitialPatient(claimData, isNewClaim),
   );
   const [phoneErrors, setPhoneErrors] = React.useState({});
+  const [errors, setErrors] = React.useState({});
 
-  const setField = (field) => (e) =>
+  /* typing clears that field's error */
+  const setField = (field) => (e) => {
     setPatient((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: "" } : prev));
+  };
 
   /* phone: digits only, max 10 */
   const handlePhoneChange = (field) => (e) => {
@@ -1259,6 +1298,37 @@ function PatientSection({
     const error = validatePhone(patient[field]);
     setPhoneErrors((prev) => ({ ...prev, [field]: error }));
   };
+
+  /* required: First Name, Last Name, DOB, Gender, Address */
+  const validate = () => {
+    const e = {};
+    if (!patient.firstName?.trim()) e.firstName = "First name is required";
+    if (!patient.lastName?.trim()) e.lastName = "Last name is required";
+
+    if (!patient.dob) e.dob = "DOB is required";
+    else if (!dayjs(patient.dob, DATE_FORMAT, true).isValid())
+      e.dob = "Enter a valid date (MM-DD-YYYY)";
+
+    if (!patient.gender) e.gender = "Gender is required";
+    if (!patient.address?.trim()) e.address = "Address is required";
+
+    // mobile is optional, but if filled it must be valid
+    if (patient.mobile) {
+      const mobileErr = validatePhone(patient.mobile);
+      if (mobileErr) {
+        e.mobile = mobileErr;
+        setPhoneErrors((p) => ({ ...p, mobile: mobileErr }));
+      }
+    }
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  React.useImperativeHandle(ref, () => ({
+    validate,
+    getValues: () => patient,
+  }));
 
   return (
     <SectionCard
@@ -1278,24 +1348,49 @@ function PatientSection({
         </>
       }
     >
+      {/* Row 1: First Name, Middle Name, Last Name, DOB */}
       <FormGrid>
         <InputField
-          label="Legal Name"
-          placeholder="Enter legal name"
-          value={patient.legalName}
-          onChange={setField("legalName")}
+          label="First Name"
+          placeholder="Enter first name"
+          required
+          value={patient.firstName}
+          onChange={setField("firstName")}
+          error={errors.firstName}
+        />
+        <InputField
+          label="Middle Name"
+          placeholder="Enter middle name"
+          value={patient.middleName}
+          onChange={setField("middleName")}
+        />
+        <InputField
+          label="Last Name"
+          placeholder="Enter last name"
+          required
+          value={patient.lastName}
+          onChange={setField("lastName")}
+          error={errors.lastName}
         />
         <DateField
           label="DOB"
+          required
           disableFuture
           value={patient.dob}
           onChange={setField("dob")}
+          error={errors.dob}
         />
+      </FormGrid>
+
+      {/* Row 2: Gender, MRN, SSN, Mobile No */}
+      <FormGrid>
         <SelectField
           label="Gender"
+          required
           options={["Male", "Female", "Other"]}
           value={patient.gender}
           onChange={setField("gender")}
+          error={errors.gender}
         />
         <InputField
           label="MRN"
@@ -1303,9 +1398,6 @@ function PatientSection({
           value={patient.mrn}
           onChange={setField("mrn")}
         />
-      </FormGrid>
-
-      <FormGrid>
         <InputField
           label="SSN"
           placeholder="000-00-0000"
@@ -1322,6 +1414,10 @@ function PatientSection({
           onBlur={handlePhoneBlur("mobile")}
           error={phoneErrors.mobile}
         />
+      </FormGrid>
+
+      {/* Row 3: Marital Status, PCP, Empl. Status, Employer */}
+      <FormGrid>
         <InputField
           label="Marital Status"
           placeholder="Enter status"
@@ -1329,27 +1425,16 @@ function PatientSection({
           onChange={setField("maritalStatus")}
         />
         <InputField
+          label="PCP"
+          placeholder="Enter PCP"
+          value={patient.pcp}
+          onChange={setField("pcp")}
+        />
+        <InputField
           label="Empl. Status"
           placeholder="Enter status"
           value={patient.emplStatus}
           onChange={setField("emplStatus")}
-        />
-      </FormGrid>
-
-      <FormGrid>
-        <InputField
-          label="Address"
-          placeholder="Enter full address"
-          multiline
-          rows={2}
-          value={patient.address}
-          onChange={setField("address")}
-        />
-        <InputField
-          label="Referral Source"
-          placeholder="Enter source"
-          value={patient.referralSource}
-          onChange={setField("referralSource")}
         />
         <InputField
           label="Employer"
@@ -1357,15 +1442,24 @@ function PatientSection({
           value={patient.employer}
           onChange={setField("employer")}
         />
-        <InputField
-          label="PCP"
-          placeholder="Enter PCP"
-          value={patient.pcp}
-          onChange={setField("pcp")}
-        />
       </FormGrid>
 
-      <FormGrid>
+      {/* Row 4: Referral Source, Address, Referring Physician */}
+      <FormGrid cols={3}>
+        <InputField
+          label="Referral Source"
+          placeholder="Enter source"
+          value={patient.referralSource}
+          onChange={setField("referralSource")}
+        />
+        <InputField
+          label="Address"
+          placeholder="Enter full address"
+          required
+          value={patient.address}
+          onChange={setField("address")}
+          error={errors.address}
+        />
         <InputField
           label="Referring Physician"
           placeholder="Enter physician"
@@ -1375,7 +1469,7 @@ function PatientSection({
       </FormGrid>
     </SectionCard>
   );
-}
+});
 
 /* ================================================================== */
 /* CARD 2 - CASE & INSURANCE                                           */
@@ -1462,7 +1556,6 @@ function CaseInsuranceSection({ sectionRef }) {
           {
             label: "Payor Scenario",
             type: "select",
-            // defaultValue: "select",
             options: [
               "Commercial",
               "Worker",
@@ -1627,13 +1720,11 @@ function CaseInsuranceSection({ sectionRef }) {
             {
               label: "Relationship to Insured",
               type: "select",
-              //defaultValue: "Self",
               options: ["Self", "Spouse", "Child", "Other"],
             },
             {
               label: "Release of Info",
               type: "select",
-              //defaultValue: "Y - Yes",
               options: ["Y - Yes", "N - No"],
             },
           ]}
@@ -1822,7 +1913,6 @@ function ConditionsSection({ sectionRef }) {
           {
             label: "Condition Date Type",
             type: "select",
-            //defaultValue: "None",
             options: ["None", "Initial", "Last seen", "Acute manifestation"],
           },
           { label: "Start Date", type: "date" },
@@ -1942,40 +2032,6 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
 /* ================================================================== */
 /* CARD 4 - ENCOUNTER DETAILS & CHARGES                                */
 /* ================================================================== */
-const PROC_COLUMNS = [
-  "DOS FROM",
-  "DOS TO",
-  "POS",
-  "PROCEDURES",
-  "MOD 1",
-  "MAP",
-  "DAYS/UNIT",
-  "UNIT CHARGE",
-  "TOTAL",
-  "COPAY",
-  "UC",
-  "UM",
-  "MOD 3",
-];
-
-const PROC_ROWS = [
-  [
-    "05-27-2026",
-    "05-27-2026",
-    "GCH-IP",
-    "36389.IH",
-    "99214",
-    "ABCDE",
-    "1",
-    "$100",
-    "$100",
-    "$10",
-    "1",
-    "5 ML",
-    "0.00",
-  ],
-];
-
 const DIAG_COLORS = [
   { bg: "#E2F6EE", color: "#1A7A54" },
   { bg: "#FDE8F0", color: "#B83070" },
@@ -1983,32 +2039,147 @@ const DIAG_COLORS = [
   { bg: "#FEF1DC", color: "#A66A12" },
 ];
 
-function ChargesSection({ sectionRef }) {
-  const [selectedColumns, setSelectedColumns] = React.useState(["NDC"]);
+const POS_OPTIONS = [
+  "11 - Office",
+  "10 - Telehealth",
+  "21 - Inpatient",
+  "22 - Outpatient",
+];
 
-  const [procRows, setProcRows] = React.useState(() =>
-    PROC_ROWS.map((cells, i) => ({ id: i + 1, cells })),
+const makeProcRow = (id) => ({
+  id,
+  dosFrom: "",
+  dosTo: "",
+  pos: "",
+  procedure: "",
+  emergency: false,
+  mod1: "",
+  mod2: "",
+  mod3: "",
+  mod4: "",
+  map: "",
+  days: "1",
+  unitCharge: "",
+  negative: false,
+  copay: "",
+  uc: "",
+  um: "",
+  ndcCode: "",
+  ndcUc: "",
+  ndcUm: "",
+  qualifier: "",
+  lineNote: "",
+  unspecAdded: false,
+});
+
+/* Total = Unit Charge x Days/Unit (+/- button flips the sign) */
+const calcTotal = (r) => {
+  const u = parseFloat(r.unitCharge);
+  const d = parseFloat(r.days);
+  if (isNaN(u) || isNaN(d)) return "";
+  return (u * d * (r.negative ? -1 : 1)).toFixed(2);
+};
+
+/* controlled select used inside table cells */
+function CellSelectC({
+  value,
+  onChange,
+  options,
+  placeholder = "Select",
+  minWidth = 90,
+}) {
+  return (
+    <FormControl size="small" sx={{ minWidth, width: "100%" }}>
+      <Select
+        displayEmpty
+        value={value}
+        onChange={onChange}
+        sx={selectSx()}
+        IconComponent={KeyboardArrowDownIcon}
+        renderValue={(v) =>
+          v ? (
+            <span style={{ fontSize: 12, color: T.text }}>{v}</span>
+          ) : (
+            <span style={{ fontSize: 12, color: T.placeholder }}>
+              {placeholder}
+            </span>
+          )
+        }
+      >
+        <MenuItem value="" sx={{ fontSize: 12, color: T.placeholder }}>
+          {placeholder}
+        </MenuItem>
+        {options.map((o) => (
+          <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            {o}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
-  const nextRowId = React.useRef(PROC_ROWS.length + 1);
+}
+
+/* Procedure code input with the search icon (like the reference) */
+function ProcCodeInput({ value, onChange, minWidth = 120 }) {
+  return (
+    <TextField
+      size="small"
+      value={value}
+      onChange={onChange}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end" sx={{ mr: "-2px" }}>
+              <SearchIcon sx={{ fontSize: 18, color: T.muted }} />
+            </InputAdornment>
+          ),
+        },
+      }}
+      sx={{ ...inputSx, minWidth }}
+    />
+  );
+}
+
+/* centered grouped header cell with a divider, like the reference */
+const groupHeadSx = (accent) => ({
+  ...tableHeadSx(accent),
+  textAlign: "center",
+  borderRight: `1px solid ${T.border}`,
+});
+
+const Req = () => (
+  <Box component="span" sx={{ color: T.error }}>
+    *
+  </Box>
+);
+
+function ChargesSection({ sectionRef }) {
+  /* nothing is selected at first: only the default columns show */
+  const [selectedColumns, setSelectedColumns] = React.useState([]);
+  const has = (c) => selectedColumns.includes(c);
+  const modCount = has("MOD") ? 4 : 1;
+
+  const [procRows, setProcRows] = React.useState(() => [makeProcRow(1)]);
+  const nextRowId = React.useRef(2);
 
   const addLine = () =>
-    setProcRows((prev) => {
-      const last = prev[prev.length - 1];
-      const cells = last ? [...last.cells] : [...PROC_ROWS[0]];
-      return [...prev, { id: nextRowId.current++, cells }];
-    });
+    setProcRows((prev) => [...prev, makeProcRow(nextRowId.current++)]);
 
-  const updateCell = (rowId, colIdx, val) =>
+  const updateRow = (rowId, patch) =>
     setProcRows((prev) =>
-      prev.map((r) =>
-        r.id === rowId
-          ? { ...r, cells: r.cells.map((c, j) => (j === colIdx ? val : c)) }
-          : r,
-      ),
+      prev.map((r) => (r.id === rowId ? { ...r, ...patch } : r)),
     );
 
   const deleteLine = (rowId) =>
     setProcRows((prev) => prev.filter((r) => r.id !== rowId));
+
+  /* table width grows when extra columns are switched on */
+  const extraCols =
+    (has("Emergency") ? 1 : 0) +
+    (has("MOD") ? 3 : 0) +
+    (has("NDC") ? 1 : 0) +
+    (has("Unspecified Code") ? 3 : 0);
+  const tableMinWidth = 900 + extraCols * 110;
 
   const [diagnoses, setDiagnoses] = React.useState([
     { id: 1, code: "F73" },
@@ -2029,6 +2200,8 @@ function ChargesSection({ sectionRef }) {
 
   const removeDiagnosis = (id) =>
     setDiagnoses((prev) => prev.filter((d) => d.id !== id));
+
+  const H = groupHeadSx(A.amber);
 
   return (
     <SectionCard
@@ -2209,21 +2382,109 @@ function ChargesSection({ sectionRef }) {
             ...thinScroll,
           }}
         >
-          <Table size="small" sx={{ minWidth: 1200 }}>
+          <Table
+            size="small"
+            sx={{
+              width: "100%",
+              tableLayout: "auto",
+              minWidth: tableMinWidth,
+              "& th, & td": { px: 0.75 },
+            }}
+          >
             <TableHead>
+              {/* Header row 1 */}
               <TableRow>
-                {PROC_COLUMNS.map((col) => (
-                  <TableCell key={col} sx={tableHeadSx(A.amber)}>
-                    {col}
+                <TableCell colSpan={2} sx={H}>
+                  Date Of Service
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  POS
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Procedures
+                </TableCell>
+                {has("Emergency") && (
+                  <TableCell rowSpan={2} sx={H}>
+                    Emergency
                   </TableCell>
-                ))}
+                )}
+                <TableCell colSpan={modCount} sx={H}>
+                  Modifiers
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  MAP
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Days/Unit
+                  <Req />
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Unit Charge
+                  <Req />
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Total
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Co-Pay
+                </TableCell>
+                {!has("NDC") && (
+                  <>
+                    <TableCell rowSpan={2} sx={H}>
+                      UC
+                    </TableCell>
+                    <TableCell rowSpan={2} sx={H}>
+                      UM
+                    </TableCell>
+                  </>
+                )}
+                {has("NDC") && (
+                  <TableCell colSpan={3} sx={H}>
+                    NDC
+                  </TableCell>
+                )}
+                {has("Unspecified Code") && (
+                  <TableCell colSpan={3} sx={H}>
+                    Unspecified Code
+                  </TableCell>
+                )}
                 <TableCell
+                  rowSpan={2}
                   sx={{ ...tableHeadSx(A.amber), textAlign: "center" }}
                 >
-                  ACTION
+                  Action
                 </TableCell>
               </TableRow>
+
+              {/* Header row 2 */}
+              <TableRow>
+                <TableCell sx={H}>From</TableCell>
+                <TableCell sx={H}>To</TableCell>
+                <TableCell sx={H}>Mod 1</TableCell>
+                {has("MOD") && (
+                  <>
+                    <TableCell sx={H}>Mod 2</TableCell>
+                    <TableCell sx={H}>Mod 3</TableCell>
+                    <TableCell sx={H}>Mod 4</TableCell>
+                  </>
+                )}
+                {has("NDC") && (
+                  <>
+                    <TableCell sx={H}>NDC Code</TableCell>
+                    <TableCell sx={H}>UC</TableCell>
+                    <TableCell sx={H}>UM</TableCell>
+                  </>
+                )}
+                {has("Unspecified Code") && (
+                  <>
+                    <TableCell sx={H}>Qualifier</TableCell>
+                    <TableCell sx={H}>Line Note</TableCell>
+                    <TableCell sx={H}>Add/Remove</TableCell>
+                  </>
+                )}
+              </TableRow>
             </TableHead>
+
             <TableBody>
               {procRows.map((row) => (
                 <TableRow
@@ -2233,16 +2494,281 @@ function ChargesSection({ sectionRef }) {
                     "&:last-child td": { borderBottom: 0 },
                   }}
                 >
-                  {row.cells.map((cell, j) => (
-                    <TableCell key={j} sx={tableCellSx}>
-                      <CellInput
-                        value={cell}
-                        onChange={(e) => updateCell(row.id, j, e.target.value)}
-                        minWidth={j < 2 ? 110 : j === 3 ? 100 : 76}
+                  {/* Date of service */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.dosFrom}
+                      onChange={(e) =>
+                        updateRow(row.id, { dosFrom: maskDate(e.target.value) })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.dosTo}
+                      onChange={(e) =>
+                        updateRow(row.id, { dosTo: maskDate(e.target.value) })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* POS */}
+                  <TableCell sx={tableCellSx}>
+                    <CellSelectC
+                      value={row.pos}
+                      onChange={(e) =>
+                        updateRow(row.id, { pos: e.target.value })
+                      }
+                      options={POS_OPTIONS}
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Procedures */}
+                  <TableCell sx={tableCellSx}>
+                    <ProcCodeInput
+                      value={row.procedure}
+                      onChange={(e) =>
+                        updateRow(row.id, { procedure: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Emergency (optional) */}
+                  {has("Emergency") && (
+                    <TableCell sx={{ ...tableCellSx, textAlign: "center" }}>
+                      <Checkbox
+                        size="small"
+                        checked={row.emergency}
+                        onChange={(e) =>
+                          updateRow(row.id, { emergency: e.target.checked })
+                        }
+                        sx={{
+                          p: 0.4,
+                          color: "#C8D0DC",
+                          "&.Mui-checked": { color: T.blue },
+                        }}
                       />
                     </TableCell>
-                  ))}
+                  )}
 
+                  {/* Modifiers */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.mod1}
+                      onChange={(e) =>
+                        updateRow(row.id, { mod1: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+                  {has("MOD") &&
+                    ["mod2", "mod3", "mod4"].map((k) => (
+                      <TableCell key={k} sx={tableCellSx}>
+                        <CellInput
+                          value={row[k]}
+                          onChange={(e) =>
+                            updateRow(row.id, { [k]: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    ))}
+
+                  {/* MAP */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.map}
+                      onChange={(e) =>
+                        updateRow(row.id, { map: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Days/Unit */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.days}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          days: e.target.value.replace(/\D/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Unit Charge */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.unitCharge}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          unitCharge: e.target.value.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Total (auto) + +/- */}
+                  <TableCell sx={tableCellSx}>
+                    <Box sx={{ position: "relative", width: "100%" }}>
+                      <CellInput
+                        value={calcTotal(row) || ""}
+                        onChange={() => {}}
+                        placeholder="Total"
+                        minWidth={0}
+                        sx={{ pr: "40px" }}
+                      />
+                      <Button
+                        onClick={() =>
+                          updateRow(row.id, { negative: !row.negative })
+                        }
+                        sx={{
+                          position: "absolute",
+                          right: 4,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          minWidth: 0,
+                          width: 30,
+                          height: 22,
+                          p: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          borderRadius: "6px",
+                          color: "#fff",
+                          bgcolor: A.green.main,
+                          "&:hover": { bgcolor: "#0E6149" },
+                        }}
+                      >
+                        +/-
+                      </Button>
+                    </Box>
+                  </TableCell>
+
+                  {/* Co-Pay */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.copay}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          copay: e.target.value.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* UC / UM (replaced by the NDC group when NDC is on) */}
+                  {!has("NDC") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.uc}
+                          onChange={(e) =>
+                            updateRow(row.id, { uc: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.um}
+                          onChange={(e) =>
+                            updateRow(row.id, { um: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* NDC (optional): NDC Code, UC, UM */}
+                  {has("NDC") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcCode}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcCode: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcUc}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcUc: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcUm}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcUm: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* Unspecified Code (optional): Qualifier, Line Note, Add/Remove */}
+                  {has("Unspecified Code") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.qualifier}
+                          onChange={(e) =>
+                            updateRow(row.id, { qualifier: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.lineNote}
+                          onChange={(e) =>
+                            updateRow(row.id, { lineNote: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ ...tableCellSx, textAlign: "center" }}>
+                        <Button
+                          onClick={() =>
+                            updateRow(row.id, { unspecAdded: !row.unspecAdded })
+                          }
+                          sx={{
+                            textTransform: "none",
+                            minWidth: 72,
+                            height: 26,
+                            px: 1.25,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            borderRadius: "6px",
+                            color: "#fff",
+                            bgcolor: row.unspecAdded ? T.error : A.green.main,
+                            "&:hover": {
+                              bgcolor: row.unspecAdded ? "#DC2626" : "#0E6149",
+                            },
+                          }}
+                        >
+                          {row.unspecAdded ? "Remove" : "Add"}
+                        </Button>
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* Action */}
                   <TableCell
                     sx={{ ...tableCellSx, width: 70, textAlign: "center" }}
                   >
@@ -2251,12 +2777,10 @@ function ChargesSection({ sectionRef }) {
                         size="small"
                         aria-label="Delete line"
                         onClick={() => deleteLine(row.id)}
-                        disabled={procRows.length === 0}
                         sx={{
                           ...actionBtnSx,
                           color: T.error,
                           "&:hover": { bgcolor: "#FEF2F2" },
-                          "&.Mui-disabled": { opacity: 0.4 },
                         }}
                       >
                         <RPDeleteIcon width={16} height={16} />
@@ -2302,7 +2826,6 @@ function AdditionalDetailsSection({ sectionRef }) {
           {
             label: "Has other claim ID",
             type: "select",
-            //defaultValue: "Yes",
             options: ["Yes", "No"],
           },
           { label: "Agency claim no." },
@@ -2333,7 +2856,6 @@ function AdditionalDetailsSection({ sectionRef }) {
           {
             label: "Claim code",
             type: "select",
-            //defaultValue: "W3",
             options: ["W3", "W2", "W1"],
           },
           { label: "Other date", type: "date" },
@@ -2344,7 +2866,6 @@ function AdditionalDetailsSection({ sectionRef }) {
           {
             label: "Other date qualifier",
             type: "select",
-            //defaultValue: "-",
             options: ["-"],
           },
           { label: "Resubmission code", defaultValue: "-" },
@@ -2371,7 +2892,7 @@ const SELECT_ACTION_ITEMS = [
   { label: "Need Info", highlighted: false },
 ];
 
-function FooterBar({ navigate }) {
+function FooterBar({ navigate, onSave }) {
   const [anchor, setAnchor] = React.useState(null);
   const open = Boolean(anchor);
 
@@ -2490,6 +3011,7 @@ function FooterBar({ navigate }) {
 
         {/* Save - Primary Button */}
         <PrimaryBtn
+          onClick={onSave}
           startIcon={<CheckIcon sx={{ fontSize: 16 }} />}
           sx={{
             color: "#FFFFFF",
@@ -2845,6 +3367,9 @@ export default function NewClaim() {
   const scrollLockRef = React.useRef(false);
   const lockTimerRef = React.useRef(null);
 
+  /* used to call validate() / getValues() on PatientSection */
+  const patientRef = React.useRef(null);
+
   const setRef = (id) => (node) => {
     sectionRefs.current[id] = node;
   };
@@ -2863,7 +3388,7 @@ export default function NewClaim() {
       const main = mainRef.current;
       if (!header || !main) return;
 
-      const threshold = header.getBoundingClientRect().bottom + 24;
+      const threshold = main.getBoundingClientRect().top + 24;
 
       let currentId = ids[0];
       for (const id of ids) {
@@ -2919,13 +3444,11 @@ export default function NewClaim() {
     const scroller = mainRef.current;
     if (!node || !scroller) return;
 
-    const header = headerRef.current;
-    const headerH = header ? header.getBoundingClientRect().height : 0;
     const gap = 12;
     const nodeTop = node.getBoundingClientRect().top;
     const scrollerTop = scroller.getBoundingClientRect().top;
 
-    const top = scroller.scrollTop + (nodeTop - scrollerTop) - headerH - gap;
+    const top = scroller.scrollTop + (nodeTop - scrollerTop) - gap;
     scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   };
 
@@ -2939,6 +3462,64 @@ export default function NewClaim() {
     lockTimerRef.current = window.setTimeout(() => {
       scrollLockRef.current = false;
     }, 1000);
+  };
+
+  /* Save: validate required patient fields, add the claim to Pre-Billing,
+     then go to the Pre-Billing list (it shows the snackbar). */
+  const handleSave = () => {
+    const ok = patientRef.current?.validate();
+    if (!ok) {
+      handleStepClick("patient");
+      return;
+    }
+
+    const p = patientRef.current.getValues();
+    const now = dayjs();
+    const seed = Date.now();
+    const genderCode =
+      { Male: "(M)", Female: "(F)", Other: "(O)" }[p.gender] || "";
+
+    const newClaim = {
+      id: seed,
+      encounterId: String(seed).slice(-7),
+      claimId: String(seed + 3).slice(-7),
+      referenceId: String(seed + 5).slice(-7),
+      dos: now.format("MM/DD/YYYY"),
+      dosShort: now.format("MM/DD/YY"),
+      patientName: formatPatientName(p), // Surname, Name M
+      gender: genderCode,
+      fin: String(seed).slice(-6),
+      mrn: p.mrn || "NA",
+      dob: (p.dob || "").replace(/-/g, "/"),
+      pos: "The University RL",
+      cpt: "",
+      cpt2: "",
+      modifier: "",
+      modifier2: "",
+      icd: "",
+      icd2: "",
+      doa: now.format("MM/DD/YYYY"),
+      referral: p.referringPhysician || "NA",
+      author: "NA",
+      subscriber: "NA",
+      placeOfService: "NA",
+      primaryInsurance: "NA",
+      plan: "NA",
+      billed: "$0",
+      billedAmount: "$0",
+      patientCopay: "$0",
+      patientPayment: "$0",
+      status: "Unbilled",
+      remarks: "New claim",
+    };
+
+    addNewClaim(newClaim);
+    navigate("/claims/pre-billing", {
+      state: {
+        snackMessage: "Claim added successfully",
+        snackType: "add",
+      },
+    });
   };
 
   return (
@@ -3007,6 +3588,7 @@ export default function NewClaim() {
             {!isNewClaim && <AssistBanner />}
 
             <PatientSection
+              ref={patientRef}
               sectionRef={setRef("patient")}
               isNewClaim={isNewClaim}
               isEditMode={isEditMode}
@@ -3017,7 +3599,7 @@ export default function NewClaim() {
             <ChargesSection sectionRef={setRef("charges")} />
             <AdditionalDetailsSection sectionRef={setRef("additional")} />
 
-            <FooterBar navigate={navigate} />
+            <FooterBar navigate={navigate} onSave={handleSave} />
           </Box>
         </Box>
       </Box>

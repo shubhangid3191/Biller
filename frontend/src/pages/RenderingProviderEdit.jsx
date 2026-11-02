@@ -498,6 +498,23 @@ function SectionBox({ children }) {
   );
 }
 
+/* Table shows "Last, First" -> split it back into the two form fields */
+const splitProviderName = (full) => {
+  const s = String(full ?? "").trim();
+  if (s.includes(",")) {
+    const [last, ...rest] = s.split(",");
+    return { firstName: rest.join(",").trim(), lastName: last.trim() };
+  }
+  const parts = s.split(/\s+/).filter(Boolean);
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+};
+
+/* Name format used in the table: "Surname, First" */
+const formatProviderName = (first, last) =>
+  [String(last ?? "").trim(), String(first ?? "").trim()]
+    .filter(Boolean)
+    .join(", ");
+
 /* Address text shown in the table: "Address 1, Address 2, City, State Zip" */
 const buildAddress = (f) => {
   const stateZip = [f.state, f.zipCode]
@@ -526,8 +543,8 @@ export default function RenderingProviderEdit() {
   const [pcp, setPcp] = React.useState(saved?.pcp ?? true);
 
   const [form, setForm] = React.useState(() => ({
-    firstName: row?.providerName?.split(" ")[0] ?? "",
-    lastName: row?.providerName?.split(" ").slice(1).join(" ") ?? "",
+    firstName: splitProviderName(row?.providerName).firstName,
+    lastName: splitProviderName(row?.providerName).lastName,
     dateOfBirth: "",
     sex: "",
     suffix: "",
@@ -671,7 +688,7 @@ export default function RenderingProviderEdit() {
     /* valid -> save to the shared store (table updates), then go back */
     saveProvider({
       ...(isEdit ? { id: row.id } : {}),
-      providerName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+      providerName: formatProviderName(form.firstName, form.lastName),
       address: buildAddress(form),
       npi: form.npi.trim(),
       fax: form.fax,
