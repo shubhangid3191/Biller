@@ -35,6 +35,7 @@ import ProgramEdit from "../pages/ProgramEdit";
 import PostBillingEditPage from "../pages/PostBillingEditPage";
 import PostBillingDetail from "../pages/PostBillingDetail";
 import RemittanceERAEdit from "../pages/RemittanceERAEdit";
+import Reports from "../pages/Reports";
 
 const AppRoutes = () => {
   return (
@@ -316,7 +317,7 @@ const AppRoutes = () => {
         path="/reports"
         element={
           <ProtectedRoute>
-            <div style={{ padding: "24px" }}>Reports Page</div>
+            <Reports />
           </ProtectedRoute>
         }
       />
