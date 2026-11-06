@@ -538,14 +538,12 @@ export default function LocationsEdit() {
     <Box
       sx={{
         bgcolor: T.page,
-        minHeight: "100vh",
+        minHeight: "100%",
         width: "100%",
         py: 1,
         px: 2,
         boxSizing: "border-box",
-        overflowX: "hidden",
-        overflowY: "auto",
-        ...thinScroll,
+        overflow: "hidden",
       }}
     >
       <Box

@@ -35,6 +35,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import SearchIcon from "@mui/icons-material/Search";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import {
@@ -1994,39 +1995,138 @@ function SelectColumnsMenu({ selectedColumns, onChange }) {
 /* ================================================================== */
 /* CARD 4 - ENCOUNTER DETAILS & CHARGES                                */
 /* ================================================================== */
-const PROC_COLUMNS = [
-  "DOS FROM",
-  "DOS TO",
-  "POS",
-  "PROCEDURES",
-  "MOD 1",
-  "MAP",
-  "DAYS/UNIT",
-  "UNIT CHARGE",
-  "TOTAL",
-  "COPAY",
-  "UC",
-  "UM",
-  "MOD 3",
+const POS_OPTIONS = [
+  "11 - Office",
+  "10 - Telehealth",
+  "21 - Inpatient",
+  "22 - Outpatient",
 ];
 
-const PROC_ROWS = [
-  [
-    "05-27-2026",
-    "05-27-2026",
-    "GCH-IP",
-    "36389.IH",
-    "99214",
-    "ABCDE",
-    "1",
-    "$100",
-    "$100",
-    "$10",
-    "1",
-    "5 ML",
-    "0.00",
-  ],
-];
+const makeProcRow = (id) => ({
+  id,
+  dosFrom: "",
+  dosTo: "",
+  pos: "",
+  procedure: "",
+  emergency: false,
+  mod1: "",
+  mod2: "",
+  mod3: "",
+  mod4: "",
+  map: "",
+  days: "1",
+  unitCharge: "",
+  negative: false,
+  copay: "",
+  uc: "",
+  um: "",
+  ndcCode: "",
+  ndcUc: "",
+  ndcUm: "",
+  qualifier: "",
+  lineNote: "",
+  unspecAdded: false,
+});
+
+/* Total = Unit Charge x Days/Unit (+/- button flips the sign) */
+const calcTotal = (r) => {
+  const u = parseFloat(r.unitCharge);
+  const d = parseFloat(r.days);
+  if (isNaN(u) || isNaN(d)) return "";
+  return (u * d * (r.negative ? -1 : 1)).toFixed(2);
+};
+
+/* controlled select used inside table cells */
+function CellSelectC({
+  value,
+  onChange,
+  options,
+  placeholder = "Select",
+  minWidth = 90,
+}) {
+  /* keep the current value selectable even if it is not in `options` */
+  const opts =
+    value && !options.includes(value) ? [value, ...options] : options;
+
+  return (
+    <FormControl size="small" sx={{ minWidth, width: "100%" }}>
+      <Select
+        displayEmpty
+        value={value}
+        onChange={onChange}
+        sx={selectSx()}
+        IconComponent={KeyboardArrowDownIcon}
+        renderValue={(v) =>
+          v ? (
+            <span style={{ fontSize: 12, color: T.text }}>{v}</span>
+          ) : (
+            <span style={{ fontSize: 12, color: T.placeholder }}>
+              {placeholder}
+            </span>
+          )
+        }
+      >
+        <MenuItem value="" sx={{ fontSize: 12, color: T.placeholder }}>
+          {placeholder}
+        </MenuItem>
+        {opts.map((o) => (
+          <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>
+            {o}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+/* Procedure code input with the search icon (like the reference) */
+function ProcCodeInput({ value, onChange, minWidth = 120 }) {
+  return (
+    <TextField
+      size="small"
+      value={value}
+      onChange={onChange}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end" sx={{ mr: "-2px" }}>
+              <SearchIcon sx={{ fontSize: 18, color: T.muted }} />
+            </InputAdornment>
+          ),
+        },
+      }}
+      sx={{ ...inputSx, minWidth }}
+    />
+  );
+}
+
+/* centered grouped header cell with a divider, like the reference */
+const groupHeadSx = (accent) => ({
+  ...tableHeadSx(accent),
+  textAlign: "center",
+  borderRight: `1px solid ${T.border}`,
+});
+
+const Req = () => (
+  <Box component="span" sx={{ color: T.error }}>
+    *
+  </Box>
+);
+
+/* line shown first for an existing claim (the old dummy line, in the new columns) */
+const INITIAL_PROC_VALUES = {
+  dosFrom: "05-27-2026",
+  dosTo: "05-27-2026",
+  pos: "GCH-IP",
+  procedure: "36389.IH",
+  mod1: "99214",
+  map: "ABCDE",
+  days: "1",
+  unitCharge: "100",
+  copay: "10",
+  uc: "1",
+  um: "5 ML",
+};
 
 const DIAG_COLORS = [
   { bg: "#E2F6EE", color: "#1A7A54" },
@@ -2036,35 +2136,41 @@ const DIAG_COLORS = [
 ];
 
 function ChargesSection({ sectionRef, onNotify }) {
-  const [selectedColumns, setSelectedColumns] = React.useState(["NDC"]);
+  const [selectedColumns, setSelectedColumns] = React.useState([]);
+  const has = (c) => selectedColumns.includes(c);
+  const modCount = has("MOD") ? 4 : 1;
 
-  const [procRows, setProcRows] = React.useState(() =>
-    PROC_ROWS.map((cells, i) => ({ id: i + 1, cells })),
-  );
-  const nextRowId = React.useRef(PROC_ROWS.length + 1);
+  const [procRows, setProcRows] = React.useState(() => [
+    { ...makeProcRow(1), ...INITIAL_PROC_VALUES },
+  ]);
+  const nextRowId = React.useRef(2);
 
+  /* + Add line -> a new line below, same values as the last line */
   const addLine = () => {
     setProcRows((prev) => {
-      const last = prev[prev.length - 1];
-      const cells = last ? [...last.cells] : [...PROC_ROWS[0]];
-      return [...prev, { id: nextRowId.current++, cells }];
+      const last = prev[prev.length - 1] ?? makeProcRow(0);
+      return [...prev, { ...last, id: nextRowId.current++ }];
     });
     onNotify?.("Procedure line added");
   };
 
-  const updateCell = (rowId, colIdx, val) =>
+  const updateRow = (rowId, patch) =>
     setProcRows((prev) =>
-      prev.map((r) =>
-        r.id === rowId
-          ? { ...r, cells: r.cells.map((c, j) => (j === colIdx ? val : c)) }
-          : r,
-      ),
+      prev.map((r) => (r.id === rowId ? { ...r, ...patch } : r)),
     );
 
   const deleteLine = (rowId) => {
     setProcRows((prev) => prev.filter((r) => r.id !== rowId));
     onNotify?.("Procedure line deleted", "delete");
   };
+
+  /* table width grows when extra columns are switched on */
+  const extraCols =
+    (has("Emergency") ? 1 : 0) +
+    (has("MOD") ? 3 : 0) +
+    (has("NDC") ? 1 : 0) +
+    (has("Unspecified Code") ? 3 : 0);
+  const tableMinWidth = 900 + extraCols * 110;
 
   const [diagnoses, setDiagnoses] = React.useState([
     { id: 1, code: "F73" },
@@ -2088,6 +2194,8 @@ function ChargesSection({ sectionRef, onNotify }) {
     setDiagnoses((prev) => prev.filter((d) => d.id !== id));
     onNotify?.("Diagnosis removed", "delete");
   };
+
+  const H = groupHeadSx(A.amber);
 
   return (
     <SectionCard
@@ -2268,21 +2376,109 @@ function ChargesSection({ sectionRef, onNotify }) {
             ...thinScroll,
           }}
         >
-          <Table size="small" sx={{ minWidth: 1200 }}>
+          <Table
+            size="small"
+            sx={{
+              width: "100%",
+              tableLayout: "auto",
+              minWidth: tableMinWidth,
+              "& th, & td": { px: 0.75 },
+            }}
+          >
             <TableHead>
+              {/* Header row 1 */}
               <TableRow>
-                {PROC_COLUMNS.map((col) => (
-                  <TableCell key={col} sx={tableHeadSx(A.amber)}>
-                    {col}
+                <TableCell colSpan={2} sx={H}>
+                  Date Of Service
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  POS
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Procedures
+                </TableCell>
+                {has("Emergency") && (
+                  <TableCell rowSpan={2} sx={H}>
+                    Emergency
                   </TableCell>
-                ))}
+                )}
+                <TableCell colSpan={modCount} sx={H}>
+                  Modifiers
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  MAP
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Days/Unit
+                  <Req />
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Unit Charge
+                  <Req />
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Total
+                </TableCell>
+                <TableCell rowSpan={2} sx={H}>
+                  Co-Pay
+                </TableCell>
+                {!has("NDC") && (
+                  <>
+                    <TableCell rowSpan={2} sx={H}>
+                      UC
+                    </TableCell>
+                    <TableCell rowSpan={2} sx={H}>
+                      UM
+                    </TableCell>
+                  </>
+                )}
+                {has("NDC") && (
+                  <TableCell colSpan={3} sx={H}>
+                    NDC
+                  </TableCell>
+                )}
+                {has("Unspecified Code") && (
+                  <TableCell colSpan={3} sx={H}>
+                    Unspecified Code
+                  </TableCell>
+                )}
                 <TableCell
+                  rowSpan={2}
                   sx={{ ...tableHeadSx(A.amber), textAlign: "center" }}
                 >
-                  ACTION
+                  Action
                 </TableCell>
               </TableRow>
+
+              {/* Header row 2 */}
+              <TableRow>
+                <TableCell sx={H}>From</TableCell>
+                <TableCell sx={H}>To</TableCell>
+                <TableCell sx={H}>Mod 1</TableCell>
+                {has("MOD") && (
+                  <>
+                    <TableCell sx={H}>Mod 2</TableCell>
+                    <TableCell sx={H}>Mod 3</TableCell>
+                    <TableCell sx={H}>Mod 4</TableCell>
+                  </>
+                )}
+                {has("NDC") && (
+                  <>
+                    <TableCell sx={H}>NDC Code</TableCell>
+                    <TableCell sx={H}>UC</TableCell>
+                    <TableCell sx={H}>UM</TableCell>
+                  </>
+                )}
+                {has("Unspecified Code") && (
+                  <>
+                    <TableCell sx={H}>Qualifier</TableCell>
+                    <TableCell sx={H}>Line Note</TableCell>
+                    <TableCell sx={H}>Add/Remove</TableCell>
+                  </>
+                )}
+              </TableRow>
             </TableHead>
+
             <TableBody>
               {procRows.map((row) => (
                 <TableRow
@@ -2292,16 +2488,281 @@ function ChargesSection({ sectionRef, onNotify }) {
                     "&:last-child td": { borderBottom: 0 },
                   }}
                 >
-                  {row.cells.map((cell, j) => (
-                    <TableCell key={j} sx={tableCellSx}>
-                      <CellInput
-                        value={cell}
-                        onChange={(e) => updateCell(row.id, j, e.target.value)}
-                        minWidth={j < 2 ? 110 : j === 3 ? 100 : 76}
+                  {/* Date of service */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.dosFrom}
+                      onChange={(e) =>
+                        updateRow(row.id, { dosFrom: maskDate(e.target.value) })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.dosTo}
+                      onChange={(e) =>
+                        updateRow(row.id, { dosTo: maskDate(e.target.value) })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* POS */}
+                  <TableCell sx={tableCellSx}>
+                    <CellSelectC
+                      value={row.pos}
+                      onChange={(e) =>
+                        updateRow(row.id, { pos: e.target.value })
+                      }
+                      options={POS_OPTIONS}
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Procedures */}
+                  <TableCell sx={tableCellSx}>
+                    <ProcCodeInput
+                      value={row.procedure}
+                      onChange={(e) =>
+                        updateRow(row.id, { procedure: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Emergency (optional) */}
+                  {has("Emergency") && (
+                    <TableCell sx={{ ...tableCellSx, textAlign: "center" }}>
+                      <Checkbox
+                        size="small"
+                        checked={row.emergency}
+                        onChange={(e) =>
+                          updateRow(row.id, { emergency: e.target.checked })
+                        }
+                        sx={{
+                          p: 0.4,
+                          color: "#C8D0DC",
+                          "&.Mui-checked": { color: T.blue },
+                        }}
                       />
                     </TableCell>
-                  ))}
+                  )}
 
+                  {/* Modifiers */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.mod1}
+                      onChange={(e) =>
+                        updateRow(row.id, { mod1: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+                  {has("MOD") &&
+                    ["mod2", "mod3", "mod4"].map((k) => (
+                      <TableCell key={k} sx={tableCellSx}>
+                        <CellInput
+                          value={row[k]}
+                          onChange={(e) =>
+                            updateRow(row.id, { [k]: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    ))}
+
+                  {/* MAP */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.map}
+                      onChange={(e) =>
+                        updateRow(row.id, { map: e.target.value })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Days/Unit */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.days}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          days: e.target.value.replace(/\D/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Unit Charge */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.unitCharge}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          unitCharge: e.target.value.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* Total (auto) + +/- */}
+                  <TableCell sx={tableCellSx}>
+                    <Box sx={{ position: "relative", width: "100%" }}>
+                      <CellInput
+                        value={calcTotal(row) || ""}
+                        onChange={() => {}}
+                        placeholder="Total"
+                        minWidth={0}
+                        sx={{ pr: "40px" }}
+                      />
+                      <Button
+                        onClick={() =>
+                          updateRow(row.id, { negative: !row.negative })
+                        }
+                        sx={{
+                          position: "absolute",
+                          right: 4,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          minWidth: 0,
+                          width: 30,
+                          height: 22,
+                          p: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          borderRadius: "6px",
+                          color: "#fff",
+                          bgcolor: A.green.main,
+                          "&:hover": { bgcolor: "#0E6149" },
+                        }}
+                      >
+                        +/-
+                      </Button>
+                    </Box>
+                  </TableCell>
+
+                  {/* Co-Pay */}
+                  <TableCell sx={tableCellSx}>
+                    <CellInput
+                      value={row.copay}
+                      onChange={(e) =>
+                        updateRow(row.id, {
+                          copay: e.target.value.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                      minWidth={0}
+                    />
+                  </TableCell>
+
+                  {/* UC / UM (replaced by the NDC group when NDC is on) */}
+                  {!has("NDC") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.uc}
+                          onChange={(e) =>
+                            updateRow(row.id, { uc: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.um}
+                          onChange={(e) =>
+                            updateRow(row.id, { um: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* NDC (optional): NDC Code, UC, UM */}
+                  {has("NDC") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcCode}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcCode: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcUc}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcUc: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.ndcUm}
+                          onChange={(e) =>
+                            updateRow(row.id, { ndcUm: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* Unspecified Code (optional): Qualifier, Line Note, Add/Remove */}
+                  {has("Unspecified Code") && (
+                    <>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.qualifier}
+                          onChange={(e) =>
+                            updateRow(row.id, { qualifier: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={tableCellSx}>
+                        <CellInput
+                          value={row.lineNote}
+                          onChange={(e) =>
+                            updateRow(row.id, { lineNote: e.target.value })
+                          }
+                          minWidth={0}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ ...tableCellSx, textAlign: "center" }}>
+                        <Button
+                          onClick={() =>
+                            updateRow(row.id, { unspecAdded: !row.unspecAdded })
+                          }
+                          sx={{
+                            textTransform: "none",
+                            minWidth: 72,
+                            height: 26,
+                            px: 1.25,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            borderRadius: "6px",
+                            color: "#fff",
+                            bgcolor: row.unspecAdded ? T.error : A.green.main,
+                            "&:hover": {
+                              bgcolor: row.unspecAdded ? "#DC2626" : "#0E6149",
+                            },
+                          }}
+                        >
+                          {row.unspecAdded ? "Remove" : "Add"}
+                        </Button>
+                      </TableCell>
+                    </>
+                  )}
+
+                  {/* Action */}
                   <TableCell
                     sx={{ ...tableCellSx, width: 70, textAlign: "center" }}
                   >
@@ -2310,12 +2771,10 @@ function ChargesSection({ sectionRef, onNotify }) {
                         size="small"
                         aria-label="Delete line"
                         onClick={() => deleteLine(row.id)}
-                        disabled={procRows.length === 0}
                         sx={{
                           ...actionBtnSx,
                           color: T.error,
                           "&:hover": { bgcolor: "#FEF2F2" },
-                          "&.Mui-disabled": { opacity: 0.4 },
                         }}
                       >
                         <RPDeleteIcon width={16} height={16} />
